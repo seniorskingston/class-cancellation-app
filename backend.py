@@ -15,10 +15,14 @@ EXCEL_PATH = os.environ.get("EXCEL_PATH", r'S:\Rebecca\Class Cancellation app\Cl
 
 app = FastAPI(title="Program Schedule Update API")
 
-# Allow CORS for frontend
+# Allow CORS for frontend - specifically allow Render domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://class-cancellation-frontend.onrender.com",
+        "http://localhost:3000",  # For local development
+        "https://localhost:3000"   # For local development
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -80,34 +84,46 @@ def group_programs(rows):
 
 def load_cancellations():
     global cancellations_data, last_loaded
+    print(f"🔍 Loading cancellations from: {EXCEL_PATH}")
+    print(f"🔍 File exists: {os.path.exists(EXCEL_PATH)}")
+    
     if not os.path.exists(EXCEL_PATH):
+        print(f"❌ Excel file not found at: {EXCEL_PATH}")
+        print(f"❌ Current working directory: {os.getcwd()}")
+        print(f"❌ Directory contents: {os.listdir('.')}")
         cancellations_data = []
         last_loaded = datetime.now()
         return
     xl = pd.ExcelFile(EXCEL_PATH)
     all_rows = []
+    total_rows = 0
+    filtered_rows = 0
     print("Processing sheets:", xl.sheet_names)
     for sheet in xl.sheet_names:
         df = xl.parse(sheet)
         cols = [c.strip().lower().replace(' ', '_') for c in df.columns]
         df.columns = cols
         count_cancellations = 0
+        sheet_rows = 0
         for _, row in df.iterrows():
+            total_rows += 1
             row_dict = row.to_dict()
-            program = get_col(row_dict, ['event'])
-            program_id = get_col(row_dict, ['course_id'])
-            date_range = get_col(row_dict, ['date'])
-            time = get_col(row_dict, ['time'])
-            location = get_col(row_dict, ['location'])
-            actions = str(get_col(row_dict, ['actions'])).strip().upper() == 'TRUE'
+            program = get_col(row_dict, ['event', 'Event'])
+            program_id = get_col(row_dict, ['course_id', 'Course ID'])
+            date_range = get_col(row_dict, ['date', 'Date'])
+            time = get_col(row_dict, ['time', 'Time'])
+            location = get_col(row_dict, ['location', 'Location'])
+            actions = str(get_col(row_dict, ['actions', 'Actions'])).strip().upper() == 'TRUE'
             program_status = "Cancelled" if actions else "Active"
-            class_cancellation = get_col(row_dict, ['cancellation_date', 'cancellationdate', 'cancelled_date', 'cancel_date'])
-            note = get_col(row_dict, ['note'])
+            class_cancellation = get_col(row_dict, ['cancellation_date', 'cancellationdate', 'cancelled_date', 'cancel_date', 'Cancellation Date'])
+            note = get_col(row_dict, ['note', 'Note'])
             
-            # Skip rows with no program information
-            if not program and not program_id and not date_range:
+            # Skip rows with no program information - be less strict
+            if not program and not program_id:
                 continue
                 
+            filtered_rows += 1
+            sheet_rows += 1
             all_rows.append({
                 'sheet': safe_str(sheet),
                 'program': safe_str(program),
@@ -121,7 +137,9 @@ def load_cancellations():
             })
             if safe_str(class_cancellation).strip() != '':
                 count_cancellations += 1
-        print(f"Sheet '{sheet}': {count_cancellations} cancellations found.")
+        print(f"Sheet '{sheet}': {count_cancellations} cancellations found, {sheet_rows} valid rows processed.")
+    print(f"Total rows processed: {total_rows}, Valid rows after filtering: {filtered_rows}")
+    print(f"Rows to be grouped: {len(all_rows)}")
     grouped = group_programs(all_rows)
     enriched_rows = []
     for (program_id, date_range), group in grouped.items():
@@ -150,8 +168,11 @@ def load_cancellations():
                 row['classes_finished'] = safe_str(classes_finished)
                 row['withdrawal'] = safe_str(withdrawal)
             enriched_rows.append(row)
+    
     cancellations_data = enriched_rows
     last_loaded = datetime.now()
+    print(f"✅ Successfully loaded {len(cancellations_data)} records")
+    print(f"✅ Last loaded: {last_loaded}")
 
 load_cancellations()
 
@@ -168,6 +189,9 @@ def get_cancellations(
     program_status: Optional[str] = Query(None),
     has_cancellation: Optional[bool] = Query(False),
 ):
+    print(f"API call received - Query params: {locals()}")
+    print(f"Total data available: {len(cancellations_data)} rows")
+    
     results = []
     for row in cancellations_data:
         if program and program.lower() not in str(row['program']).lower():
@@ -184,6 +208,8 @@ def get_cancellations(
         if has_cancellation and not row['class_cancellation']:
             continue
         results.append(row)
+    
+    print(f"Returning {len(results)} results")
     return {"data": results, "last_loaded": last_loaded}
 
 @app.post("/api/refresh")

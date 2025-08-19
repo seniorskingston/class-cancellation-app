@@ -18,6 +18,10 @@ type Cancellation = {
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api"; // Use environment variable for deployment
 
+// Debug: Log the API URL to console
+console.log("API_URL:", API_URL);
+console.log("Environment variables:", process.env);
+
 function App() {
   const [cancellations, setCancellations] = useState<Cancellation[]>([]);
   const [filters, setFilters] = useState({
@@ -42,16 +46,30 @@ function App() {
 
   const fetchCancellations = async (hasCancellation = true) => {
     setLoading(true);
-    const params = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) params.append(key, value);
-    });
-    if (hasCancellation) params.append("has_cancellation", "true");
-    const res = await fetch(`${API_URL}/cancellations?${params.toString()}`);
-    const data = await res.json();
-    setCancellations(data.data);
-    setLastLoaded(data.last_loaded);
-    setLoading(false);
+    try {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+      if (hasCancellation) params.append("has_cancellation", "true");
+      
+      console.log("Fetching from:", `${API_URL}/cancellations?${params.toString()}`);
+      
+      const res = await fetch(`${API_URL}/cancellations?${params.toString()}`);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      setCancellations(data.data);
+      setLastLoaded(data.last_loaded);
+    } catch (error) {
+      console.error("Error fetching cancellations:", error);
+      setCancellations([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -67,9 +85,17 @@ function App() {
 
   const handleRefresh = async () => {
     setLoading(true);
-    await fetch(`${API_URL}/refresh`, { method: "POST" });
-    await fetchCancellations(showingCancellationsOnly);
-    setLoading(false);
+    try {
+      const res = await fetch(`${API_URL}/refresh`, { method: "POST" });
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      await fetchCancellations(showingCancellationsOnly);
+    } catch (error) {
+      console.error("Error refreshing:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleShowAll = () => {
