@@ -1,0 +1,23 @@
+services:
+  # Backend Service
+  - type: web
+    name: class-cancellation-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: EXCEL_PATH
+        value: ./Class Cancellation App.xlsx
+    healthCheckPath: /docs
+
+  # Frontend Service (Static Site)
+  - type: web
+    name: class-cancellation-frontend
+    env: static
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://class-cancellation-backend.onrender.com/api

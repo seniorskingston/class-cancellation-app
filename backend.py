@@ -20,12 +20,14 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://class-cancellation-frontend.onrender.com",
+        "https://class-cancellation-frontend.onrender.com/",
         "http://localhost:3000",  # For local development
         "https://localhost:3000"   # For local development
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    allow_origin_regex=r"https://.*\.onrender\.com",
 )
 
 cancellations_data = []
@@ -189,8 +191,9 @@ def get_cancellations(
     program_status: Optional[str] = Query(None),
     has_cancellation: Optional[bool] = Query(False),
 ):
-    print(f"API call received - Query params: {locals()}")
-    print(f"Total data available: {len(cancellations_data)} rows")
+    print(f"🌐 API call received from frontend")
+    print(f"📊 Query params: {locals()}")
+    print(f"📈 Total data available: {len(cancellations_data)} rows")
     
     results = []
     for row in cancellations_data:
@@ -216,3 +219,13 @@ def get_cancellations(
 def manual_refresh():
     load_cancellations()
     return {"status": "refreshed", "last_loaded": last_loaded}
+
+@app.get("/api/test")
+def test_connection():
+    """Test endpoint to verify CORS and connection"""
+    return {
+        "message": "Backend is working!",
+        "timestamp": datetime.now().isoformat(),
+        "data_count": len(cancellations_data),
+        "cancellations_count": len([r for r in cancellations_data if r['class_cancellation']])
+    }
