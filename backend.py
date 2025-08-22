@@ -11,7 +11,7 @@ import re
 PORT = int(os.environ.get("PORT", 8000))
 
 # Use environment variable for Excel path, fallback to local path
-EXCEL_PATH = os.environ.get("EXCEL_PATH", r'S:\Rebecca\Class Cancellation app\Class Cancellation App.xlsx')
+EXCEL_PATH = os.environ.get("EXCEL_PATH", './Class Cancellation App.xlsx')
 
 app = FastAPI(title="Program Schedule Update API")
 
@@ -59,6 +59,8 @@ def weekday_from_sheet(sheet):
         if d in sheet_lower:
             return i
     return None
+
+
 
 def parse_cancel_dates(cancel_str):
     if not cancel_str:
@@ -115,9 +117,12 @@ def load_cancellations():
             date_range = get_col(row_dict, ['date', 'Date'])
             time = get_col(row_dict, ['time', 'Time'])
             location = get_col(row_dict, ['location', 'Location'])
+            
+            # Check actions for cancellation
             actions = str(get_col(row_dict, ['actions', 'Actions'])).strip().upper() == 'TRUE'
             program_status = "Cancelled" if actions else "Active"
             class_cancellation = get_col(row_dict, ['cancellation_date', 'cancellationdate', 'cancelled_date', 'cancel_date', 'Cancellation Date'])
+            
             note = get_col(row_dict, ['note', 'Note'])
             
             # Skip rows with no program information - be less strict
@@ -133,6 +138,8 @@ def load_cancellations():
                 'date_range': safe_str(date_range),
                 'time': safe_str(time),
                 'location': safe_str(location),
+                'class_room': safe_str(get_col(row_dict, ['facility', 'Facility'])),  # New: Class Room from Facility
+                'instructor': safe_str(get_col(row_dict, ['instructor', 'Instructor'])),  # New: Instructor
                 'program_status': safe_str(program_status),
                 'class_cancellation': safe_str(class_cancellation),
                 'note': safe_str(note),
@@ -162,12 +169,10 @@ def load_cancellations():
             classes_finished = len(finished_dates)
         withdrawal = "No" if classes_finished >= 3 else "Yes"
         for row in group:
-            # For cancelled programs, set classes_finished and withdrawal to empty
+            # For cancelled programs, set withdrawal to empty
             if row['program_status'] == 'Cancelled':
-                row['classes_finished'] = ""
                 row['withdrawal'] = ""
             else:
-                row['classes_finished'] = safe_str(classes_finished)
                 row['withdrawal'] = safe_str(withdrawal)
             enriched_rows.append(row)
     

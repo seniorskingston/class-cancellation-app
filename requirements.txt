@@ -3,4 +3,5 @@ uvicorn
 pandas
 openpyxl
 python-multipart
-apscheduler 
+apscheduler
+reportlab 
