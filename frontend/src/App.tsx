@@ -9,18 +9,15 @@ type Cancellation = {
   date_range: string;
   time: string;
   location: string;
+  class_room: string;  // New: Class Room from Facility
+  instructor: string;  // New: Instructor
   program_status: string;
   class_cancellation: string;
   note: string;
-  classes_finished: number;
   withdrawal: string;
 };
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api"; // Use environment variable for deployment
-
-// Debug: Log the API URL to console
-console.log("API_URL:", API_URL);
-console.log("Environment variables:", process.env);
 
 function App() {
   const [cancellations, setCancellations] = useState<Cancellation[]>([]);
@@ -29,6 +26,7 @@ function App() {
     program_id: "",
     day: "",
     date: "",
+    location: "",
     program_status: "",
   });
   const [lastLoaded, setLastLoaded] = useState<string>("");
@@ -52,8 +50,6 @@ function App() {
         if (value) params.append(key, value);
       });
       if (hasCancellation) params.append("has_cancellation", "true");
-      
-      console.log("Fetching from:", `${API_URL}/cancellations?${params.toString()}`);
       
       const res = await fetch(`${API_URL}/cancellations?${params.toString()}`);
       
@@ -112,7 +108,7 @@ function App() {
         <img src={logo} alt="Company Logo" className="app-logo" />
         <h1>Program Schedule Update</h1>
         <div className="datetime-display">
-          {currentDateTime.toLocaleDateString()} {currentDateTime.toLocaleTimeString()}
+          {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {currentDateTime.toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
         </div>
       </header>
       <div className="filters">
@@ -143,6 +139,12 @@ function App() {
           value={filters.date}
           onChange={handleInputChange}
         />
+        <input
+          name="location"
+          placeholder="Location"
+          value={filters.location}
+          onChange={handleInputChange}
+        />
         <select
           name="program_status"
           value={filters.program_status}
@@ -162,12 +164,12 @@ function App() {
           </button>
         ) : (
           <button onClick={handleShowCancellations} style={{ background: "#0072ce" }}>
-            Show Only Cancellations
+            Show Class Cancellations
           </button>
         )}
       </div>
       <div className="last-loaded">
-        Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString() : "Never"}
+        Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}
       </div>
       <div className="table-container">
         <table>
@@ -179,17 +181,18 @@ function App() {
               <th>Date Range</th>
               <th>Time</th>
               <th>Location</th>
+              <th>Class Room</th>
+              <th>Instructor</th>
               <th>Program Status</th>
               <th>Class Cancellation</th>
-              <th>Note</th>
-              <th>Classes Finished</th>
+              <th>Additional Information</th>
               <th>Withdrawal</th>
             </tr>
           </thead>
           <tbody>
             {cancellations.length === 0 && (
               <tr>
-                <td colSpan={11} style={{ textAlign: "center" }}>
+                <td colSpan={12} style={{ textAlign: "center" }}>
                   No programs found.
                 </td>
               </tr>
@@ -202,10 +205,11 @@ function App() {
                 <td>{c.date_range}</td>
                 <td>{c.time}</td>
                 <td>{c.location}</td>
+                <td>{c.class_room}</td>
+                <td>{c.instructor}</td>
                 <td>{c.program_status}</td>
-                <td>{c.class_cancellation}</td>
+                <td>{c.class_cancellation ? new Date(c.class_cancellation).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' }) : ''}</td>
                 <td>{c.note}</td>
-                <td>{c.program_status === "Cancelled" ? "" : c.classes_finished}</td>
                 <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
               </tr>
             ))}
