@@ -17,7 +17,7 @@ type Cancellation = {
   withdrawal: string;
 };
 
-const API_URL = "http://localhost:8000/api"; // Temporarily hardcoded for local testing
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 function App() {
   const [cancellations, setCancellations] = useState<Cancellation[]>([]);
