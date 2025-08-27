@@ -96,9 +96,17 @@ def import_excel_data(file_content: bytes):
                 
                 # Determine status based on Actions column
                 actions = safe_str(row.get('Actions', row.get('actions', '')))
-                program_status = "Cancelled" if actions.strip().upper() == 'TRUE' else "Active"
-                
                 class_cancellation = safe_str(row.get('Cancellation Date', row.get('cancellation_date', '')))
+                
+                # Program status: Actions TRUE = whole program cancelled, Actions FALSE = program active
+                if actions.strip().upper() == 'TRUE':
+                    program_status = "Cancelled"
+                else:
+                    program_status = "Active"
+                
+                # Note: class_cancellation field contains individual class cancellation dates
+                # for active programs (when Actions = FALSE)
+                
                 note = safe_str(row.get('Note', row.get('note', '')))
                 withdrawal = ""  # Will be calculated later
                 
@@ -159,7 +167,7 @@ def get_programs_from_db(
         params.append(program_status)
     
     if has_cancellation:
-        query += " AND class_cancellation != ''"
+        query += " AND (program_status = 'Cancelled' OR class_cancellation != '' AND class_cancellation IS NOT NULL)"
     
     # Execute query
     cursor.execute(query, params)
