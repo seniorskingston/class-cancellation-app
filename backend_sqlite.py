@@ -63,49 +63,58 @@ def init_database():
 def import_excel_data(file_content: bytes):
     """Import data from Excel file into SQLite database"""
     try:
-        # Read Excel file
-        df = pd.read_excel(io.BytesIO(file_content))
+        # Read ALL sheets from Excel file
+        excel_data = pd.read_excel(io.BytesIO(file_content), sheet_name=None)
         
         # Clear existing data
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("DELETE FROM programs")
         
-        # Process each row
-        for _, row in df.iterrows():
-            # Extract data with proper handling of NaN values
-            def safe_str(value):
-                if pd.isna(value) or value == 'nan' or value == '':
-                    return ""
-                return str(value).strip()
+        total_records = 0
+        
+        # Process each sheet
+        for sheet_name, df in excel_data.items():
+            print(f"Processing sheet: {sheet_name}")
+            print(f"Rows in {sheet_name}: {len(df)}")
             
-            program = safe_str(row.get('Event', row.get('event', '')))
-            program_id = safe_str(row.get('Course ID', row.get('course_id', '')))
-            date_range = safe_str(row.get('Date', row.get('date', '')))
-            time = safe_str(row.get('Time', row.get('time', '')))
-            location = safe_str(row.get('Location', row.get('location', '')))
-            class_room = safe_str(row.get('Facility', row.get('facility', '')))
-            instructor = safe_str(row.get('Instructor', row.get('instructor', '')))
-            
-            # Determine status based on Actions column
-            actions = safe_str(row.get('Actions', row.get('actions', '')))
-            program_status = "Cancelled" if actions.strip().upper() == 'TRUE' else "Active"
-            
-            class_cancellation = safe_str(row.get('Cancellation Date', row.get('cancellation_date', '')))
-            note = safe_str(row.get('Note', row.get('note', '')))
-            withdrawal = ""  # Will be calculated later
-            
-            # Insert into database
-            cursor.execute('''
-                INSERT INTO programs (sheet, program, program_id, date_range, time, location, 
-                                   class_room, instructor, program_status, class_cancellation, note, withdrawal)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', ('Main', program, program_id, date_range, time, location, 
-                  class_room, instructor, program_status, class_cancellation, note, withdrawal))
+            # Process each row in the sheet
+            for _, row in df.iterrows():
+                # Extract data with proper handling of NaN values
+                def safe_str(value):
+                    if pd.isna(value) or value == 'nan' or value == '':
+                        return ""
+                    return str(value).strip()
+                
+                program = safe_str(row.get('Event', row.get('event', '')))
+                program_id = safe_str(row.get('Course ID', row.get('course_id', '')))
+                date_range = safe_str(row.get('Date', row.get('date', '')))
+                time = safe_str(row.get('Time', row.get('time', '')))
+                location = safe_str(row.get('Location', row.get('location', '')))
+                class_room = safe_str(row.get('Facility', row.get('facility', '')))
+                instructor = safe_str(row.get('Instructor', row.get('instructor', '')))
+                
+                # Determine status based on Actions column
+                actions = safe_str(row.get('Actions', row.get('actions', '')))
+                program_status = "Cancelled" if actions.strip().upper() == 'TRUE' else "Active"
+                
+                class_cancellation = safe_str(row.get('Cancellation Date', row.get('cancellation_date', '')))
+                note = safe_str(row.get('Note', row.get('note', '')))
+                withdrawal = ""  # Will be calculated later
+                
+                # Insert into database with sheet name
+                cursor.execute('''
+                    INSERT INTO programs (sheet, program, program_id, date_range, time, location, 
+                                       class_room, instructor, program_status, class_cancellation, note, withdrawal)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (sheet_name, program, program_id, date_range, time, location, 
+                      class_room, instructor, program_status, class_cancellation, note, withdrawal))
+                
+                total_records += 1
         
         conn.commit()
         conn.close()
-        print(f"✅ Imported {len(df)} records to database")
+        print(f"✅ Imported {total_records} records to database")
         return True
         
     except Exception as e:
