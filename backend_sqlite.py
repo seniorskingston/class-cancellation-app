@@ -218,6 +218,20 @@ def get_cancellations(
     print(f"🌐 API call received from frontend")
     print(f"📊 Query params: {locals()}")
     
+    # Get total count first for debugging
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM programs")
+    total_count = cursor.fetchone()[0]
+    print(f"📈 Total data available: {total_count} rows")
+    
+    # Check if we have any cancellations
+    cursor.execute("SELECT COUNT(*) FROM programs WHERE class_cancellation != '' AND class_cancellation IS NOT NULL")
+    cancellation_count = cursor.fetchone()[0]
+    print(f"🚫 Cancellations found: {cancellation_count} rows")
+    
+    conn.close()
+    
     programs = get_programs_from_db(
         program=program,
         program_id=program_id,
@@ -230,6 +244,24 @@ def get_cancellations(
     
     print(f"📈 Returning {len(programs)} results")
     return {"data": programs, "last_loaded": datetime.now().isoformat()}
+
+@app.post("/api/refresh")
+async def refresh_data():
+    """Manual refresh endpoint - returns current data count"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM programs")
+        count = cursor.fetchone()[0]
+        conn.close()
+        
+        return {
+            "message": "Data refreshed successfully",
+            "data_count": count,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {"error": f"Failed to refresh: {str(e)}"}
 
 @app.post("/api/import-excel")
 async def import_excel(file: UploadFile = File(...)):
