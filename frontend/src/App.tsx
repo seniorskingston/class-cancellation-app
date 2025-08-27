@@ -279,7 +279,25 @@ function App() {
                 <td>{c.class_room}</td>
                 <td>{c.instructor}</td>
                 <td>{c.program_status}</td>
-                <td>{c.class_cancellation && c.class_cancellation !== '' ? new Date(c.class_cancellation).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' }) : ''}</td>
+                <td>{c.class_cancellation && c.class_cancellation !== '' ? 
+                  c.class_cancellation.split(';').map((date, index) => {
+                    const trimmedDate = date.trim();
+                    if (trimmedDate) {
+                      try {
+                        const parsedDate = new Date(trimmedDate);
+                        if (!isNaN(parsedDate.getTime())) {
+                          return (
+                            <div key={index}>
+                              {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
+                            </div>
+                          );
+                        }
+                      } catch (e) {
+                        // If parsing fails, show the original text
+                      }
+                    }
+                    return null;
+                  }).filter(Boolean) || c.class_cancellation : ''}</td>
                 <td>{c.note && c.note !== '' ? c.note : ''}</td>
                 <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
               </tr>
