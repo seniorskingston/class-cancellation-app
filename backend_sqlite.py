@@ -167,7 +167,7 @@ def get_programs_from_db(
         params.append(program_status)
     
     if has_cancellation:
-        query += " AND (program_status = 'Cancelled' OR class_cancellation != '' AND class_cancellation IS NOT NULL)"
+        query += " AND class_cancellation != '' AND class_cancellation IS NOT NULL"
     
     # Execute query
     cursor.execute(query, params)
