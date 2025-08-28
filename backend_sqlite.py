@@ -51,12 +51,26 @@ def calculate_withdrawal(date_range: str, class_cancellation: str) -> str:
             return "Unknown"
         
         # Parse the date range (assuming format like "Sep 9 - Dec 16, 2025")
-        # Extract start date
-        date_parts = date_range.split('-')
-        if len(date_parts) < 2:
-            return "Unknown"
-        
-        start_date_str = date_parts[0].strip()
+        # Extract start date - handle multiple hyphens properly
+        # For dates like "2025-09-09 - 2025-12-16", we need to find the last hyphen that separates the range
+        if date_range.count('-') >= 2:
+            # Handle ISO format dates with multiple hyphens
+            # Find the last hyphen that separates the date range
+            last_hyphen_index = date_range.rfind(' - ')
+            if last_hyphen_index != -1:
+                start_date_str = date_range[:last_hyphen_index].strip()
+            else:
+                # Fallback: split by " - " (space-hyphen-space)
+                date_parts = date_range.split(' - ')
+                if len(date_parts) < 2:
+                    return "Unknown"
+                start_date_str = date_parts[0].strip()
+        else:
+            # Simple case: single hyphen
+            date_parts = date_range.split('-')
+            if len(date_parts) < 2:
+                return "Unknown"
+            start_date_str = date_parts[0].strip()
         
         # Handle ISO format dates (e.g., "2025-09-09")
         start_date = None
@@ -198,7 +212,12 @@ def calculate_withdrawal(date_range: str, class_cancellation: str) -> str:
             return "Yes"  # Can still withdraw
             
     except Exception as e:
-        print(f"Error calculating withdrawal: {e}")
+        print(f"❌ Error calculating withdrawal: {e}")
+        print(f"🔍 Date range: '{date_range}'")
+        print(f"🔍 Class cancellation: '{class_cancellation}'")
+        import traceback
+        print(f"📋 Full error traceback:")
+        traceback.print_exc()
         return "Unknown"
 
 def init_database():
