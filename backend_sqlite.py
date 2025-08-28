@@ -59,6 +59,7 @@ def calculate_withdrawal(date_range: str, class_cancellation: str) -> str:
         start_date_str = date_parts[0].strip()
         
         # Handle ISO format dates (e.g., "2025-09-09")
+        start_date = None
         if '-' in start_date_str and len(start_date_str.split('-')) == 3:
             # This might be an ISO date, try to parse it directly
             try:
@@ -66,10 +67,6 @@ def calculate_withdrawal(date_range: str, class_cancellation: str) -> str:
                 print(f"✅ Parsed ISO date: {start_date}")
             except ValueError:
                 pass  # Continue with normal parsing
-        
-        # Try to parse the start date
-        # Handle various date formats
-        start_date = None
         
         # Try different date formats
         date_formats = [
@@ -85,15 +82,22 @@ def calculate_withdrawal(date_range: str, class_cancellation: str) -> str:
             "%B %d",          # "September 9" (without year)
         ]
         
+        print(f"🔍 Trying to parse start date: '{start_date_str}'")
+        print(f"📅 Available formats: {date_formats}")
+        
         for fmt in date_formats:
             try:
                 if fmt in ["%b %d", "%B %d"]:
                     # For dates without year, add current year
-                    start_date = datetime.strptime(f"{start_date_str} {datetime.now(KINGSTON_TZ).year}", f"{fmt} %Y")
+                    test_date = f"{start_date_str} {datetime.now(KINGSTON_TZ).year}"
+                    start_date = datetime.strptime(test_date, f"{fmt} %Y")
+                    print(f"✅ Parsed with format '{fmt}': {start_date}")
                 else:
                     start_date = datetime.strptime(start_date_str, fmt)
+                    print(f"✅ Parsed with format '{fmt}': {start_date}")
                 break
-            except ValueError:
+            except ValueError as e:
+                print(f"❌ Format '{fmt}' failed: {e}")
                 continue
         
         if not start_date:
