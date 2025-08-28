@@ -58,36 +58,121 @@ def calculate_withdrawal(date_range: str, class_cancellation: str) -> str:
         
         start_date_str = date_parts[0].strip()
         
+        # Handle ISO format dates (e.g., "2025-09-09")
+        if '-' in start_date_str and len(start_date_str.split('-')) == 3:
+            # This might be an ISO date, try to parse it directly
+            try:
+                start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+                print(f"✅ Parsed ISO date: {start_date}")
+            except ValueError:
+                pass  # Continue with normal parsing
+        
         # Try to parse the start date
         # Handle various date formats
         start_date = None
         
         # Try different date formats
         date_formats = [
+            "%a %d/%m/%Y",    # "Wed 03/09/2025" (your Excel format)
             "%b %d, %Y",      # "Sep 9, 2025"
             "%B %d, %Y",      # "September 9, 2025"
             "%b %d %Y",       # "Sep 9 2025"
             "%B %d %Y",       # "September 9 2025"
             "%Y-%m-%d",       # "2025-09-09"
             "%m/%d/%Y",       # "09/09/2025"
+            "%d/%m/%Y",       # "03/09/2025" (DD/MM/YYYY)
+            "%b %d",          # "Sep 9" (without year)
+            "%B %d",          # "September 9" (without year)
         ]
         
         for fmt in date_formats:
             try:
-                start_date = datetime.strptime(start_date_str, fmt)
+                if fmt in ["%b %d", "%B %d"]:
+                    # For dates without year, add current year
+                    start_date = datetime.strptime(f"{start_date_str} {datetime.now(KINGSTON_TZ).year}", f"{fmt} %Y")
+                else:
+                    start_date = datetime.strptime(start_date_str, fmt)
                 break
             except ValueError:
                 continue
         
         if not start_date:
-            return "Unknown"
+            # Try to extract just the month and day if all else fails
+            try:
+                # Look for patterns like "Sep 9" or "September 9"
+                import re
+                month_day_match = re.search(r'([A-Za-z]+)\s+(\d+)', start_date_str)
+                if month_day_match:
+                    month_str = month_day_match.group(1)
+                    day_str = month_day_match.group(2)
+                    # Try to parse with current year
+                    current_year = datetime.now(KINGSTON_TZ).year
+                    start_date = datetime.strptime(f"{month_str} {day_str} {current_year}", "%b %d %Y")
+                    print(f"✅ Parsed date using fallback: {start_date}")
+            except Exception as e:
+                print(f"❌ Fallback parsing failed: {e}")
+                return "Unknown"
         
         # Get today's date in Kingston timezone
         today = datetime.now(KINGSTON_TZ).date()
         start_date = start_date.date()
         
-        # Calculate total weeks from start to today
-        total_weeks = (today - start_date).days / 7
+        # Calculate actual class days between start date and today
+        # For date ranges like "Wed 03/09/2025 - Fri 14/11/2025", classes are on Wednesdays and Fridays
+        
+        # Extract the days of the week from the date range
+        # Handle all possible combinations like:
+        # "Wed 03/09/2025 - Fri 14/11/2025" (Wed, Fri)
+        # "Tue 05/09/2025 - Thu 14/11/2025" (Tue, Thu)
+        # "Mon 02/09/2025 - Wed 13/11/2025" (Mon, Wed)
+        # "Mon 01/09/2025 - Fri 15/11/2025" (Mon, Tue, Wed, Thu, Fri)
+        
+        day_abbreviations = []
+        
+        # Check for all possible day abbreviations in the date range
+        if 'Mon' in date_range:
+            day_abbreviations.append('Mon')
+        if 'Tue' in date_range:
+            day_abbreviations.append('Tue')
+        if 'Wed' in date_range:
+            day_abbreviations.append('Wed')
+        if 'Thu' in date_range:
+            day_abbreviations.append('Thu')
+        if 'Fri' in date_range:
+            day_abbreviations.append('Fri')
+        if 'Sat' in date_range:
+            day_abbreviations.append('Sat')
+        if 'Sun' in date_range:
+            day_abbreviations.append('Sun')
+        
+        # If no day abbreviations found, assume weekly classes
+        if not day_abbreviations:
+            day_abbreviations = ['Mon']  # Default to weekly
+            print(f"⚠️ No day abbreviations found, assuming weekly classes")
+        
+        print(f"📅 Classes scheduled on: {', '.join(day_abbreviations)}")
+        print(f"📊 Total scheduled days per week: {len(day_abbreviations)}")
+        
+        # Count actual class days between start and today
+        total_classes = 0
+        current_date = start_date
+        class_days_found = []
+        
+        print(f"🔍 Counting classes from {start_date.strftime('%Y-%m-%d')} to {today.strftime('%Y-%m-%d')}")
+        
+        while current_date <= today:
+            # Check if this date is a scheduled class day
+            day_name = current_date.strftime('%a')  # Gets 'Mon', 'Tue', 'Wed', etc.
+            
+            if day_name in day_abbreviations:
+                # This is a scheduled class day
+                total_classes += 1
+                class_days_found.append(f"{current_date.strftime('%Y-%m-%d')} ({day_name})")
+                print(f"✅ Class day: {current_date.strftime('%Y-%m-%d')} ({day_name})")
+            
+            current_date += timedelta(days=1)
+        
+        print(f"📋 All class days found: {', '.join(class_days_found)}")
         
         # Count cancelled classes
         cancelled_count = 0
@@ -95,10 +180,12 @@ def calculate_withdrawal(date_range: str, class_cancellation: str) -> str:
             # Split by semicolon and count each cancelled date
             cancelled_dates = [d.strip() for d in class_cancellation.split(';') if d.strip()]
             cancelled_count = len(cancelled_dates)
+            print(f"🚫 Cancelled classes: {cancelled_count}")
         
-        # Calculate classes that would have happened (assuming weekly classes)
-        # Subtract cancelled classes
-        total_classes = max(0, total_weeks - cancelled_count)
+        # Subtract cancelled classes from total
+        total_classes = max(0, total_classes - cancelled_count)
+        
+        print(f"📊 Total classes that would have happened: {total_classes}")
         
         # Determine withdrawal eligibility
         if total_classes >= 3:
