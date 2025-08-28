@@ -7,12 +7,16 @@ from typing import Optional
 from datetime import datetime, timedelta
 import pandas as pd
 import io
+import pytz
 
 # Use environment variable for port, default to 8000 (Render uses PORT env var)
 PORT = int(os.environ.get("PORT", 8000))
 
 # Database file path
 DB_PATH = "class_cancellations.db"
+
+# Set timezone to Kingston, Ontario
+KINGSTON_TZ = pytz.timezone('America/Toronto')
 
 app = FastAPI(title="Program Schedule Update API")
 
@@ -30,6 +34,81 @@ app.add_middleware(
     allow_headers=["*"],
     allow_origin_regex=r"https://.*\.onrender\.com",
 )
+
+def calculate_withdrawal(date_range: str, class_cancellation: str) -> str:
+    """
+    Calculate withdrawal eligibility based on:
+    - If 3 or more classes have finished: "No"
+    - If less than 3 classes finished: "Yes"
+    
+    Class calculation considers:
+    - Start date from date_range
+    - Today's date
+    - Cancelled classes between these dates
+    """
+    try:
+        if not date_range or date_range.strip() == '':
+            return "Unknown"
+        
+        # Parse the date range (assuming format like "Sep 9 - Dec 16, 2025")
+        # Extract start date
+        date_parts = date_range.split('-')
+        if len(date_parts) < 2:
+            return "Unknown"
+        
+        start_date_str = date_parts[0].strip()
+        
+        # Try to parse the start date
+        # Handle various date formats
+        start_date = None
+        
+        # Try different date formats
+        date_formats = [
+            "%b %d, %Y",      # "Sep 9, 2025"
+            "%B %d, %Y",      # "September 9, 2025"
+            "%b %d %Y",       # "Sep 9 2025"
+            "%B %d %Y",       # "September 9 2025"
+            "%Y-%m-%d",       # "2025-09-09"
+            "%m/%d/%Y",       # "09/09/2025"
+        ]
+        
+        for fmt in date_formats:
+            try:
+                start_date = datetime.strptime(start_date_str, fmt)
+                break
+            except ValueError:
+                continue
+        
+        if not start_date:
+            return "Unknown"
+        
+        # Get today's date in Kingston timezone
+        today = datetime.now(KINGSTON_TZ).date()
+        start_date = start_date.date()
+        
+        # Calculate total weeks from start to today
+        total_weeks = (today - start_date).days / 7
+        
+        # Count cancelled classes
+        cancelled_count = 0
+        if class_cancellation and class_cancellation.strip() != '':
+            # Split by semicolon and count each cancelled date
+            cancelled_dates = [d.strip() for d in class_cancellation.split(';') if d.strip()]
+            cancelled_count = len(cancelled_dates)
+        
+        # Calculate classes that would have happened (assuming weekly classes)
+        # Subtract cancelled classes
+        total_classes = max(0, total_weeks - cancelled_count)
+        
+        # Determine withdrawal eligibility
+        if total_classes >= 3:
+            return "No"  # Cannot withdraw after 3 classes
+        else:
+            return "Yes"  # Can still withdraw
+            
+    except Exception as e:
+        print(f"Error calculating withdrawal: {e}")
+        return "Unknown"
 
 def init_database():
     """Initialize SQLite database with tables"""
@@ -108,7 +187,9 @@ def import_excel_data(file_content: bytes):
                 # for active programs (when Actions = FALSE)
                 
                 note = safe_str(row.get('Note', row.get('note', '')))
-                withdrawal = ""  # Will be calculated later
+                
+                # Calculate withdrawal eligibility
+                withdrawal = calculate_withdrawal(date_range, class_cancellation)
                 
                 # Insert into database with sheet name
                 cursor.execute('''
@@ -208,7 +289,7 @@ def test_connection():
     
     return {
         "message": "Backend is working with SQLite!",
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(KINGSTON_TZ).isoformat(),
         "data_count": count,
         "database": "SQLite"
     }
@@ -251,7 +332,7 @@ def get_cancellations(
     )
     
     print(f"📈 Returning {len(programs)} results")
-    return {"data": programs, "last_loaded": datetime.now().isoformat()}
+    return {"data": programs, "last_loaded": datetime.now(KINGSTON_TZ).isoformat()}
 
 @app.post("/api/refresh")
 async def refresh_data():
@@ -266,7 +347,7 @@ async def refresh_data():
         return {
             "message": "Data refreshed successfully",
             "data_count": count,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now(KINGSTON_TZ).isoformat()
         }
     except Exception as e:
         return {"error": f"Failed to refresh: {str(e)}"}
@@ -321,7 +402,7 @@ def export_excel(
     return Response(
         content=output.getvalue(),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename=class_cancellations_{datetime.now().strftime('%Y%m%d')}.xlsx"}
+        headers={"Content-Disposition": f"attachment; filename=class_cancellations_{datetime.now(KINGSTON_TZ).strftime('%Y%m%d')}.xlsx"}
     )
 
 @app.get("/api/export-pdf")
@@ -430,7 +511,7 @@ def export_pdf(
         return Response(
             content=output.getvalue(),
             media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename=class_cancellations_{datetime.now().strftime('%Y%m%d')}.pdf"}
+            headers={"Content-Disposition": f"attachment; filename=class_cancellations_{datetime.now(KINGSTON_TZ).strftime('%Y%m%d')}.pdf"}
         )
         
     except Exception as e:
