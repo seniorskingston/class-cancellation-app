@@ -325,75 +325,109 @@ function App() {
               </div>
             </header>
             <div className="user-guide-content">
-              <h2>USER GUIDE</h2>
+              <h2>Program Schedule Update App – User Guide</h2>
               
-              <h3>OVERVIEW</h3>
-              <p>This app helps you view and manage class cancellations and program schedules. You can filter, search, and export data as needed.</p>
+              <p><strong>Welcome!</strong> This guide will help you navigate the Program Schedule Update App efficiently, allowing you to view, filter, and manage program schedules and class cancellations.</p>
 
-              <h3>MAIN FEATURES</h3>
-
-              <h4>1. VIEWING DATA</h4>
+              <h3>1. Loading Data</h3>
               <ul>
-                <li>The app shows all programs by default</li>
-                <li>Click "Show Class Cancellations" to see only classes with individual cancellations</li>
-                <li>Click "Show All Programs" to see all programs again</li>
+                <li>When you open the app, please allow a few minutes for all program data to load completely.</li>
+                <li>Data automatically refreshes every 5 minutes.</li>
               </ul>
 
-              <h4>2. FILTERING</h4>
+              <h3>2. Searching for a Program</h3>
+              <p>You can quickly find programs using any of the following search options:</p>
               <ul>
-                <li><strong>Program:</strong> Search by program name</li>
-                <li><strong>Program ID:</strong> Search by specific program ID</li>
-                <li><strong>Day:</strong> Filter by day of the week (Monday, Tuesday, etc.)</li>
-                <li><strong>Date:</strong> Filter by specific date</li>
-                <li><strong>Location:</strong> Filter by location</li>
-                <li><strong>Program Status:</strong> Filter by status (Active, Cancelled, Additions)</li>
+                <li><strong>Program Name</strong> – Search by the name of the program/class.</li>
+                <li><strong>Program ID</strong> – Enter the unique identifier for a program.</li>
+                <li><strong>Date and Location</strong> – Filter programs by a specific date and location.</li>
               </ul>
 
-              <h4>3. REFRESHING DATA</h4>
+              <h3>3. Understanding Program Statuses</h3>
+              <p>Programs in the schedule may have one of the following statuses:</p>
               <ul>
-                <li>Click "Refresh" to update the data from the database</li>
-                <li>Data automatically refreshes every 5 minutes</li>
+                <li><strong>Active</strong> – Program is currently running (most common).</li>
+                <li><strong>Cancelled</strong> – Program has been fully cancelled.</li>
+                <li><strong>Additions</strong> – Programs added after the session started (these also appear as Active).</li>
+              </ul>
+              <p><em>Tip: Selecting Active displays all programs currently on schedule.</em></p>
+
+              <h3>4. Using Filters</h3>
+              <h4>Click Filters</h4>
+              <ul>
+                <li><strong>Show Class Cancellations</strong> – Displays only classes with individual cancellations.</li>
+                <li><strong>Show All Programs</strong> – Displays all programs, including those without cancellations.</li>
               </ul>
 
-              <h4>4. EXPORTING DATA</h4>
+              <h4>Location Filter</h4>
               <ul>
-                <li><strong>Export to Excel:</strong> Download filtered data as Excel file</li>
-                <li><strong>Export to PDF:</strong> Download filtered data as PDF file</li>
-                <li>Both exports include only the data currently displayed (respects filters)</li>
+                <li>Ensure the filter is set to Show All Programs (the button will display "Show Class Cancellations").</li>
+                <li>Select your preferred location from the list to view programs only at that location.</li>
               </ul>
 
-              <h4>5. UNDERSTANDING THE DATA</h4>
+              <h4>Additional Filters</h4>
+              <p>You can refine your view using multiple filter options:</p>
               <ul>
-                <li><strong>Day:</strong> Day of the week the class runs</li>
-                <li><strong>Program:</strong> Name of the program/class</li>
-                <li><strong>Program ID:</strong> Unique identifier for the program</li>
-                <li><strong>Date Range:</strong> When the program runs (start and end dates)</li>
-                <li><strong>Time:</strong> Class time</li>
-                <li><strong>Location:</strong> Where the class is held</li>
-                <li><strong>Class Room:</strong> Specific room/facility</li>
-                <li><strong>Instructor:</strong> Who teaches the class</li>
-                <li><strong>Program Status:</strong> Active, Cancelled, or Additions</li>
-                <li><strong>Class Cancellation:</strong> Specific dates when individual classes are cancelled</li>
-                <li><strong>Additional Information:</strong> Extra notes about the program</li>
-                <li><strong>Withdrawal:</strong> Whether withdrawal is allowed (Yes/No based on classes completed)</li>
+                <li><strong>Day:</strong> Filter by the day of the week (Monday, Tuesday, etc.).</li>
+                <li><strong>Date:</strong> Filter by a specific date.</li>
+                <li><strong>Program Status:</strong> Active, Cancelled, or Additions.</li>
               </ul>
 
-              <h4>6. WITHDRAWAL LOGIC</h4>
+              <h3>5. Viewing Data</h3>
+              <p>The app displays the following program information:</p>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f0f0f0' }}>
+                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Field</th>
+                    <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Day</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Day of the week the class runs</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Program</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Name of the program/class</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Program ID</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Unique identifier for the program</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Date Range</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Program start and end dates</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Time</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Class time</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Location</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Venue or facility</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Class Room</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Specific room/facility</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Instructor</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Name of instructor</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Program Status</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Active, Cancelled, or Additions</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Class Cancellation</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Specific dates of individual cancellations</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Additional Information</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Extra notes about the program</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Withdrawal</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Indicates if withdrawal is allowed (Yes/No)</td></tr>
+                </tbody>
+              </table>
+
+              <h3>6. Withdrawal Logic</h3>
               <ul>
-                <li><strong>"Yes":</strong> Less than 3 classes have been completed, withdrawal is allowed</li>
-                <li><strong>"No":</strong> 3 or more classes have been completed, withdrawal is not allowed</li>
-                <li>Calculation considers class start date, current date, and any cancelled classes</li>
+                <li><strong>Yes:</strong> Fewer than 3 classes completed; withdrawal allowed.</li>
+                <li><strong>No:</strong> 3 or more classes completed; withdrawal not allowed.</li>
+                <li><strong>Calculation:</strong> Considers class start date, current date, and any cancelled classes.</li>
               </ul>
 
-              <h3>TIPS</h3>
+              <h3>7. Refreshing Data</h3>
               <ul>
-                <li>Use filters to narrow down the data you need</li>
-                <li>Export data when you need to share or print information</li>
-                <li>The app automatically updates when new data is uploaded</li>
-                <li>All times are displayed in Kingston, Ontario timezone</li>
+                <li>Click <strong>Refresh</strong> to manually update program data.</li>
+                <li>Automatic updates occur every 5 minutes.</li>
               </ul>
 
-              <p><em>For technical support or questions, contact your system administrator.</em></p>
+              <h3>8. Exporting Data</h3>
+              <ul>
+                <li><strong>Excel Export:</strong> Downloads filtered data as an Excel file.</li>
+                <li><strong>PDF Export:</strong> Downloads filtered data as a PDF file.</li>
+                <li><em>Note: Exports only include currently displayed data, respecting all applied filters.</em></li>
+              </ul>
+
+              <h3>9. Tips for Using the App</h3>
+              <ul>
+                <li>Use filters to quickly narrow down the data you need.</li>
+                <li>Export data to share or print relevant information.</li>
+                <li>All times are displayed in Kingston, Ontario timezone.</li>
+                <li>The app updates automatically whenever new data is uploaded.</li>
+              </ul>
+
+              <h3>10. Support</h3>
+              <p>For technical assistance or questions, contact your system administrator.</p>
             </div>
             <div className="modal-actions">
               <button onClick={() => setShowUserGuide(false)} style={{ background: "#0072ce", color: "white" }}>
