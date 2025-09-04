@@ -34,6 +34,7 @@ function App() {
   const [showingCancellationsOnly, setShowingCancellationsOnly] = useState(true);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
+  const [showUserGuide, setShowUserGuide] = useState(false);
 
   // Update date and time every second
   useEffect(() => {
@@ -237,6 +238,12 @@ function App() {
           >
             📄 Export to PDF
           </button>
+          <button 
+            onClick={() => setShowUserGuide(true)} 
+            style={{ background: "#0072ce", color: "white" }}
+          >
+            📖 User Guide
+          </button>
         </div>
       </div>
       <div className="last-loaded">
@@ -305,6 +312,97 @@ function App() {
           </tbody>
         </table>
       </div>
+
+      {/* User Guide Modal */}
+      {showUserGuide && (
+        <div className="modal-overlay" onClick={() => setShowUserGuide(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <header className="app-header">
+              <img src={logo} alt="Company Logo" className="app-logo" />
+              <h1>Program Schedule Update</h1>
+              <div className="datetime-display">
+                {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {currentDateTime.toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
+              </div>
+            </header>
+            <div className="user-guide-content">
+              <h2>USER GUIDE</h2>
+              
+              <h3>OVERVIEW</h3>
+              <p>This app helps you view and manage class cancellations and program schedules. You can filter, search, and export data as needed.</p>
+
+              <h3>MAIN FEATURES</h3>
+
+              <h4>1. VIEWING DATA</h4>
+              <ul>
+                <li>The app shows all programs by default</li>
+                <li>Click "Show Class Cancellations" to see only classes with individual cancellations</li>
+                <li>Click "Show All Programs" to see all programs again</li>
+              </ul>
+
+              <h4>2. FILTERING</h4>
+              <ul>
+                <li><strong>Program:</strong> Search by program name</li>
+                <li><strong>Program ID:</strong> Search by specific program ID</li>
+                <li><strong>Day:</strong> Filter by day of the week (Monday, Tuesday, etc.)</li>
+                <li><strong>Date:</strong> Filter by specific date</li>
+                <li><strong>Location:</strong> Filter by location</li>
+                <li><strong>Program Status:</strong> Filter by status (Active, Cancelled, Additions)</li>
+              </ul>
+
+              <h4>3. REFRESHING DATA</h4>
+              <ul>
+                <li>Click "Refresh" to update the data from the database</li>
+                <li>Data automatically refreshes every 5 minutes</li>
+              </ul>
+
+              <h4>4. EXPORTING DATA</h4>
+              <ul>
+                <li><strong>Export to Excel:</strong> Download filtered data as Excel file</li>
+                <li><strong>Export to PDF:</strong> Download filtered data as PDF file</li>
+                <li>Both exports include only the data currently displayed (respects filters)</li>
+              </ul>
+
+              <h4>5. UNDERSTANDING THE DATA</h4>
+              <ul>
+                <li><strong>Day:</strong> Day of the week the class runs</li>
+                <li><strong>Program:</strong> Name of the program/class</li>
+                <li><strong>Program ID:</strong> Unique identifier for the program</li>
+                <li><strong>Date Range:</strong> When the program runs (start and end dates)</li>
+                <li><strong>Time:</strong> Class time</li>
+                <li><strong>Location:</strong> Where the class is held</li>
+                <li><strong>Class Room:</strong> Specific room/facility</li>
+                <li><strong>Instructor:</strong> Who teaches the class</li>
+                <li><strong>Program Status:</strong> Active, Cancelled, or Additions</li>
+                <li><strong>Class Cancellation:</strong> Specific dates when individual classes are cancelled</li>
+                <li><strong>Additional Information:</strong> Extra notes about the program</li>
+                <li><strong>Withdrawal:</strong> Whether withdrawal is allowed (Yes/No based on classes completed)</li>
+              </ul>
+
+              <h4>6. WITHDRAWAL LOGIC</h4>
+              <ul>
+                <li><strong>"Yes":</strong> Less than 3 classes have been completed, withdrawal is allowed</li>
+                <li><strong>"No":</strong> 3 or more classes have been completed, withdrawal is not allowed</li>
+                <li>Calculation considers class start date, current date, and any cancelled classes</li>
+              </ul>
+
+              <h3>TIPS</h3>
+              <ul>
+                <li>Use filters to narrow down the data you need</li>
+                <li>Export data when you need to share or print information</li>
+                <li>The app automatically updates when new data is uploaded</li>
+                <li>All times are displayed in Kingston, Ontario timezone</li>
+              </ul>
+
+              <p><em>For technical support or questions, contact your system administrator.</em></p>
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => setShowUserGuide(false)} style={{ background: "#0072ce", color: "white" }}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

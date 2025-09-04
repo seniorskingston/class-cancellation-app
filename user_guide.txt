@@ -1,0 +1,55 @@
+PROGRAM SCHEDULE UPDATE APP - USER GUIDE
+
+OVERVIEW
+This app helps you view and manage class cancellations and program schedules. You can filter, search, and export data as needed.
+
+MAIN FEATURES
+
+1. VIEWING DATA
+   - The app shows all programs by default
+   - Click "Show Class Cancellations" to see only classes with individual cancellations
+   - Click "Show All Programs" to see all programs again
+
+2. FILTERING
+   - Program: Search by program name
+   - Program ID: Search by specific program ID
+   - Day: Filter by day of the week (Monday, Tuesday, etc.)
+   - Date: Filter by specific date
+   - Location: Filter by location
+   - Program Status: Filter by status (Active, Cancelled, Additions)
+
+3. REFRESHING DATA
+   - Click "Refresh" to update the data from the database
+   - Data automatically refreshes every 5 minutes
+
+4. EXPORTING DATA
+   - Export to Excel: Download filtered data as Excel file
+   - Export to PDF: Download filtered data as PDF file
+   - Both exports include only the data currently displayed (respects filters)
+
+5. UNDERSTANDING THE DATA
+   - Day: Day of the week the class runs
+   - Program: Name of the program/class
+   - Program ID: Unique identifier for the program
+   - Date Range: When the program runs (start and end dates)
+   - Time: Class time
+   - Location: Where the class is held
+   - Class Room: Specific room/facility
+   - Instructor: Who teaches the class
+   - Program Status: Active, Cancelled, or Additions
+   - Class Cancellation: Specific dates when individual classes are cancelled
+   - Additional Information: Extra notes about the program
+   - Withdrawal: Whether withdrawal is allowed (Yes/No based on classes completed)
+
+6. WITHDRAWAL LOGIC
+   - "Yes": Less than 3 classes have been completed, withdrawal is allowed
+   - "No": 3 or more classes have been completed, withdrawal is not allowed
+   - Calculation considers class start date, current date, and any cancelled classes
+
+TIPS
+- Use filters to narrow down the data you need
+- Export data when you need to share or print information
+- The app automatically updates when new data is uploaded
+- All times are displayed in Kingston, Ontario timezone
+
+For technical support or questions, contact your system administrator.

@@ -116,3 +116,112 @@ th {
 tr:last-child td {
   border-bottom: none;
 }
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 800px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content .app-header {
+  margin: 0;
+  border-radius: 12px 12px 0 0;
+}
+
+.user-guide-content {
+  padding: 30px;
+  overflow-y: auto;
+  flex: 1;
+  text-align: left;
+  line-height: 1.6;
+}
+
+.user-guide-content h2 {
+  color: #0072ce;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 2px solid #e6f7f7;
+  padding-bottom: 10px;
+}
+
+.user-guide-content h3 {
+  color: #0072ce;
+  font-size: 1.3rem;
+  margin-top: 25px;
+  margin-bottom: 15px;
+}
+
+.user-guide-content h4 {
+  color: #00b388;
+  font-size: 1.1rem;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.user-guide-content p {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.user-guide-content ul {
+  margin-bottom: 15px;
+  padding-left: 20px;
+}
+
+.user-guide-content li {
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.user-guide-content strong {
+  color: #0072ce;
+}
+
+.user-guide-content em {
+  color: #666;
+  font-style: italic;
+}
+
+.modal-actions {
+  padding: 20px 30px;
+  border-top: 1px solid #e6f7f7;
+  text-align: center;
+  background: #f6fbfc;
+}
+
+.modal-actions button {
+  background: #0072ce;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modal-actions button:hover {
+  background: #005fa3;
+}

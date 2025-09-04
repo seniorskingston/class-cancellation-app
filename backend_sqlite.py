@@ -540,16 +540,20 @@ def export_pdf(
         
         # Create PDF using reportlab
         from reportlab.lib.pagesizes import letter, landscape, A4, A3
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
         from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
         
         # Create PDF in memory - use A4 landscape for better international compatibility
         output = io.BytesIO()
-        doc = SimpleDocTemplate(output, pagesize=landscape(A4))
+        doc = SimpleDocTemplate(output, pagesize=landscape(A4), 
+                               topMargin=0.5*inch, bottomMargin=0.5*inch,
+                               leftMargin=0.3*inch, rightMargin=0.3*inch)
         
         # Get page dimensions for dynamic sizing
         page_width, page_height = landscape(A4)
-        margin = 40  # 40 points margin on each side
+        margin = 0.3 * inch  # 0.3 inch margin on each side
         available_width = page_width - (2 * margin)
         
         # Prepare table data with shorter headers
@@ -557,59 +561,82 @@ def export_pdf(
         table_data = [headers]
         
         for prog in programs:
+            # Truncate long text to prevent overflow
+            def truncate_text(text, max_length=25):
+                if not text:
+                    return ''
+                text = str(text).strip()
+                if len(text) <= max_length:
+                    return text
+                return text[:max_length-3] + '...'
+            
             table_data.append([
-                prog['sheet'] if prog['sheet'] else '',  # Day
-                prog['program'] if prog['program'] else '',  # Program
-                prog['program_id'] if prog['program_id'] else '',  # Program ID
-                prog['date_range'] if prog['date_range'] else '',  # Date Range
-                prog['time'] if prog['time'] else '',  # Time
-                prog['location'] if prog['location'] else '',  # Location
-                prog['class_room'] if prog['class_room'] else '',  # Class Room
-                prog['instructor'] if prog['instructor'] else '',  # Instructor
-                prog['program_status'] if prog['program_status'] else '',  # Status
-                prog['class_cancellation'] if prog['class_cancellation'] else '',  # Cancellation
-                prog['note'] if prog['note'] else '',  # Additional Info
-                prog['withdrawal'] if prog['withdrawal'] else ''  # Withdrawal
+                truncate_text(prog['sheet'], 8),  # Day
+                truncate_text(prog['program'], 30),  # Program (longer for main content)
+                truncate_text(prog['program_id'], 10),  # Program ID
+                truncate_text(prog['date_range'], 15),  # Date Range
+                truncate_text(prog['time'], 10),  # Time
+                truncate_text(prog['location'], 15),  # Location
+                truncate_text(prog['class_room'], 12),  # Class Room
+                truncate_text(prog['instructor'], 20),  # Instructor
+                truncate_text(prog['program_status'], 10),  # Status
+                truncate_text(prog['class_cancellation'], 12),  # Cancellation
+                truncate_text(prog['note'], 20),  # Additional Info
+                truncate_text(prog['withdrawal'], 8)  # Withdrawal
             ])
         
         # Calculate dynamic column widths based on available page width
-        # Distribute width proportionally based on content importance
+        # Distribute width proportionally based on content importance and typical content length
         col_widths = [
-            available_width * 0.08,   # Day (8%)
-            available_width * 0.20,   # Program (20% - most important)
-            available_width * 0.06,   # ID (6%)
-            available_width * 0.08,   # Date (8%)
-            available_width * 0.06,   # Time (6%)
-            available_width * 0.10,   # Location (10%)
-            available_width * 0.08,   # Room (8%)
-            available_width * 0.12,   # Instructor (12%)
+            available_width * 0.06,   # Day (6%)
+            available_width * 0.25,   # Program (25% - most important)
+            available_width * 0.08,   # ID (8%)
+            available_width * 0.12,   # Date (12%)
+            available_width * 0.08,   # Time (8%)
+            available_width * 0.12,   # Location (12%)
+            available_width * 0.10,   # Room (10%)
+            available_width * 0.15,   # Instructor (15%)
             available_width * 0.08,   # Status (8%)
-            available_width * 0.06,   # Cancel (6%)
-            available_width * 0.08,   # Info (8%)
-            available_width * 0.06    # Withdraw (6%)
+            available_width * 0.10,   # Cancel (10%)
+            available_width * 0.15,   # Info (15%)
+            available_width * 0.08    # Withdraw (8%)
         ]
         
         # Create table with dynamic column widths
-        table = Table(table_data, colWidths=col_widths)
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
         table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            # Header styling
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0072ce')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('FONTSIZE', (0, 0), (-1, 0), 7),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('TOPPADDING', (0, 0), (-1, 0), 8),
+            
+            # Data row styling
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
             ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 7),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, 1), (-1, -1), 6),
+            ('ALIGN', (0, 1), (-1, -1), 'LEFT'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.beige, colors.white]),
-            ('LEFTPADDING', (0, 0), (-1, -1), 6),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
-            ('WORDWRAP', (0, 0), (-1, -1), True),  # Enable word wrapping
+            
+            # Grid and borders
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor('#0072ce')),
+            
+            # Alternating row colors
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f9fa')]),
+            
+            # Padding
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+            ('TOPPADDING', (0, 1), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 3),
+            
+            # Word wrapping and text handling
+            ('WORDWRAP', (0, 0), (-1, -1), True),
         ]))
         
         # Build PDF
