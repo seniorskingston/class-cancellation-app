@@ -561,8 +561,8 @@ def export_pdf(
         table_data = [headers]
         
         for prog in programs:
-            # Truncate long text more aggressively to ensure everything fits
-            def truncate_text(text, max_length=15):
+            # Show more content by using longer truncation limits
+            def truncate_text(text, max_length=35):
                 if not text:
                     return ''
                 text = str(text).strip()
@@ -571,35 +571,35 @@ def export_pdf(
                 return text[:max_length-3] + '...'
             
             table_data.append([
-                truncate_text(prog['sheet'], 6),  # Day
-                truncate_text(prog['program'], 20),  # Program (most important but still truncated)
-                truncate_text(prog['program_id'], 8),  # Program ID
-                truncate_text(prog['date_range'], 12),  # Date Range
-                truncate_text(prog['time'], 8),  # Time
-                truncate_text(prog['location'], 10),  # Location
-                truncate_text(prog['class_room'], 8),  # Class Room
-                truncate_text(prog['instructor'], 15),  # Instructor
-                truncate_text(prog['program_status'], 8),  # Status
-                truncate_text(prog['class_cancellation'], 10),  # Cancellation
-                truncate_text(prog['note'], 15),  # Additional Info
-                truncate_text(prog['withdrawal'], 6)  # Withdrawal
+                truncate_text(prog['sheet'], 10),  # Day
+                truncate_text(prog['program'], 50),  # Program (most important - show more)
+                truncate_text(prog['program_id'], 15),  # Program ID
+                truncate_text(prog['date_range'], 25),  # Date Range
+                truncate_text(prog['time'], 15),  # Time
+                truncate_text(prog['location'], 20),  # Location
+                truncate_text(prog['class_room'], 15),  # Class Room
+                truncate_text(prog['instructor'], 25),  # Instructor
+                truncate_text(prog['program_status'], 12),  # Status
+                truncate_text(prog['class_cancellation'], 20),  # Cancellation
+                truncate_text(prog['note'], 30),  # Additional Info
+                truncate_text(prog['withdrawal'], 8)  # Withdrawal
             ])
         
-        # Calculate column widths to fit exactly on page - more conservative distribution
+        # Calculate column widths to fit exactly on page - optimized for content visibility
         # Total width must not exceed available_width
         col_widths = [
-            available_width * 0.05,   # Day (5%)
-            available_width * 0.22,   # Program (22% - most important)
-            available_width * 0.07,   # ID (7%)
-            available_width * 0.10,   # Date (10%)
-            available_width * 0.07,   # Time (7%)
-            available_width * 0.08,   # Location (8%)
-            available_width * 0.07,   # Room (7%)
-            available_width * 0.12,   # Instructor (12%)
+            available_width * 0.06,   # Day (6%)
+            available_width * 0.25,   # Program (25% - most important, needs more space)
+            available_width * 0.08,   # ID (8%)
+            available_width * 0.12,   # Date (12% - date ranges can be long)
+            available_width * 0.08,   # Time (8%)
+            available_width * 0.10,   # Location (10%)
+            available_width * 0.08,   # Room (8%)
+            available_width * 0.13,   # Instructor (13% - names can be long)
             available_width * 0.07,   # Status (7%)
-            available_width * 0.08,   # Cancel (8%)
-            available_width * 0.12,   # Info (12%)
-            available_width * 0.05    # Withdraw (5%)
+            available_width * 0.10,   # Cancel (10% - cancellation dates)
+            available_width * 0.15,   # Info (15% - notes can be long)
+            available_width * 0.06    # Withdraw (6%)
         ]
         
         # Verify total width doesn't exceed available space
@@ -612,20 +612,20 @@ def export_pdf(
         # Create table with exact column widths
         table = Table(table_data, colWidths=col_widths, repeatRows=1)
         table.setStyle(TableStyle([
-            # Header styling - smaller fonts and padding
+            # Header styling - readable fonts and padding
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0072ce')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 6),  # Smaller header font
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 4),
-            ('TOPPADDING', (0, 0), (-1, 0), 4),
+            ('FONTSIZE', (0, 0), (-1, 0), 7),  # Slightly larger header font
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 5),
+            ('TOPPADDING', (0, 0), (-1, 0), 5),
             
-            # Data row styling - smaller fonts and minimal padding
+            # Data row styling - readable fonts and minimal padding
             ('BACKGROUND', (0, 1), (-1, -1), colors.white),
             ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 5),  # Very small data font
+            ('FONTSIZE', (0, 1), (-1, -1), 6),  # Slightly larger data font
             ('ALIGN', (0, 1), (-1, -1), 'LEFT'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             
