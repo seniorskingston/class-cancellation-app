@@ -545,24 +545,24 @@ def export_pdf(
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.lib.units import inch
         
-        # Create PDF in memory - use A4 landscape for better international compatibility
+        # Create PDF in memory - use A4 landscape with minimal margins for maximum space
         output = io.BytesIO()
         doc = SimpleDocTemplate(output, pagesize=landscape(A4), 
-                               topMargin=0.5*inch, bottomMargin=0.5*inch,
-                               leftMargin=0.3*inch, rightMargin=0.3*inch)
+                               topMargin=0.25*inch, bottomMargin=0.25*inch,
+                               leftMargin=0.2*inch, rightMargin=0.2*inch)
         
         # Get page dimensions for dynamic sizing
         page_width, page_height = landscape(A4)
-        margin = 0.3 * inch  # 0.3 inch margin on each side
+        margin = 0.2 * inch  # Minimal margins for maximum content space
         available_width = page_width - (2 * margin)
         
-        # Prepare table data with shorter headers
-        headers = ['Day', 'Program', 'ID', 'Date', 'Time', 'Location', 'Room', 'Instructor', 'Status', 'Cancel', 'Info', 'Withdraw']
+        # Prepare table data with very short headers to save space
+        headers = ['Day', 'Program', 'ID', 'Date', 'Time', 'Loc', 'Room', 'Instructor', 'Status', 'Cancel', 'Info', 'Withdraw']
         table_data = [headers]
         
         for prog in programs:
-            # Truncate long text to prevent overflow
-            def truncate_text(text, max_length=25):
+            # Truncate long text more aggressively to ensure everything fits
+            def truncate_text(text, max_length=15):
                 if not text:
                     return ''
                 text = str(text).strip()
@@ -571,69 +571,76 @@ def export_pdf(
                 return text[:max_length-3] + '...'
             
             table_data.append([
-                truncate_text(prog['sheet'], 8),  # Day
-                truncate_text(prog['program'], 30),  # Program (longer for main content)
-                truncate_text(prog['program_id'], 10),  # Program ID
-                truncate_text(prog['date_range'], 15),  # Date Range
-                truncate_text(prog['time'], 10),  # Time
-                truncate_text(prog['location'], 15),  # Location
-                truncate_text(prog['class_room'], 12),  # Class Room
-                truncate_text(prog['instructor'], 20),  # Instructor
-                truncate_text(prog['program_status'], 10),  # Status
-                truncate_text(prog['class_cancellation'], 12),  # Cancellation
-                truncate_text(prog['note'], 20),  # Additional Info
-                truncate_text(prog['withdrawal'], 8)  # Withdrawal
+                truncate_text(prog['sheet'], 6),  # Day
+                truncate_text(prog['program'], 20),  # Program (most important but still truncated)
+                truncate_text(prog['program_id'], 8),  # Program ID
+                truncate_text(prog['date_range'], 12),  # Date Range
+                truncate_text(prog['time'], 8),  # Time
+                truncate_text(prog['location'], 10),  # Location
+                truncate_text(prog['class_room'], 8),  # Class Room
+                truncate_text(prog['instructor'], 15),  # Instructor
+                truncate_text(prog['program_status'], 8),  # Status
+                truncate_text(prog['class_cancellation'], 10),  # Cancellation
+                truncate_text(prog['note'], 15),  # Additional Info
+                truncate_text(prog['withdrawal'], 6)  # Withdrawal
             ])
         
-        # Calculate dynamic column widths based on available page width
-        # Distribute width proportionally based on content importance and typical content length
+        # Calculate column widths to fit exactly on page - more conservative distribution
+        # Total width must not exceed available_width
         col_widths = [
-            available_width * 0.06,   # Day (6%)
-            available_width * 0.25,   # Program (25% - most important)
-            available_width * 0.08,   # ID (8%)
-            available_width * 0.12,   # Date (12%)
-            available_width * 0.08,   # Time (8%)
-            available_width * 0.12,   # Location (12%)
-            available_width * 0.10,   # Room (10%)
-            available_width * 0.15,   # Instructor (15%)
-            available_width * 0.08,   # Status (8%)
-            available_width * 0.10,   # Cancel (10%)
-            available_width * 0.15,   # Info (15%)
-            available_width * 0.08    # Withdraw (8%)
+            available_width * 0.05,   # Day (5%)
+            available_width * 0.22,   # Program (22% - most important)
+            available_width * 0.07,   # ID (7%)
+            available_width * 0.10,   # Date (10%)
+            available_width * 0.07,   # Time (7%)
+            available_width * 0.08,   # Location (8%)
+            available_width * 0.07,   # Room (7%)
+            available_width * 0.12,   # Instructor (12%)
+            available_width * 0.07,   # Status (7%)
+            available_width * 0.08,   # Cancel (8%)
+            available_width * 0.12,   # Info (12%)
+            available_width * 0.05    # Withdraw (5%)
         ]
         
-        # Create table with dynamic column widths
+        # Verify total width doesn't exceed available space
+        total_width = sum(col_widths)
+        if total_width > available_width:
+            # Scale down proportionally if needed
+            scale_factor = available_width / total_width
+            col_widths = [w * scale_factor for w in col_widths]
+        
+        # Create table with exact column widths
         table = Table(table_data, colWidths=col_widths, repeatRows=1)
         table.setStyle(TableStyle([
-            # Header styling
+            # Header styling - smaller fonts and padding
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0072ce')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 7),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-            ('TOPPADDING', (0, 0), (-1, 0), 8),
+            ('FONTSIZE', (0, 0), (-1, 0), 6),  # Smaller header font
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 4),
+            ('TOPPADDING', (0, 0), (-1, 0), 4),
             
-            # Data row styling
+            # Data row styling - smaller fonts and minimal padding
             ('BACKGROUND', (0, 1), (-1, -1), colors.white),
             ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 6),
+            ('FONTSIZE', (0, 1), (-1, -1), 5),  # Very small data font
             ('ALIGN', (0, 1), (-1, -1), 'LEFT'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             
-            # Grid and borders
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor('#0072ce')),
+            # Grid and borders - thinner lines
+            ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
+            ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor('#0072ce')),
             
             # Alternating row colors
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f9fa')]),
             
-            # Padding
-            ('LEFTPADDING', (0, 0), (-1, -1), 4),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-            ('TOPPADDING', (0, 1), (-1, -1), 3),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 3),
+            # Minimal padding to save space
+            ('LEFTPADDING', (0, 0), (-1, -1), 2),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 2),
+            ('TOPPADDING', (0, 1), (-1, -1), 2),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 2),
             
             # Word wrapping and text handling
             ('WORDWRAP', (0, 0), (-1, -1), True),
