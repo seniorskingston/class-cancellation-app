@@ -15,6 +15,7 @@ type Cancellation = {
   class_cancellation: string;
   note: string;
   withdrawal: string;
+  is_favorite?: boolean;  // New: Favorite status
 };
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
@@ -35,6 +36,7 @@ function App() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
   const [showUserGuide, setShowUserGuide] = useState(false);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   // Update date and time every second
   useEffect(() => {
@@ -108,6 +110,28 @@ function App() {
     setShowingCancellationsOnly(true);
   };
 
+  const toggleFavorite = (programId: string) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(programId)) {
+        newFavorites.delete(programId);
+      } else {
+        newFavorites.add(programId);
+      }
+      return newFavorites;
+    });
+  };
+
+  // Sort cancellations with favorites at the top
+  const sortedCancellations = [...cancellations].sort((a, b) => {
+    const aIsFavorite = favorites.has(a.program_id);
+    const bIsFavorite = favorites.has(b.program_id);
+    
+    if (aIsFavorite && !bIsFavorite) return -1;
+    if (!aIsFavorite && bIsFavorite) return 1;
+    return 0;
+  });
+
   const handleExport = async (format: 'excel' | 'pdf') => {
     try {
       setLoading(true);
@@ -160,14 +184,15 @@ function App() {
 
   return (
     <div className="App">
-      <header className="app-header">
-        <img src={logo} alt="Company Logo" className="app-logo" />
-        <h1>Program Schedule Update</h1>
-        <div className="datetime-display">
-          {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {currentDateTime.toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
-        </div>
-      </header>
-      <div className="filters">
+      <div className="sticky-header">
+        <header className="app-header">
+          <img src={logo} alt="Company Logo" className="app-logo" />
+          <h1>Program Schedule Update</h1>
+          <div className="datetime-display">
+            {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {currentDateTime.toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
+          </div>
+        </header>
+        <div className="filters">
         <input
           name="program"
           placeholder="Program"
@@ -245,9 +270,9 @@ function App() {
             📖 User Guide
           </button>
         </div>
-      </div>
-      <div className="last-loaded">
-        Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}
+        <div className="last-loaded">
+          Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}
+        </div>
       </div>
       <div className="table-container">
         <table>
@@ -265,50 +290,63 @@ function App() {
               <th>Class Cancellation</th>
               <th>Additional Information</th>
               <th>Withdrawal</th>
+              <th>⭐</th>
             </tr>
           </thead>
           <tbody>
-            {cancellations.length === 0 && (
+            {sortedCancellations.length === 0 && (
               <tr>
-                <td colSpan={12} style={{ textAlign: "center" }}>
+                <td colSpan={13} style={{ textAlign: "center" }}>
                   No programs found.
                 </td>
               </tr>
             )}
-            {cancellations.map((c, i) => (
-              <tr key={i}>
-                <td>{c.sheet}</td>
-                <td>{c.program}</td>
-                <td>{c.program_id}</td>
-                <td>{c.date_range}</td>
-                <td>{c.time}</td>
-                <td>{c.location}</td>
-                <td>{c.class_room}</td>
-                <td>{c.instructor}</td>
-                <td>{c.program_status}</td>
-                <td>{c.class_cancellation && c.class_cancellation !== '' ? 
-                  c.class_cancellation.split(';').map((date, index) => {
-                    const trimmedDate = date.trim();
-                    if (trimmedDate) {
-                      try {
-                        const parsedDate = new Date(trimmedDate);
-                        if (!isNaN(parsedDate.getTime())) {
-                          return (
-                            <div key={index}>
-                              {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
-                            </div>
-                          );
+            {sortedCancellations.map((c, i) => {
+              const isFavorite = favorites.has(c.program_id);
+              return (
+                <tr key={i} className={isFavorite ? 'favorite-row' : ''}>
+                  <td>{c.sheet}</td>
+                  <td>{c.program}</td>
+                  <td>{c.program_id}</td>
+                  <td>{c.date_range}</td>
+                  <td>{c.time}</td>
+                  <td>{c.location}</td>
+                  <td>{c.class_room}</td>
+                  <td>{c.instructor}</td>
+                  <td>{c.program_status}</td>
+                  <td>{c.class_cancellation && c.class_cancellation !== '' ? 
+                    c.class_cancellation.split(';').map((date, index) => {
+                      const trimmedDate = date.trim();
+                      if (trimmedDate) {
+                        try {
+                          const parsedDate = new Date(trimmedDate);
+                          if (!isNaN(parsedDate.getTime())) {
+                            return (
+                              <div key={index}>
+                                {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
+                              </div>
+                            );
+                          }
+                        } catch (e) {
+                          // If parsing fails, show the original text
                         }
-                      } catch (e) {
-                        // If parsing fails, show the original text
                       }
-                    }
-                    return null;
-                  }).filter(Boolean) || c.class_cancellation : ''}</td>
-                <td>{c.note && c.note !== '' ? c.note : ''}</td>
-                <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
-              </tr>
-            ))}
+                      return null;
+                    }).filter(Boolean) || c.class_cancellation : ''}</td>
+                  <td>{c.note && c.note !== '' ? c.note : ''}</td>
+                  <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
+                  <td>
+                    <span 
+                      className={`favorite-star ${isFavorite ? 'favorited' : ''}`}
+                      onClick={() => toggleFavorite(c.program_id)}
+                      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    >
+                      ⭐
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -5,6 +5,14 @@
   text-align: center;
 }
 
+/* Sticky header section */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #f6fbfc;
+}
+
 .app-header {
   background: linear-gradient(135deg, #00b388 0%, #0072ce 100%);
   padding: 20px;
@@ -224,4 +232,39 @@ tr:last-child td {
 
 .modal-actions button:hover {
   background: #005fa3;
+}
+
+/* Favorite star styles */
+.favorite-star {
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.favorite-star:hover {
+  transform: scale(1.2);
+}
+
+.favorite-star.favorited {
+  color: #00b388;
+  text-shadow: 0 0 3px rgba(0, 179, 136, 0.5);
+}
+
+.favorite-star:not(.favorited) {
+  color: #ccc;
+}
+
+.favorite-star:not(.favorited):hover {
+  color: #00b388;
+}
+
+/* Pinned favorite rows */
+.favorite-row {
+  background-color: #f0fdf4 !important;
+  border-left: 4px solid #00b388 !important;
+}
+
+.favorite-row td {
+  font-weight: 500;
 }
