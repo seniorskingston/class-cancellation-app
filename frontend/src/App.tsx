@@ -18,9 +18,10 @@ type Cancellation = {
   is_favorite?: boolean;  // New: Favorite status
 };
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+const API_URL = "http://localhost:8000/api"; // Temporarily hardcoded for local testing
 
 function App() {
+  console.log("API_URL:", API_URL);
   const [cancellations, setCancellations] = useState<Cancellation[]>([]);
   const [filters, setFilters] = useState({
     program: "",
@@ -55,13 +56,17 @@ function App() {
       });
       if (hasCancellation) params.append("has_cancellation", "true");
       
-      const res = await fetch(`${API_URL}/cancellations?${params.toString()}`);
+      const url = `${API_URL}/cancellations?${params.toString()}`;
+      console.log("Fetching from:", url);
+      
+      const res = await fetch(url);
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       
       const data = await res.json();
+      console.log("Received data:", data);
       setCancellations(data.data);
       setLastLoaded(data.last_loaded);
       
@@ -111,13 +116,17 @@ function App() {
   };
 
   const toggleFavorite = (programId: string) => {
+    console.log('Toggling favorite for program ID:', programId);
     setFavorites(prev => {
       const newFavorites = new Set(prev);
       if (newFavorites.has(programId)) {
         newFavorites.delete(programId);
+        console.log('Removed from favorites:', programId);
       } else {
         newFavorites.add(programId);
+        console.log('Added to favorites:', programId);
       }
+      console.log('Current favorites:', Array.from(newFavorites));
       return newFavorites;
     });
   };
@@ -131,6 +140,10 @@ function App() {
     if (!aIsFavorite && bIsFavorite) return 1;
     return 0;
   });
+
+  // Debug logging
+  console.log('Favorites state:', Array.from(favorites));
+  console.log('Sorted cancellations count:', sortedCancellations.length);
 
   const handleExport = async (format: 'excel' | 'pdf') => {
     try {
@@ -193,82 +206,83 @@ function App() {
           </div>
         </header>
         <div className="filters">
-        <input
-          name="program"
-          placeholder="Program"
-          value={filters.program}
-          onChange={handleInputChange}
-        />
-        <input
-          name="program_id"
-          placeholder="Program ID"
-          value={filters.program_id}
-          onChange={handleInputChange}
-        />
-        <select name="day" value={filters.day} onChange={handleInputChange}>
-          <option value="">All Days</option>
-          <option>Monday</option>
-          <option>Tuesday</option>
-          <option>Wednesday</option>
-          <option>Thursday</option>
-          <option>Friday</option>
-          <option>Saturday</option>
-        </select>
-        <input
-          name="date"
-          type="date"
-          value={filters.date}
-          onChange={handleInputChange}
-        />
-        <select name="location" value={filters.location} onChange={handleInputChange}>
-          <option value="">All Locations</option>
-          {locations.map((location, index) => (
-            <option key={index} value={location}>{location}</option>
-          ))}
-        </select>
-        <select
-          name="program_status"
-          value={filters.program_status}
-          onChange={handleInputChange}
-        >
-          <option value="">All Statuses</option>
-          <option value="Cancelled">Cancelled</option>
-          <option value="Active">Active</option>
-          <option value="Additions">Additions</option>
-        </select>
-        <button onClick={handleRefresh} disabled={loading}>
-          {loading ? "Refreshing..." : "Refresh"}
-        </button>
-        {showingCancellationsOnly ? (
-          <button onClick={handleShowAll} style={{ background: "#00b388" }}>
-            Show All Programs
-          </button>
-        ) : (
-          <button onClick={handleShowCancellations} style={{ background: "#0072ce" }}>
-            Show Class Cancellations
-          </button>
-        )}
-        <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
-          <button 
-            onClick={() => handleExport('excel')} 
-            style={{ background: "#0072ce", color: "white" }}
-            disabled={cancellations.length === 0}
+          <input
+            name="program"
+            placeholder="Program"
+            value={filters.program}
+            onChange={handleInputChange}
+          />
+          <input
+            name="program_id"
+            placeholder="Program ID"
+            value={filters.program_id}
+            onChange={handleInputChange}
+          />
+          <select name="day" value={filters.day} onChange={handleInputChange}>
+            <option value="">All Days</option>
+            <option>Monday</option>
+            <option>Tuesday</option>
+            <option>Wednesday</option>
+            <option>Thursday</option>
+            <option>Friday</option>
+            <option>Saturday</option>
+          </select>
+          <input
+            name="date"
+            type="date"
+            value={filters.date}
+            onChange={handleInputChange}
+          />
+          <select name="location" value={filters.location} onChange={handleInputChange}>
+            <option value="">All Locations</option>
+            {locations.map((location, index) => (
+              <option key={index} value={location}>{location}</option>
+            ))}
+          </select>
+          <select
+            name="program_status"
+            value={filters.program_status}
+            onChange={handleInputChange}
           >
-            📊 Export to Excel
+            <option value="">All Statuses</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="Active">Active</option>
+            <option value="Additions">Additions</option>
+          </select>
+          <button onClick={handleRefresh} disabled={loading}>
+            {loading ? "Refreshing..." : "Refresh"}
           </button>
-          <button 
-            onClick={() => handleExport('pdf')} 
-            style={{ background: "#0072ce", color: "white" }}
-            disabled={cancellations.length === 0}
-          >
-            📄 Export to PDF
-          </button>
-          <button 
-            onClick={() => setShowUserGuide(true)} 
-            style={{ background: "#0072ce", color: "white" }}
-          >
-            📖 User Guide
-          </button>
+          {showingCancellationsOnly ? (
+            <button onClick={handleShowAll} style={{ background: "#00b388" }}>
+              Show All Programs
+            </button>
+          ) : (
+            <button onClick={handleShowCancellations} style={{ background: "#0072ce" }}>
+              Show Class Cancellations
+            </button>
+          )}
+          <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
+            <button 
+              onClick={() => handleExport('excel')} 
+              style={{ background: "#0072ce", color: "white" }}
+              disabled={cancellations.length === 0}
+            >
+              📊 Export to Excel
+            </button>
+            <button 
+              onClick={() => handleExport('pdf')} 
+              style={{ background: "#0072ce", color: "white" }}
+              disabled={cancellations.length === 0}
+            >
+              📄 Export to PDF
+            </button>
+            <button 
+              onClick={() => setShowUserGuide(true)} 
+              style={{ background: "#0072ce", color: "white" }}
+            >
+              📖 User Guide
+            </button>
+          </div>
         </div>
         <div className="last-loaded">
           Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}
@@ -278,6 +292,7 @@ function App() {
         <table>
           <thead>
             <tr>
+              <th>☆</th>
               <th>Day</th>
               <th>Program</th>
               <th>Program ID</th>
@@ -290,7 +305,6 @@ function App() {
               <th>Class Cancellation</th>
               <th>Additional Information</th>
               <th>Withdrawal</th>
-              <th>⭐</th>
             </tr>
           </thead>
           <tbody>
@@ -305,6 +319,15 @@ function App() {
               const isFavorite = favorites.has(c.program_id);
               return (
                 <tr key={i} className={isFavorite ? 'favorite-row' : ''}>
+                  <td>
+                    <span 
+                      className={`favorite-star ${isFavorite ? 'favorited' : ''}`}
+                      onClick={() => toggleFavorite(c.program_id)}
+                      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    >
+                      {isFavorite ? '★' : '☆'}
+                    </span>
+                  </td>
                   <td>{c.sheet}</td>
                   <td>{c.program}</td>
                   <td>{c.program_id}</td>
@@ -335,15 +358,6 @@ function App() {
                     }).filter(Boolean) || c.class_cancellation : ''}</td>
                   <td>{c.note && c.note !== '' ? c.note : ''}</td>
                   <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
-                  <td>
-                    <span 
-                      className={`favorite-star ${isFavorite ? 'favorited' : ''}`}
-                      onClick={() => toggleFavorite(c.program_id)}
-                      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                    >
-                      ⭐
-                    </span>
-                  </td>
                 </tr>
               );
             })}
@@ -433,38 +447,48 @@ function App() {
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Class Cancellation</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Specific dates of individual cancellations</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Additional Information</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Extra notes about the program</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Withdrawal</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Indicates if withdrawal is allowed (Yes/No)</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>⭐</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Click to favorite/unfavorite programs</td></tr>
                 </tbody>
               </table>
 
-              <h3>6. Withdrawal Logic</h3>
+              <h3>6. Favorite System</h3>
+              <ul>
+                <li><strong>Star Column:</strong> Click the ⭐ in the rightmost column to favorite/unfavorite programs.</li>
+                <li><strong>Pinned Favorites:</strong> Favorited programs automatically appear at the top of the list.</li>
+                <li><strong>Visual Highlighting:</strong> Favorite rows have a green background and left border.</li>
+                <li><strong>Persistent:</strong> Favorites are remembered during your session.</li>
+              </ul>
+
+              <h3>7. Withdrawal Logic</h3>
               <ul>
                 <li><strong>Yes:</strong> Fewer than 3 classes completed; withdrawal allowed.</li>
                 <li><strong>No:</strong> 3 or more classes completed; withdrawal not allowed.</li>
                 <li><strong>Calculation:</strong> Considers class start date, current date, and any cancelled classes.</li>
               </ul>
 
-              <h3>7. Refreshing Data</h3>
+              <h3>8. Refreshing Data</h3>
               <ul>
                 <li>Click <strong>Refresh</strong> to manually update program data.</li>
                 <li>Automatic updates occur every 5 minutes.</li>
               </ul>
 
-              <h3>8. Exporting Data</h3>
+              <h3>9. Exporting Data</h3>
               <ul>
                 <li><strong>Excel Export:</strong> Downloads filtered data as an Excel file.</li>
                 <li><strong>PDF Export:</strong> Downloads filtered data as a PDF file.</li>
                 <li><em>Note: Exports only include currently displayed data, respecting all applied filters.</em></li>
               </ul>
 
-              <h3>9. Tips for Using the App</h3>
+              <h3>10. Tips for Using the App</h3>
               <ul>
                 <li>Use filters to quickly narrow down the data you need.</li>
                 <li>Export data to share or print relevant information.</li>
                 <li>All times are displayed in Kingston, Ontario timezone.</li>
                 <li>The app updates automatically whenever new data is uploaded.</li>
+                <li>Use the favorite system to keep important programs at the top.</li>
               </ul>
 
-              <h3>10. Support</h3>
+              <h3>11. Support</h3>
               <p>For technical assistance or questions, contact your system administrator.</p>
             </div>
             <div className="modal-actions">

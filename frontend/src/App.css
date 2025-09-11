@@ -240,6 +240,7 @@ tr:last-child td {
   font-size: 1.2rem;
   transition: all 0.2s ease;
   user-select: none;
+  display: inline-block;
 }
 
 .favorite-star:hover {
@@ -253,18 +254,19 @@ tr:last-child td {
 
 .favorite-star:not(.favorited) {
   color: #ccc;
+  text-shadow: none;
 }
 
 .favorite-star:not(.favorited):hover {
   color: #00b388;
 }
 
-/* Pinned favorite rows */
+/* Pinned favorite rows - NO background highlighting, just pinning */
 .favorite-row {
-  background-color: #f0fdf4 !important;
-  border-left: 4px solid #00b388 !important;
+  /* No background color change */
+  /* No border change */
 }
 
 .favorite-row td {
-  font-weight: 500;
+  /* No font weight change */
 }

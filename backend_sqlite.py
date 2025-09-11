@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import io
 import pytz
+import time
 
 # Use environment variable for port, default to 8000 (Render uses PORT env var)
 PORT = int(os.environ.get("PORT", 8000))
@@ -387,6 +388,36 @@ def get_programs_from_db(
 
 # Initialize database on startup
 init_database()
+
+# Track Excel file modification time
+excel_last_modified = None
+
+def check_and_import_excel():
+    """Check if Excel file has been modified and re-import if needed"""
+    global excel_last_modified
+    EXCEL_PATH = "Class Cancellation App.xlsx"
+    
+    if os.path.exists(EXCEL_PATH):
+        current_modified = os.path.getmtime(EXCEL_PATH)
+        
+        if excel_last_modified is None or current_modified > excel_last_modified:
+            print("📁 Excel file modified, auto-importing...")
+            try:
+                import_excel_data(EXCEL_PATH)
+                excel_last_modified = current_modified
+                print("✅ Excel file auto-imported successfully")
+            except Exception as e:
+                print(f"❌ Error auto-importing Excel file: {e}")
+    else:
+        print("⚠️ Excel file not found")
+
+# Auto-import Excel file on startup if it exists
+check_and_import_excel()
+
+# Set up periodic check every 30 seconds
+scheduler = BackgroundScheduler()
+scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
+scheduler.start()
 
 @app.get("/api/test")
 def test_connection():
