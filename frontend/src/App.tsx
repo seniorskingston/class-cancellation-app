@@ -27,7 +27,6 @@ function App() {
     program: "",
     program_id: "",
     day: "",
-    date: "",
     location: "",
     program_status: "",
   });
@@ -227,12 +226,6 @@ function App() {
             <option>Friday</option>
             <option>Saturday</option>
           </select>
-          <input
-            name="date"
-            type="date"
-            value={filters.date}
-            onChange={handleInputChange}
-          />
           <select name="location" value={filters.location} onChange={handleInputChange}>
             <option value="">All Locations</option>
             {locations.map((location, index) => (
@@ -289,80 +282,86 @@ function App() {
         </div>
       </div>
       <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>☆</th>
-              <th>Day</th>
-              <th>Program</th>
-              <th>Program ID</th>
-              <th>Date Range</th>
-              <th>Time</th>
-              <th>Location</th>
-              <th>Class Room</th>
-              <th>Instructor</th>
-              <th>Program Status</th>
-              <th>Class Cancellation</th>
-              <th>Additional Information</th>
-              <th>Withdrawal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedCancellations.length === 0 && (
+        <div className="table-header">
+          <table>
+            <thead>
               <tr>
-                <td colSpan={13} style={{ textAlign: "center" }}>
-                  No programs found.
-                </td>
+                <th>☆</th>
+                <th>Day</th>
+                <th>Program</th>
+                <th>Program ID</th>
+                <th>Date Range</th>
+                <th>Time</th>
+                <th>Location</th>
+                <th>Class Room</th>
+                <th>Instructor</th>
+                <th>Program Status</th>
+                <th>Class Cancellation</th>
+                <th>Additional Information</th>
+                <th>Withdrawal</th>
               </tr>
-            )}
-            {sortedCancellations.map((c, i) => {
-              const isFavorite = favorites.has(c.program_id);
-              return (
-                <tr key={i} className={isFavorite ? 'favorite-row' : ''}>
-                  <td>
-                    <span 
-                      className={`favorite-star ${isFavorite ? 'favorited' : ''}`}
-                      onClick={() => toggleFavorite(c.program_id)}
-                      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                    >
-                      {isFavorite ? '★' : '☆'}
-                    </span>
+            </thead>
+          </table>
+        </div>
+        <div className="table-body">
+          <table>
+            <tbody>
+              {sortedCancellations.length === 0 && (
+                <tr>
+                  <td colSpan={13} style={{ textAlign: "center" }}>
+                    No programs found.
                   </td>
-                  <td>{c.sheet}</td>
-                  <td>{c.program}</td>
-                  <td>{c.program_id}</td>
-                  <td>{c.date_range}</td>
-                  <td>{c.time}</td>
-                  <td>{c.location}</td>
-                  <td>{c.class_room}</td>
-                  <td>{c.instructor}</td>
-                  <td>{c.program_status}</td>
-                  <td>{c.class_cancellation && c.class_cancellation !== '' ? 
-                    c.class_cancellation.split(';').map((date, index) => {
-                      const trimmedDate = date.trim();
-                      if (trimmedDate) {
-                        try {
-                          const parsedDate = new Date(trimmedDate);
-                          if (!isNaN(parsedDate.getTime())) {
-                            return (
-                              <div key={index}>
-                                {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
-                              </div>
-                            );
-                          }
-                        } catch (e) {
-                          // If parsing fails, show the original text
-                        }
-                      }
-                      return null;
-                    }).filter(Boolean) || c.class_cancellation : ''}</td>
-                  <td>{c.note && c.note !== '' ? c.note : ''}</td>
-                  <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              )}
+              {sortedCancellations.map((c, i) => {
+                const isFavorite = favorites.has(c.program_id);
+                return (
+                  <tr key={i} className={isFavorite ? 'favorite-row' : ''}>
+                    <td>
+                      <span 
+                        className={`favorite-star ${isFavorite ? 'favorited' : ''}`}
+                        onClick={() => toggleFavorite(c.program_id)}
+                        title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                      >
+                        {isFavorite ? '★' : '☆'}
+                      </span>
+                    </td>
+                    <td>{c.sheet}</td>
+                    <td>{c.program}</td>
+                    <td>{c.program_id}</td>
+                    <td>{c.date_range}</td>
+                    <td>{c.time}</td>
+                    <td>{c.location}</td>
+                    <td>{c.class_room}</td>
+                    <td>{c.instructor}</td>
+                    <td>{c.program_status}</td>
+                    <td>{c.class_cancellation && c.class_cancellation !== '' ? 
+                      c.class_cancellation.split(';').map((date, index) => {
+                        const trimmedDate = date.trim();
+                        if (trimmedDate) {
+                          try {
+                            const parsedDate = new Date(trimmedDate);
+                            if (!isNaN(parsedDate.getTime())) {
+                              return (
+                                <div key={index}>
+                                  {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
+                                </div>
+                              );
+                            }
+                          } catch (e) {
+                            // If parsing fails, show the original text
+                          }
+                        }
+                        return null;
+                      }).filter(Boolean) || c.class_cancellation : ''}</td>
+                    <td>{c.note && c.note !== '' ? c.note : ''}</td>
+                    <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* User Guide Modal */}
