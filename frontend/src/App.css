@@ -17,11 +17,16 @@
 .table-container {
   margin: 0 2rem 2rem 2rem;
   overflow-x: auto;
+  height: 60vh;
+  overflow-y: auto;
+  border: 1px solid #e0f2f1;
+  border-radius: 8px;
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: white;
   border-radius: 8px;
   overflow: hidden;
@@ -31,7 +36,8 @@ table {
 thead {
   position: sticky;
   top: 0;
-  z-index: 99;
+  z-index: 200;
+  background: #e6f7f7;
 }
 
 th {
@@ -40,7 +46,8 @@ th {
   font-weight: 600;
   position: sticky;
   top: 0;
-  z-index: 99;
+  z-index: 200;
+  border-bottom: 2px solid #0072ce;
 }
 
 .app-header {
@@ -129,6 +136,15 @@ th, td {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #e0f2f1;
   text-align: left;
+}
+
+/* Ensure sticky positioning works */
+tbody {
+  display: table-row-group;
+}
+
+tr {
+  display: table-row;
 }
 
 tr:last-child td {
