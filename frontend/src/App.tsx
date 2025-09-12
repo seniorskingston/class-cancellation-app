@@ -94,13 +94,24 @@ function App() {
   const handleRefresh = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/refresh`, { method: "POST" });
+      // Force refresh by adding timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const res = await fetch(`${API_URL}/refresh?t=${timestamp}`, { 
+        method: "POST",
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
+      // Force fresh data fetch
       await fetchCancellations();
     } catch (error) {
       console.error("Error refreshing:", error);
+      alert("Refresh failed. Please try refreshing the browser page instead.");
     } finally {
       setLoading(false);
     }
@@ -453,7 +464,7 @@ function App() {
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Class Cancellation</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Specific cancelled dates</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Additional Information</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Notes or details</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Withdrawal</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Allowed (Yes/No, based on classes completed)</td></tr>
-                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Star</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Click the star to "pin" a program at the top of your list</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Star</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Click the star (leftmost column) to "pin" a program at the top of your list</td></tr>
                 </tbody>
               </table>
 

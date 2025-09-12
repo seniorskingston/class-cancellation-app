@@ -477,8 +477,12 @@ def get_cancellations(
 
 @app.post("/api/refresh")
 async def refresh_data():
-    """Manual refresh endpoint - returns current data count"""
+    """Manual refresh endpoint - checks and re-imports Excel if needed, returns current data count"""
     try:
+        # Force check and import Excel file
+        check_and_import_excel()
+        
+        # Get current data count
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM programs")
@@ -486,7 +490,7 @@ async def refresh_data():
         conn.close()
         
         return {
-            "message": "Data refreshed successfully",
+            "message": "Data refreshed and Excel checked",
             "data_count": count,
             "timestamp": datetime.now(KINGSTON_TZ).isoformat()
         }
