@@ -250,11 +250,16 @@ def init_database():
     conn.close()
     print("✅ Database initialized successfully")
 
-def import_excel_data(file_content: bytes):
+def import_excel_data(file_path_or_content):
     """Import data from Excel file into SQLite database"""
     try:
-        # Read ALL sheets from Excel file
-        excel_data = pd.read_excel(io.BytesIO(file_content), sheet_name=None)
+        # Handle both file path (string) and file content (bytes)
+        if isinstance(file_path_or_content, str):
+            # It's a file path, read directly
+            excel_data = pd.read_excel(file_path_or_content, sheet_name=None)
+        else:
+            # It's file content (bytes), use BytesIO
+            excel_data = pd.read_excel(io.BytesIO(file_path_or_content), sheet_name=None)
         
         # Clear existing data
         conn = sqlite3.connect(DB_PATH)
