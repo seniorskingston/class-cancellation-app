@@ -37,6 +37,7 @@ function App() {
   const [locations, setLocations] = useState<string[]>([]);
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [isMobileView, setIsMobileView] = useState(false);
 
   // Update date and time every second
   useEffect(() => {
@@ -46,14 +47,33 @@ function App() {
     return () => clearInterval(timer);
   }, []);
 
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMobileView(isMobile);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const fetchCancellations = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
-      });
-      if (filters.view_type === "cancellations") params.append("has_cancellation", "true");
+      
+      if (isMobileView) {
+        // Mobile view: only show cancellations, no filters
+        params.append("has_cancellation", "true");
+      } else {
+        // Desktop view: use all filters
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) params.append(key, value);
+        });
+        if (filters.view_type === "cancellations") params.append("has_cancellation", "true");
+      }
       
       const url = `${API_URL}/cancellations?${params.toString()}`;
       console.log("Fetching from:", url);
@@ -85,7 +105,7 @@ function App() {
     const interval = setInterval(() => fetchCancellations(), 5 * 60 * 1000); // 5 min
     return () => clearInterval(interval);
     // eslint-disable-next-line
-  }, [filters]);
+  }, [filters, isMobileView]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -197,6 +217,115 @@ function App() {
     }
   };
 
+  // Mobile view
+  if (isMobileView) {
+    return (
+      <div className="App mobile-view">
+        <header className="mobile-header">
+          <img src={logo} alt="Company Logo" className="mobile-logo" />
+          <h1>Class Cancellations</h1>
+          <div className="mobile-datetime">
+            {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
+          </div>
+        </header>
+        
+        <div className="mobile-controls">
+          <button 
+            onClick={() => setIsMobileView(false)} 
+            className="desktop-toggle"
+          >
+            📱 Switch to Desktop View
+          </button>
+          <button onClick={handleRefresh} disabled={loading} className="mobile-refresh">
+            {loading ? "Refreshing..." : "🔄 Refresh"}
+          </button>
+        </div>
+
+        <div className="mobile-data">
+          {sortedCancellations.length === 0 ? (
+            <div className="mobile-no-data">
+              No class cancellations found.
+            </div>
+          ) : (
+            sortedCancellations.map((c, i) => {
+              const isFavorite = favorites.has(c.program_id);
+              return (
+                <div key={i} className={`mobile-card ${isFavorite ? 'favorite' : ''}`}>
+                  <div className="mobile-card-header">
+                    <span 
+                      className={`mobile-star ${isFavorite ? 'favorited' : ''}`}
+                      onClick={() => toggleFavorite(c.program_id)}
+                    >
+                      {isFavorite ? '★' : '☆'}
+                    </span>
+                    <div className="mobile-program-info">
+                      <div className="mobile-program-name">{c.program}</div>
+                      <div className="mobile-program-id">ID: {c.program_id}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="mobile-card-details">
+                    <div className="mobile-detail-row">
+                      <span className="mobile-label">Day:</span>
+                      <span className="mobile-value">{c.sheet}</span>
+                    </div>
+                    <div className="mobile-detail-row">
+                      <span className="mobile-label">Time:</span>
+                      <span className="mobile-value">{c.time}</span>
+                    </div>
+                    <div className="mobile-detail-row">
+                      <span className="mobile-label">Location:</span>
+                      <span className="mobile-value">{c.location}</span>
+                    </div>
+                    <div className="mobile-detail-row">
+                      <span className="mobile-label">Room:</span>
+                      <span className="mobile-value">{c.class_room}</span>
+                    </div>
+                    <div className="mobile-detail-row">
+                      <span className="mobile-label">Instructor:</span>
+                      <span className="mobile-value">{c.instructor}</span>
+                    </div>
+                    <div className="mobile-detail-row">
+                      <span className="mobile-label">Cancelled:</span>
+                      <span className="mobile-value mobile-cancellation">
+                        {c.class_cancellation && c.class_cancellation !== '' ? 
+                          c.class_cancellation.split(';').map((date, index) => {
+                            const trimmedDate = date.trim();
+                            if (trimmedDate) {
+                              try {
+                                const parsedDate = new Date(trimmedDate);
+                                if (!isNaN(parsedDate.getTime())) {
+                                  return (
+                                    <div key={index}>
+                                      {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
+                                    </div>
+                                  );
+                                }
+                              } catch (e) {
+                                // If parsing fails, show the original text
+                              }
+                            }
+                            return null;
+                          }).filter(Boolean) || c.class_cancellation : 'N/A'}
+                      </span>
+                    </div>
+                    {c.note && c.note !== '' && (
+                      <div className="mobile-detail-row">
+                        <span className="mobile-label">Note:</span>
+                        <span className="mobile-value">{c.note}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop view
   return (
     <div className="App">
       <div className="sticky-header">
@@ -255,6 +384,13 @@ function App() {
           </select>
           <button onClick={handleRefresh} disabled={loading}>
             {loading ? "Refreshing..." : "Refresh"}
+          </button>
+          <button 
+            onClick={() => setIsMobileView(true)} 
+            className="mobile-toggle"
+            style={{ background: "#00b388", color: "white" }}
+          >
+            📱 Mobile View
           </button>
           <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
             <button 

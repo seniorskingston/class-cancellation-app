@@ -292,6 +292,190 @@ tr:last-child td {
   color: #00b388;
 }
 
+/* Mobile View Styles */
+.mobile-view {
+  padding: 0;
+  margin: 0;
+}
+
+.mobile-header {
+  background: linear-gradient(135deg, #00b388 0%, #0072ce 100%);
+  color: white;
+  padding: 15px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.mobile-logo {
+  height: 40px;
+  margin-bottom: 10px;
+}
+
+.mobile-header h1 {
+  margin: 0 0 10px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.mobile-datetime {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.mobile-controls {
+  padding: 15px;
+  background: #f6fbfc;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.desktop-toggle, .mobile-refresh {
+  background: #0072ce;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.desktop-toggle:hover, .mobile-refresh:hover {
+  background: #005fa3;
+}
+
+.mobile-refresh:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.mobile-data {
+  padding: 15px;
+  background: white;
+}
+
+.mobile-no-data {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.mobile-card {
+  background: white;
+  border: 1px solid #e0f2f1;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+
+.mobile-card.favorite {
+  border-left: 4px solid #00b388;
+  background: #f0fdfa;
+}
+
+.mobile-card-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.mobile-star {
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.mobile-star.favorited {
+  color: #00b388;
+  text-shadow: 0 0 3px rgba(0, 179, 136, 0.5);
+}
+
+.mobile-star:not(.favorited) {
+  color: #ccc;
+}
+
+.mobile-star:not(.favorited):hover {
+  color: #00b388;
+}
+
+.mobile-program-info {
+  flex: 1;
+}
+
+.mobile-program-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #0072ce;
+  margin-bottom: 5px;
+  line-height: 1.3;
+}
+
+.mobile-program-id {
+  font-size: 0.9rem;
+  color: #666;
+  font-family: monospace;
+}
+
+.mobile-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobile-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 5px 0;
+}
+
+.mobile-label {
+  font-weight: 600;
+  color: #0072ce;
+  min-width: 80px;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.mobile-value {
+  color: #333;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.mobile-cancellation {
+  color: #d32f2f;
+  font-weight: 500;
+}
+
+/* Mobile toggle button in desktop view */
+.mobile-toggle {
+  background: #00b388 !important;
+  color: white !important;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mobile-toggle:hover {
+  background: #008a6b !important;
+}
+
 /* Pinned favorite rows - NO background highlighting, just pinning */
 .favorite-row {
   /* No background color change */
