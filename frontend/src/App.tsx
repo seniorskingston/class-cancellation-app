@@ -391,8 +391,8 @@ function App() {
               <h3>4. Using the View Filter (Dropdown)</h3>
               <p>The app now uses a dropdown filter to select which programs to display:</p>
               <ul>
-                <li><strong>Show All Programs</strong> – Displays all scheduled programs, including Active, Cancelled, and Additions.</li>
                 <li><strong>Show Class Cancellations</strong> – Displays only classes that have individual cancellations.</li>
+                <li><strong>Show All Programs</strong> – Displays all scheduled programs, including Active, Cancelled, and Additions.</li>
               </ul>
               <p>💡 <strong>Tip:</strong> Choose the desired option from the dropdown to switch views. The data updates immediately.</p>
 
