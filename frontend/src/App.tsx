@@ -38,6 +38,8 @@ function App() {
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [isMobileView, setIsMobileView] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   // Update date and time every second
   useEffect(() => {
@@ -58,6 +60,51 @@ function App() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // PWA Install functionality
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+    };
+
+    const handleAppInstalled = () => {
+      setShowInstallPrompt(false);
+      setDeferredPrompt(null);
+      console.log('PWA was installed');
+    };
+
+    // Check if it's iOS and not already installed
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+    
+    if (isIOS && !isInStandaloneMode) {
+      setShowInstallPrompt(true);
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      // Android/Chrome PWA install
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+    } else {
+      // iOS Safari - show instructions
+      alert('To add this app to your home screen:\n\n1. Tap the Share button (square with arrow up)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" to confirm');
+    }
+  };
 
   const fetchCancellations = async () => {
     setLoading(true);
@@ -239,6 +286,14 @@ function App() {
           <button onClick={handleRefresh} disabled={loading} className="mobile-refresh">
             {loading ? "Refreshing..." : "🔄 Refresh"}
           </button>
+          {showInstallPrompt && (
+            <button 
+              onClick={handleInstallClick} 
+              className="install-button"
+            >
+              📲 Add to Home Screen
+            </button>
+          )}
         </div>
 
         <div className="mobile-data">

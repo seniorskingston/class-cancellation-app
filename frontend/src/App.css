@@ -476,6 +476,35 @@ tr:last-child td {
   background: #008a6b !important;
 }
 
+/* Install button for PWA */
+.install-button {
+  background: #ff6b35 !important;
+  color: white !important;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  animation: pulse 2s infinite;
+}
+
+.install-button:hover {
+  background: #e55a2b !important;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 107, 53, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 53, 0);
+  }
+}
+
 /* Pinned favorite rows - NO background highlighting, just pinning */
 .favorite-row {
   /* No background color change */
