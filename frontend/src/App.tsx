@@ -29,10 +29,10 @@ function App() {
     day: "",
     location: "",
     program_status: "",
+    view_type: "cancellations", // New: "cancellations" or "all"
   });
   const [lastLoaded, setLastLoaded] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [showingCancellationsOnly, setShowingCancellationsOnly] = useState(true);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
   const [showUserGuide, setShowUserGuide] = useState(false);
@@ -46,14 +46,14 @@ function App() {
     return () => clearInterval(timer);
   }, []);
 
-  const fetchCancellations = async (hasCancellation = true) => {
+  const fetchCancellations = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params.append(key, value);
       });
-      if (hasCancellation) params.append("has_cancellation", "true");
+      if (filters.view_type === "cancellations") params.append("has_cancellation", "true");
       
       const url = `${API_URL}/cancellations?${params.toString()}`;
       console.log("Fetching from:", url);
@@ -81,11 +81,11 @@ function App() {
   };
 
   useEffect(() => {
-    fetchCancellations(showingCancellationsOnly);
-    const interval = setInterval(() => fetchCancellations(showingCancellationsOnly), 5 * 60 * 1000); // 5 min
+    fetchCancellations();
+    const interval = setInterval(() => fetchCancellations(), 5 * 60 * 1000); // 5 min
     return () => clearInterval(interval);
     // eslint-disable-next-line
-  }, [filters, showingCancellationsOnly]);
+  }, [filters]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -98,20 +98,12 @@ function App() {
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
-      await fetchCancellations(showingCancellationsOnly);
+      await fetchCancellations();
     } catch (error) {
       console.error("Error refreshing:", error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleShowAll = () => {
-    setShowingCancellationsOnly(false);
-  };
-
-  const handleShowCancellations = () => {
-    setShowingCancellationsOnly(true);
   };
 
   const toggleFavorite = (programId: string) => {
@@ -153,7 +145,7 @@ function App() {
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params.append(key, value);
       });
-      if (showingCancellationsOnly) params.append("has_cancellation", "true");
+      if (filters.view_type === "cancellations") params.append("has_cancellation", "true");
       
       // Call export endpoint
       const res = await fetch(`${API_URL}/export-${format}?${params.toString()}`);
@@ -242,18 +234,17 @@ function App() {
             <option value="Active">Active</option>
             <option value="Additions">Additions</option>
           </select>
+          <select
+            name="view_type"
+            value={filters.view_type}
+            onChange={handleInputChange}
+          >
+            <option value="cancellations">Show Class Cancellations</option>
+            <option value="all">Show All Programs</option>
+          </select>
           <button onClick={handleRefresh} disabled={loading}>
             {loading ? "Refreshing..." : "Refresh"}
           </button>
-          {showingCancellationsOnly ? (
-            <button onClick={handleShowAll} style={{ background: "#00b388" }}>
-              Show All Programs
-            </button>
-          ) : (
-            <button onClick={handleShowCancellations} style={{ background: "#0072ce" }}>
-              Show Class Cancellations
-            </button>
-          )}
           <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
             <button 
               onClick={() => handleExport('excel')} 
