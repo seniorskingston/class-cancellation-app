@@ -752,7 +752,7 @@ function App() {
               </ul>
               <p>💡 <strong>Tip:</strong> Choose the desired option from the dropdown to switch views. The data updates immediately.</p>
 
-              <h3>6. Filtering Options (Desktop View)</h4>
+              <h3>6. Filtering Options (Desktop View)</h3>
               <ul>
                 <li><strong>Program:</strong> Search by program name</li>
                 <li><strong>Program ID:</strong> Search by unique ID</li>
