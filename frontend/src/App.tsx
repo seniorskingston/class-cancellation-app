@@ -136,7 +136,7 @@ function App() {
       // iOS Safari - show instructions
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       if (isIOS) {
-        alert('📱 To add this app to your home screen:\n\n1. FIRST: Exit full screen mode\n   - Tap the "AA" button in the address bar\n   - OR swipe down from the top to show Safari toolbar\n\n2. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: □↑)\n\n3. Tap the Share button\n4. Scroll down and tap "Add to Home Screen"\n5. Tap "Add" to confirm\n\n💡 You need to exit full screen to see the Share button!\n✨ The app will then work like a native app!');
+        alert('📱 To add this app to your home screen:\n\n1. FIRST: Exit full screen mode\n   - Swipe DOWN from the very top of the screen\n   - OR swipe UP from the bottom to show Safari toolbar\n\n2. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: □↑)\n\n3. Tap the Share button\n4. Scroll down and tap "Add to Home Screen"\n5. Tap "Add" to confirm\n\n💡 Swipe down from top to exit full screen!\n✨ The app will then work like a native app!');
       } else {
         alert('📱 To add this app to your home screen:\n\n1. Look for the install icon in your browser\n2. Or use your browser\'s menu to "Add to Home Screen"\n3. Follow the prompts to install\n\n✨ The app will then work like a native app!');
       }
