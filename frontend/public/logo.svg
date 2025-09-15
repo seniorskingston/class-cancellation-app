@@ -1,0 +1,31 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#f6fbfc"/>
+  
+  <!-- Black border -->
+  <rect x="20" y="20" width="472" height="472" fill="none" stroke="black" stroke-width="2"/>
+  
+  <!-- Top green band -->
+  <rect x="20" y="20" width="472" height="60" fill="#32CD32"/>
+  
+  <!-- Main white section -->
+  <rect x="20" y="80" width="472" height="280" fill="white"/>
+  
+  <!-- Bottom green band -->
+  <rect x="20" y="360" width="472" height="60" fill="#32CD32"/>
+  
+  <!-- Thin black line -->
+  <rect x="20" y="420" width="472" height="4" fill="black"/>
+  
+  <!-- Bottom white section -->
+  <rect x="20" y="424" width="472" height="68" fill="white"/>
+  
+  <!-- SENIORS text -->
+  <text x="256" y="180" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="black">SENIORS</text>
+  
+  <!-- ASSOCIATION text -->
+  <text x="256" y="220" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="black">ASSOCIATION</text>
+  
+  <!-- KINGSTON REGION text -->
+  <text x="256" y="470" font-family="Arial, sans-serif" font-size="20" font-style="italic" text-anchor="middle" fill="black">KINGSTON REGION</text>
+</svg>
