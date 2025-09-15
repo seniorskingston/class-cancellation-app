@@ -1,6 +1,6 @@
 {
-  "name": "Class Cancellation App",
-  "short_name": "ClassApp",
+  "name": "Program",
+  "short_name": "Program",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f6fbfc",
