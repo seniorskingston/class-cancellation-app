@@ -21,10 +21,10 @@
   <rect x="20" y="424" width="472" height="68" fill="white"/>
   
   <!-- SENIORS text -->
-  <text x="256" y="180" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="black">SENIORS</text>
+  <text x="256" y="200" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" fill="black">SENIORS</text>
   
   <!-- ASSOCIATION text -->
-  <text x="256" y="220" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="black">ASSOCIATION</text>
+  <text x="256" y="260" font-family="Arial, sans-serif" font-size="36" text-anchor="middle" fill="black">ASSOCIATION</text>
   
   <!-- KINGSTON REGION text -->
   <text x="256" y="470" font-family="Arial, sans-serif" font-size="20" font-style="italic" text-anchor="middle" fill="black">KINGSTON REGION</text>
