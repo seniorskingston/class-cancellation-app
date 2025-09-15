@@ -374,16 +374,30 @@ function App() {
                             const trimmedDate = date.trim();
                             if (trimmedDate) {
                               try {
-                                const parsedDate = new Date(trimmedDate);
+                                // Normalize date format: replace period with comma for better parsing
+                                const normalizedDate = trimmedDate.replace(/\./g, ',');
+                                const parsedDate = new Date(normalizedDate);
                                 if (!isNaN(parsedDate.getTime())) {
                                   return (
                                     <div key={index}>
                                       {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
                                     </div>
                                   );
+                                } else {
+                                  // If parsing still fails, show the original text
+                                  return (
+                                    <div key={index}>
+                                      {trimmedDate}
+                                    </div>
+                                  );
                                 }
                               } catch (e) {
                                 // If parsing fails, show the original text
+                                return (
+                                  <div key={index}>
+                                    {trimmedDate}
+                                  </div>
+                                );
                               }
                             }
                             return null;
@@ -561,16 +575,30 @@ function App() {
                       const trimmedDate = date.trim();
                       if (trimmedDate) {
                         try {
-                          const parsedDate = new Date(trimmedDate);
+                          // Normalize date format: replace period with comma for better parsing
+                          const normalizedDate = trimmedDate.replace(/\./g, ',');
+                          const parsedDate = new Date(normalizedDate);
                           if (!isNaN(parsedDate.getTime())) {
                             return (
                               <div key={index}>
                                 {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
                               </div>
                             );
+                          } else {
+                            // If parsing still fails, show the original text
+                            return (
+                              <div key={index}>
+                                {trimmedDate}
+                              </div>
+                            );
                           }
                         } catch (e) {
                           // If parsing fails, show the original text
+                          return (
+                            <div key={index}>
+                              {trimmedDate}
+                            </div>
+                          );
                         }
                       }
                       return null;

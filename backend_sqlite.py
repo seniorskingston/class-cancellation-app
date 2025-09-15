@@ -293,6 +293,10 @@ def import_excel_data(file_path_or_content):
                 actions = safe_str(row.get('Actions', row.get('actions', '')))
                 class_cancellation = safe_str(row.get('Cancellation Date', row.get('cancellation_date', '')))
                 
+                # Normalize date format: replace periods with commas for better parsing
+                if class_cancellation and class_cancellation != '':
+                    class_cancellation = class_cancellation.replace('.', ',')
+                
                 # Program status: Actions TRUE = whole program cancelled, Actions FALSE = program active
                 if actions.strip().upper() == 'TRUE':
                     program_status = "Cancelled"
