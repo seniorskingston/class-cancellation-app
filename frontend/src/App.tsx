@@ -709,6 +709,7 @@ function App() {
               <ul>
                 <li><strong>Desktop View:</strong> Full table with all filters and features</li>
                 <li><strong>Mobile View:</strong> Automatically activates on phones/tablets, shows only class cancellations in a card format</li>
+                <li><strong>Mobile Toggle Button:</strong> Use the "📱 Mobile View" button in the top-right corner to manually switch to mobile view</li>
                 <li><strong>Switch Views:</strong> Use the "📱 Mobile View" or "🖥️ Desktop View" buttons to toggle between views</li>
               </ul>
 
@@ -802,6 +803,7 @@ function App() {
                 <li><strong>Class Cancellations Only:</strong> Mobile view focuses on cancelled classes</li>
                 <li><strong>Touch-Friendly:</strong> Large buttons and easy navigation</li>
                 <li><strong>PWA Installation:</strong> Can be installed as a native app</li>
+                <li><strong>View Toggle:</strong> "Switch to Desktop View" button to return to full table view</li>
               </ul>
 
               <h3>10. Exporting Data (Desktop Only)</h3>
@@ -822,7 +824,8 @@ function App() {
               <ul>
                 <li><strong>Use favorites</strong> to keep important programs at the top</li>
                 <li><strong>Install on mobile</strong> for quick access to class cancellations</li>
-                <li><strong>Switch views</strong> based on your device and needs</li>
+                <li><strong>Switch views</strong> based on your device and needs using the toggle buttons</li>
+                <li><strong>Mobile toggle</strong> allows you to test mobile view on desktop or use desktop view on mobile</li>
                 <li><strong>Export data</strong> to share or print schedules</li>
                 <li><strong>Refresh regularly</strong> to get the latest updates</li>
                 <li>All times are shown in Kingston, Ontario timezone</li>
