@@ -93,11 +93,25 @@ function App() {
       console.log('PWA was installed');
     };
 
-    // Check if it's iOS and not already installed
+    // Check device type and PWA status
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
     const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+    const isMobile = window.innerWidth <= 768 || isIOS || isAndroid;
     
-    if (isIOS && !isInStandaloneMode) {
+    console.log('PWA Detection:', {
+      isIOS,
+      isAndroid,
+      isMobile,
+      isInStandaloneMode,
+      userAgent: navigator.userAgent
+    });
+    
+    // Show install button for:
+    // 1. Android/Chrome (beforeinstallprompt event)
+    // 2. iOS Safari (not in standalone mode)
+    // 3. Any mobile device not in standalone mode
+    if (isMobile && !isInStandaloneMode) {
       setShowInstallPrompt(true);
     }
 
@@ -120,7 +134,12 @@ function App() {
       setShowInstallPrompt(false);
     } else {
       // iOS Safari - show instructions
-      alert('To add this app to your home screen:\n\n1. Tap the Share button (square with arrow up)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" to confirm');
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        alert('📱 To add this app to your home screen:\n\n1. Tap the Share button (□ with ↑)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
+      } else {
+        alert('📱 To add this app to your home screen:\n\n1. Look for the install icon in your browser\n2. Or use your browser\'s menu to "Add to Home Screen"\n3. Follow the prompts to install\n\n✨ The app will then work like a native app!');
+      }
     }
   };
 
@@ -307,7 +326,7 @@ function App() {
           <button onClick={handleRefresh} disabled={loading} className="mobile-refresh">
             {loading ? "Refreshing..." : "🔄 Refresh"}
           </button>
-          {showInstallPrompt && (
+          {(showInstallPrompt || isMobileView) && (
             <button 
               onClick={handleInstallClick} 
               className="install-button"
