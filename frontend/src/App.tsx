@@ -556,20 +556,6 @@ function App() {
         <button onClick={handleRefresh} disabled={loading}>
           {loading ? "Refreshing..." : "Refresh"}
         </button>
-          <button 
-            onClick={() => setIsMobileView(true)} 
-            className="mobile-toggle"
-            style={{ background: "#00b388", color: "white" }}
-          >
-            📱 Mobile View
-          </button>
-          <button 
-            onClick={() => setIsMobileView(!isMobileView)} 
-            className="mobile-toggle"
-            style={{ background: "#ff6b35", color: "white" }}
-          >
-            {isMobileView ? "🖥️ Desktop" : "📱 Mobile"} Toggle
-          </button>
           <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
             <button 
               onClick={() => handleExport('excel')} 
@@ -709,8 +695,7 @@ function App() {
               <ul>
                 <li><strong>Desktop View:</strong> Full table with all filters and features</li>
                 <li><strong>Mobile View:</strong> Automatically activates on phones/tablets, shows only class cancellations in a card format</li>
-                <li><strong>Mobile Toggle Button:</strong> Use the "📱 Mobile View" button in the top-right corner to manually switch to mobile view</li>
-                <li><strong>Switch Views:</strong> Use the "📱 Mobile View" or "🖥️ Desktop View" buttons to toggle between views</li>
+                <li><strong>Automatic Detection:</strong> The app automatically detects your device and switches to the appropriate view</li>
               </ul>
 
               <h4>Installing as a Mobile App</h4>
@@ -824,8 +809,7 @@ function App() {
               <ul>
                 <li><strong>Use favorites</strong> to keep important programs at the top</li>
                 <li><strong>Install on mobile</strong> for quick access to class cancellations</li>
-                <li><strong>Switch views</strong> based on your device and needs using the toggle buttons</li>
-                <li><strong>Mobile toggle</strong> allows you to test mobile view on desktop or use desktop view on mobile</li>
+                <li><strong>Automatic view switching</strong> - the app automatically chooses the best view for your device</li>
                 <li><strong>Export data</strong> to share or print schedules</li>
                 <li><strong>Refresh regularly</strong> to get the latest updates</li>
                 <li>All times are shown in Kingston, Ontario timezone</li>
@@ -835,7 +819,7 @@ function App() {
               <ul>
                 <li><strong>Data not loading:</strong> Try refreshing the page or using the Refresh button</li>
                 <li><strong>Favorites disappeared:</strong> Check if you're on the same device/browser</li>
-                <li><strong>Mobile view issues:</strong> Try switching to desktop view and back</li>
+                <li><strong>Mobile view issues:</strong> The app automatically detects your device - try refreshing the page</li>
                 <li><strong>Installation problems:</strong> Make sure you're using Safari (iOS) or Chrome (Android)</li>
               </ul>
 
