@@ -41,6 +41,7 @@ function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInStandaloneMode, setIsInStandaloneMode] = useState(false);
+  const [showIOSBanner, setShowIOSBanner] = useState(false);
 
   // Update date and time every second
   useEffect(() => {
@@ -118,6 +119,11 @@ function App() {
     if (isMobile && !standaloneMode) {
       setShowInstallPrompt(true);
     }
+    
+    // Show iOS banner for users not in standalone mode
+    if (isIOS && !standaloneMode) {
+      setShowIOSBanner(true);
+    }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -140,7 +146,7 @@ function App() {
       // iOS Safari - show instructions
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       if (isIOS) {
-        alert('📱 To add this app to your home screen:\n\n1. Tap "🌐 Open in Safari" button below\n2. Safari will open with the address bar visible\n3. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: □↑)\n4. Tap the Share button\n5. Scroll down and tap "Add to Home Screen"\n6. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
+        alert('📱 To add this app to your home screen:\n\n1. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: □↑)\n2. Tap the Share button\n3. Scroll down and tap "Add to Home Screen"\n4. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
       } else {
         alert('📱 To add this app to your home screen:\n\n1. Look for the install icon in your browser\n2. Or use your browser\'s menu to "Add to Home Screen"\n3. Follow the prompts to install\n\n✨ The app will then work like a native app!');
       }
@@ -150,16 +156,16 @@ function App() {
   const fetchCancellations = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
+    const params = new URLSearchParams();
       
       if (isMobileView) {
         // Mobile view: only show cancellations, no filters
         params.append("has_cancellation", "true");
       } else {
         // Desktop view: use all filters
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value) params.append(key, value);
-        });
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.append(key, value);
+    });
         if (filters.view_type === "cancellations") params.append("has_cancellation", "true");
       }
       
@@ -172,13 +178,13 @@ function App() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       
-      const data = await res.json();
+    const data = await res.json();
       console.log("Received data:", data);
       console.log("Data count:", data.data ? data.data.length : 0);
       console.log("Is mobile view:", isMobileView);
       console.log("API URL:", url);
-      setCancellations(data.data);
-      setLastLoaded(data.last_loaded);
+    setCancellations(data.data);
+    setLastLoaded(data.last_loaded);
       
       // Extract unique locations for filter dropdown
       const uniqueLocations = Array.from(new Set(data.data.map((item: any) => item.location).filter((loc: any) => loc && loc !== ''))).sort() as string[];
@@ -187,7 +193,7 @@ function App() {
       console.error("Error fetching cancellations:", error);
       setCancellations([]);
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
 
@@ -224,7 +230,7 @@ function App() {
       console.error("Error refreshing:", error);
       alert("Refresh failed. Please try refreshing the browser page instead.");
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
 
@@ -331,20 +337,6 @@ function App() {
             {loading ? "Refreshing..." : "🔄 Refresh"}
           </button>
           <div className="mobile-button-row">
-            {/* Only show "Open in Safari" button when in standalone mode (home screen app) */}
-            {isInStandaloneMode && (
-              <button 
-                onClick={() => {
-                  // Open current page in Safari to "exit" full screen mode
-                  const currentUrl = window.location.href;
-                  window.open(currentUrl, '_blank');
-                  alert('📱 Opening in Safari...\n\n1. Safari will open with this page\n2. You can now see the address bar and toolbar\n3. Look for the Share button (□↑) at the bottom\n4. Tap Share → "Add to Home Screen"\n5. Close this full-screen app when done\n\n✨ This effectively "exits" full screen mode!');
-                }}
-                className="exit-fullscreen-button"
-              >
-                🌐 Open in Safari
-              </button>
-            )}
             {(showInstallPrompt || isMobileView) && (
               <button 
                 onClick={handleInstallClick} 
@@ -356,6 +348,21 @@ function App() {
           </div>
         </div>
         
+        {/* iOS Installation Banner */}
+        {showIOSBanner && (
+          <div className="ios-banner">
+            <div className="ios-banner-content">
+              <span>📱 Add this app to your Home Screen: tap Share → Add to Home Screen</span>
+              <button 
+                onClick={() => setShowIOSBanner(false)}
+                className="ios-banner-close"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Debug info for mobile */}
         <div className="mobile-debug" style={{ fontSize: '12px', color: '#666', padding: '5px', textAlign: 'center' }}>
           Mobile View: {isMobileView ? 'Yes' : 'No'} | Data: {sortedCancellations.length} programs
@@ -463,51 +470,51 @@ function App() {
   return (
     <div className="App">
       <div className="sticky-header">
-        <header className="app-header">
-          <img src={logo} alt="Company Logo" className="app-logo" />
-          <h1>Program Schedule Update</h1>
-          <div className="datetime-display">
+      <header className="app-header">
+        <img src={logo} alt="Company Logo" className="app-logo" />
+        <h1>Program Schedule Update</h1>
+        <div className="datetime-display">
             {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {currentDateTime.toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
-          </div>
-        </header>
-        <div className="filters">
-          <input
-            name="program"
-            placeholder="Program"
-            value={filters.program}
-            onChange={handleInputChange}
-          />
-          <input
-            name="program_id"
-            placeholder="Program ID"
-            value={filters.program_id}
-            onChange={handleInputChange}
-          />
-          <select name="day" value={filters.day} onChange={handleInputChange}>
-            <option value="">All Days</option>
-            <option>Monday</option>
-            <option>Tuesday</option>
-            <option>Wednesday</option>
-            <option>Thursday</option>
-            <option>Friday</option>
-            <option>Saturday</option>
-          </select>
+        </div>
+      </header>
+      <div className="filters">
+        <input
+          name="program"
+          placeholder="Program"
+          value={filters.program}
+          onChange={handleInputChange}
+        />
+        <input
+          name="program_id"
+          placeholder="Program ID"
+          value={filters.program_id}
+          onChange={handleInputChange}
+        />
+        <select name="day" value={filters.day} onChange={handleInputChange}>
+          <option value="">All Days</option>
+          <option>Monday</option>
+          <option>Tuesday</option>
+          <option>Wednesday</option>
+          <option>Thursday</option>
+          <option>Friday</option>
+          <option>Saturday</option>
+        </select>
           <select name="location" value={filters.location} onChange={handleInputChange}>
             <option value="">All Locations</option>
             {locations.map((location, index) => (
               <option key={index} value={location}>{location}</option>
             ))}
           </select>
-          <select
-            name="program_status"
-            value={filters.program_status}
-            onChange={handleInputChange}
-          >
-            <option value="">All Statuses</option>
-            <option value="Cancelled">Cancelled</option>
-            <option value="Active">Active</option>
-            <option value="Additions">Additions</option>
-          </select>
+        <select
+          name="program_status"
+          value={filters.program_status}
+          onChange={handleInputChange}
+        >
+          <option value="">All Statuses</option>
+          <option value="Cancelled">Cancelled</option>
+          <option value="Active">Active</option>
+          <option value="Additions">Additions</option>
+        </select>
           <select
             name="view_type"
             value={filters.view_type}
@@ -516,9 +523,9 @@ function App() {
             <option value="cancellations">Show Class Cancellations</option>
             <option value="all">Show All Programs</option>
           </select>
-          <button onClick={handleRefresh} disabled={loading}>
-            {loading ? "Refreshing..." : "Refresh"}
-          </button>
+        <button onClick={handleRefresh} disabled={loading}>
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
           <button 
             onClick={() => setIsMobileView(true)} 
             className="mobile-toggle"
@@ -547,16 +554,16 @@ function App() {
               disabled={cancellations.length === 0}
             >
               📄 Export to PDF
-            </button>
+          </button>
             <button 
               onClick={() => setShowUserGuide(true)} 
               style={{ background: "#0072ce", color: "white" }}
             >
               📖 User Guide
-            </button>
+          </button>
           </div>
-        </div>
-        <div className="last-loaded">
+      </div>
+      <div className="last-loaded">
           Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}
         </div>
       </div>
@@ -600,15 +607,15 @@ function App() {
                       {isFavorite ? '★' : '☆'}
                     </span>
                   </td>
-                  <td>{c.sheet}</td>
-                  <td>{c.program}</td>
-                  <td>{c.program_id}</td>
-                  <td>{c.date_range}</td>
-                  <td>{c.time}</td>
-                  <td>{c.location}</td>
+                <td>{c.sheet}</td>
+                <td>{c.program}</td>
+                <td>{c.program_id}</td>
+                <td>{c.date_range}</td>
+                <td>{c.time}</td>
+                <td>{c.location}</td>
                   <td>{c.class_room}</td>
                   <td>{c.instructor}</td>
-                  <td>{c.program_status}</td>
+                <td>{c.program_status}</td>
                   <td>{c.class_cancellation && c.class_cancellation !== '' ? 
                     c.class_cancellation.split(';').map((date, index) => {
                       const trimmedDate = date.trim();
@@ -643,8 +650,8 @@ function App() {
                       return null;
                     }).filter(Boolean) || c.class_cancellation : ''}</td>
                   <td>{c.note && c.note !== '' ? c.note : ''}</td>
-                  <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
-                </tr>
+                <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
+              </tr>
               );
             })}
           </tbody>
