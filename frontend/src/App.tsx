@@ -508,6 +508,12 @@ function App() {
         </div>
       </header>
       <div className="filters">
+        <button 
+          onClick={() => setIsMobileView(true)} 
+          style={{ background: "#00b388", color: "white", fontSize: "0.75rem", padding: "0.3rem 0.6rem" }}
+        >
+          📱 Mobile
+        </button>
         <input
           name="program"
           placeholder="Program"
@@ -552,15 +558,9 @@ function App() {
           >
             <option value="cancellations">Show Class Cancellations</option>
             <option value="all">Show All Programs</option>
-          </select>
+        </select>
         <button onClick={handleRefresh} disabled={loading}>
           {loading ? "Refreshing..." : "Refresh"}
-        </button>
-        <button 
-          onClick={() => setIsMobileView(true)} 
-          style={{ background: "#00b388", color: "white" }}
-        >
-          📱 Mobile View
         </button>
         <button 
           onClick={() => handleExport('excel')} 
@@ -575,13 +575,13 @@ function App() {
           disabled={cancellations.length === 0}
         >
           📄 PDF
-        </button>
+          </button>
         <button 
           onClick={() => setShowUserGuide(true)} 
           style={{ background: "#0072ce", color: "white" }}
         >
           📖 Guide
-        </button>
+          </button>
       </div>
       <div className="last-loaded">
           Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}
