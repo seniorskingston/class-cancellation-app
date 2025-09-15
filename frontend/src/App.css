@@ -493,6 +493,23 @@ tr:last-child td {
   background: #e55a2b !important;
 }
 
+/* Exit full screen button */
+.exit-fullscreen-button {
+  background: #6c757d !important;
+  color: white !important;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-right: 10px;
+}
+
+.exit-fullscreen-button:hover {
+  background: #5a6268 !important;
+}
+
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
