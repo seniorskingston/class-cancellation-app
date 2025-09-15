@@ -556,6 +556,12 @@ function App() {
         <button onClick={handleRefresh} disabled={loading}>
           {loading ? "Refreshing..." : "Refresh"}
         </button>
+        <button 
+          onClick={() => setIsMobileView(true)} 
+          style={{ background: "#00b388", color: "white" }}
+        >
+          📱 Mobile View
+        </button>
           <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
             <button 
               onClick={() => handleExport('excel')} 
