@@ -702,15 +702,32 @@ function App() {
             <div className="user-guide-content">
               <h2>Program Schedule Update App – User Guide</h2>
               
-              <p><strong>Welcome!</strong> This guide will help you use the Program Schedule Update App to quickly search, filter, and manage program schedules and cancellations.</p>
+              <p><strong>Welcome!</strong> This guide will help you use the Program Schedule Update App to quickly search, filter, and manage program schedules and cancellations. The app works on both desktop and mobile devices, and can be installed as a native app on your phone or tablet.</p>
 
-              <h3>1. Loading Data</h3>
+              <h3>1. Getting Started</h3>
+              <h4>Desktop vs Mobile View</h4>
+              <ul>
+                <li><strong>Desktop View:</strong> Full table with all filters and features</li>
+                <li><strong>Mobile View:</strong> Automatically activates on phones/tablets, shows only class cancellations in a card format</li>
+                <li><strong>Switch Views:</strong> Use the "📱 Mobile View" or "🖥️ Desktop View" buttons to toggle between views</li>
+              </ul>
+
+              <h4>Installing as a Mobile App</h4>
+              <ul>
+                <li><strong>iPhone/iPad:</strong> Tap "📲 Add to Home Screen" → Look for Share button (□↑) at bottom of Safari → "Add to Home Screen"</li>
+                <li><strong>Android:</strong> Chrome may prompt automatically, or use browser menu to "Add to Home Screen"</li>
+                <li><strong>App Name:</strong> Will default to "Program" when installing</li>
+                <li><strong>Benefits:</strong> Works like a native app, faster access, offline capabilities</li>
+              </ul>
+
+              <h3>2. Loading Data</h3>
               <ul>
                 <li>When you open the app, please allow a few minutes for the data to load.</li>
                 <li>If you previously left the app open, refresh the page to ensure the data is up to date.</li>
+                <li>Data refreshes automatically every 5 minutes.</li>
               </ul>
 
-              <h3>2. Searching for a Program</h3>
+              <h3>3. Searching for a Program</h3>
               <p>You can search for a program using:</p>
               <ul>
                 <li><strong>Program Name</strong></li>
@@ -718,7 +735,7 @@ function App() {
                 <li><strong>Day & Location</strong></li>
               </ul>
 
-              <h3>3. Understanding Program Statuses</h3>
+              <h3>4. Understanding Program Statuses</h3>
               <p>Programs may appear with one of these statuses:</p>
               <ul>
                 <li><strong>Active</strong> – The program is currently running (default view).</li>
@@ -727,28 +744,15 @@ function App() {
               </ul>
               <p>💡 <strong>Tip:</strong> Use the Active filter to see all current programs.</p>
 
-              <h3>4. Using the View Filter (Dropdown)</h3>
-              <p>The app now uses a dropdown filter to select which programs to display:</p>
+              <h3>5. Using the View Filter (Dropdown)</h3>
+              <p>The app uses a dropdown filter to select which programs to display:</p>
               <ul>
                 <li><strong>Show Class Cancellations</strong> – Displays only classes that have individual cancellations.</li>
                 <li><strong>Show All Programs</strong> – Displays all scheduled programs, including Active, Cancelled, and Additions.</li>
               </ul>
               <p>💡 <strong>Tip:</strong> Choose the desired option from the dropdown to switch views. The data updates immediately.</p>
 
-              <h3>5. Filtering by Location</h3>
-              <ul>
-                <li>To filter programs by location, make sure the View Filter is set to Show All Programs.</li>
-                <li>Then select your preferred location from the location filter list.</li>
-              </ul>
-
-              <h3>6. Main Features</h3>
-              <h4>Viewing Data</h4>
-              <ul>
-                <li>By default, the app opens in Show Class Cancellations mode.</li>
-                <li>Switch to Show All Programs to see the full schedule.</li>
-              </ul>
-
-              <h4>Filtering Options</h4>
+              <h3>6. Filtering Options (Desktop View)</h4>
               <ul>
                 <li><strong>Program:</strong> Search by program name</li>
                 <li><strong>Program ID:</strong> Search by unique ID</li>
@@ -757,21 +761,16 @@ function App() {
                 <li><strong>Program Status:</strong> Filter by Active, Cancelled, or Additions</li>
               </ul>
 
-              <h4>Refreshing Data</h4>
+              <h3>7. Favorites Feature (Star Pinning)</h3>
               <ul>
-                <li>Data refreshes automatically every 5 minutes.</li>
-                <li>To update manually, click Refresh in the app.</li>
-                <li>You can also refresh your browser (circle arrow at the top).</li>
+                <li><strong>Click the star (★/☆)</strong> in the leftmost column to pin a program to the top</li>
+                <li><strong>Favorites persist</strong> – Your starred programs stay at the top even after closing and reopening the app</li>
+                <li><strong>Per-device storage</strong> – Each device remembers its own favorites</li>
+                <li><strong>Visual indicator</strong> – Filled star (★) = favorited, empty star (☆) = not favorited</li>
+                <li><strong>Works everywhere</strong> – Both desktop and mobile views support favorites</li>
               </ul>
 
-              <h4>Exporting Data</h4>
-              <ul>
-                <li><strong>Export to Excel</strong> – Download filtered results as an Excel file</li>
-                <li><strong>Export to PDF</strong> – Download filtered results as a PDF file</li>
-                <li>Both exports respect your current filters.</li>
-              </ul>
-
-              <h3>7. Understanding the Data Columns</h3>
+              <h3>8. Understanding the Data Columns</h3>
               <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f0f0f0' }}>
@@ -780,6 +779,7 @@ function App() {
                   </tr>
                 </thead>
                 <tbody>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Star</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Click to pin program to top (persists across sessions)</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Day</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Day of the week</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Program</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Program/class name</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Program ID</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Unique identifier</td></tr>
@@ -792,26 +792,51 @@ function App() {
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Class Cancellation</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Specific cancelled dates</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Additional Information</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Notes or details</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Withdrawal</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Allowed (Yes/No, based on classes completed)</td></tr>
-                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Star</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Click the star (leftmost column) to "pin" a program at the top of your list</td></tr>
                 </tbody>
               </table>
 
-              <h3>8. Withdrawal Rules</h3>
+              <h3>9. Mobile View Features</h3>
+              <ul>
+                <li><strong>Card Layout:</strong> Programs displayed as easy-to-read cards</li>
+                <li><strong>Favorites Support:</strong> Star programs to pin them to the top</li>
+                <li><strong>Class Cancellations Only:</strong> Mobile view focuses on cancelled classes</li>
+                <li><strong>Touch-Friendly:</strong> Large buttons and easy navigation</li>
+                <li><strong>PWA Installation:</strong> Can be installed as a native app</li>
+              </ul>
+
+              <h3>10. Exporting Data (Desktop Only)</h3>
+              <ul>
+                <li><strong>Export to Excel</strong> – Download filtered results as an Excel file</li>
+                <li><strong>Export to PDF</strong> – Download filtered results as a PDF file</li>
+                <li>Both exports respect your current filters and include your favorites at the top</li>
+              </ul>
+
+              <h3>11. Withdrawal Rules</h3>
               <ul>
                 <li><strong>Yes</strong> – Withdrawal allowed if fewer than 3 classes are completed</li>
                 <li><strong>No</strong> – Withdrawal not allowed if 3 or more classes are completed</li>
                 <li>The calculation considers start date, current date, and cancellations.</li>
               </ul>
 
-              <h3>9. Tips</h3>
+              <h3>12. Tips & Best Practices</h3>
               <ul>
-                <li>Use filters to quickly find the programs you need.</li>
-                <li>Export data to share or print schedules.</li>
-                <li>The app auto-updates when new data is uploaded.</li>
-                <li>All times are shown in Kingston, Ontario timezone.</li>
+                <li><strong>Use favorites</strong> to keep important programs at the top</li>
+                <li><strong>Install on mobile</strong> for quick access to class cancellations</li>
+                <li><strong>Switch views</strong> based on your device and needs</li>
+                <li><strong>Export data</strong> to share or print schedules</li>
+                <li><strong>Refresh regularly</strong> to get the latest updates</li>
+                <li>All times are shown in Kingston, Ontario timezone</li>
               </ul>
 
-              <h3>10. Support</h3>
+              <h3>13. Troubleshooting</h3>
+              <ul>
+                <li><strong>Data not loading:</strong> Try refreshing the page or using the Refresh button</li>
+                <li><strong>Favorites disappeared:</strong> Check if you're on the same device/browser</li>
+                <li><strong>Mobile view issues:</strong> Try switching to desktop view and back</li>
+                <li><strong>Installation problems:</strong> Make sure you're using Safari (iOS) or Chrome (Android)</li>
+              </ul>
+
+              <h3>14. Support</h3>
               <p>For technical issues or questions, please contact your system administrator.</p>
             </div>
             <div className="modal-actions">
