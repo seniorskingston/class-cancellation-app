@@ -52,7 +52,25 @@ function App() {
   // Detect mobile device
   useEffect(() => {
     const checkMobile = () => {
-      const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const width = window.innerWidth;
+      const userAgent = navigator.userAgent;
+      
+      // More comprehensive mobile detection
+      const isMobileWidth = width <= 768;
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(userAgent);
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      
+      const isMobile = isMobileWidth || isMobileUA || isTouchDevice;
+      
+      console.log('Mobile detection:', {
+        width: width,
+        userAgent: userAgent,
+        isMobileWidth: isMobileWidth,
+        isMobileUA: isMobileUA,
+        isTouchDevice: isTouchDevice,
+        isMobile: isMobile
+      });
+      
       setIsMobileView(isMobile);
     };
     
@@ -133,6 +151,9 @@ function App() {
       
       const data = await res.json();
       console.log("Received data:", data);
+      console.log("Data count:", data.data ? data.data.length : 0);
+      console.log("Is mobile view:", isMobileView);
+      console.log("API URL:", url);
       setCancellations(data.data);
       setLastLoaded(data.last_loaded);
       
@@ -295,6 +316,11 @@ function App() {
             </button>
           )}
         </div>
+        
+        {/* Debug info for mobile */}
+        <div className="mobile-debug" style={{ fontSize: '12px', color: '#666', padding: '5px', textAlign: 'center' }}>
+          Mobile View: {isMobileView ? 'Yes' : 'No'} | Data: {sortedCancellations.length} programs
+        </div>
 
         <div className="mobile-data">
           {sortedCancellations.length === 0 ? (
@@ -446,6 +472,13 @@ function App() {
             style={{ background: "#00b388", color: "white" }}
           >
             📱 Mobile View
+          </button>
+          <button 
+            onClick={() => setIsMobileView(!isMobileView)} 
+            className="mobile-toggle"
+            style={{ background: "#ff6b35", color: "white" }}
+          >
+            {isMobileView ? "🖥️ Desktop" : "📱 Mobile"} Toggle
           </button>
           <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
             <button 
