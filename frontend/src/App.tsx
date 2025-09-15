@@ -326,34 +326,39 @@ function App() {
           <button onClick={handleRefresh} disabled={loading} className="mobile-refresh">
             {loading ? "Refreshing..." : "🔄 Refresh"}
           </button>
-          <button 
-            onClick={() => {
-              // Try to exit full screen mode
-              if (document.exitFullscreen) {
-                document.exitFullscreen();
-              } else if ((document as any).webkitExitFullscreen) {
-                (document as any).webkitExitFullscreen();
-              } else if ((document as any).mozCancelFullScreen) {
-                (document as any).mozCancelFullScreen();
-              } else if ((document as any).msExitFullscreen) {
-                (document as any).msExitFullscreen();
-              } else {
-                // Fallback: show instructions
-                alert('📱 To exit full screen mode:\n\n1. Look for the "AA" button in the address bar\n2. OR swipe up from the bottom to show Safari toolbar\n3. OR use the browser menu to exit full screen\n\nThen you can use the "Add to Home Screen" button!');
-              }
-            }}
-            className="exit-fullscreen-button"
-          >
-            🚪 Exit Full Screen
-          </button>
-          {(showInstallPrompt || isMobileView) && (
+          <div className="mobile-button-row">
             <button 
-              onClick={handleInstallClick} 
-              className="install-button"
+              onClick={() => {
+                // Try to exit full screen mode
+                if (document.exitFullscreen) {
+                  document.exitFullscreen().catch(() => {
+                    // If exitFullscreen fails, show instructions
+                    alert('📱 To exit full screen mode:\n\n1. Look for the "AA" button in the address bar\n2. OR swipe up from the bottom to show Safari toolbar\n3. OR use the browser menu to exit full screen\n\nThen you can use the "Add to Home Screen" button!');
+                  });
+                } else if ((document as any).webkitExitFullscreen) {
+                  (document as any).webkitExitFullscreen();
+                } else if ((document as any).mozCancelFullScreen) {
+                  (document as any).mozCancelFullScreen();
+                } else if ((document as any).msExitFullscreen) {
+                  (document as any).msExitFullscreen();
+                } else {
+                  // Fallback: show instructions
+                  alert('📱 To exit full screen mode:\n\n1. Look for the "AA" button in the address bar\n2. OR swipe up from the bottom to show Safari toolbar\n3. OR use the browser menu to exit full screen\n\nThen you can use the "Add to Home Screen" button!');
+                }
+              }}
+              className="exit-fullscreen-button"
             >
-              📲 Add to Home Screen
+              🚪 Exit Full Screen
             </button>
-          )}
+            {(showInstallPrompt || isMobileView) && (
+              <button 
+                onClick={handleInstallClick} 
+                className="install-button"
+              >
+                📲 Add to Home Screen
+              </button>
+            )}
+          </div>
         </div>
         
         {/* Debug info for mobile */}

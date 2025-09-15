@@ -487,10 +487,20 @@ tr:last-child td {
   cursor: pointer;
   transition: background 0.2s;
   animation: pulse 2s infinite;
+  flex: 1;
+  min-width: 140px;
 }
 
 .install-button:hover {
   background: #e55a2b !important;
+}
+
+/* Mobile button row for side-by-side buttons */
+.mobile-button-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 /* Exit full screen button */
@@ -503,7 +513,8 @@ tr:last-child td {
   font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.2s;
-  margin-right: 10px;
+  flex: 1;
+  min-width: 140px;
 }
 
 .exit-fullscreen-button:hover {
