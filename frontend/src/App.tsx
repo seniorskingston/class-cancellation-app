@@ -40,6 +40,7 @@ function App() {
   const [isMobileView, setIsMobileView] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [isInStandaloneMode, setIsInStandaloneMode] = useState(false);
 
   // Update date and time every second
   useEffect(() => {
@@ -96,14 +97,17 @@ function App() {
     // Check device type and PWA status
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
-    const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+    const standaloneMode = window.matchMedia('(display-mode: standalone)').matches;
     const isMobile = window.innerWidth <= 768 || isIOS || isAndroid;
+    
+    // Update standalone mode state
+    setIsInStandaloneMode(standaloneMode);
     
     console.log('PWA Detection:', {
       isIOS,
       isAndroid,
       isMobile,
-      isInStandaloneMode,
+      isInStandaloneMode: standaloneMode,
       userAgent: navigator.userAgent
     });
     
@@ -111,7 +115,7 @@ function App() {
     // 1. Android/Chrome (beforeinstallprompt event)
     // 2. iOS Safari (not in standalone mode)
     // 3. Any mobile device not in standalone mode
-    if (isMobile && !isInStandaloneMode) {
+    if (isMobile && !standaloneMode) {
       setShowInstallPrompt(true);
     }
 
@@ -136,7 +140,7 @@ function App() {
       // iOS Safari - show instructions
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       if (isIOS) {
-        alert('📱 To add this app to your home screen:\n\n1. FIRST: Exit full screen mode\n   - Tap the "🚪 Exit Full Screen" button below\n   - OR tap and HOLD the address bar at the top\n   - OR double-tap the top of the screen\n\n2. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: □↑)\n\n3. Tap the Share button\n4. Scroll down and tap "Add to Home Screen"\n5. Tap "Add" to confirm\n\n💡 Try tapping the top of the screen first!\n✨ The app will then work like a native app!');
+        alert('📱 To add this app to your home screen:\n\n1. Tap "🌐 Open in Safari" button below\n2. Safari will open with the address bar visible\n3. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: □↑)\n4. Tap the Share button\n5. Scroll down and tap "Add to Home Screen"\n6. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
       } else {
         alert('📱 To add this app to your home screen:\n\n1. Look for the install icon in your browser\n2. Or use your browser\'s menu to "Add to Home Screen"\n3. Follow the prompts to install\n\n✨ The app will then work like a native app!');
       }
@@ -327,29 +331,20 @@ function App() {
             {loading ? "Refreshing..." : "🔄 Refresh"}
           </button>
           <div className="mobile-button-row">
-            <button 
-              onClick={() => {
-                // Try to exit full screen mode
-                if (document.exitFullscreen) {
-                  document.exitFullscreen().catch(() => {
-                    // If exitFullscreen fails, show instructions
-                    alert('📱 To exit full screen mode on iPhone:\n\n1. Tap and HOLD the address bar at the top\n2. OR double-tap the top of the screen\n3. OR swipe DOWN from the very top edge\n4. This will show the Safari toolbar\n5. Then you can use the "Add to Home Screen" button!\n\n💡 Try tapping the top of the screen first!');
-                  });
-                } else if ((document as any).webkitExitFullscreen) {
-                  (document as any).webkitExitFullscreen();
-                } else if ((document as any).mozCancelFullScreen) {
-                  (document as any).mozCancelFullScreen();
-                } else if ((document as any).msExitFullscreen) {
-                  (document as any).msExitFullscreen();
-                } else {
-                  // Fallback: show instructions
-                  alert('📱 To exit full screen mode on iPhone:\n\n1. Tap and HOLD the address bar at the top\n2. OR double-tap the top of the screen\n3. OR swipe DOWN from the very top edge\n4. This will show the Safari toolbar\n5. Then you can use the "Add to Home Screen" button!\n\n💡 Try tapping the top of the screen first!');
-                }
-              }}
-              className="exit-fullscreen-button"
-            >
-              🚪 Exit Full Screen
-            </button>
+            {/* Only show "Open in Safari" button when in standalone mode (home screen app) */}
+            {isInStandaloneMode && (
+              <button 
+                onClick={() => {
+                  // Open current page in Safari to "exit" full screen mode
+                  const currentUrl = window.location.href;
+                  window.open(currentUrl, '_blank');
+                  alert('📱 Opening in Safari...\n\n1. Safari will open with this page\n2. You can now see the address bar and toolbar\n3. Look for the Share button (□↑) at the bottom\n4. Tap Share → "Add to Home Screen"\n5. Close this full-screen app when done\n\n✨ This effectively "exits" full screen mode!');
+                }}
+                className="exit-fullscreen-button"
+              >
+                🌐 Open in Safari
+              </button>
+            )}
             {(showInstallPrompt || isMobileView) && (
               <button 
                 onClick={handleInstallClick} 
