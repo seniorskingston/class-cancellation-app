@@ -562,28 +562,26 @@ function App() {
         >
           📱 Mobile View
         </button>
-          <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
-            <button 
-              onClick={() => handleExport('excel')} 
-              style={{ background: "#0072ce", color: "white" }}
-              disabled={cancellations.length === 0}
-            >
-              📊 Export to Excel
-            </button>
-            <button 
-              onClick={() => handleExport('pdf')} 
-              style={{ background: "#0072ce", color: "white" }}
-              disabled={cancellations.length === 0}
-            >
-              📄 Export to PDF
-          </button>
-            <button 
-              onClick={() => setShowUserGuide(true)} 
-              style={{ background: "#0072ce", color: "white" }}
-            >
-              📖 User Guide
-          </button>
-          </div>
+        <button 
+          onClick={() => handleExport('excel')} 
+          style={{ background: "#0072ce", color: "white" }}
+          disabled={cancellations.length === 0}
+        >
+          📊 Excel
+        </button>
+        <button 
+          onClick={() => handleExport('pdf')} 
+          style={{ background: "#0072ce", color: "white" }}
+          disabled={cancellations.length === 0}
+        >
+          📄 PDF
+        </button>
+        <button 
+          onClick={() => setShowUserGuide(true)} 
+          style={{ background: "#0072ce", color: "white" }}
+        >
+          📖 Guide
+        </button>
       </div>
       <div className="last-loaded">
           Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}

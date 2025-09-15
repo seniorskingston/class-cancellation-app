@@ -57,7 +57,7 @@
 
 .app-header {
   background: linear-gradient(135deg, #00b388 0%, #0072ce 100%);
-  padding: 20px;
+  padding: 10px 20px;
   color: white;
   position: relative;
   display: flex;
@@ -66,17 +66,18 @@
 }
 
 .app-logo {
-  height: 60px;
-  margin-right: 20px;
-  border-radius: 8px;
+  height: 40px;
+  margin-right: 15px;
+  border-radius: 6px;
   background: white;
-  padding: 0.25rem;
+  padding: 0.2rem;
 }
 
 .app-header h1 {
   margin: 0;
   flex-grow: 1;
   text-align: center;
+  font-size: 1.5rem;
 }
 
 .datetime-display {
@@ -97,18 +98,21 @@ h1 {
 
 .filters {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin: 0 2rem 1.5rem 2rem;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  margin: 0 2rem 1rem 2rem;
   align-items: center;
+  overflow-x: auto;
 }
 
 .filters input,
 .filters select {
-  padding: 0.5rem 0.75rem;
+  padding: 0.4rem 0.6rem;
   border: 1px solid #b2d8d8;
   border-radius: 5px;
-  font-size: 1rem;
+  font-size: 0.85rem;
+  min-width: 120px;
+  flex-shrink: 0;
 }
 
 .filters button {
@@ -116,10 +120,12 @@ h1 {
   color: white;
   border: none;
   border-radius: 5px;
-  padding: 0.5rem 1.2rem;
-  font-size: 1rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: background 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .filters button:disabled {
@@ -132,9 +138,9 @@ h1 {
 }
 
 .last-loaded {
-  margin: 0 2rem 1rem 2rem;
+  margin: 0 2rem 0.5rem 2rem;
   color: #0072ce;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
 }
 
 th, td {
