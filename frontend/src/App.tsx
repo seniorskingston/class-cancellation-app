@@ -136,7 +136,7 @@ function App() {
       // iOS Safari - show instructions
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       if (isIOS) {
-        alert('📱 To add this app to your home screen:\n\n1. FIRST: Exit full screen mode\n   - Tap the "🚪 Exit Full Screen" button below\n   - OR look for the "AA" button in the address bar\n   - OR swipe up from the bottom to show Safari toolbar\n\n2. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: □↑)\n\n3. Tap the Share button\n4. Scroll down and tap "Add to Home Screen"\n5. Tap "Add" to confirm\n\n💡 Use the "Exit Full Screen" button first!\n✨ The app will then work like a native app!');
+        alert('📱 To add this app to your home screen:\n\n1. FIRST: Exit full screen mode\n   - Tap the "🚪 Exit Full Screen" button below\n   - OR swipe UP from the very bottom of the screen\n\n2. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: □↑)\n\n3. Tap the Share button\n4. Scroll down and tap "Add to Home Screen"\n5. Tap "Add" to confirm\n\n💡 Swipe UP from bottom to exit full screen!\n✨ The app will then work like a native app!');
       } else {
         alert('📱 To add this app to your home screen:\n\n1. Look for the install icon in your browser\n2. Or use your browser\'s menu to "Add to Home Screen"\n3. Follow the prompts to install\n\n✨ The app will then work like a native app!');
       }
@@ -333,7 +333,7 @@ function App() {
                 if (document.exitFullscreen) {
                   document.exitFullscreen().catch(() => {
                     // If exitFullscreen fails, show instructions
-                    alert('📱 To exit full screen mode:\n\n1. Look for the "AA" button in the address bar\n2. OR swipe up from the bottom to show Safari toolbar\n3. OR use the browser menu to exit full screen\n\nThen you can use the "Add to Home Screen" button!');
+                    alert('📱 To exit full screen mode on iPhone:\n\n1. Swipe UP from the very bottom of the screen\n2. This will show the Safari toolbar at the bottom\n3. Then you can use the "Add to Home Screen" button!\n\n💡 The "AA" button is not visible in full screen mode.');
                   });
                 } else if ((document as any).webkitExitFullscreen) {
                   (document as any).webkitExitFullscreen();
@@ -343,7 +343,7 @@ function App() {
                   (document as any).msExitFullscreen();
                 } else {
                   // Fallback: show instructions
-                  alert('📱 To exit full screen mode:\n\n1. Look for the "AA" button in the address bar\n2. OR swipe up from the bottom to show Safari toolbar\n3. OR use the browser menu to exit full screen\n\nThen you can use the "Add to Home Screen" button!');
+                  alert('📱 To exit full screen mode on iPhone:\n\n1. Swipe UP from the very bottom of the screen\n2. This will show the Safari toolbar at the bottom\n3. Then you can use the "Add to Home Screen" button!\n\n💡 The "AA" button is not visible in full screen mode.');
                 }
               }}
               className="exit-fullscreen-button"
