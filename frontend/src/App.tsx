@@ -37,6 +37,20 @@ function App() {
   const [locations, setLocations] = useState<string[]>([]);
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+
+  // Load favorites from localStorage on component mount
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('classCancellationFavorites');
+    if (savedFavorites) {
+      try {
+        const favoritesArray = JSON.parse(savedFavorites);
+        setFavorites(new Set(favoritesArray));
+        console.log('Loaded favorites from localStorage:', favoritesArray);
+      } catch (error) {
+        console.error('Error loading favorites from localStorage:', error);
+      }
+    }
+  }, []);
   const [isMobileView, setIsMobileView] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
@@ -251,7 +265,12 @@ function App() {
         newFavorites.add(programId);
         console.log('Added to favorites:', programId);
       }
-      console.log('Current favorites:', Array.from(newFavorites));
+      
+      // Save to localStorage
+      const favoritesArray = Array.from(newFavorites);
+      localStorage.setItem('classCancellationFavorites', JSON.stringify(favoritesArray));
+      console.log('Saved favorites to localStorage:', favoritesArray);
+      
       return newFavorites;
     });
   };
