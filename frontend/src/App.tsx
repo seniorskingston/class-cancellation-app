@@ -161,12 +161,18 @@ function App() {
   // Fix Android PWA text scaling issues
   useEffect(() => {
     if (isInStandaloneMode) {
-      // Force minimum font size for Android PWA
-      document.documentElement.style.fontSize = '16px';
-      document.body.style.fontSize = '16px';
+      // Force larger font size for Android PWA
+      document.documentElement.style.fontSize = '18px';
+      document.body.style.fontSize = '18px';
       
       // Add Android-specific class
       document.body.classList.add('android-pwa');
+      
+      // Force viewport scaling
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.2, maximum-scale=1.2, user-scalable=no');
+      }
     }
   }, [isInStandaloneMode]);
 
