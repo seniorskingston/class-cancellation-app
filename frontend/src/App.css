@@ -312,6 +312,21 @@ tr:last-child td {
   position: sticky;
   top: 0;
   z-index: 100;
+  position: relative;
+}
+
+.mobile-version-indicator {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .mobile-logo {

@@ -241,14 +241,12 @@ function App() {
         ...filters, 
         program: value, 
         program_id: value,
-        view_type: value ? "all" : "cancellations" // Search all programs when searching
+        view_type: "all" // Always search all programs to show pinned classes
       };
       setFilters(newFilters);
       
       // Trigger search immediately for program search
-      if (value.trim()) {
-        await fetchCancellations(newFilters);
-      }
+      await fetchCancellations(newFilters);
     } else {
       setFilters({ ...filters, [name]: value });
     }
@@ -308,23 +306,14 @@ function App() {
 
   // Mobile search function
   const handleMobileSearch = async () => {
-    if (!mobileSearch.trim()) {
-      // If search is empty, show cancellations by default
-      const newFilters = { ...filters, program: "", program_id: "", view_type: "cancellations" };
-      setFilters(newFilters);
-      await fetchCancellations(newFilters);
-      return;
-    }
-
     const searchTerm = mobileSearch.trim();
-    const normalizedId = normalizeProgramId(searchTerm);
     
-    // Search by both program name and program ID (try both original and normalized)
+    // Always search all programs to show pinned classes
     const newFilters = { 
       ...filters, 
       program: searchTerm, 
       program_id: searchTerm, // Use original search term for ID search
-      view_type: "all" // Search from all programs
+      view_type: "all" // Always search all programs to show pinned classes
     };
     setFilters(newFilters);
     
@@ -401,6 +390,7 @@ function App() {
     return (
       <div className="App mobile-view">
         <header className="mobile-header">
+          <div className="mobile-version-indicator">📱 Mobile</div>
           <img src={logo} alt="Company Logo" className="mobile-logo" />
           <h1>Program Schedule Update</h1>
           <div className="mobile-datetime">
