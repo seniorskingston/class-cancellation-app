@@ -698,46 +698,39 @@ tr:last-child td {
   /* No font weight change */
 }
 
-/* Android PWA standalone mode fixes */
+/* Android PWA standalone mode fixes - ONLY for saved app */
 @media (display-mode: standalone) {
   .mobile-view {
-    font-size: 18px !important; /* Larger base font size */
-    zoom: 1.2 !important; /* Force zoom for Android */
+    font-size: 16px; /* Normal size for browser */
   }
   
   .mobile-card {
-    font-size: 16px !important; /* Much larger text for cards */
-    line-height: 1.5 !important;
-    padding: 15px !important;
-    margin: 10px !important;
+    font-size: 14px; /* Normal size for browser */
+    line-height: 1.4;
   }
   
   .mobile-header h1 {
-    font-size: 2rem !important; /* Much larger header text */
+    font-size: 1.5rem; /* Normal size for browser */
   }
   
   .mobile-datetime {
-    font-size: 1.2rem !important; /* Larger date text */
+    font-size: 0.85rem; /* Normal size for browser */
   }
   
   .mobile-search-input {
-    font-size: 18px !important; /* Larger search input */
-    padding: 12px !important;
+    font-size: 16px; /* Normal size for browser */
   }
   
   .mobile-card h3 {
-    font-size: 1.3rem !important; /* Much larger program names */
-    margin-bottom: 8px !important;
+    font-size: 1.1rem; /* Normal size for browser */
   }
   
   .mobile-card p {
-    font-size: 1rem !important; /* Larger card text */
-    margin: 5px 0 !important;
+    font-size: 0.9rem; /* Normal size for browser */
   }
   
   .mobile-header-buttons button {
-    font-size: 1rem !important;
-    padding: 10px 15px !important;
+    font-size: 0.85rem; /* Normal size for browser */
   }
 }
 

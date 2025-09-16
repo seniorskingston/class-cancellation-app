@@ -158,20 +158,22 @@ function App() {
     };
   }, []);
 
-  // Fix Android PWA text scaling issues
+  // Fix Android PWA text scaling issues - ONLY for saved app
   useEffect(() => {
-    if (isInStandaloneMode) {
-      // Force larger font size for Android PWA
-      document.documentElement.style.fontSize = '18px';
-      document.body.style.fontSize = '18px';
+    // Check if it's Android and in standalone mode (saved app)
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    if (isInStandaloneMode && isAndroid) {
+      // Force larger font size for Android saved app
+      document.documentElement.style.fontSize = '20px';
+      document.body.style.fontSize = '20px';
       
       // Add Android-specific class
       document.body.classList.add('android-pwa');
       
-      // Force viewport scaling
+      // Force viewport scaling for saved app only
       const viewport = document.querySelector('meta[name="viewport"]');
       if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.2, maximum-scale=1.2, user-scalable=no');
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.3, maximum-scale=1.3, user-scalable=no');
       }
     }
   }, [isInStandaloneMode]);
