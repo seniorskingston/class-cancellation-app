@@ -352,8 +352,12 @@ def get_programs_from_db(
         params.append(f"%{program}%")
     
     if program_id:
-        query += " AND program_id LIKE ?"
+        # Handle both original and normalized program IDs
+        # Try both the original ID and the ID with leading zeros stripped
+        normalized_id = program_id.lstrip('0') or '0'
+        query += " AND (program_id LIKE ? OR program_id LIKE ?)"
         params.append(f"%{program_id}%")
+        params.append(f"%{normalized_id}%")
     
     if day:
         query += " AND sheet = ?"

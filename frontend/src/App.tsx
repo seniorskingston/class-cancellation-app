@@ -179,16 +179,11 @@ function App() {
     try {
     const params = new URLSearchParams();
       
-      if (isMobileView) {
-        // Mobile view: only show cancellations, no filters
-        params.append("has_cancellation", "true");
-      } else {
-        // Desktop view: use all filters
+      // Use filters for both mobile and desktop
     Object.entries(filters).forEach(([key, value]) => {
       if (value) params.append(key, value);
     });
-        if (filters.view_type === "cancellations") params.append("has_cancellation", "true");
-      }
+      if (filters.view_type === "cancellations") params.append("has_cancellation", "true");
       
       const url = `${API_URL}/cancellations?${params.toString()}`;
       console.log("Fetching from:", url);
@@ -226,7 +221,19 @@ function App() {
   }, [filters, isMobileView]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    if (name === "program") {
+      // For unified search, set both program and program_id
+      setFilters({ 
+        ...filters, 
+        program: value, 
+        program_id: value,
+        view_type: value ? "all" : "cancellations" // Search all programs when searching
+      });
+    } else {
+      setFilters({ ...filters, [name]: value });
+    }
   };
 
   const handleRefresh = async () => {
@@ -286,19 +293,23 @@ function App() {
     if (!mobileSearch.trim()) {
       // If search is empty, show cancellations by default
       setFilters({ ...filters, program: "", program_id: "", view_type: "cancellations" });
+      await fetchCancellations();
       return;
     }
 
     const searchTerm = mobileSearch.trim();
     const normalizedId = normalizeProgramId(searchTerm);
     
-    // Search by both program name and program ID
+    // Search by both program name and program ID (try both original and normalized)
     setFilters({ 
       ...filters, 
       program: searchTerm, 
-      program_id: normalizedId, 
+      program_id: searchTerm, // Use original search term for ID search
       view_type: "all" // Search from all programs
     });
+    
+    // Trigger data fetch after setting filters
+    await fetchCancellations();
   };
 
   // Sort cancellations with favorites at the top
@@ -552,14 +563,8 @@ function App() {
         </button>
         <input
           name="program"
-          placeholder="Program"
+          placeholder="Program Name/ID"
           value={filters.program}
-          onChange={handleInputChange}
-        />
-        <input
-          name="program_id"
-          placeholder="Program ID"
-          value={filters.program_id}
           onChange={handleInputChange}
         />
         <select name="day" value={filters.day} onChange={handleInputChange}>
