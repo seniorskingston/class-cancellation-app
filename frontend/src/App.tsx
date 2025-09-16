@@ -390,7 +390,13 @@ function App() {
     return (
       <div className="App mobile-view">
         <header className="mobile-header">
-          <div className="mobile-version-indicator">📱 Mobile</div>
+          <button 
+            onClick={() => setIsMobileView(false)} 
+            className="mobile-to-desktop-button"
+            title="Switch to Desktop View"
+          >
+            🖥️ Desktop
+          </button>
           <img src={logo} alt="Company Logo" className="mobile-logo" />
           <h1>Program Schedule Update</h1>
           <div className="mobile-datetime">

@@ -315,18 +315,31 @@ tr:last-child td {
   position: relative;
 }
 
-.mobile-version-indicator {
+.mobile-to-desktop-button {
   position: absolute;
   top: 5px;
   left: 5px;
   background: rgba(255, 255, 255, 0.2);
   color: white;
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-radius: 12px;
   font-size: 0.7rem;
   font-weight: bold;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.mobile-to-desktop-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-to-desktop-button:active {
+  transform: scale(0.95);
 }
 
 .mobile-logo {
