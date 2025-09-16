@@ -175,7 +175,7 @@ function App() {
           alert('📱 This app is already installed!\n\nYou\'re currently using the installed version.\n\nTo reinstall or update:\n1. Delete the current app from your home screen\n2. Open Safari and visit this website\n3. Use the Share button to add it again\n\n✨ The app is working as intended!');
         } else {
           // We're in Safari, show normal instructions
-          alert('📱 To save this app:\n\n1. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: □↑)\n2. Tap the Share button\n3. Scroll down and tap "Add to Home Screen"\n4. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
+          alert('📱 To save this app:\n\n1. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: □↑)\n2. Tap the Share button □↑\n3. Scroll down and tap "Add to Home Screen"\n4. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
         }
       } else {
         alert('📱 To save this app:\n\n1. Look for the install icon in your browser\n2. Or use your browser\'s menu to "Add to Home Screen"\n3. Follow the prompts to install\n\n✨ The app will then work like a native app!');
@@ -410,7 +410,7 @@ function App() {
               <div className="installed-status">✅ App Installed</div>
             ) : (
               <button onClick={handleInstallClick} className="install-button">
-                📲 Save App
+                📲 Save App □↑
               </button>
             )}
           </div>
@@ -439,7 +439,7 @@ function App() {
         {showIOSBanner && (
           <div className="ios-banner">
             <div className="ios-banner-content">
-              <span>📱 Save the app: tap Share → Add to Home Screen</span>
+              <span>📱 Save the app: tap Share <span style={{fontSize: '16px'}}>□↑</span> → Add to Home Screen</span>
               <button 
                 onClick={() => setShowIOSBanner(false)}
                 className="ios-banner-close"
