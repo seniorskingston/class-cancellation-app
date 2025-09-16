@@ -315,10 +315,17 @@ tr:last-child td {
   position: relative;
 }
 
-.mobile-to-desktop-button {
-  position: absolute;
-  top: 5px;
-  left: 5px;
+.mobile-header-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mobile-to-desktop-button,
+.refresh-button,
+.install-button {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   padding: 6px 10px;
@@ -329,17 +336,37 @@ tr:last-child td {
   border: 1px solid rgba(255, 255, 255, 0.3);
   cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 10;
+  white-space: nowrap;
+  min-width: 80px;
+  text-align: center;
 }
 
-.mobile-to-desktop-button:hover {
+.mobile-to-desktop-button:hover,
+.refresh-button:hover,
+.install-button:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.mobile-to-desktop-button:active {
+.mobile-to-desktop-button:active,
+.refresh-button:active,
+.install-button:active {
   transform: scale(0.95);
+}
+
+.installed-status {
+  background: rgba(0, 255, 0, 0.2);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  white-space: nowrap;
+  min-width: 80px;
+  text-align: center;
 }
 
 .mobile-logo {

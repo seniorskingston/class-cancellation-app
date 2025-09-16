@@ -390,17 +390,29 @@ function App() {
     return (
       <div className="App mobile-view">
         <header className="mobile-header">
-          <button 
-            onClick={() => setIsMobileView(false)} 
-            className="mobile-to-desktop-button"
-            title="Switch to Desktop View"
-          >
-            🖥️ Desktop
-          </button>
           <img src={logo} alt="Company Logo" className="mobile-logo" />
           <h1>Program Schedule Update</h1>
           <div className="mobile-datetime">
             {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
+          </div>
+          <div className="mobile-header-buttons">
+            <button 
+              onClick={() => setIsMobileView(false)} 
+              className="mobile-to-desktop-button"
+              title="Switch to Desktop View"
+            >
+              🖥️ Desktop
+            </button>
+            <button onClick={handleRefresh} className="refresh-button">
+              🔄 Refresh
+            </button>
+            {isInStandaloneMode ? (
+              <div className="installed-status">✅ App Installed</div>
+            ) : (
+              <button onClick={handleInstallClick} className="install-button">
+                📲 Add to Home Screen
+              </button>
+            )}
           </div>
         </header>
         
@@ -421,9 +433,6 @@ function App() {
               🔍
             </button>
           </div>
-          <button onClick={handleRefresh} disabled={loading} className="mobile-refresh">
-            {loading ? "Refreshing..." : "🔄 Refresh"}
-          </button>
           <div className="mobile-button-row">
             {(showInstallPrompt || (isMobileView && !isInStandaloneMode)) && (
               <button 
