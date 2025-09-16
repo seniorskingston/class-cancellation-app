@@ -433,21 +433,6 @@ function App() {
               🔍
             </button>
           </div>
-          <div className="mobile-button-row">
-            {(showInstallPrompt || (isMobileView && !isInStandaloneMode)) && (
-              <button 
-                onClick={handleInstallClick} 
-                className="install-button"
-              >
-                📲 Add to Home Screen
-              </button>
-            )}
-            {isInStandaloneMode && (
-              <div className="installed-status">
-                ✅ App Installed
-              </div>
-            )}
-          </div>
         </div>
         
         {/* iOS Installation Banner */}
