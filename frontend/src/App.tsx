@@ -755,7 +755,7 @@ function App() {
 
               <h4>Installing as a Mobile App</h4>
               <ul>
-                <li><strong>iPhone/iPad:</strong> Tap "📲 Add to Home Screen" → Look for Share button (□↑) at bottom of Safari → "Add to Home Screen"</li>
+                <li><strong>iPhone/iPad:</strong> Tap "📲 Save App" → Look for Share button (□↑) at bottom of Safari → "Add to Home Screen"</li>
                 <li><strong>Android:</strong> Chrome may prompt automatically, or use browser menu to "Add to Home Screen"</li>
                 <li><strong>App Name:</strong> Will default to "Program" when installing</li>
                 <li><strong>Benefits:</strong> Works like a native app, faster access, offline capabilities</li>
@@ -842,8 +842,9 @@ function App() {
                 <li><strong>Favorites Support:</strong> Star programs to pin them to the top</li>
                 <li><strong>Class Cancellations Only:</strong> Mobile view focuses on cancelled classes</li>
                 <li><strong>Touch-Friendly:</strong> Large buttons and easy navigation</li>
+                <li><strong>Header Buttons:</strong> Desktop switch (🖥️), Refresh (🔄), and Save App (📲) buttons in header</li>
+                <li><strong>Search Function:</strong> Search by program name or ID directly from mobile view</li>
                 <li><strong>PWA Installation:</strong> Can be installed as a native app</li>
-                <li><strong>View Toggle:</strong> "Switch to Desktop View" button to return to full table view</li>
               </ul>
 
               <h3>10. Exporting Data (Desktop Only)</h3>
@@ -872,10 +873,11 @@ function App() {
 
               <h3>13. Troubleshooting</h3>
               <ul>
-                <li><strong>Data not loading:</strong> Try refreshing the page or using the Refresh button</li>
+                <li><strong>Data not loading:</strong> Try refreshing the page or using the Refresh button (🔄) in the header</li>
                 <li><strong>Favorites disappeared:</strong> Check if you're on the same device/browser</li>
-                <li><strong>Mobile view issues:</strong> The app automatically detects your device - try refreshing the page</li>
-                <li><strong>Installation problems:</strong> Make sure you're using Safari (iOS) or Chrome (Android)</li>
+                <li><strong>Mobile view issues:</strong> Use the Desktop button (🖥️) in the mobile header to switch views</li>
+                <li><strong>Installation problems:</strong> Use the Save App button (📲) and follow the instructions</li>
+                <li><strong>Search not working:</strong> Make sure you're searching by program name or ID only</li>
               </ul>
 
               <h3>14. Support</h3>
