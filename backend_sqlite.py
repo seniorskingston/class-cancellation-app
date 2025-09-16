@@ -347,17 +347,26 @@ def get_programs_from_db(
     query = "SELECT * FROM programs WHERE 1=1"
     params = []
     
-    if program:
-        query += " AND program LIKE ?"
-        params.append(f"%{program}%")
-    
-    if program_id:
-        # Handle both original and normalized program IDs
-        # Try both the original ID and the ID with leading zeros stripped
+    if program and program_id and program == program_id:
+        # Unified search: search for both program name and program ID with OR
         normalized_id = program_id.lstrip('0') or '0'
-        query += " AND (program_id LIKE ? OR program_id LIKE ?)"
+        query += " AND (program LIKE ? OR program_id LIKE ? OR program_id LIKE ?)"
+        params.append(f"%{program}%")
         params.append(f"%{program_id}%")
         params.append(f"%{normalized_id}%")
+    else:
+        # Separate searches
+        if program:
+            query += " AND program LIKE ?"
+            params.append(f"%{program}%")
+        
+        if program_id:
+            # Handle both original and normalized program IDs
+            # Try both the original ID and the ID with leading zeros stripped
+            normalized_id = program_id.lstrip('0') or '0'
+            query += " AND (program_id LIKE ? OR program_id LIKE ?)"
+            params.append(f"%{program_id}%")
+            params.append(f"%{normalized_id}%")
     
     if day:
         query += " AND sheet = ?"

@@ -174,19 +174,22 @@ function App() {
     }
   };
 
-  const fetchCancellations = async () => {
+  const fetchCancellations = async (customFilters = null) => {
     setLoading(true);
     try {
     const params = new URLSearchParams();
       
-      // Use filters for both mobile and desktop
-    Object.entries(filters).forEach(([key, value]) => {
+      // Use custom filters if provided, otherwise use current filters
+      const filtersToUse = customFilters || filters;
+      Object.entries(filtersToUse).forEach(([key, value]) => {
       if (value) params.append(key, value);
     });
-      if (filters.view_type === "cancellations") params.append("has_cancellation", "true");
+      if (filtersToUse.view_type === "cancellations") params.append("has_cancellation", "true");
       
       const url = `${API_URL}/cancellations?${params.toString()}`;
       console.log("Fetching from:", url);
+      console.log("Filters being used:", filtersToUse);
+      console.log("URL parameters:", params.toString());
       
       const res = await fetch(url);
       
@@ -220,17 +223,23 @@ function App() {
     // eslint-disable-next-line
   }, [filters, isMobileView]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     if (name === "program") {
       // For unified search, set both program and program_id
-      setFilters({ 
+      const newFilters = { 
         ...filters, 
         program: value, 
         program_id: value,
         view_type: value ? "all" : "cancellations" // Search all programs when searching
-      });
+      };
+      setFilters(newFilters);
+      
+      // Trigger search immediately for program search
+      if (value.trim()) {
+        await fetchCancellations(newFilters);
+      }
     } else {
       setFilters({ ...filters, [name]: value });
     }
@@ -292,8 +301,9 @@ function App() {
   const handleMobileSearch = async () => {
     if (!mobileSearch.trim()) {
       // If search is empty, show cancellations by default
-      setFilters({ ...filters, program: "", program_id: "", view_type: "cancellations" });
-      await fetchCancellations();
+      const newFilters = { ...filters, program: "", program_id: "", view_type: "cancellations" };
+      setFilters(newFilters);
+      await fetchCancellations(newFilters);
       return;
     }
 
@@ -301,15 +311,16 @@ function App() {
     const normalizedId = normalizeProgramId(searchTerm);
     
     // Search by both program name and program ID (try both original and normalized)
-    setFilters({ 
+    const newFilters = { 
       ...filters, 
       program: searchTerm, 
       program_id: searchTerm, // Use original search term for ID search
       view_type: "all" // Search from all programs
-    });
+    };
+    setFilters(newFilters);
     
     // Trigger data fetch after setting filters
-    await fetchCancellations();
+    await fetchCancellations(newFilters);
   };
 
   // Sort cancellations with favorites at the top
