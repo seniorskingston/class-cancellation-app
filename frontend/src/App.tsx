@@ -158,6 +158,18 @@ function App() {
     };
   }, []);
 
+  // Fix Android PWA text scaling issues
+  useEffect(() => {
+    if (isInStandaloneMode) {
+      // Force minimum font size for Android PWA
+      document.documentElement.style.fontSize = '16px';
+      document.body.style.fontSize = '16px';
+      
+      // Add Android-specific class
+      document.body.classList.add('android-pwa');
+    }
+  }, [isInStandaloneMode]);
+
   const handleInstallClick = async () => {
     if (deferredPrompt) {
       // Android/Chrome PWA install

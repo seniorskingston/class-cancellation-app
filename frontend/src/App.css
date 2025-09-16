@@ -697,3 +697,54 @@ tr:last-child td {
 .favorite-row td {
   /* No font weight change */
 }
+
+/* Android PWA standalone mode fixes */
+@media (display-mode: standalone) {
+  .mobile-view {
+    font-size: 16px; /* Ensure minimum font size */
+  }
+  
+  .mobile-card {
+    font-size: 14px; /* Larger text for cards */
+    line-height: 1.4;
+  }
+  
+  .mobile-header h1 {
+    font-size: 1.8rem; /* Larger header text */
+  }
+  
+  .mobile-datetime {
+    font-size: 1rem; /* Larger date text */
+  }
+  
+  .mobile-search-input {
+    font-size: 16px; /* Prevent zoom on input focus */
+  }
+  
+  .mobile-card h3 {
+    font-size: 1.1rem; /* Larger program names */
+  }
+  
+  .mobile-card p {
+    font-size: 0.9rem; /* Larger card text */
+  }
+}
+
+/* Additional Android PWA fixes */
+.android-pwa .mobile-view {
+  font-size: 16px !important;
+  zoom: 1 !important;
+}
+
+.android-pwa .mobile-card {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+.android-pwa .mobile-card h3 {
+  font-size: 1.2rem !important;
+}
+
+.android-pwa .mobile-card p {
+  font-size: 1rem !important;
+}
