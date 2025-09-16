@@ -410,7 +410,7 @@ function App() {
               <div className="installed-status">✅ App Installed</div>
             ) : (
               <button onClick={handleInstallClick} className="install-button">
-                📲 Save App <img src="/share-icon.svg" alt="Share" style={{width: '14px', height: '14px', verticalAlign: 'middle', marginLeft: '4px'}} />
+                📲 Save App <img src="/share-icon-blue.svg" alt="Share" style={{width: '14px', height: '14px', verticalAlign: 'middle', marginLeft: '4px'}} />
               </button>
             )}
           </div>
@@ -439,7 +439,7 @@ function App() {
         {showIOSBanner && (
           <div className="ios-banner">
             <div className="ios-banner-content">
-              <span>📱 Save the app: tap Share <img src="/share-icon.svg" alt="Share" style={{width: '16px', height: '16px', verticalAlign: 'middle', margin: '0 2px'}} /> → Add to Home Screen</span>
+              <span>📱 Save the app: tap Share <img src="/share-icon-white.svg" alt="Share" style={{width: '16px', height: '16px', verticalAlign: 'middle', margin: '0 2px'}} /> → Add to Home Screen</span>
               <button 
                 onClick={() => setShowIOSBanner(false)}
                 className="ios-banner-close"
