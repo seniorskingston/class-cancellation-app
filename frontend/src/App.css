@@ -339,6 +339,43 @@ tr:last-child td {
   flex-wrap: wrap;
 }
 
+.mobile-search-container {
+  display: flex;
+  gap: 5px;
+  flex: 1;
+  max-width: 300px;
+}
+
+.mobile-search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #b2d8d8;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.mobile-search-input:focus {
+  outline: none;
+  border-color: #0072ce;
+  box-shadow: 0 0 0 2px rgba(0, 114, 206, 0.2);
+}
+
+.mobile-search-button {
+  background: #0072ce;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mobile-search-button:hover {
+  background: #005fa3;
+}
+
 .desktop-toggle, .mobile-refresh {
   background: #0072ce;
   color: white;

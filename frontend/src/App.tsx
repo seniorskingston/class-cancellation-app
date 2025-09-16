@@ -37,6 +37,7 @@ function App() {
   const [locations, setLocations] = useState<string[]>([]);
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [mobileSearch, setMobileSearch] = useState<string>("");
 
   // Load favorites from localStorage on component mount
   useEffect(() => {
@@ -275,6 +276,31 @@ function App() {
     });
   };
 
+  // Normalize program ID by stripping leading zeros
+  const normalizeProgramId = (id: string): string => {
+    return id.replace(/^0+/, '') || '0';
+  };
+
+  // Mobile search function
+  const handleMobileSearch = async () => {
+    if (!mobileSearch.trim()) {
+      // If search is empty, show cancellations by default
+      setFilters({ ...filters, program: "", program_id: "", view_type: "cancellations" });
+      return;
+    }
+
+    const searchTerm = mobileSearch.trim();
+    const normalizedId = normalizeProgramId(searchTerm);
+    
+    // Search by both program name and program ID
+    setFilters({ 
+      ...filters, 
+      program: searchTerm, 
+      program_id: normalizedId, 
+      view_type: "all" // Search from all programs
+    });
+  };
+
   // Sort cancellations with favorites at the top
   const sortedCancellations = [...cancellations].sort((a, b) => {
     const aIsFavorite = favorites.has(a.program_id);
@@ -345,19 +371,29 @@ function App() {
       <div className="App mobile-view">
         <header className="mobile-header">
           <img src={logo} alt="Company Logo" className="mobile-logo" />
-          <h1>Class Cancellations</h1>
+          <h1>Program Schedule Update</h1>
           <div className="mobile-datetime">
             {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
           </div>
         </header>
         
         <div className="mobile-controls">
-          <button 
-            onClick={() => setIsMobileView(false)} 
-            className="desktop-toggle"
-          >
-            📱 Switch to Desktop View
-          </button>
+          <div className="mobile-search-container">
+            <input
+              type="text"
+              placeholder="Search by program name or ID..."
+              value={mobileSearch}
+              onChange={(e) => setMobileSearch(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleMobileSearch()}
+              className="mobile-search-input"
+            />
+            <button 
+              onClick={handleMobileSearch}
+              className="mobile-search-button"
+            >
+              🔍
+            </button>
+          </div>
           <button onClick={handleRefresh} disabled={loading} className="mobile-refresh">
             {loading ? "Refreshing..." : "🔄 Refresh"}
           </button>
