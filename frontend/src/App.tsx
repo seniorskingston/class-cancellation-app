@@ -18,6 +18,15 @@ type Cancellation = {
   is_favorite?: boolean;  // New: Favorite status
 };
 
+type Filters = {
+  program: string;
+  program_id: string;
+  day: string;
+  location: string;
+  program_status: string;
+  view_type: string;
+};
+
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 function App() {
@@ -174,7 +183,7 @@ function App() {
     }
   };
 
-  const fetchCancellations = async (customFilters = null) => {
+  const fetchCancellations = async (customFilters: Filters | null = null) => {
     setLoading(true);
     try {
     const params = new URLSearchParams();
