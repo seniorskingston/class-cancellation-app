@@ -338,7 +338,7 @@ function App() {
   };
 
   // Get pinned programs that might not be in current filtered results
-  const [pinnedPrograms, setPinnedPrograms] = useState<Program[]>([]);
+  const [pinnedPrograms, setPinnedPrograms] = useState<Cancellation[]>([]);
 
   // Fetch pinned programs separately to ensure they always show
   const fetchPinnedPrograms = async () => {
