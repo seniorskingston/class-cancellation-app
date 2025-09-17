@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import logo from "./logo.png";
 import QRCode from 'qrcode';
+import usersIconWhite from "./users-icon-white.svg";
 
 type Cancellation = {
   sheet: string;
@@ -530,13 +531,14 @@ function App() {
               className="mobile-share-button"
               title="Share App QR Code"
             >
+              <img src={usersIconWhite} alt="Share" style={{ height: '1.2em', verticalAlign: 'middle', marginRight: '5px' }} />
               Share
             </button>
             {isInStandaloneMode ? (
               <div className="installed-status">✅ App Installed</div>
             ) : (
               <button onClick={handleInstallClick} className="install-button">
-                📲 Save App
+                📲 Save
               </button>
             )}
           </div>
