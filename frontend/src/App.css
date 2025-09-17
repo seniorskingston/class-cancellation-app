@@ -778,6 +778,40 @@ tr:last-child td {
   }
 }
 
+/* Loading state styles */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #0072ce;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Ensure logo sizing is consistent during loading */
+.app-logo, .mobile-logo {
+  height: clamp(30px, 8vw, 50px) !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+  transition: all 0.3s ease;
+}
+
 /* Additional Android PWA fixes - gentler scaling */
 .android-pwa .mobile-view {
   font-size: clamp(16px, 5vw, 22px) !important;

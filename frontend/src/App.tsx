@@ -337,15 +337,60 @@ function App() {
     await fetchCancellations(newFilters);
   };
 
-  // Sort cancellations with favorites at the top
-  const sortedCancellations = [...cancellations].sort((a, b) => {
-    const aIsFavorite = favorites.has(a.program_id);
-    const bIsFavorite = favorites.has(b.program_id);
+  // Get pinned programs that might not be in current filtered results
+  const [pinnedPrograms, setPinnedPrograms] = useState<Program[]>([]);
+
+  // Fetch pinned programs separately to ensure they always show
+  const fetchPinnedPrograms = async () => {
+    if (favorites.size === 0) {
+      setPinnedPrograms([]);
+      return;
+    }
+
+    try {
+      const favoriteIds = Array.from(favorites);
+      const params = new URLSearchParams();
+      favoriteIds.forEach(id => params.append('program_id', id));
+      
+      const url = `${API_URL}/cancellations?${params.toString()}`;
+      const res = await fetch(url);
+      
+      if (res.ok) {
+        const data = await res.json();
+        setPinnedPrograms(data.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch pinned programs:", error);
+    }
+  };
+
+  // Fetch pinned programs when favorites change
+  useEffect(() => {
+    fetchPinnedPrograms();
+  }, [favorites]);
+
+  // Combine pinned programs with current filtered results
+  const sortedCancellations = (() => {
+    const currentResults = [...cancellations];
+    const pinnedResults = [...pinnedPrograms];
     
-    if (aIsFavorite && !bIsFavorite) return -1;
-    if (!aIsFavorite && bIsFavorite) return 1;
-    return 0;
-  });
+    // Remove duplicates (pinned programs that are already in current results)
+    const currentIds = new Set(currentResults.map(p => p.program_id));
+    const uniquePinned = pinnedResults.filter(p => !currentIds.has(p.program_id));
+    
+    // Combine: unique pinned programs first, then current results
+    const combined = [...uniquePinned, ...currentResults];
+    
+    // Sort within each group (pinned first, then regular)
+    return combined.sort((a, b) => {
+      const aIsFavorite = favorites.has(a.program_id);
+      const bIsFavorite = favorites.has(b.program_id);
+      
+      if (aIsFavorite && !bIsFavorite) return -1;
+      if (!aIsFavorite && bIsFavorite) return 1;
+      return 0;
+    });
+  })();
 
   // Debug logging
   console.log('Favorites state:', Array.from(favorites));
@@ -450,6 +495,13 @@ function App() {
             </button>
           </div>
         </div>
+
+        {loading && (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Loading program data...</p>
+          </div>
+        )}
         
         {/* iOS Installation Banner */}
         {showIOSBanner && (
@@ -654,6 +706,13 @@ function App() {
           Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}
         </div>
       </div>
+      {loading && (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading program data...</p>
+        </div>
+      )}
+
       <div className="table-container">
         <table>
           <thead className="sticky-thead">
