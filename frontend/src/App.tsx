@@ -163,17 +163,13 @@ function App() {
     // Check if it's Android and in standalone mode (saved app)
     const isAndroid = /Android/i.test(navigator.userAgent);
     if (isInStandaloneMode && isAndroid) {
-      // Force larger font size for Android saved app
-      document.documentElement.style.fontSize = '20px';
-      document.body.style.fontSize = '20px';
-      
-      // Add Android-specific class
+      // Add Android-specific class for CSS-based scaling
       document.body.classList.add('android-pwa');
       
-      // Force viewport scaling for saved app only
+      // Set viewport for saved app only (allow user scaling)
       const viewport = document.querySelector('meta[name="viewport"]');
       if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.3, maximum-scale=1.3, user-scalable=no');
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes');
       }
     }
   }, [isInStandaloneMode]);
