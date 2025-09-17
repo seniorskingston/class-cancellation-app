@@ -525,6 +525,9 @@ function App() {
                 console.log('Current showQRCode state:', showQRCode);
                 console.log('Current qrCodeDataURL:', qrCodeDataURL ? 'Generated' : 'Not generated');
                 
+                // Show immediate alert
+                alert('Button clicked! About to set showQRCode to true');
+                
                 // Generate QR code if not already generated
                 if (!qrCodeDataURL) {
                   console.log('Generating QR code...');
@@ -534,6 +537,9 @@ function App() {
                 console.log('Setting showQRCode to true...');
                 setShowQRCode(true);
                 console.log('showQRCode set to true');
+                
+                // Show alert after setting state
+                alert('showQRCode set to true. Current value: ' + showQRCode);
                 
                 // Force a re-render by updating state
                 setTimeout(() => {
@@ -579,6 +585,20 @@ function App() {
               🔍
             </button>
           </div>
+        </div>
+
+        {/* Mobile test indicator */}
+        <div style={{
+          position: 'fixed',
+          bottom: '10px',
+          left: '10px',
+          backgroundColor: 'orange',
+          color: 'white',
+          padding: '10px',
+          zIndex: 9999999,
+          fontSize: '12px'
+        }}>
+          MOBILE VIEW ACTIVE
         </div>
 
         {loading && (
@@ -1125,6 +1145,20 @@ function App() {
         fontSize: '12px'
       }}>
         showQRCode: {showQRCode ? 'TRUE' : 'FALSE'}
+      </div>
+
+      {/* Mobile debug indicator */}
+      <div style={{
+        position: 'fixed',
+        top: '10px',
+        left: '10px',
+        backgroundColor: 'blue',
+        color: 'white',
+        padding: '10px',
+        zIndex: 9999999,
+        fontSize: '12px'
+      }}>
+        MOBILE DEBUG: {isMobileView ? 'MOBILE' : 'DESKTOP'}
       </div>
 
       {/* Simple test modal that should always show when showQRCode is true */}
