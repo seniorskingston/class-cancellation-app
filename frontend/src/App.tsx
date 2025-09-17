@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
 import logo from "./logo.png";
+import QRCode from 'qrcode';
 
 type Cancellation = {
   sheet: string;
@@ -47,6 +48,27 @@ function App() {
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [mobileSearch, setMobileSearch] = useState<string>("");
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [showFloatingQR, setShowFloatingQR] = useState(true);
+  const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
+
+  // Generate QR code for the current URL
+  const generateQRCode = async () => {
+    try {
+      const currentURL = window.location.href;
+      const qrDataURL = await QRCode.toDataURL(currentURL, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      setQrCodeDataURL(qrDataURL);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    }
+  };
 
   // Load favorites from localStorage on component mount
   useEffect(() => {
@@ -61,6 +83,25 @@ function App() {
       }
     }
   }, []);
+
+  // Generate QR code on component mount
+  useEffect(() => {
+    generateQRCode();
+  }, []);
+
+  // Handle Escape key for QR code modal
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showQRCode) {
+        setShowQRCode(false);
+      }
+    };
+
+    if (showQRCode) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [showQRCode]);
   const [isMobileView, setIsMobileView] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
@@ -624,6 +665,26 @@ function App() {
   // Desktop view
   return (
     <div className="App">
+      {/* Floating QR Code Button - Desktop Only */}
+      {!isMobileView && showFloatingQR && (
+        <div className="floating-qr-container">
+          <button 
+            className="floating-qr-button"
+            onClick={() => setShowQRCode(true)}
+            title="Open QR Code"
+          >
+            📱
+          </button>
+          <button 
+            className="floating-qr-close"
+            onClick={() => setShowFloatingQR(false)}
+            title="Close QR Code"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <div className="sticky-header">
       <header className="app-header">
         <img src={logo} alt="Company Logo" className="app-logo" />
@@ -960,6 +1021,50 @@ function App() {
             </div>
             <div className="modal-actions">
               <button onClick={() => setShowUserGuide(false)} style={{ background: "#0072ce", color: "white" }}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {showQRCode && (
+        <div className="modal-overlay" onClick={() => setShowQRCode(false)}>
+          <div className="modal-content qr-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Scan with your phone to open the app</h2>
+              <button 
+                className="modal-close" 
+                onClick={() => setShowQRCode(false)}
+                aria-label="Close QR Code"
+              >
+                ×
+              </button>
+            </div>
+            <div className="qr-code-container">
+              {qrCodeDataURL && (
+                <div className="qr-code-wrapper">
+                  <img 
+                    src={qrCodeDataURL} 
+                    alt="QR Code for app" 
+                    className="qr-code-image"
+                  />
+                  <div className="qr-code-logo-overlay">
+                    <img 
+                      src={logo} 
+                      alt="Company Logo" 
+                      className="qr-code-logo"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="modal-actions">
+              <button 
+                onClick={() => setShowQRCode(false)} 
+                style={{ background: "#0072ce", color: "white" }}
+              >
                 Close
               </button>
             </div>
