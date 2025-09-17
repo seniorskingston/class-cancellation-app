@@ -524,7 +524,6 @@ function App() {
                 console.log('Share App button clicked, setting showQRCode to true');
                 console.log('Current showQRCode state:', showQRCode);
                 console.log('Current qrCodeDataURL:', qrCodeDataURL ? 'Generated' : 'Not generated');
-                alert('Share button clicked! Modal should appear now.');
                 
                 // Generate QR code if not already generated
                 if (!qrCodeDataURL) {
@@ -536,10 +535,14 @@ function App() {
                 setShowQRCode(true);
                 console.log('showQRCode set to true');
                 
+                // Show alert after setting state
+                alert('Share button clicked! Modal should appear now. showQRCode: ' + showQRCode);
+                
                 // Force a re-render by updating state
                 setTimeout(() => {
                   console.log('After timeout - showQRCode:', showQRCode);
                   console.log('Modal should be visible now');
+                  alert('After timeout - showQRCode: ' + showQRCode);
                 }, 100);
               }} 
               className="mobile-share-button"
@@ -1108,6 +1111,20 @@ function App() {
           </button>
         </div>
       )}
+
+      {/* Always visible test - should show if component renders */}
+      <div style={{
+        position: 'fixed',
+        top: '10px',
+        right: '10px',
+        backgroundColor: 'green',
+        color: 'white',
+        padding: '10px',
+        zIndex: 9999999,
+        fontSize: '12px'
+      }}>
+        showQRCode: {showQRCode ? 'TRUE' : 'FALSE'}
+      </div>
 
       {/* QR Code Modal */}
       {showQRCode && (
