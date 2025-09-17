@@ -538,19 +538,19 @@ function App() {
                 setShowQRCode(true);
                 console.log('showQRCode set to true');
                 
-                // Show alert after setting state
-                alert('showQRCode set to true. Current value: ' + showQRCode);
-                
-                // Force a re-render by updating state
+                // Use setTimeout to check state after it updates
                 setTimeout(() => {
                   console.log('After timeout - showQRCode:', showQRCode);
                   console.log('Modal should be visible now');
                   alert('After timeout - showQRCode: ' + showQRCode);
                   
-                  // Force another state update
-                  setShowQRCode(true);
-                  console.log('Force set showQRCode to true again');
-                }, 100);
+                  // If state is still false, force it to true
+                  if (!showQRCode) {
+                    console.log('State is still false, forcing to true');
+                    setShowQRCode(true);
+                    alert('Forced showQRCode to true');
+                  }
+                }, 200);
               }} 
               className="mobile-share-button"
               title="Share App QR Code"
@@ -1179,6 +1179,7 @@ function App() {
         }}>
           <div>🚨 SIMPLE MODAL TEST 🚨</div>
           <div>If you see this, showQRCode is TRUE</div>
+          <div>QR Code: {qrCodeDataURL ? 'Generated' : 'Not Generated'}</div>
           <button 
             onClick={() => setShowQRCode(false)}
             style={{ marginTop: '10px', padding: '10px' }}
@@ -1187,6 +1188,33 @@ function App() {
           </button>
         </div>
       )}
+
+      {/* Force modal test - always show for debugging */}
+      <div style={{
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        backgroundColor: 'purple',
+        color: 'white',
+        padding: '20px',
+        zIndex: 9999999,
+        fontSize: '16px',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        border: '5px solid white',
+        display: showQRCode ? 'block' : 'none'
+      }}>
+        <div>🟣 FORCE MODAL TEST 🟣</div>
+        <div>This should show when showQRCode is true</div>
+        <div>Current showQRCode: {showQRCode ? 'TRUE' : 'FALSE'}</div>
+        <button 
+          onClick={() => setShowQRCode(false)}
+          style={{ marginTop: '10px', padding: '10px' }}
+        >
+          Close Force Modal
+        </button>
+      </div>
 
       {/* QR Code Modal */}
       {showQRCode && (
