@@ -177,7 +177,7 @@ tr:last-child td {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000 !important;
   padding: 20px;
 }
 
@@ -932,6 +932,8 @@ tr:last-child td {
 .qr-modal {
   max-width: 400px;
   text-align: center;
+  z-index: 10000 !important;
+  position: relative;
 }
 
 .qr-code-container {
@@ -993,5 +995,33 @@ tr:last-child td {
 @media (max-width: 768px) {
   .floating-qr-container {
     display: none;
+  }
+  
+  /* Ensure QR modal works properly on mobile */
+  .modal-overlay {
+    z-index: 10001 !important;
+  }
+  
+  .qr-modal {
+    z-index: 10002 !important;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  
+  .qr-code-container {
+    padding: 15px;
+  }
+  
+  .qr-code-image {
+    width: 180px;
+    height: 180px;
+  }
+  
+  /* Debug: Make modal more visible on mobile */
+  .modal-content.qr-modal {
+    border: 3px solid #0072ce;
+    box-shadow: 0 0 20px rgba(0, 114, 206, 0.5);
   }
 }

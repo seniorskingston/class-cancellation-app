@@ -523,7 +523,7 @@ function App() {
               className="mobile-share-button"
               title="Share App QR Code"
             >
-              □↑ Share App
+              Share
             </button>
             {isInStandaloneMode ? (
               <div className="installed-status">✅ App Installed</div>
