@@ -601,10 +601,83 @@ function App() {
           MOBILE VIEW ACTIVE
         </div>
 
+        {/* Mobile debug boxes */}
+        <div style={{
+          position: 'fixed',
+          top: '10px',
+          right: '10px',
+          backgroundColor: 'green',
+          color: 'white',
+          padding: '10px',
+          zIndex: 9999999,
+          fontSize: '12px'
+        }}>
+          showQRCode: {showQRCode ? 'TRUE' : 'FALSE'}
+        </div>
+
+        <div style={{
+          position: 'fixed',
+          top: '50px',
+          right: '10px',
+          backgroundColor: 'orange',
+          color: 'white',
+          padding: '10px',
+          zIndex: 9999999,
+          fontSize: '12px'
+        }}>
+          TEST: Component is rendering
+        </div>
+
+        <div style={{
+          position: 'fixed',
+          top: '10px',
+          left: '10px',
+          backgroundColor: 'blue',
+          color: 'white',
+          padding: '10px',
+          zIndex: 9999999,
+          fontSize: '12px'
+        }}>
+          MOBILE DEBUG: {isMobileView ? 'MOBILE' : 'DESKTOP'}
+        </div>
+
         {loading && (
           <div className="loading-container">
             <div className="loading-spinner"></div>
             <p>Loading program data...</p>
+          </div>
+        )}
+
+        {/* Mobile modals */}
+        {showQRCode && (
+          <div style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'red',
+            color: 'white',
+            padding: '20px',
+            zIndex: 9999999,
+            fontSize: '24px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            border: '10px solid yellow',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column'
+          }}>
+            <div>🚨 MOBILE MODAL TEST 🚨</div>
+            <div>If you see this, showQRCode is TRUE</div>
+            <div>QR Code: {qrCodeDataURL ? 'Generated' : 'Not Generated'}</div>
+            <button 
+              onClick={() => setShowQRCode(false)}
+              style={{ marginTop: '20px', padding: '15px 30px', fontSize: '18px' }}
+            >
+              Close
+            </button>
           </div>
         )}
         
