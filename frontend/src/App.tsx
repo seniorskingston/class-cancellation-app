@@ -1060,43 +1060,79 @@ function App() {
         </div>
       )}
 
+      {/* Simple Test Modal - Always Visible */}
+      {showQRCode && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 9999999,
+          background: 'yellow',
+          border: '5px solid red',
+          padding: '20px',
+          fontSize: '20px',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          width: '90vw',
+          height: '50vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column'
+        }}>
+          <div>🎉 TEST MODAL IS WORKING! 🎉</div>
+          <div>If you see this, the modal system works!</div>
+          <button 
+            onClick={() => setShowQRCode(false)}
+            style={{ marginTop: '20px', padding: '10px 20px', fontSize: '16px' }}
+          >
+            Close Test Modal
+          </button>
+        </div>
+      )}
+
       {/* QR Code Modal */}
       {showQRCode && (
         <div 
           className="modal-overlay" 
           onClick={() => setShowQRCode(false)}
           style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 999999,
-            background: 'rgba(0, 0, 0, 0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-            width: '100vw',
-            height: '100vh'
+            position: 'fixed !important',
+            top: '0 !important',
+            left: '0 !important',
+            right: '0 !important',
+            bottom: '0 !important',
+            zIndex: '999999 !important',
+            background: 'rgba(255, 0, 0, 0.9) !important',
+            display: 'flex !important',
+            alignItems: 'center !important',
+            justifyContent: 'center !important',
+            padding: '20px !important',
+            width: '100vw !important',
+            height: '100vh !important',
+            minWidth: '100vw !important',
+            minHeight: '100vh !important'
           }}
         >
           <div 
             className="modal-content qr-modal" 
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'white',
-              borderRadius: '12px',
-              padding: '20px',
-              maxWidth: '90vw',
-              maxHeight: '90vh',
-              overflow: 'auto',
-              position: 'relative',
-              zIndex: 1000000,
-              border: '4px solid #0072ce',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
-              minWidth: '300px',
-              minHeight: '200px'
+              background: 'white !important',
+              borderRadius: '12px !important',
+              padding: '20px !important',
+              maxWidth: '90vw !important',
+              maxHeight: '90vh !important',
+              overflow: 'auto !important',
+              position: 'relative !important',
+              zIndex: '1000000 !important',
+              border: '10px solid #00ff00 !important',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7) !important',
+              minWidth: '300px !important',
+              minHeight: '200px !important',
+              width: '80vw !important',
+              height: '60vh !important'
             }}
           >
             <div className="modal-header">
@@ -1109,10 +1145,14 @@ function App() {
                 ×
               </button>
             </div>
-            <div style={{ background: 'red', color: 'white', padding: '10px', margin: '10px 0' }}>
-              TEST: Modal is visible! If you can see this, the modal is working.
+            <div style={{ background: 'red', color: 'white', padding: '20px', margin: '10px 0', fontSize: '18px', fontWeight: 'bold' }}>
+              🚨 MODAL IS VISIBLE! 🚨
+              <br />
+              If you can see this red box, the modal is working!
               <br />
               QR Code Data: {qrCodeDataURL ? 'Generated' : 'Not Generated'}
+              <br />
+              Current URL: {window.location.href}
             </div>
             <div className="qr-code-container">
               {qrCodeDataURL ? (
