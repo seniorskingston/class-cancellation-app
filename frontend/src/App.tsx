@@ -567,19 +567,6 @@ function App() {
           </div>
         </div>
 
-        {/* Mobile test indicator */}
-        <div style={{
-          position: 'fixed',
-          bottom: '10px',
-          left: '10px',
-          backgroundColor: 'orange',
-          color: 'white',
-          padding: '10px',
-          zIndex: 9999999,
-          fontSize: '12px'
-        }}>
-          MOBILE VIEW ACTIVE
-        </div>
 
 
         {loading && (
