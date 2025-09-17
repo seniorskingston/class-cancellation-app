@@ -520,6 +520,7 @@ function App() {
                 console.log('Share App button clicked, setting showQRCode to true');
                 console.log('Current showQRCode state:', showQRCode);
                 console.log('Current qrCodeDataURL:', qrCodeDataURL ? 'Generated' : 'Not generated');
+                alert('Share button clicked! Modal should appear now.');
                 setShowQRCode(true);
                 // Force a re-render by updating state
                 setTimeout(() => {
@@ -1067,7 +1068,9 @@ function App() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '20px'
+            padding: '20px',
+            width: '100vw',
+            height: '100vh'
           }}
         >
           <div 
@@ -1083,7 +1086,9 @@ function App() {
               position: 'relative',
               zIndex: 1000000,
               border: '4px solid #0072ce',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)'
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+              minWidth: '300px',
+              minHeight: '200px'
             }}
           >
             <div className="modal-header">
@@ -1095,6 +1100,9 @@ function App() {
               >
                 ×
               </button>
+            </div>
+            <div style={{ background: 'red', color: 'white', padding: '10px', margin: '10px 0' }}>
+              TEST: Modal is visible! If you can see this, the modal is working.
             </div>
             <div className="qr-code-container">
               {qrCodeDataURL ? (
