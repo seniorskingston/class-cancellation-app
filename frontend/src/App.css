@@ -970,6 +970,25 @@ tr:last-child td {
   object-fit: contain;
 }
 
+.qr-code-loading {
+  padding: 40px;
+  text-align: center;
+}
+
+.qr-code-loading p {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.qr-code-loading button {
+  background: #0072ce;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
 /* Hide floating QR on mobile */
 @media (max-width: 768px) {
   .floating-qr-container {

@@ -56,6 +56,7 @@ function App() {
   const generateQRCode = async () => {
     try {
       const currentURL = window.location.href;
+      console.log('Generating QR code for URL:', currentURL);
       const qrDataURL = await QRCode.toDataURL(currentURL, {
         width: 200,
         margin: 2,
@@ -64,6 +65,7 @@ function App() {
           light: '#FFFFFF'
         }
       });
+      console.log('QR code generated successfully:', qrDataURL ? 'Yes' : 'No');
       setQrCodeDataURL(qrDataURL);
     } catch (error) {
       console.error('Error generating QR code:', error);
@@ -88,6 +90,11 @@ function App() {
   useEffect(() => {
     generateQRCode();
   }, []);
+
+  // Debug QR code state
+  useEffect(() => {
+    console.log('QR Code state changed:', { showQRCode, qrCodeDataURL: qrCodeDataURL ? 'Generated' : 'Not generated' });
+  }, [showQRCode, qrCodeDataURL]);
 
   // Handle Escape key for QR code modal
   useEffect(() => {
@@ -509,11 +516,14 @@ function App() {
               🔄 Refresh
             </button>
             <button 
-              onClick={() => setShowQRCode(true)} 
+              onClick={() => {
+                console.log('Share App button clicked, setting showQRCode to true');
+                setShowQRCode(true);
+              }} 
               className="mobile-share-button"
               title="Share App QR Code"
             >
-              📱 Share App
+              □↑ Share App
             </button>
             {isInStandaloneMode ? (
               <div className="installed-status">✅ App Installed</div>
@@ -1050,7 +1060,7 @@ function App() {
               </button>
             </div>
             <div className="qr-code-container">
-              {qrCodeDataURL && (
+              {qrCodeDataURL ? (
                 <div className="qr-code-wrapper">
                   <img 
                     src={qrCodeDataURL} 
@@ -1064,6 +1074,11 @@ function App() {
                       className="qr-code-logo"
                     />
                   </div>
+                </div>
+              ) : (
+                <div className="qr-code-loading">
+                  <p>Generating QR code...</p>
+                  <button onClick={generateQRCode}>Retry</button>
                 </div>
               )}
             </div>
