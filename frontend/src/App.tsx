@@ -518,7 +518,13 @@ function App() {
             <button 
               onClick={() => {
                 console.log('Share App button clicked, setting showQRCode to true');
+                console.log('Current showQRCode state:', showQRCode);
+                console.log('Current qrCodeDataURL:', qrCodeDataURL ? 'Generated' : 'Not generated');
                 setShowQRCode(true);
+                // Force a re-render by updating state
+                setTimeout(() => {
+                  console.log('After timeout - showQRCode:', showQRCode);
+                }, 100);
               }} 
               className="mobile-share-button"
               title="Share App QR Code"
@@ -1047,8 +1053,39 @@ function App() {
 
       {/* QR Code Modal */}
       {showQRCode && (
-        <div className="modal-overlay" onClick={() => setShowQRCode(false)}>
-          <div className="modal-content qr-modal" onClick={(e) => e.stopPropagation()}>
+        <div 
+          className="modal-overlay" 
+          onClick={() => setShowQRCode(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999999,
+            background: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+        >
+          <div 
+            className="modal-content qr-modal" 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '20px',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              position: 'relative',
+              zIndex: 1000000,
+              border: '4px solid #0072ce',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)'
+            }}
+          >
             <div className="modal-header">
               <h2>Scan with your phone to open the app</h2>
               <button 
