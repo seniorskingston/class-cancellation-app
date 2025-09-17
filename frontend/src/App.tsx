@@ -58,12 +58,13 @@ function App() {
       const currentURL = window.location.href;
       console.log('Generating QR code for URL:', currentURL);
       const qrDataURL = await QRCode.toDataURL(currentURL, {
-        width: 200,
-        margin: 2,
+        width: 300,
+        margin: 4,
         color: {
           dark: '#000000',
           light: '#FFFFFF'
-        }
+        },
+        errorCorrectionLevel: 'M'
       });
       console.log('QR code generated successfully:', qrDataURL ? 'Yes' : 'No');
       setQrCodeDataURL(qrDataURL);
@@ -641,8 +642,8 @@ function App() {
                       src={qrCodeDataURL} 
                       alt="QR Code for app" 
                       style={{ 
-                        width: '200px', 
-                        height: '200px', 
+                        width: '300px', 
+                        height: '300px', 
                         border: '2px solid #ddd',
                         borderRadius: '8px'
                       }}
@@ -660,7 +661,7 @@ function App() {
                       <img 
                         src={logo} 
                         alt="Company Logo" 
-                        style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+                        style={{ width: '30px', height: '30px', objectFit: 'contain' }}
                       />
                     </div>
                   </div>
@@ -1228,49 +1229,8 @@ function App() {
         </div>
       )}
 
-      {/* Always visible test - should show if component renders */}
-      <div style={{
-        position: 'fixed',
-        top: '10px',
-        right: '10px',
-        backgroundColor: 'green',
-        color: 'white',
-        padding: '10px',
-        zIndex: 9999999,
-        fontSize: '12px'
-      }}>
-        showQRCode: {showQRCode ? 'TRUE' : 'FALSE'}
-      </div>
 
-      {/* Simple test - always visible */}
-      <div style={{
-        position: 'fixed',
-        top: '50px',
-        right: '10px',
-        backgroundColor: 'orange',
-        color: 'white',
-        padding: '10px',
-        zIndex: 9999999,
-        fontSize: '12px'
-      }}>
-        TEST: Component is rendering
-      </div>
-
-      {/* Mobile debug indicator */}
-      <div style={{
-        position: 'fixed',
-        top: '10px',
-        left: '10px',
-        backgroundColor: 'blue',
-        color: 'white',
-        padding: '10px',
-        zIndex: 9999999,
-        fontSize: '12px'
-      }}>
-        MOBILE DEBUG: {isMobileView ? 'MOBILE' : 'DESKTOP'}
-      </div>
-
-      {/* Simple test modal that should always show when showQRCode is true */}
+      {/* Desktop QR Code Modal */}
       {showQRCode && (
         <div style={{
           position: 'fixed',
@@ -1278,61 +1238,113 @@ function App() {
           left: '0',
           width: '100vw',
           height: '100vh',
-          backgroundColor: 'red',
-          color: 'white',
-          padding: '20px',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
           zIndex: 9999999,
-          fontSize: '24px',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          border: '10px solid yellow',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          flexDirection: 'column'
+          padding: '20px'
         }}>
-          <div>🚨 SIMPLE MODAL TEST 🚨</div>
-          <div>If you see this, showQRCode is TRUE</div>
-          <div>QR Code: {qrCodeDataURL ? 'Generated' : 'Not Generated'}</div>
-          <button 
-            onClick={() => setShowQRCode(false)}
-            style={{ marginTop: '20px', padding: '15px 30px', fontSize: '18px' }}
-          >
-            Close
-          </button>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '20px',
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative',
+            border: '4px solid #0072ce',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+            textAlign: 'center'
+          }}>
+            <div style={{ marginBottom: '20px' }}>
+              <h2 style={{ margin: '0 0 10px 0', color: '#0072ce' }}>Scan with your phone to open the app</h2>
+              <button 
+                onClick={() => setShowQRCode(false)}
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              {qrCodeDataURL ? (
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <img 
+                    src={qrCodeDataURL} 
+                    alt="QR Code for app" 
+                    style={{ 
+                      width: '300px', 
+                      height: '300px', 
+                      border: '2px solid #ddd',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    background: 'white',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+                  }}>
+                    <img 
+                      src={logo} 
+                      alt="Company Logo" 
+                      style={{ width: '30px', height: '30px', objectFit: 'contain' }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding: '40px', color: '#666' }}>
+                  <p>Generating QR code...</p>
+                  <button 
+                    onClick={generateQRCode}
+                    style={{
+                      background: '#0072ce',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: '6px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            <div style={{ marginTop: '20px' }}>
+              <button 
+                onClick={() => setShowQRCode(false)} 
+                style={{ 
+                  background: "#0072ce", 
+                  color: "white",
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Force modal test - always show for debugging */}
-      <div style={{
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: 'purple',
-        color: 'white',
-        padding: '20px',
-        zIndex: 9999998,
-        fontSize: '24px',
-        fontWeight: 'bold',
-        textAlign: 'center',
-        border: '10px solid white',
-        display: showQRCode ? 'flex' : 'none',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column'
-      }}>
-        <div>🟣 FORCE MODAL TEST 🟣</div>
-        <div>This should show when showQRCode is true</div>
-        <div>Current showQRCode: {showQRCode ? 'TRUE' : 'FALSE'}</div>
-        <button 
-          onClick={() => setShowQRCode(false)}
-          style={{ marginTop: '20px', padding: '15px 30px', fontSize: '18px' }}
-        >
-          Close Force Modal
-        </button>
-      </div>
 
       {/* QR Code Modal */}
       {showQRCode && (
