@@ -522,11 +522,6 @@ function App() {
             <button 
               onClick={() => {
                 console.log('Share App button clicked, setting showQRCode to true');
-                console.log('Current showQRCode state:', showQRCode);
-                console.log('Current qrCodeDataURL:', qrCodeDataURL ? 'Generated' : 'Not generated');
-                
-                // Show immediate alert
-                alert('Button clicked! About to set showQRCode to true');
                 
                 // Generate QR code if not already generated
                 if (!qrCodeDataURL) {
@@ -534,23 +529,7 @@ function App() {
                   generateQRCode();
                 }
                 
-                console.log('Setting showQRCode to true...');
                 setShowQRCode(true);
-                console.log('showQRCode set to true');
-                
-                // Use setTimeout to check state after it updates
-                setTimeout(() => {
-                  console.log('After timeout - showQRCode:', showQRCode);
-                  console.log('Modal should be visible now');
-                  alert('After timeout - showQRCode: ' + showQRCode);
-                  
-                  // If state is still false, force it to true
-                  if (!showQRCode) {
-                    console.log('State is still false, forcing to true');
-                    setShowQRCode(true);
-                    alert('Forced showQRCode to true');
-                  }
-                }, 200);
               }} 
               className="mobile-share-button"
               title="Share App QR Code"
@@ -601,45 +580,6 @@ function App() {
           MOBILE VIEW ACTIVE
         </div>
 
-        {/* Mobile debug boxes */}
-        <div style={{
-          position: 'fixed',
-          top: '10px',
-          right: '10px',
-          backgroundColor: 'green',
-          color: 'white',
-          padding: '10px',
-          zIndex: 9999999,
-          fontSize: '12px'
-        }}>
-          showQRCode: {showQRCode ? 'TRUE' : 'FALSE'}
-        </div>
-
-        <div style={{
-          position: 'fixed',
-          top: '50px',
-          right: '10px',
-          backgroundColor: 'orange',
-          color: 'white',
-          padding: '10px',
-          zIndex: 9999999,
-          fontSize: '12px'
-        }}>
-          TEST: Component is rendering
-        </div>
-
-        <div style={{
-          position: 'fixed',
-          top: '10px',
-          left: '10px',
-          backgroundColor: 'blue',
-          color: 'white',
-          padding: '10px',
-          zIndex: 9999999,
-          fontSize: '12px'
-        }}>
-          MOBILE DEBUG: {isMobileView ? 'MOBILE' : 'DESKTOP'}
-        </div>
 
         {loading && (
           <div className="loading-container">
@@ -648,7 +588,7 @@ function App() {
           </div>
         )}
 
-        {/* Mobile modals */}
+        {/* Mobile QR Code Modal */}
         {showQRCode && (
           <div style={{
             position: 'fixed',
@@ -656,28 +596,110 @@ function App() {
             left: '0',
             width: '100vw',
             height: '100vh',
-            backgroundColor: 'red',
-            color: 'white',
-            padding: '20px',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
             zIndex: 9999999,
-            fontSize: '24px',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            border: '10px solid yellow',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            flexDirection: 'column'
+            padding: '20px'
           }}>
-            <div>🚨 MOBILE MODAL TEST 🚨</div>
-            <div>If you see this, showQRCode is TRUE</div>
-            <div>QR Code: {qrCodeDataURL ? 'Generated' : 'Not Generated'}</div>
-            <button 
-              onClick={() => setShowQRCode(false)}
-              style={{ marginTop: '20px', padding: '15px 30px', fontSize: '18px' }}
-            >
-              Close
-            </button>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '20px',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              position: 'relative',
+              border: '4px solid #0072ce',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+              textAlign: 'center'
+            }}>
+              <div style={{ marginBottom: '20px' }}>
+                <h2 style={{ margin: '0 0 10px 0', color: '#0072ce' }}>Scan with your phone to open the app</h2>
+                <button 
+                  onClick={() => setShowQRCode(false)}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    color: '#666'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                {qrCodeDataURL ? (
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <img 
+                      src={qrCodeDataURL} 
+                      alt="QR Code for app" 
+                      style={{ 
+                        width: '200px', 
+                        height: '200px', 
+                        border: '2px solid #ddd',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      background: 'white',
+                      padding: '8px',
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+                    }}>
+                      <img 
+                        src={logo} 
+                        alt="Company Logo" 
+                        style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '40px', color: '#666' }}>
+                    <p>Generating QR code...</p>
+                    <button 
+                      onClick={generateQRCode}
+                      style={{
+                        background: '#0072ce',
+                        color: 'white',
+                        border: 'none',
+                        padding: '10px 20px',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              <div style={{ marginTop: '20px' }}>
+                <button 
+                  onClick={() => setShowQRCode(false)} 
+                  style={{ 
+                    background: "#0072ce", 
+                    color: "white",
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         )}
         
