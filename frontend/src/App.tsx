@@ -1147,6 +1147,20 @@ function App() {
         showQRCode: {showQRCode ? 'TRUE' : 'FALSE'}
       </div>
 
+      {/* Simple test - always visible */}
+      <div style={{
+        position: 'fixed',
+        top: '50px',
+        right: '10px',
+        backgroundColor: 'orange',
+        color: 'white',
+        padding: '10px',
+        zIndex: 9999999,
+        fontSize: '12px'
+      }}>
+        TEST: Component is rendering
+      </div>
+
       {/* Mobile debug indicator */}
       <div style={{
         position: 'fixed',
@@ -1165,24 +1179,29 @@ function App() {
       {showQRCode && (
         <div style={{
           position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
+          top: '0',
+          left: '0',
+          width: '100vw',
+          height: '100vh',
           backgroundColor: 'red',
           color: 'white',
           padding: '20px',
           zIndex: 9999999,
-          fontSize: '20px',
+          fontSize: '24px',
           fontWeight: 'bold',
           textAlign: 'center',
-          border: '5px solid yellow'
+          border: '10px solid yellow',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column'
         }}>
           <div>🚨 SIMPLE MODAL TEST 🚨</div>
           <div>If you see this, showQRCode is TRUE</div>
           <div>QR Code: {qrCodeDataURL ? 'Generated' : 'Not Generated'}</div>
           <button 
             onClick={() => setShowQRCode(false)}
-            style={{ marginTop: '10px', padding: '10px' }}
+            style={{ marginTop: '20px', padding: '15px 30px', fontSize: '18px' }}
           >
             Close
           </button>
@@ -1192,25 +1211,29 @@ function App() {
       {/* Force modal test - always show for debugging */}
       <div style={{
         position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
         backgroundColor: 'purple',
         color: 'white',
         padding: '20px',
-        zIndex: 9999999,
-        fontSize: '16px',
+        zIndex: 9999998,
+        fontSize: '24px',
         fontWeight: 'bold',
         textAlign: 'center',
-        border: '5px solid white',
-        display: showQRCode ? 'block' : 'none'
+        border: '10px solid white',
+        display: showQRCode ? 'flex' : 'none',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column'
       }}>
         <div>🟣 FORCE MODAL TEST 🟣</div>
         <div>This should show when showQRCode is true</div>
         <div>Current showQRCode: {showQRCode ? 'TRUE' : 'FALSE'}</div>
         <button 
           onClick={() => setShowQRCode(false)}
-          style={{ marginTop: '10px', padding: '10px' }}
+          style={{ marginTop: '20px', padding: '15px 30px', fontSize: '18px' }}
         >
           Close Force Modal
         </button>
