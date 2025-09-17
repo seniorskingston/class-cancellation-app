@@ -1098,41 +1098,41 @@ function App() {
           className="modal-overlay" 
           onClick={() => setShowQRCode(false)}
           style={{
-            position: 'fixed !important',
-            top: '0 !important',
-            left: '0 !important',
-            right: '0 !important',
-            bottom: '0 !important',
-            zIndex: '999999 !important',
-            background: 'rgba(255, 0, 0, 0.9) !important',
-            display: 'flex !important',
-            alignItems: 'center !important',
-            justifyContent: 'center !important',
-            padding: '20px !important',
-            width: '100vw !important',
-            height: '100vh !important',
-            minWidth: '100vw !important',
-            minHeight: '100vh !important'
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            right: '0',
+            bottom: '0',
+            zIndex: 999999,
+            background: 'rgba(255, 0, 0, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            width: '100vw',
+            height: '100vh',
+            minWidth: '100vw',
+            minHeight: '100vh'
           }}
         >
           <div 
             className="modal-content qr-modal" 
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'white !important',
-              borderRadius: '12px !important',
-              padding: '20px !important',
-              maxWidth: '90vw !important',
-              maxHeight: '90vh !important',
-              overflow: 'auto !important',
-              position: 'relative !important',
-              zIndex: '1000000 !important',
-              border: '10px solid #00ff00 !important',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7) !important',
-              minWidth: '300px !important',
-              minHeight: '200px !important',
-              width: '80vw !important',
-              height: '60vh !important'
+              background: 'white',
+              borderRadius: '12px',
+              padding: '20px',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              position: 'relative',
+              zIndex: 1000000,
+              border: '10px solid #00ff00',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+              minWidth: '300px',
+              minHeight: '200px',
+              width: '80vw',
+              height: '60vh'
             }}
           >
             <div className="modal-header">

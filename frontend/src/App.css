@@ -1007,7 +1007,7 @@ tr:last-child td {
     bottom: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background: rgba(0, 0, 0, 0.8) !important;
+    background: rgba(255, 0, 0, 0.9) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1023,6 +1023,9 @@ tr:last-child td {
     background: white !important;
     border-radius: 12px !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    border: 10px solid #00ff00 !important;
+    width: 80vw !important;
+    height: 60vh !important;
   }
   
   .qr-code-container {
@@ -1036,8 +1039,8 @@ tr:last-child td {
   
   /* Debug: Make modal more visible on mobile */
   .modal-content.qr-modal {
-    border: 3px solid #0072ce !important;
-    box-shadow: 0 0 20px rgba(0, 114, 206, 0.5) !important;
+    border: 10px solid #00ff00 !important;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5) !important;
   }
 }
 
