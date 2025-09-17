@@ -907,7 +907,7 @@ function App() {
           onClick={() => setShowUserGuide(true)} 
           style={{ background: "#0072ce", color: "white" }}
         >
-          📖 Guide
+          📖 Help
           </button>
       </div>
       <div className="last-loaded">
