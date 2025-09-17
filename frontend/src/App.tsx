@@ -243,6 +243,7 @@ function App() {
 
   useEffect(() => {
     fetchCancellations();
+    fetchAllPrograms(); // Also fetch all programs for pinned items
     const interval = setInterval(() => fetchCancellations(), 5 * 60 * 1000); // 5 min
     return () => clearInterval(interval);
     // eslint-disable-next-line
@@ -337,42 +338,38 @@ function App() {
     await fetchCancellations(newFilters);
   };
 
-  // Get pinned programs that might not be in current filtered results
-  const [pinnedPrograms, setPinnedPrograms] = useState<Cancellation[]>([]);
+  // Get all programs (for pinned programs that might not be in filtered results)
+  const [allPrograms, setAllPrograms] = useState<Cancellation[]>([]);
 
-  // Fetch pinned programs separately to ensure they always show
-  const fetchPinnedPrograms = async () => {
-    if (favorites.size === 0) {
-      setPinnedPrograms([]);
-      return;
-    }
-
+  // Fetch all programs (without filters) to ensure pinned programs are always available
+  const fetchAllPrograms = async () => {
     try {
-      const favoriteIds = Array.from(favorites);
-      const params = new URLSearchParams();
-      favoriteIds.forEach(id => params.append('program_id', id));
-      
-      const url = `${API_URL}/cancellations?${params.toString()}`;
+      const url = `${API_URL}/cancellations`;
       const res = await fetch(url);
       
       if (res.ok) {
         const data = await res.json();
-        setPinnedPrograms(data.data || []);
+        setAllPrograms(data.data || []);
       }
     } catch (error) {
-      console.error("Failed to fetch pinned programs:", error);
+      console.error("Failed to fetch all programs:", error);
     }
   };
 
-  // Fetch pinned programs when favorites change
+  // Fetch all programs when favorites change (to ensure pinned programs are available)
   useEffect(() => {
-    fetchPinnedPrograms();
+    if (favorites.size > 0) {
+      fetchAllPrograms();
+    }
   }, [favorites]);
 
   // Combine pinned programs with current filtered results
   const sortedCancellations = (() => {
     const currentResults = [...cancellations];
-    const pinnedResults = [...pinnedPrograms];
+    const allProgramsList = [...allPrograms];
+    
+    // Get pinned programs from all programs
+    const pinnedResults = allProgramsList.filter(p => favorites.has(p.program_id));
     
     // Remove duplicates (pinned programs that are already in current results)
     const currentIds = new Set(currentResults.map(p => p.program_id));
@@ -394,7 +391,10 @@ function App() {
 
   // Debug logging
   console.log('Favorites state:', Array.from(favorites));
+  console.log('All programs count:', allPrograms.length);
+  console.log('Current filtered results count:', cancellations.length);
   console.log('Sorted cancellations count:', sortedCancellations.length);
+  console.log('Pinned programs in results:', sortedCancellations.filter(p => favorites.has(p.program_id)).length);
 
   const handleExport = async (format: 'excel' | 'pdf') => {
     try {
@@ -710,7 +710,7 @@ function App() {
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Loading program data...</p>
-        </div>
+      </div>
       )}
 
       <div className="table-container">
