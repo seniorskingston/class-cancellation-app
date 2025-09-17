@@ -508,6 +508,13 @@ function App() {
             <button onClick={handleRefresh} className="refresh-button">
               🔄 Refresh
             </button>
+            <button 
+              onClick={() => setShowQRCode(true)} 
+              className="mobile-share-button"
+              title="Share App QR Code"
+            >
+              📱 Share App
+            </button>
             {isInStandaloneMode ? (
               <div className="installed-status">✅ App Installed</div>
             ) : (
