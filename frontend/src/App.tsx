@@ -94,6 +94,10 @@ function App() {
   // Debug QR code state
   useEffect(() => {
     console.log('QR Code state changed:', { showQRCode, qrCodeDataURL: qrCodeDataURL ? 'Generated' : 'Not generated' });
+    if (showQRCode) {
+      console.log('🚨 MODAL SHOULD BE VISIBLE NOW! 🚨');
+      console.log('showQRCode is true, modal should render');
+    }
   }, [showQRCode, qrCodeDataURL]);
 
   // Handle Escape key for QR code modal
@@ -528,10 +532,14 @@ function App() {
                   await generateQRCode();
                 }
                 
+                console.log('Setting showQRCode to true...');
                 setShowQRCode(true);
+                console.log('showQRCode set to true');
+                
                 // Force a re-render by updating state
                 setTimeout(() => {
                   console.log('After timeout - showQRCode:', showQRCode);
+                  console.log('Modal should be visible now');
                 }, 100);
               }} 
               className="mobile-share-button"
@@ -1060,34 +1068,43 @@ function App() {
         </div>
       )}
 
-      {/* Simple Test Modal - Always Visible */}
+      {/* Super Simple Test Modal */}
       {showQRCode && (
-        <div style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 9999999,
-          background: 'yellow',
-          border: '5px solid red',
-          padding: '20px',
-          fontSize: '20px',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          width: '90vw',
-          height: '50vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'column'
-        }}>
-          <div>🎉 TEST MODAL IS WORKING! 🎉</div>
-          <div>If you see this, the modal system works!</div>
+        <div 
+          style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'yellow',
+            zIndex: 9999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            fontSize: '24px',
+            fontWeight: 'bold'
+          }}
+        >
+          <div style={{ color: 'red', marginBottom: '20px' }}>
+            🚨 MODAL IS WORKING! 🚨
+          </div>
+          <div style={{ color: 'blue', marginBottom: '20px' }}>
+            QR Code: {qrCodeDataURL ? 'Generated' : 'Not Generated'}
+          </div>
           <button 
             onClick={() => setShowQRCode(false)}
-            style={{ marginTop: '20px', padding: '10px 20px', fontSize: '16px' }}
+            style={{ 
+              padding: '15px 30px', 
+              fontSize: '18px',
+              backgroundColor: 'red',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px'
+            }}
           >
-            Close Test Modal
+            Close Modal
           </button>
         </div>
       )}
