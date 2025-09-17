@@ -516,11 +516,18 @@ function App() {
               🔄 Refresh
             </button>
             <button 
-              onClick={() => {
+              onClick={async () => {
                 console.log('Share App button clicked, setting showQRCode to true');
                 console.log('Current showQRCode state:', showQRCode);
                 console.log('Current qrCodeDataURL:', qrCodeDataURL ? 'Generated' : 'Not generated');
                 alert('Share button clicked! Modal should appear now.');
+                
+                // Generate QR code if not already generated
+                if (!qrCodeDataURL) {
+                  console.log('Generating QR code...');
+                  await generateQRCode();
+                }
+                
                 setShowQRCode(true);
                 // Force a re-render by updating state
                 setTimeout(() => {
@@ -1104,6 +1111,8 @@ function App() {
             </div>
             <div style={{ background: 'red', color: 'white', padding: '10px', margin: '10px 0' }}>
               TEST: Modal is visible! If you can see this, the modal is working.
+              <br />
+              QR Code Data: {qrCodeDataURL ? 'Generated' : 'Not Generated'}
             </div>
             <div className="qr-code-container">
               {qrCodeDataURL ? (
@@ -1112,6 +1121,7 @@ function App() {
                     src={qrCodeDataURL} 
                     alt="QR Code for app" 
                     className="qr-code-image"
+                    style={{ width: '200px', height: '200px', border: '2px solid #000' }}
                   />
                   <div className="qr-code-logo-overlay">
                     <img 
@@ -1125,6 +1135,9 @@ function App() {
                 <div className="qr-code-loading">
                   <p>Generating QR code...</p>
                   <button onClick={generateQRCode}>Retry</button>
+                  <div style={{ background: 'yellow', padding: '10px', margin: '10px 0' }}>
+                    <strong>DEBUG:</strong> QR Code not generated yet. Click Retry or wait for generation.
+                  </div>
                 </div>
               )}
             </div>
