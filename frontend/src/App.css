@@ -67,21 +67,189 @@
   justify-content: space-between;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
 .app-logo {
   height: clamp(30px, 8vw, 50px);
   max-width: 100%;
-  margin-right: clamp(10px, 2vw, 20px);
   border-radius: 6px;
   background: white;
   padding: 0.2rem;
   object-fit: contain; /* Maintain aspect ratio */
 }
 
+.events-schedule-button {
+  background: white;
+  color: #000;
+  border: none;
+  padding: 0.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: clamp(12px, 2vw, 14px);
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: clamp(30px, 8vw, 50px);
+  width: clamp(200px, 25vw, 300px);
+  margin-left: clamp(20px, 4vw, 40px);
+  margin-right: clamp(10px, 2vw, 20px);
+  object-fit: contain;
+  position: relative;
+  overflow: hidden;
+}
+
+.events-schedule-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 20%;
+  background: #00b388;
+  border-radius: 4px 4px 0 0;
+  z-index: 1;
+}
+
+.events-schedule-button::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 25%;
+  background: #00b388;
+  border-radius: 0 0 4px 4px;
+  z-index: 1;
+}
+
+.events-schedule-button::after {
+  content: '';
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 2px;
+  background: #000;
+  z-index: 2;
+}
+
+.events-schedule-button {
+  background: white;
+  color: #000;
+  border: none;
+  padding: 0.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: clamp(12px, 2vw, 14px);
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: clamp(30px, 8vw, 50px);
+  width: clamp(200px, 25vw, 300px);
+  margin-left: clamp(20px, 4vw, 40px);
+  margin-right: clamp(10px, 2vw, 20px);
+  object-fit: contain;
+  position: relative;
+  overflow: hidden;
+}
+
+.events-schedule-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 20%;
+  background: #00b388;
+  border-radius: 4px 4px 0 0;
+  z-index: 1;
+}
+
+.events-schedule-button::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 25%;
+  background: #00b388;
+  border-radius: 0 0 4px 4px;
+  z-index: 1;
+}
+
+.events-schedule-button::after {
+  content: '';
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 2px;
+  background: #000;
+  z-index: 2;
+}
+
+.events-schedule-button span {
+  position: relative;
+  z-index: 2;
+  color: #333;
+  background: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 900;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: clamp(10px, 1.5vw, 12px);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: -5px;
+}
+
+.events-schedule-image-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(30px, 8vw, 50px);
+  width: clamp(200px, 25vw, 300px);
+  margin: 0;
+  padding: 0;
+  margin-left: -2px;
+}
+
+.events-schedule-image {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.events-schedule-button:hover {
+  background: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+
 .app-header h1 {
   margin: 0;
   flex-grow: 1;
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 .datetime-display {
@@ -317,6 +485,16 @@ tr:last-child td {
   top: 0;
   z-index: 100;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mobile-header-left {
+  display: flex;
+  align-items: center;
+  gap: clamp(2px, 0.5vw, 5px);
+  margin-bottom: 10px;
 }
 
 .mobile-header-buttons {
@@ -390,6 +568,84 @@ tr:last-child td {
   font-size: 0.9rem;
   opacity: 0.9;
 }
+
+.mobile-events-schedule-button {
+  background: white;
+  color: #000;
+  border: none;
+  padding: 0.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: clamp(10px, 2vw, 12px);
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: clamp(25px, 6vw, 35px);
+  margin-left: clamp(15px, 3vw, 25px);
+  margin-right: clamp(8px, 2vw, 15px);
+  object-fit: contain;
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-events-schedule-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  background: #28a745;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+.mobile-events-schedule-button span {
+  position: relative;
+  z-index: 2;
+  color: #333;
+  background: white;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: 900;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: clamp(8px, 1.2vw, 10px);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  margin-top: -3px;
+}
+
+.mobile-events-schedule-image-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(30px, 7vw, 45px);
+  width: clamp(150px, 20vw, 200px);
+  margin: 0;
+  padding: 0;
+}
+
+.mobile-events-schedule-image {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.mobile-events-schedule-button:hover {
+  background: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 
 .mobile-controls {
   padding: 15px;
@@ -1070,4 +1326,26 @@ tr:last-child td {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important;
     border: 4px solid #0072ce !important;
   }
+}
+
+/* Calendar Navigation */
+.calendar-navigation {
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.back-to-main-button {
+  background: #0072ce;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.back-to-main-button:hover {
+  background: #0056a3;
 }

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import logo from "./logo.png";
 import QRCode from 'qrcode';
+import Calendar from './Calendar';
+import calendarIcon from './assets/calendar-icon.svg';
 
 type Cancellation = {
   sheet: string;
@@ -51,6 +53,7 @@ function App() {
   const [showQRCode, setShowQRCode] = useState(false);
   const [showFloatingQR, setShowFloatingQR] = useState(true);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
+  const [currentView, setCurrentView] = useState<'main' | 'calendar'>('main');
 
   // Generate QR code for the current URL
   const generateQRCode = async () => {
@@ -499,12 +502,38 @@ function App() {
     }
   };
 
+  // Calendar view
+  if (currentView === 'calendar') {
+    return (
+      <div className="App">
+        <div className="calendar-navigation">
+          <button 
+            onClick={() => setCurrentView('main')}
+            className="back-to-main-button"
+          >
+            ← Back to Program Schedule
+          </button>
+        </div>
+        <Calendar />
+      </div>
+    );
+  }
+
   // Mobile view
   if (isMobileView) {
     return (
       <div className="App mobile-view">
         <header className="mobile-header">
-          <img src={logo} alt="Company Logo" className="mobile-logo" />
+          <div className="mobile-header-left">
+            <img src={logo} alt="Company Logo" className="mobile-logo" />
+            <button 
+              onClick={() => setCurrentView('calendar')} 
+              className="mobile-events-schedule-image-button"
+              title="View Event Schedule"
+            >
+              <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="mobile-events-schedule-image" />
+            </button>
+          </div>
           <h1>Program Schedule Update</h1>
           <div className="mobile-datetime">
             {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
@@ -834,7 +863,16 @@ function App() {
 
       <div className="sticky-header">
       <header className="app-header">
-        <img src={logo} alt="Company Logo" className="app-logo" />
+        <div className="header-left">
+          <img src={logo} alt="Company Logo" className="app-logo" />
+          <button 
+            onClick={() => setCurrentView('calendar')} 
+            className="events-schedule-image-button"
+            title="View Event Schedule"
+          >
+            <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="events-schedule-image" />
+          </button>
+        </div>
         <h1>Program Schedule Update</h1>
         <div className="datetime-display">
             {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {currentDateTime.toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
