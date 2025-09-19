@@ -8,6 +8,4 @@ reportlab
 pytz
 requests
 beautifulsoup4
-lxml
-selenium
-webdriver-manager 
+lxml 

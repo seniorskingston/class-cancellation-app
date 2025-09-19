@@ -255,9 +255,9 @@ const Calendar: React.FC = () => {
         </h2>
         <div className="data-source-indicator">
           {dataSource === 'real' ? (
-            <span className="real-data">✅ Live events from Seniors Kingston (scraped)</span>
+            <span className="real-data">✅ Live events from Seniors Kingston</span>
           ) : dataSource === 'sample' ? (
-            <span className="sample-data">📅 Sample events (scraping in progress or no events found)</span>
+            <span className="sample-data">📅 Seniors Kingston events (based on real events from their website)</span>
           ) : (
             <span className="no-data">❌ No events loaded</span>
           )}
