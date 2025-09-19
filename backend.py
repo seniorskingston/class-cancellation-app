@@ -9,13 +9,19 @@ import re
 import requests
 from bs4 import BeautifulSoup
 import json
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
+# Selenium imports - only needed for local scraping
+try:
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.service import Service
+    SELENIUM_AVAILABLE = True
+except ImportError:
+    SELENIUM_AVAILABLE = False
+    print("Selenium not available - will use sample events")
 
 # Use environment variable for port, default to 8000 (Render uses PORT env var)
 PORT = int(os.environ.get("PORT", 8000))
@@ -133,14 +139,9 @@ def scrape_seniors_kingston_events():
     print("🔍 Scraping Seniors Kingston events...")
     
     try:
-        # Check if we're in a cloud environment (like Render)
-        is_cloud = os.environ.get('RENDER', False) or os.environ.get('HEROKU', False)
-        
-        if is_cloud:
-            print("Running in cloud environment, using sample events for now...")
-            # Use realistic sample events based on what we know from local testing
-            today = datetime.now()
-            sample_events = [
+        # Define sample events that work in all environments
+        today = datetime.now()
+        sample_events = [
                 {
                     'title': "Celtic Kitchen Party - Halfway to St. Patrick's Day",
                     'startDate': (today + timedelta(days=1, hours=19, minutes=30)).isoformat(),
@@ -214,13 +215,22 @@ def scrape_seniors_kingston_events():
                     'timeStr': '12:00 pm'
                 }
             ]
+        
+        # Check if we're in a cloud environment (like Render)
+        is_cloud = os.environ.get('RENDER', False) or os.environ.get('HEROKU', False)
+        
+        # Use sample events by default (works in all environments)
+        if is_cloud or not SELENIUM_AVAILABLE:
+            if is_cloud:
+                print("Running in cloud environment, using sample events...")
+            else:
+                print("Selenium not available, using sample events...")
             
             events_data = sample_events
             events_last_loaded = datetime.now()
             print(f"✅ Using sample events based on real Seniors Kingston events ({len(sample_events)} events)")
             return
-        
-        # Local environment - use Selenium for real scraping
+            
         print("Running locally, using Selenium for real scraping...")
         
         # Set up Chrome options for headless browsing
