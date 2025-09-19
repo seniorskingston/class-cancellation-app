@@ -196,10 +196,11 @@ const Calendar: React.FC = () => {
           }
         }
         
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
-        if (response.ok) {
+        if (response) {
+          console.log('Response status:', response.status);
+          console.log('Response headers:', response.headers);
+          
+          if (response.ok) {
           const icalData = await response.text();
           console.log('iCal data received, length:', icalData.length);
           console.log('First 500 chars:', icalData.substring(0, 500));
@@ -215,6 +216,9 @@ const Calendar: React.FC = () => {
           }
         } else {
           throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        } else {
+          throw new Error('No response received from any fetch method');
         }
       } catch (fetchError) {
         console.warn('Failed to fetch from Seniors Kingston:', fetchError);
