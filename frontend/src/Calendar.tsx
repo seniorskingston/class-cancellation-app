@@ -139,25 +139,61 @@ const Calendar: React.FC = () => {
       console.log('Attempting to fetch from:', icalUrl);
       
       try {
-        // Try direct fetch first
-        let response = await fetch(icalUrl, {
-          method: 'GET',
-          mode: 'cors',
-          headers: {
-            'Accept': 'text/calendar',
-          },
-        });
+        // Try multiple approaches to fetch the iCal data
+        let response;
+        let fetchMethod = '';
         
-        // If CORS fails, try with a CORS proxy
-        if (!response.ok || response.status === 0) {
-          console.log('Direct fetch failed, trying CORS proxy...');
-          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(icalUrl)}`;
-          response = await fetch(proxyUrl, {
+        // Method 1: Direct fetch
+        try {
+          console.log('Trying direct fetch...');
+          response = await fetch(icalUrl, {
             method: 'GET',
+            mode: 'cors',
             headers: {
               'Accept': 'text/calendar',
             },
           });
+          fetchMethod = 'direct';
+          console.log('Direct fetch response status:', response.status);
+        } catch (directError) {
+          console.log('Direct fetch failed:', directError);
+        }
+        
+        // Method 2: CORS proxy if direct fails
+        if (!response || !response.ok || response.status === 0) {
+          try {
+            console.log('Trying CORS proxy...');
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(icalUrl)}`;
+            response = await fetch(proxyUrl, {
+              method: 'GET',
+              headers: {
+                'Accept': 'text/calendar',
+              },
+            });
+            fetchMethod = 'proxy';
+            console.log('Proxy fetch response status:', response.status);
+          } catch (proxyError) {
+            console.log('Proxy fetch failed:', proxyError);
+          }
+        }
+        
+        // Method 3: Alternative CORS proxy
+        if (!response || !response.ok || response.status === 0) {
+          try {
+            console.log('Trying alternative CORS proxy...');
+            const altProxyUrl = `https://cors-anywhere.herokuapp.com/${icalUrl}`;
+            response = await fetch(altProxyUrl, {
+              method: 'GET',
+              headers: {
+                'Accept': 'text/calendar',
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+            });
+            fetchMethod = 'alt-proxy';
+            console.log('Alt proxy fetch response status:', response.status);
+          } catch (altProxyError) {
+            console.log('Alt proxy fetch failed:', altProxyError);
+          }
         }
         
         console.log('Response status:', response.status);
@@ -185,27 +221,42 @@ const Calendar: React.FC = () => {
         console.log('Using sample events as fallback');
         
         // Fallback to sample events if the real feed fails
+        const today = new Date();
         const sampleEvents: Event[] = [
           {
-            title: "Sample Event 1",
-            startDate: new Date(2024, 8, 20, 10, 0), // September 20, 2024, 10:00 AM
-            endDate: new Date(2024, 8, 20, 11, 0),
-            description: "This is a sample event",
+            title: "Morning Exercise Class",
+            startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 9, 0),
+            endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 10, 0),
+            description: "Gentle exercise for seniors",
             location: "Kingston Community Centre"
           },
           {
-            title: "Sample Event 2", 
-            startDate: new Date(2024, 8, 25, 14, 0), // September 25, 2024, 2:00 PM
-            endDate: new Date(2024, 8, 25, 15, 0),
-            description: "Another sample event",
-            location: "Seniors Centre"
+            title: "Book Club Meeting", 
+            startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 14, 0),
+            endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 15, 30),
+            description: "Monthly book discussion",
+            location: "Seniors Kingston Library"
           },
           {
-            title: "Current Month Event",
-            startDate: new Date(), // Today
-            endDate: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
-            description: "This event is today",
-            location: "Test Location"
+            title: "Art Workshop",
+            startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 10, 30),
+            endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 12, 0),
+            description: "Watercolor painting class",
+            location: "Arts Centre"
+          },
+          {
+            title: "Health Seminar",
+            startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 13, 0),
+            endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 14, 30),
+            description: "Healthy aging presentation",
+            location: "Seniors Kingston Main Hall"
+          },
+          {
+            title: "Coffee Social",
+            startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10, 10, 0),
+            endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10, 11, 30),
+            description: "Weekly social gathering",
+            location: "Community Room"
           }
         ];
         
@@ -250,7 +301,7 @@ const Calendar: React.FC = () => {
           {dataSource === 'real' ? (
             <span className="real-data">✅ Live data from Seniors Kingston</span>
           ) : dataSource === 'sample' ? (
-            <span className="sample-data">⚠️ Using sample events (real data unavailable)</span>
+            <span className="sample-data">📅 Sample events (iCal feed not available - contact Seniors Kingston for real events)</span>
           ) : (
             <span className="no-data">❌ No events loaded</span>
           )}
