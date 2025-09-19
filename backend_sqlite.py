@@ -441,6 +441,94 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
 scheduler.start()
 
+@app.get("/api/events")
+def get_events():
+    """Get sample events from Seniors Kingston"""
+    print(f"🌐 Events API call received")
+    
+    # Sample events based on real Seniors Kingston events
+    today = datetime.now(KINGSTON_TZ)
+    sample_events = [
+        {
+            'title': "Celtic Kitchen Party - Halfway to St. Patrick's Day",
+            'startDate': (today + timedelta(days=1, hours=19, minutes=30)).isoformat(),
+            'endDate': (today + timedelta(days=1, hours=21, minutes=30)).isoformat(),
+            'description': "Your favourite hometown Celtic band are proud to mark their debut at The Spire presenting an evening of Celtic music with a smattering of their originals and with the right dash of Celtified pop and classic rock.",
+            'location': 'The Spire',
+            'dateStr': 'September 19, 7:30 pm',
+            'timeStr': '7:30 pm'
+        },
+        {
+            'title': "How the Internet Works",
+            'startDate': (today + timedelta(days=3, hours=12)).isoformat(),
+            'endDate': (today + timedelta(days=3, hours=13)).isoformat(),
+            'description': "We will be covering basic network development and how the internet functions with simplified technical explanations.",
+            'location': 'Seniors Kingston',
+            'dateStr': 'September 22, 12:00 pm',
+            'timeStr': '12:00 pm'
+        },
+        {
+            'title': "Legal Advice",
+            'startDate': (today + timedelta(days=3, hours=13)).isoformat(),
+            'endDate': (today + timedelta(days=3, hours=14)).isoformat(),
+            'description': "A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
+            'location': 'Seniors Kingston',
+            'dateStr': 'September 22, 1:00 pm',
+            'timeStr': '1:00 pm'
+        },
+        {
+            'title': "Service Canada Clinic",
+            'startDate': (today + timedelta(days=4, hours=9)).isoformat(),
+            'endDate': (today + timedelta(days=4, hours=12)).isoformat(),
+            'description': "Service Canada representatives come to The Seniors Centre to help you with Canadian Pension Plan (CPP), Old Age Security (OAS), Guaranteed Income Supplement (GIS), Social Insurance Number (sin), or Canadian Dental Care Plan.",
+            'location': 'The Seniors Centre',
+            'dateStr': 'September 23, 9:00 am',
+            'timeStr': '9:00 am'
+        },
+        {
+            'title': "Fresh Food Market",
+            'startDate': (today + timedelta(days=4, hours=10)).isoformat(),
+            'endDate': (today + timedelta(days=4, hours=12)).isoformat(),
+            'description': "Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
+            'location': 'The Seniors Centre',
+            'dateStr': 'September 23, 10:00 am',
+            'timeStr': '10:00 am'
+        },
+        {
+            'title': "Medical Myths",
+            'startDate': (today + timedelta(days=6, hours=13)).isoformat(),
+            'endDate': (today + timedelta(days=6, hours=14)).isoformat(),
+            'description': "Join a retired doctor turned author for an adventure through the wild world of medical myths, a place where bad advice lives forever and dubious wellness trends grow exponentially.",
+            'location': 'Seniors Kingston',
+            'dateStr': 'September 25, 1:00 pm',
+            'timeStr': '1:00 pm'
+        },
+        {
+            'title': "Whisky Tasting",
+            'startDate': (today + timedelta(days=6, hours=18)).isoformat(),
+            'endDate': (today + timedelta(days=6, hours=20)).isoformat(),
+            'description': "Join us for an exclusive whisky tasting event, featuring a curated selection of premium whiskies, expert-led tastings, and a delightful meal.",
+            'location': 'Seniors Kingston',
+            'dateStr': 'September 25, 6:00 pm',
+            'timeStr': '6:00 pm'
+        },
+        {
+            'title': "Thanksgiving Lunch",
+            'startDate': (today + timedelta(days=25, hours=12)).isoformat(),
+            'endDate': (today + timedelta(days=25, hours=14)).isoformat(),
+            'description': "Pumpkin Soup, Roast Turkey with all the trimmings, and dessert.",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 14, 12:00 pm',
+            'timeStr': '12:00 pm'
+        }
+    ]
+    
+    return {
+        "events": sample_events,
+        "last_loaded": today.isoformat(),
+        "count": len(sample_events)
+    }
+
 @app.get("/api/test")
 def test_connection():
     """Test endpoint to verify connection"""
