@@ -158,6 +158,7 @@
   border: 1px solid #e9ecef;
   position: relative;
   transition: background-color 0.2s;
+  cursor: pointer;
 }
 
 .calendar-day:hover {
@@ -194,14 +195,16 @@
   border-radius: 4px;
   font-size: 0.75rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .event-item:hover {
-  background: #0056a3;
+  background: #005a9e;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 114, 206, 0.3);
 }
 
 .event-time {

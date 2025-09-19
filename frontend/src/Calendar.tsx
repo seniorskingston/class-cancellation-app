@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './Calendar.css';
 import logo from './logo.png';
+import EventModal from './EventModal';
 
 interface Event {
+  id?: string;
   title: string;
   startDate: Date;
   endDate: Date;
@@ -15,6 +17,11 @@ const Calendar: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState<'real' | 'sample' | 'none'>('none');
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   // Get the first day of the current month
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -132,93 +139,46 @@ const Calendar: React.FC = () => {
   };
 
   // Fetch events from Seniors Kingston iCal feed
+  const getApiUrl = () => {
+    return process.env.NODE_ENV === 'production' 
+      ? 'https://class-cancellation-backend.onrender.com/api'
+      : 'http://localhost:8000/api';
+  };
+
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      // Try to fetch from our backend scraping endpoint first
-      const backendUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://class-cancellation-backend.onrender.com/api/events'
-        : 'http://localhost:8000/api/events';
+      const response = await fetch(`${getApiUrl()}/events`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
       
-      console.log('Fetching events from backend:', backendUrl);
-      
-      try {
-        const response = await fetch(backendUrl, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-        });
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Backend response:', data);
         
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Backend response:', data);
+        if (data.events && data.events.length > 0) {
+          // Convert backend events to frontend format
+          const convertedEvents: Event[] = data.events.map((event: any) => ({
+            id: event.id,
+            title: event.title,
+            startDate: new Date(event.startDate),
+            endDate: new Date(event.endDate),
+            description: event.description || '',
+            location: event.location || ''
+          }));
           
-          if (data.events && data.events.length > 0) {
-            // Convert backend events to frontend format
-            const convertedEvents: Event[] = data.events.map((event: any) => ({
-              title: event.title,
-              startDate: new Date(event.startDate),
-              endDate: new Date(event.endDate),
-              description: event.description || '',
-              location: event.location || ''
-            }));
-            
-            console.log('Converted events:', convertedEvents);
-            setEvents(convertedEvents);
-            setDataSource('real');
-            return;
-          }
+          console.log('Converted events:', convertedEvents);
+          setEvents(convertedEvents);
+          setDataSource('real');
+          return;
         }
-        
-        console.log('Backend fetch failed or no events, trying fallback...');
-      } catch (backendError) {
-        console.warn('Backend fetch failed:', backendError);
       }
       
-      // Fallback to sample events if backend fails
-      console.log('Using sample events as fallback');
-      const today = new Date();
-      const sampleEvents: Event[] = [
-        {
-          title: "Morning Exercise Class",
-          startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 9, 0),
-          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 10, 0),
-          description: "Gentle exercise for seniors",
-          location: "Kingston Community Centre"
-        },
-        {
-          title: "Book Club Meeting", 
-          startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 14, 0),
-          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 15, 30),
-          description: "Monthly book discussion",
-          location: "Seniors Kingston Library"
-        },
-        {
-          title: "Art Workshop",
-          startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 10, 30),
-          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 12, 0),
-          description: "Watercolor painting class",
-          location: "Arts Centre"
-        },
-        {
-          title: "Health Seminar",
-          startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 13, 0),
-          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 14, 30),
-          description: "Healthy aging presentation",
-          location: "Seniors Kingston Main Hall"
-        },
-        {
-          title: "Coffee Social",
-          startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10, 10, 0),
-          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10, 11, 30),
-          description: "Weekly social gathering",
-          location: "Community Room"
-        }
-      ];
-      
-      setEvents(sampleEvents);
-      setDataSource('sample');
+      console.log('Backend fetch failed or no events');
+      setDataSource('none');
       
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -228,9 +188,92 @@ const Calendar: React.FC = () => {
     }
   };
 
+  const saveEvent = async (event: Event) => {
+    try {
+      const eventData = {
+        title: event.title,
+        description: event.description || '',
+        location: event.location || '',
+        startDate: event.startDate.toISOString(),
+        endDate: event.endDate.toISOString()
+      };
+
+      let response;
+      if (event.id) {
+        // Update existing event
+        response = await fetch(`${getApiUrl()}/events/${event.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(eventData)
+        });
+      } else {
+        // Create new event
+        response = await fetch(`${getApiUrl()}/events`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(eventData)
+        });
+      }
+
+      if (response.ok) {
+        console.log('Event saved successfully');
+        fetchEvents(); // Refresh events list
+        setIsModalOpen(false);
+        setSelectedEvent(null);
+        setSelectedDate(undefined);
+      } else {
+        console.error('Failed to save event');
+      }
+    } catch (error) {
+      console.error('Error saving event:', error);
+    }
+  };
+
+  const deleteEvent = async (eventId: string) => {
+    try {
+      const response = await fetch(`${getApiUrl()}/events/${eventId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        console.log('Event deleted successfully');
+        fetchEvents(); // Refresh events list
+        setIsModalOpen(false);
+        setSelectedEvent(null);
+      } else {
+        console.error('Failed to delete event');
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
+  };
+
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  const handleDayClick = (day: number) => {
+    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    setSelectedDate(clickedDate);
+    setSelectedEvent(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEventClick = (event: Event) => {
+    setSelectedEvent(event);
+    setSelectedDate(undefined);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvent(null);
+    setSelectedDate(undefined);
+  };
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -306,11 +349,20 @@ const Calendar: React.FC = () => {
               <div
                 key={index}
                 className={`calendar-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`}
+                onClick={() => handleDayClick(day.getDate())}
               >
                 <div className="day-number">{day.getDate()}</div>
                 <div className="day-events">
                   {dayEvents.map((event, eventIndex) => (
-                    <div key={eventIndex} className="event-item" title={`${event.title}${event.location ? ` - ${event.location}` : ''}${event.description ? `\n${event.description}` : ''}`}>
+                    <div 
+                      key={eventIndex} 
+                      className="event-item" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEventClick(event);
+                      }}
+                      title={`${event.title}${event.location ? ` - ${event.location}` : ''}${event.description ? `\n${event.description}` : ''}`}
+                    >
                       <div className="event-time">
                         {event.startDate.toLocaleTimeString('en-US', { 
                           hour: 'numeric', 
@@ -330,6 +382,15 @@ const Calendar: React.FC = () => {
           })}
         </div>
       </div>
+
+      <EventModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSave={saveEvent}
+        onDelete={selectedEvent?.id ? deleteEvent : undefined}
+        event={selectedEvent}
+        selectedDate={selectedDate}
+      />
     </div>
   );
 };

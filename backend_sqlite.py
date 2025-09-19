@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import uuid
 from fastapi import FastAPI, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -441,9 +442,12 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
 scheduler.start()
 
+# In-memory storage for editable events (in production, this would be a database)
+editable_events = {}
+
 @app.get("/api/events")
 def get_events():
-    """Get sample events from Seniors Kingston"""
+    """Get all events (sample + editable events) from Seniors Kingston"""
     print(f"🌐 Events API call received")
     
     # Sample events based on real Seniors Kingston events with correct dates and times
@@ -613,13 +617,91 @@ def get_events():
             'dateStr': 'October 14, 12:00 pm',
             'timeStr': '12:00 pm'
         }
-    ]
+                ]
+                
+                # Combine sample events with editable events
+                all_events = sample_events + list(editable_events.values())
+                
+                return {
+                    "events": all_events,
+                    "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
+                    "count": len(all_events)
+                }
+
+@app.post("/api/events")
+def create_event(event_data: dict):
+    """Create a new event"""
+    print(f"🌐 Create event API call received: {event_data}")
     
-    return {
-        "events": sample_events,
-        "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
-        "count": len(sample_events)
-    }
+    try:
+        # Generate unique ID
+        event_id = str(uuid.uuid4())
+        
+        # Create event object
+        event = {
+            'id': event_id,
+            'title': event_data.get('title', ''),
+            'startDate': event_data.get('startDate'),
+            'endDate': event_data.get('endDate'),
+            'description': event_data.get('description', ''),
+            'location': event_data.get('location', ''),
+            'dateStr': '',  # Will be formatted by frontend
+            'timeStr': ''   # Will be formatted by frontend
+        }
+        
+        # Store in editable events
+        editable_events[event_id] = event
+        
+        print(f"✅ Event created with ID: {event_id}")
+        return {"success": True, "event": event, "message": "Event created successfully"}
+        
+    except Exception as e:
+        print(f"❌ Error creating event: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.put("/api/events/{event_id}")
+def update_event(event_id: str, event_data: dict):
+    """Update an existing event"""
+    print(f"🌐 Update event API call received for ID {event_id}: {event_data}")
+    
+    try:
+        if event_id not in editable_events:
+            return {"success": False, "error": "Event not found"}
+        
+        # Update event
+        editable_events[event_id].update({
+            'title': event_data.get('title', editable_events[event_id]['title']),
+            'startDate': event_data.get('startDate', editable_events[event_id]['startDate']),
+            'endDate': event_data.get('endDate', editable_events[event_id]['endDate']),
+            'description': event_data.get('description', editable_events[event_id]['description']),
+            'location': event_data.get('location', editable_events[event_id]['location'])
+        })
+        
+        print(f"✅ Event updated with ID: {event_id}")
+        return {"success": True, "event": editable_events[event_id], "message": "Event updated successfully"}
+        
+    except Exception as e:
+        print(f"❌ Error updating event: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.delete("/api/events/{event_id}")
+def delete_event(event_id: str):
+    """Delete an event"""
+    print(f"🌐 Delete event API call received for ID {event_id}")
+    
+    try:
+        if event_id not in editable_events:
+            return {"success": False, "error": "Event not found"}
+        
+        # Remove event
+        deleted_event = editable_events.pop(event_id)
+        
+        print(f"✅ Event deleted with ID: {event_id}")
+        return {"success": True, "message": "Event deleted successfully"}
+        
+    except Exception as e:
+        print(f"❌ Error deleting event: {e}")
+        return {"success": False, "error": str(e)}
 
 @app.get("/api/test")
 def test_connection():
