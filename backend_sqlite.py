@@ -450,8 +450,8 @@ def get_events():
     sample_events = [
         {
             'title': "Celtic Kitchen Party - Halfway to St. Patrick's Day",
-            'startDate': datetime(2024, 9, 19, 19, 30, tzinfo=KINGSTON_TZ).isoformat(),
-            'endDate': datetime(2024, 9, 19, 21, 30, tzinfo=KINGSTON_TZ).isoformat(),
+            'startDate': datetime(2025, 9, 19, 19, 30, tzinfo=KINGSTON_TZ).isoformat(),
+            'endDate': datetime(2025, 9, 19, 21, 30, tzinfo=KINGSTON_TZ).isoformat(),
             'description': "Your favourite hometown Celtic band are proud to mark their debut at The Spire presenting an evening of Celtic music with a smattering of their originals and with the right dash of Celtified pop and classic rock.",
             'location': 'The Spire',
             'dateStr': 'September 19, 7:30 pm',
@@ -459,8 +459,8 @@ def get_events():
         },
         {
             'title': "How the Internet Works",
-            'startDate': datetime(2024, 9, 22, 12, 0, tzinfo=KINGSTON_TZ).isoformat(),
-            'endDate': datetime(2024, 9, 22, 13, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'startDate': datetime(2025, 9, 22, 12, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'endDate': datetime(2025, 9, 22, 13, 0, tzinfo=KINGSTON_TZ).isoformat(),
             'description': "We will be covering basic network development and how the internet functions with simplified technical explanations.",
             'location': 'Seniors Kingston',
             'dateStr': 'September 22, 12:00 pm',
@@ -468,8 +468,8 @@ def get_events():
         },
         {
             'title': "Legal Advice",
-            'startDate': datetime(2024, 9, 22, 13, 0, tzinfo=KINGSTON_TZ).isoformat(),
-            'endDate': datetime(2024, 9, 22, 14, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'startDate': datetime(2025, 9, 22, 13, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'endDate': datetime(2025, 9, 22, 14, 0, tzinfo=KINGSTON_TZ).isoformat(),
             'description': "A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
             'location': 'Seniors Kingston',
             'dateStr': 'September 22, 1:00 pm',
@@ -477,8 +477,8 @@ def get_events():
         },
         {
             'title': "Service Canada Clinic",
-            'startDate': datetime(2024, 9, 23, 9, 0, tzinfo=KINGSTON_TZ).isoformat(),
-            'endDate': datetime(2024, 9, 23, 12, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'startDate': datetime(2025, 9, 23, 9, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'endDate': datetime(2025, 9, 23, 12, 0, tzinfo=KINGSTON_TZ).isoformat(),
             'description': "Service Canada representatives come to The Seniors Centre to help you with Canadian Pension Plan (CPP), Old Age Security (OAS), Guaranteed Income Supplement (GIS), Social Insurance Number (sin), or Canadian Dental Care Plan.",
             'location': 'The Seniors Centre',
             'dateStr': 'September 23, 9:00 am',
@@ -486,8 +486,8 @@ def get_events():
         },
         {
             'title': "Fresh Food Market",
-            'startDate': datetime(2024, 9, 23, 10, 0, tzinfo=KINGSTON_TZ).isoformat(),
-            'endDate': datetime(2024, 9, 23, 12, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'startDate': datetime(2025, 9, 23, 10, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'endDate': datetime(2025, 9, 23, 12, 0, tzinfo=KINGSTON_TZ).isoformat(),
             'description': "Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
             'location': 'The Seniors Centre',
             'dateStr': 'September 23, 10:00 am',
@@ -495,8 +495,8 @@ def get_events():
         },
         {
             'title': "Medical Myths",
-            'startDate': datetime(2024, 9, 25, 13, 0, tzinfo=KINGSTON_TZ).isoformat(),
-            'endDate': datetime(2024, 9, 25, 14, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'startDate': datetime(2025, 9, 25, 13, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'endDate': datetime(2025, 9, 25, 14, 0, tzinfo=KINGSTON_TZ).isoformat(),
             'description': "Join a retired doctor turned author for an adventure through the wild world of medical myths, a place where bad advice lives forever and dubious wellness trends grow exponentially.",
             'location': 'Seniors Kingston',
             'dateStr': 'September 25, 1:00 pm',
@@ -504,8 +504,8 @@ def get_events():
         },
         {
             'title': "Whisky Tasting",
-            'startDate': datetime(2024, 9, 25, 18, 0, tzinfo=KINGSTON_TZ).isoformat(),
-            'endDate': datetime(2024, 9, 25, 20, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'startDate': datetime(2025, 9, 25, 18, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'endDate': datetime(2025, 9, 25, 20, 0, tzinfo=KINGSTON_TZ).isoformat(),
             'description': "Join us for an exclusive whisky tasting event, featuring a curated selection of premium whiskies, expert-led tastings, and a delightful meal.",
             'location': 'Seniors Kingston',
             'dateStr': 'September 25, 6:00 pm',
@@ -513,8 +513,8 @@ def get_events():
         },
         {
             'title': "Thanksgiving Lunch",
-            'startDate': datetime(2024, 10, 14, 12, 0, tzinfo=KINGSTON_TZ).isoformat(),
-            'endDate': datetime(2024, 10, 14, 14, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'startDate': datetime(2025, 10, 14, 12, 0, tzinfo=KINGSTON_TZ).isoformat(),
+            'endDate': datetime(2025, 10, 14, 14, 0, tzinfo=KINGSTON_TZ).isoformat(),
             'description': "Pumpkin Soup, Roast Turkey with all the trimmings, and dessert.",
             'location': 'Seniors Kingston',
             'dateStr': 'October 14, 12:00 pm',
