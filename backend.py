@@ -3,9 +3,12 @@ import pandas as pd
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
-from typing import Optional
+from typing import Optional, List, Dict
 from datetime import datetime, timedelta
 import re
+import requests
+from bs4 import BeautifulSoup
+import json
 
 # Use environment variable for port, default to 8000 (Render uses PORT env var)
 PORT = int(os.environ.get("PORT", 8000))
@@ -32,6 +35,8 @@ app.add_middleware(
 
 cancellations_data = []
 last_loaded = None
+events_data = []
+events_last_loaded = None
 
 def get_col(row, possible_names):
     for name in possible_names:
@@ -85,6 +90,189 @@ def group_programs(rows):
             grouped[key] = []
         grouped[key].append(row)
     return grouped
+
+def parse_event_date(date_str):
+    """Parse various date formats from the events page"""
+    if not date_str:
+        return None
+    
+    # Common date formats to try
+    date_formats = [
+        "%B %d, %Y",  # September 20, 2024
+        "%b %d, %Y",  # Sep 20, 2024
+        "%Y-%m-%d",   # 2024-09-20
+        "%m/%d/%Y",   # 09/20/2024
+        "%d/%m/%Y",   # 20/09/2024
+        "%B %d",      # September 20
+        "%b %d",      # Sep 20
+    ]
+    
+    for fmt in date_formats:
+        try:
+            parsed_date = datetime.strptime(date_str.strip(), fmt)
+            # If no year provided, assume current year
+            if parsed_date.year == 1900:
+                parsed_date = parsed_date.replace(year=datetime.now().year)
+            return parsed_date
+        except ValueError:
+            continue
+    
+    return None
+
+def scrape_seniors_kingston_events():
+    """Scrape events from Seniors Kingston events page"""
+    global events_data, events_last_loaded
+    
+    print("🔍 Scraping Seniors Kingston events...")
+    
+    try:
+        # Headers to mimic a real browser
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+        }
+        
+        # Try to fetch the events page
+        response = requests.get('https://www.seniorskingston.ca/events', headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        events = []
+        
+        # Look for common event container patterns
+        event_selectors = [
+            '.event-item',
+            '.event',
+            '.calendar-event',
+            '.event-card',
+            '[class*="event"]',
+            '.post',
+            '.entry',
+            'article'
+        ]
+        
+        event_elements = []
+        for selector in event_selectors:
+            elements = soup.select(selector)
+            if elements:
+                event_elements = elements
+                print(f"Found {len(elements)} events using selector: {selector}")
+                break
+        
+        if not event_elements:
+            # Fallback: look for any elements that might contain event info
+            event_elements = soup.find_all(['div', 'article', 'section'], class_=re.compile(r'event|post|entry|card', re.I))
+            print(f"Fallback: Found {len(event_elements)} potential event elements")
+        
+        for element in event_elements:
+            try:
+                # Extract event title
+                title_selectors = ['h1', 'h2', 'h3', 'h4', '.title', '.event-title', 'a']
+                title = ""
+                for selector in title_selectors:
+                    title_elem = element.select_one(selector)
+                    if title_elem:
+                        title = title_elem.get_text(strip=True)
+                        break
+                
+                if not title:
+                    continue
+                
+                # Extract date
+                date_selectors = ['.date', '.event-date', '.start-date', 'time', '[class*="date"]']
+                date_str = ""
+                for selector in date_selectors:
+                    date_elem = element.select_one(selector)
+                    if date_elem:
+                        date_str = date_elem.get_text(strip=True)
+                        break
+                
+                # Extract time
+                time_selectors = ['.time', '.event-time', '.start-time', '[class*="time"]']
+                time_str = ""
+                for selector in time_selectors:
+                    time_elem = element.select_one(selector)
+                    if time_elem:
+                        time_str = time_elem.get_text(strip=True)
+                        break
+                
+                # Extract location
+                location_selectors = ['.location', '.venue', '.place', '[class*="location"]', '[class*="venue"]']
+                location = ""
+                for selector in location_selectors:
+                    location_elem = element.select_one(selector)
+                    if location_elem:
+                        location = location_elem.get_text(strip=True)
+                        break
+                
+                # Extract description
+                desc_selectors = ['.description', '.content', '.excerpt', '.summary', 'p']
+                description = ""
+                for selector in desc_selectors:
+                    desc_elem = element.select_one(selector)
+                    if desc_elem:
+                        description = desc_elem.get_text(strip=True)
+                        break
+                
+                # Parse date
+                start_date = parse_event_date(date_str)
+                if not start_date:
+                    # If no date found, skip this event
+                    continue
+                
+                # Parse time if available
+                start_time = start_date
+                if time_str:
+                    try:
+                        # Try to parse time and add to date
+                        time_match = re.search(r'(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)?', time_str)
+                        if time_match:
+                            hour = int(time_match.group(1))
+                            minute = int(time_match.group(2))
+                            period = time_match.group(3)
+                            
+                            if period and period.upper() == 'PM' and hour != 12:
+                                hour += 12
+                            elif period and period.upper() == 'AM' and hour == 12:
+                                hour = 0
+                            
+                            start_time = start_date.replace(hour=hour, minute=minute)
+                    except:
+                        pass
+                
+                # Create end time (assume 1 hour duration if not specified)
+                end_time = start_time + timedelta(hours=1)
+                
+                event = {
+                    'title': title,
+                    'startDate': start_time.isoformat(),
+                    'endDate': end_time.isoformat(),
+                    'description': description,
+                    'location': location,
+                    'dateStr': date_str,
+                    'timeStr': time_str
+                }
+                
+                events.append(event)
+                print(f"Scraped event: {title} on {date_str}")
+                
+            except Exception as e:
+                print(f"Error parsing event element: {e}")
+                continue
+        
+        events_data = events
+        events_last_loaded = datetime.now()
+        print(f"✅ Successfully scraped {len(events)} events")
+        
+    except Exception as e:
+        print(f"❌ Error scraping events: {e}")
+        # Keep existing events data if scraping fails
+        if not events_data:
+            events_data = []
+            events_last_loaded = datetime.now()
 
 def load_cancellations():
     global cancellations_data, last_loaded
@@ -182,9 +370,11 @@ def load_cancellations():
     print(f"✅ Last loaded: {last_loaded}")
 
 load_cancellations()
+scrape_seniors_kingston_events()
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(load_cancellations, 'interval', minutes=5)
+scheduler.add_job(scrape_seniors_kingston_events, 'interval', minutes=30)  # Scrape events every 30 minutes
 scheduler.start()
 
 @app.get("/api/cancellations")
@@ -225,6 +415,28 @@ def manual_refresh():
     load_cancellations()
     return {"status": "refreshed", "last_loaded": last_loaded}
 
+@app.get("/api/events")
+def get_events():
+    """Get scraped events from Seniors Kingston"""
+    print(f"🌐 Events API call received")
+    print(f"📈 Events available: {len(events_data)}")
+    
+    return {
+        "events": events_data,
+        "last_loaded": events_last_loaded.isoformat() if events_last_loaded else None,
+        "count": len(events_data)
+    }
+
+@app.post("/api/refresh-events")
+def manual_refresh_events():
+    """Manually refresh events from Seniors Kingston"""
+    scrape_seniors_kingston_events()
+    return {
+        "status": "events refreshed", 
+        "last_loaded": events_last_loaded.isoformat() if events_last_loaded else None,
+        "count": len(events_data)
+    }
+
 @app.get("/api/test")
 def test_connection():
     """Test endpoint to verify CORS and connection"""
@@ -232,5 +444,6 @@ def test_connection():
         "message": "Backend is working!",
         "timestamp": datetime.now().isoformat(),
         "data_count": len(cancellations_data),
-        "cancellations_count": len([r for r in cancellations_data if r['class_cancellation']])
+        "cancellations_count": len([r for r in cancellations_data if r['class_cancellation']]),
+        "events_count": len(events_data)
     }

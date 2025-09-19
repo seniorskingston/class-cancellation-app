@@ -5,4 +5,7 @@ openpyxl
 python-multipart
 apscheduler
 reportlab
-pytz 
+pytz
+requests
+beautifulsoup4
+lxml 

@@ -134,139 +134,91 @@ const Calendar: React.FC = () => {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      // First try to fetch from Seniors Kingston iCal feed
-      const icalUrl = 'https://www.seniorskingston.ca/events/?ical=1';
-      console.log('Attempting to fetch from:', icalUrl);
+      // Try to fetch from our backend scraping endpoint first
+      const backendUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://class-cancellation-backend.onrender.com/api/events'
+        : 'http://localhost:8000/api/events';
+      
+      console.log('Fetching events from backend:', backendUrl);
       
       try {
-        // Try multiple approaches to fetch the iCal data
-        let response;
-        let fetchMethod = '';
+        const response = await fetch(backendUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
         
-        // Method 1: Direct fetch
-        try {
-          console.log('Trying direct fetch...');
-          response = await fetch(icalUrl, {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-              'Accept': 'text/calendar',
-            },
-          });
-          fetchMethod = 'direct';
-          console.log('Direct fetch response status:', response.status);
-        } catch (directError) {
-          console.log('Direct fetch failed:', directError);
-        }
-        
-        // Method 2: CORS proxy if direct fails
-        if (!response || !response.ok || response.status === 0) {
-          try {
-            console.log('Trying CORS proxy...');
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(icalUrl)}`;
-            response = await fetch(proxyUrl, {
-              method: 'GET',
-              headers: {
-                'Accept': 'text/calendar',
-              },
-            });
-            fetchMethod = 'proxy';
-            console.log('Proxy fetch response status:', response.status);
-          } catch (proxyError) {
-            console.log('Proxy fetch failed:', proxyError);
-          }
-        }
-        
-        // Method 3: Alternative CORS proxy
-        if (!response || !response.ok || response.status === 0) {
-          try {
-            console.log('Trying alternative CORS proxy...');
-            const altProxyUrl = `https://cors-anywhere.herokuapp.com/${icalUrl}`;
-            response = await fetch(altProxyUrl, {
-              method: 'GET',
-              headers: {
-                'Accept': 'text/calendar',
-                'X-Requested-With': 'XMLHttpRequest',
-              },
-            });
-            fetchMethod = 'alt-proxy';
-            console.log('Alt proxy fetch response status:', response.status);
-          } catch (altProxyError) {
-            console.log('Alt proxy fetch failed:', altProxyError);
-          }
-        }
-        
-        if (response) {
-          console.log('Response status:', response.status);
-          console.log('Response headers:', response.headers);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Backend response:', data);
           
-          if (response.ok) {
-          const icalData = await response.text();
-          console.log('iCal data received, length:', icalData.length);
-          console.log('First 500 chars:', icalData.substring(0, 500));
-          
-          if (icalData.includes('BEGIN:VCALENDAR')) {
-            const parsedEvents = parseICalData(icalData);
-            console.log('Parsed events count:', parsedEvents.length);
-            console.log('Parsed events:', parsedEvents);
-            setEvents(parsedEvents);
+          if (data.events && data.events.length > 0) {
+            // Convert backend events to frontend format
+            const convertedEvents: Event[] = data.events.map((event: any) => ({
+              title: event.title,
+              startDate: new Date(event.startDate),
+              endDate: new Date(event.endDate),
+              description: event.description || '',
+              location: event.location || ''
+            }));
+            
+            console.log('Converted events:', convertedEvents);
+            setEvents(convertedEvents);
             setDataSource('real');
-          } else {
-            throw new Error('Invalid iCal format - no BEGIN:VCALENDAR found');
+            return;
           }
-        } else {
-          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        } else {
-          throw new Error('No response received from any fetch method');
-        }
-      } catch (fetchError) {
-        console.warn('Failed to fetch from Seniors Kingston:', fetchError);
-        console.log('Using sample events as fallback');
         
-        // Fallback to sample events if the real feed fails
-        const today = new Date();
-        const sampleEvents: Event[] = [
-          {
-            title: "Morning Exercise Class",
-            startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 9, 0),
-            endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 10, 0),
-            description: "Gentle exercise for seniors",
-            location: "Kingston Community Centre"
-          },
-          {
-            title: "Book Club Meeting", 
-            startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 14, 0),
-            endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 15, 30),
-            description: "Monthly book discussion",
-            location: "Seniors Kingston Library"
-          },
-          {
-            title: "Art Workshop",
-            startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 10, 30),
-            endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 12, 0),
-            description: "Watercolor painting class",
-            location: "Arts Centre"
-          },
-          {
-            title: "Health Seminar",
-            startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 13, 0),
-            endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 14, 30),
-            description: "Healthy aging presentation",
-            location: "Seniors Kingston Main Hall"
-          },
-          {
-            title: "Coffee Social",
-            startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10, 10, 0),
-            endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10, 11, 30),
-            description: "Weekly social gathering",
-            location: "Community Room"
-          }
-        ];
-        
-        setEvents(sampleEvents);
-        setDataSource('sample');
+        console.log('Backend fetch failed or no events, trying fallback...');
+      } catch (backendError) {
+        console.warn('Backend fetch failed:', backendError);
       }
+      
+      // Fallback to sample events if backend fails
+      console.log('Using sample events as fallback');
+      const today = new Date();
+      const sampleEvents: Event[] = [
+        {
+          title: "Morning Exercise Class",
+          startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 9, 0),
+          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 10, 0),
+          description: "Gentle exercise for seniors",
+          location: "Kingston Community Centre"
+        },
+        {
+          title: "Book Club Meeting", 
+          startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 14, 0),
+          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 15, 30),
+          description: "Monthly book discussion",
+          location: "Seniors Kingston Library"
+        },
+        {
+          title: "Art Workshop",
+          startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 10, 30),
+          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 12, 0),
+          description: "Watercolor painting class",
+          location: "Arts Centre"
+        },
+        {
+          title: "Health Seminar",
+          startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 13, 0),
+          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 14, 30),
+          description: "Healthy aging presentation",
+          location: "Seniors Kingston Main Hall"
+        },
+        {
+          title: "Coffee Social",
+          startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10, 10, 0),
+          endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10, 11, 30),
+          description: "Weekly social gathering",
+          location: "Community Room"
+        }
+      ];
+      
+      setEvents(sampleEvents);
+      setDataSource('sample');
+      
     } catch (error) {
       console.error('Error fetching events:', error);
       setDataSource('none');
@@ -303,9 +255,9 @@ const Calendar: React.FC = () => {
         </h2>
         <div className="data-source-indicator">
           {dataSource === 'real' ? (
-            <span className="real-data">✅ Live data from Seniors Kingston</span>
+            <span className="real-data">✅ Live events from Seniors Kingston (scraped)</span>
           ) : dataSource === 'sample' ? (
-            <span className="sample-data">📅 Sample events (iCal feed not available - contact Seniors Kingston for real events)</span>
+            <span className="sample-data">📅 Sample events (scraping in progress or no events found)</span>
           ) : (
             <span className="no-data">❌ No events loaded</span>
           )}
