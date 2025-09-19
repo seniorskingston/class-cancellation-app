@@ -449,6 +449,44 @@ def get_events():
     # Sample events based on real Seniors Kingston events with correct dates and times
     # Using UTC times to avoid timezone conversion issues
     sample_events = [
+        # Canadian Holidays
+        {
+            'title': "Labour Day",
+            'startDate': datetime(2025, 9, 1, 0, 0).isoformat() + 'Z',
+            'endDate': datetime(2025, 9, 1, 23, 59).isoformat() + 'Z',
+            'description': "Canadian Labour Day - Public Holiday",
+            'location': 'Canada',
+            'dateStr': 'September 1, 2025',
+            'timeStr': 'All Day'
+        },
+        {
+            'title': "Thanksgiving Day",
+            'startDate': datetime(2025, 10, 13, 0, 0).isoformat() + 'Z',
+            'endDate': datetime(2025, 10, 13, 23, 59).isoformat() + 'Z',
+            'description': "Canadian Thanksgiving Day - Public Holiday",
+            'location': 'Canada',
+            'dateStr': 'October 13, 2025',
+            'timeStr': 'All Day'
+        },
+        {
+            'title': "Remembrance Day",
+            'startDate': datetime(2025, 11, 11, 0, 0).isoformat() + 'Z',
+            'endDate': datetime(2025, 11, 11, 23, 59).isoformat() + 'Z',
+            'description': "Remembrance Day - Public Holiday",
+            'location': 'Canada',
+            'dateStr': 'November 11, 2025',
+            'timeStr': 'All Day'
+        },
+        {
+            'title': "Christmas Day",
+            'startDate': datetime(2025, 12, 25, 0, 0).isoformat() + 'Z',
+            'endDate': datetime(2025, 12, 25, 23, 59).isoformat() + 'Z',
+            'description': "Christmas Day - Public Holiday",
+            'location': 'Canada',
+            'dateStr': 'December 25, 2025',
+            'timeStr': 'All Day'
+        },
+        # September 19 Events (all 4 events)
         {
             'title': "October Vista Available for Pickup",
             'startDate': datetime(2025, 9, 19, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT = 4:00 PM UTC
@@ -466,6 +504,24 @@ def get_events():
             'location': 'The Spire',
             'dateStr': 'September 19, 7:30 pm',
             'timeStr': '7:30 pm'
+        },
+        {
+            'title': "Board Meeting",
+            'startDate': datetime(2025, 9, 19, 20, 0).isoformat() + 'Z',  # 4:00 pm EDT = 8:00 PM UTC
+            'endDate': datetime(2025, 9, 19, 21, 0).isoformat() + 'Z',
+            'description': "The next scheduled Board meeting is September 19, 4:00pm, at The Seniors Centre. Members and the public are welcome to attend. Board minutes are posted on the website and at The Seniors Centre following their approval.",
+            'location': 'The Seniors Centre',
+            'dateStr': 'September 19, 4:00 pm',
+            'timeStr': '4:00 pm'
+        },
+        {
+            'title': "National Day of Truth and Reconciliation",
+            'startDate': datetime(2025, 9, 30, 0, 0).isoformat() + 'Z',
+            'endDate': datetime(2025, 9, 30, 23, 59).isoformat() + 'Z',
+            'description': "All Seniors Association locations are closed today in honour of National Day of Truth and Reconciliation. No programs or rentals are scheduled.",
+            'location': 'Seniors Kingston',
+            'dateStr': 'September 30, 2025',
+            'timeStr': 'All Day'
         },
         {
             'title': "How the Internet Works",

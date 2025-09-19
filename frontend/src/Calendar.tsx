@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Calendar.css';
+import logo from './logo.png';
 
 interface Event {
   title: string;
@@ -240,8 +241,24 @@ const Calendar: React.FC = () => {
 
   return (
     <div className="calendar-container">
-      <div className="calendar-header">
+      <header className="app-header">
+        <div className="header-left">
+          <img src={logo} alt="Company Logo" className="app-logo" />
+          <button 
+            onClick={() => window.history.back()} 
+            className="back-to-main-button"
+            title="Back to Main App"
+          >
+            ← Main App
+          </button>
+        </div>
         <h1>Upcoming Events</h1>
+        <div className="datetime-display">
+          {new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {new Date().toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
+        </div>
+      </header>
+      
+      <div className="calendar-header">
         <div className="calendar-controls">
           <button onClick={goToPreviousMonth} className="nav-button">‹</button>
           <button onClick={goToToday} className="today-button">Today</button>
