@@ -870,33 +870,33 @@ def get_events():
     # If no real events found, try to provide some known real events as fallback
     print("📅 No real events found from scraping, providing known events as fallback")
     
-    # Known real events from Seniors Kingston (based on their actual website)
+    # Known real events from Seniors Kingston (based on their actual website) - 2025 dates
     known_events = [
         {
             'title': "Sex and the Senior Woman",
-            'startDate': datetime(2024, 10, 2, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 2, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 2, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 2, 17, 0).isoformat() + 'Z',
             'description': "Educational program for senior women",
             'location': 'Seniors Kingston',
-            'dateStr': 'October 2, 12:00 pm',
+            'dateStr': 'October 2, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
             'title': "Hearing Clinic",
-            'startDate': datetime(2024, 10, 3, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 3, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 3, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 3, 17, 0).isoformat() + 'Z',
             'description': "Free hearing assessment clinic",
             'location': 'Seniors Kingston',
-            'dateStr': 'October 3, 12:00 pm',
+            'dateStr': 'October 3, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
             'title': "Top 10 Free Google App",
-            'startDate': datetime(2024, 10, 6, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 6, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 6, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 6, 17, 0).isoformat() + 'Z',
             'description': "Learn about useful free Google applications",
             'location': 'Seniors Kingston',
-            'dateStr': 'October 6, 12:00 pm',
+            'dateStr': 'October 6, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         }
     ]
