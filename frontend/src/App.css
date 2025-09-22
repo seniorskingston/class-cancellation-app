@@ -71,6 +71,7 @@
   display: flex;
   align-items: center;
   gap: 0;
+  margin-left: -5px;
 }
 
 .app-logo {
@@ -227,7 +228,7 @@
   width: clamp(200px, 25vw, 300px);
   margin: 0;
   padding: 0;
-  margin-left: -2px;
+  margin-left: -8px;
 }
 
 .events-schedule-image {
@@ -493,7 +494,7 @@ tr:last-child td {
 .mobile-header-left {
   display: flex;
   align-items: center;
-  gap: clamp(2px, 0.5vw, 5px);
+  gap: 0;
   margin-bottom: 10px;
 }
 
