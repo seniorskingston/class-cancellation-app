@@ -528,7 +528,7 @@ function App() {
               className="mobile-events-schedule-image-button"
               title="View Event Schedule"
             >
-              <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="mobile-events-schedule-image" />
+              <img src={logo} alt="Event Schedule" className="mobile-events-schedule-image" />
             </button>
           </div>
           <h1>Program Schedule Update</h1>
@@ -873,7 +873,7 @@ function App() {
             className="events-schedule-image-button"
             title="View Event Schedule"
           >
-            <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="events-schedule-image" />
+            <img src={logo} alt="Event Schedule" className="events-schedule-image" />
           </button>
         </div>
         <h1>Program Schedule Update</h1>

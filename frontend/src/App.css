@@ -231,8 +231,8 @@
 }
 
 .events-schedule-image {
-  height: 100%;
-  width: 100%;
+  height: clamp(30px, 8vw, 50px);
+  width: auto;
   object-fit: contain;
   border-radius: 8px;
 }
@@ -634,8 +634,8 @@ tr:last-child td {
 }
 
 .mobile-events-schedule-image {
-  height: 100%;
-  width: 100%;
+  height: clamp(30px, 8vw, 50px);
+  width: auto;
   object-fit: contain;
   border-radius: 6px;
 }
