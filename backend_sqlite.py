@@ -583,10 +583,10 @@ def scrape_seniors_kingston_events():
                 if events:
                     break
             
-            # If no events found with selectors, try text-based extraction
+            # If no events found with selectors, try comprehensive text-based extraction
             if not events:
-                print("🔍 No events found with selectors, trying text-based extraction...")
-                events = extract_events_from_text(soup)
+                print("🔍 No events found with selectors, trying comprehensive text extraction...")
+                events = extract_events_comprehensively(soup)
             
             if events:
                 print(f"✅ Successfully scraped {len(events)} events from website")
@@ -662,6 +662,95 @@ def start_auto_sync():
 
 # Start automatic syncing when the server starts
 start_auto_sync()
+
+def extract_events_comprehensively(soup):
+    """Extract events from text content comprehensively"""
+    events = []
+    try:
+        import re
+        from dateutil import parser
+        
+        # Get all text content
+        text_content = soup.get_text()
+        print(f"📄 Extracting from {len(text_content)} characters of text")
+        
+        # Split into lines and process each line
+        lines = text_content.split('\n')
+        current_date = None
+        
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if not line or len(line) < 5:
+                continue
+            
+            # Look for date patterns
+            date_patterns = [
+                r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,\s*\d{4})?',
+                r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}(?:,\s*\d{4})?',
+                r'\d{1,2}\s+(January|February|March|April|May|June|July|August|September|October|November|December)(?:\s+\d{4})?',
+                r'\d{1,2}/\d{1,2}(?:/\d{2,4})?',
+            ]
+            
+            # Check if line contains a date
+            for pattern in date_patterns:
+                date_match = re.search(pattern, line, re.IGNORECASE)
+                if date_match:
+                    try:
+                        date_str = date_match.group(0)
+                        current_date = parser.parse(date_str, fuzzy=True)
+                        print(f"📅 Found date: {date_str} -> {current_date}")
+                        break
+                    except:
+                        pass
+            
+            # Look for event-like content
+            if any(keyword in line.lower() for keyword in [
+                'event', 'meeting', 'class', 'workshop', 'clinic', 'party', 'lunch', 'dinner',
+                'seminar', 'presentation', 'tour', 'social', 'game', 'music', 'dance',
+                'health', 'legal', 'technology', 'book', 'puzzle', 'exchange', 'market',
+                'celtic', 'kitchen', 'whisky', 'tasting', 'board', 'vista', 'pickup',
+                'internet', 'smartphone', 'phone', 'medical', 'myths', 'fresh', 'food'
+            ]):
+                
+                # Clean up the event title
+                title = line
+                
+                # Remove common prefixes/suffixes
+                title = re.sub(r'^(Date:|Time:|Location:|Event:|Program:)', '', title, flags=re.IGNORECASE)
+                title = re.sub(r'\s+(am|pm|AM|PM)$', '', title)
+                
+                # Skip if too short or generic
+                if len(title) < 5 or title.lower() in ['events', 'calendar', 'programs', 'more info', 'read more']:
+                    continue
+                
+                # Try to extract time from the line
+                time_pattern = r'(\d{1,2}:\d{2}\s*(?:am|pm|AM|PM)?|\d{1,2}\s*(?:am|pm|AM|PM))'
+                time_match = re.search(time_pattern, line, re.IGNORECASE)
+                event_time = time_match.group(0) if time_match else 'TBA'
+                
+                # Create event data
+                event_data = {
+                    'title': title,
+                    'startDate': (current_date or datetime.now()).isoformat() + 'Z',
+                    'endDate': ((current_date or datetime.now()) + timedelta(hours=1)).isoformat() + 'Z',
+                    'description': '',
+                    'location': 'Seniors Kingston',
+                    'dateStr': current_date.strftime('%B %d, %Y') if current_date else 'TBA',
+                    'timeStr': event_time
+                }
+                
+                # Avoid duplicates
+                if not any(e['title'] == title for e in events):
+                    events.append(event_data)
+                    print(f"📅 Added event: {title} ({event_data['dateStr']} {event_time})")
+        
+        return events[:50]  # Limit to 50 events
+        
+    except Exception as e:
+        print(f"❌ Error in comprehensive extraction: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
 
 def extract_events_from_text(soup):
     """Extract events from text content when selectors fail"""
