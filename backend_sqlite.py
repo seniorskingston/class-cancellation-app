@@ -466,7 +466,7 @@ def scrape_seniors_kingston_events():
             
             events = []
             
-            # Try multiple selectors to find events
+            # Try multiple selectors to find events - more comprehensive
             selectors = [
                 'article',
                 '.event',
@@ -475,7 +475,22 @@ def scrape_seniors_kingston_events():
                 '[class*="event"]',
                 '.entry',
                 '.event-card',
-                '.event-listing'
+                '.event-listing',
+                '.events-list li',
+                '.events li',
+                '.event-list-item',
+                '.calendar-event',
+                '.program-event',
+                'div[class*="event"]',
+                'li[class*="event"]',
+                '.event-wrapper',
+                '.event-container',
+                '.event-block',
+                'h3',
+                'h4',
+                '.event-title',
+                '.post-title',
+                '.entry-title'
             ]
             
             for selector in selectors:
@@ -485,7 +500,7 @@ def scrape_seniors_kingston_events():
                 for element in elements:
                     try:
                         # Try to find title
-                        title_selectors = ['h1', 'h2', 'h3', 'h4', '.title', '.event-title', '.post-title']
+                        title_selectors = ['h1', 'h2', 'h3', 'h4', '.title', '.event-title', '.post-title', 'a', 'strong', 'b']
                         title = None
                         
                         for title_sel in title_selectors:
@@ -494,7 +509,22 @@ def scrape_seniors_kingston_events():
                                 title = title_elem.get_text().strip()
                                 break
                         
+                        # If no title found in child elements, use the element's text directly
                         if not title:
+                            full_text = element.get_text().strip()
+                            # Split by common separators and take the first meaningful part
+                            lines = full_text.split('\n')
+                            for line in lines:
+                                line = line.strip()
+                                if len(line) > 5 and not line.startswith(('Date:', 'Time:', 'Location:', 'Description:')):
+                                    title = line
+                                    break
+                        
+                        if not title or len(title) < 3:
+                            continue
+                            
+                        # Skip very generic titles
+                        if title.lower() in ['events', 'calendar', 'programs', 'more info', 'read more']:
                             continue
                             
                         # Try to find date/time
@@ -553,11 +583,16 @@ def scrape_seniors_kingston_events():
                 if events:
                     break
             
+            # If no events found with selectors, try text-based extraction
+            if not events:
+                print("🔍 No events found with selectors, trying text-based extraction...")
+                events = extract_events_from_text(soup)
+            
             if events:
                 print(f"✅ Successfully scraped {len(events)} events from website")
                 return events
             else:
-                print("📅 No events found with any selector")
+                print("📅 No events found with any method")
                 return None
                 
         else:
@@ -567,6 +602,45 @@ def scrape_seniors_kingston_events():
     except Exception as e:
         print(f"❌ Error scraping website: {e}")
         return None
+
+def extract_events_from_text(soup):
+    """Extract events from text content when selectors fail"""
+    events = []
+    try:
+        # Get all text content
+        text_content = soup.get_text()
+        
+        # Look for patterns that might indicate events
+        import re
+        
+        # Common event patterns
+        patterns = [
+            r'(?:Oct|October)\s+\d+[,\s]*(?:.*?)(?:Sex|Hearing|Google|App|Clinic|Senior|Woman)',
+            r'(?:Sex|Hearing|Google|App|Clinic|Senior|Woman).*?(?:Oct|October)\s+\d+',
+            r'[A-Z][a-z]+ [A-Z][a-z]+.*?(?:Oct|October)\s+\d+',
+            r'(?:Oct|October)\s+\d+.*?[A-Z][a-z]+ [A-Z][a-z]+'
+        ]
+        
+        for pattern in patterns:
+            matches = re.findall(pattern, text_content, re.IGNORECASE)
+            for match in matches:
+                if len(match.strip()) > 10:  # Only meaningful matches
+                    events.append({
+                        'title': match.strip(),
+                        'startDate': datetime.now().isoformat() + 'Z',
+                        'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
+                        'description': '',
+                        'location': 'Seniors Kingston',
+                        'dateStr': 'TBA',
+                        'timeStr': 'TBA'
+                    })
+                    print(f"📅 Found event via text pattern: {match.strip()}")
+        
+        return events[:20]  # Limit to 20 events
+        
+    except Exception as e:
+        print(f"❌ Error in text extraction: {e}")
+        return []
 
 def parse_event_date_time(date_str):
     """Parse date string and return start/end datetime"""
@@ -595,11 +669,12 @@ def get_events():
     """Get all events (real + editable events) from Seniors Kingston"""
     print(f"🌐 Events API call received")
     
-    # Try to get real events from website first
+    # Always try to get real events from website first
+    print("🔍 Attempting to scrape real events from website...")
     try:
         real_events = scrape_seniors_kingston_events()
-        if real_events:
-            print(f"✅ Using {len(real_events)} real events from website")
+        if real_events and len(real_events) > 0:
+            print(f"✅ Successfully scraped {len(real_events)} real events from website")
             # Combine real events with editable events
             all_events = real_events + list(editable_events.values())
             return {
@@ -608,11 +683,15 @@ def get_events():
                 "count": len(all_events),
                 "source": "real"
             }
+        else:
+            print("❌ No real events found from website scraping")
     except Exception as e:
         print(f"❌ Error fetching real events: {e}")
+        import traceback
+        traceback.print_exc()
     
     # Fallback to sample events
-    print("📅 Using sample events as fallback")
+    print("📅 Falling back to sample events")
     sample_events = [
         # Canadian Holidays
         {
@@ -863,6 +942,32 @@ def delete_event(event_id: str):
     except Exception as e:
         print(f"❌ Error deleting event: {e}")
         return {"success": False, "error": str(e)}
+
+@app.get("/api/test-scraping")
+def test_scraping():
+    """Test endpoint to debug website scraping"""
+    print("🧪 Testing website scraping...")
+    try:
+        events = scrape_seniors_kingston_events()
+        if events:
+            return {
+                "success": True,
+                "count": len(events),
+                "events": events[:5],  # Show first 5 events
+                "message": f"Successfully scraped {len(events)} events"
+            }
+        else:
+            return {
+                "success": False,
+                "message": "No events found",
+                "count": 0
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Scraping failed"
+        }
 
 @app.get("/api/test")
 def test_connection():
