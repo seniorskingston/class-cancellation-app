@@ -5,6 +5,13 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
+/* Header left container for icons */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* Calendar icon styling */
 .calendar-icon {
   height: 40px;
@@ -12,6 +19,9 @@
   margin-left: 15px;
   cursor: pointer;
   transition: all 0.3s ease;
+  border-radius: 6px;
+  background: white;
+  padding: 0.2rem;
 }
 
 .calendar-icon:hover {
