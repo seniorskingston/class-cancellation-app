@@ -445,13 +445,88 @@ scheduler.start()
 # In-memory storage for editable events (in production, this would be a database)
 editable_events = {}
 
+def scrape_seniors_kingston_events():
+    """Scrape real events from Seniors Kingston website"""
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        
+        url = "https://www.seniorskingston.ca/events"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            events = []
+            # Look for event elements (this will need to be adjusted based on their actual HTML structure)
+            event_elements = soup.find_all(['div', 'article'], class_=lambda x: x and ('event' in x.lower() or 'post' in x.lower()))
+            
+            for element in event_elements:
+                try:
+                    title_elem = element.find(['h1', 'h2', 'h3', 'h4'], string=True)
+                    date_elem = element.find(['time', 'span'], class_=lambda x: x and 'date' in x.lower())
+                    
+                    if title_elem:
+                        title = title_elem.get_text().strip()
+                        # Simple date parsing - you may need to adjust this
+                        if date_elem:
+                            date_text = date_elem.get_text().strip()
+                            # Parse date and create event
+                            # This is a simplified version - you'll need to implement proper date parsing
+                            events.append({
+                                'title': title,
+                                'startDate': datetime.now().isoformat() + 'Z',
+                                'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
+                                'description': '',
+                                'location': 'Seniors Kingston',
+                                'dateStr': date_text,
+                                'timeStr': 'TBA'
+                            })
+                except Exception as e:
+                    print(f"Error parsing event element: {e}")
+                    continue
+            
+            if events:
+                print(f"✅ Scraped {len(events)} events from website")
+                return events
+            else:
+                print("📅 No events found on website")
+                return None
+                
+        else:
+            print(f"❌ Failed to fetch website: {response.status_code}")
+            return None
+            
+    except Exception as e:
+        print(f"❌ Error scraping website: {e}")
+        return None
+
 @app.get("/api/events")
 def get_events():
-    """Get all events (sample + editable events) from Seniors Kingston"""
+    """Get all events (real + editable events) from Seniors Kingston"""
     print(f"🌐 Events API call received")
     
-    # Sample events based on real Seniors Kingston events with correct dates and times
-    # Using UTC times to avoid timezone conversion issues
+    # Try to get real events from website first
+    try:
+        real_events = scrape_seniors_kingston_events()
+        if real_events:
+            print(f"✅ Using {len(real_events)} real events from website")
+            # Combine real events with editable events
+            all_events = real_events + list(editable_events.values())
+            return {
+                "events": all_events,
+                "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
+                "count": len(all_events),
+                "source": "real"
+            }
+    except Exception as e:
+        print(f"❌ Error fetching real events: {e}")
+    
+    # Fallback to sample events
+    print("📅 Using sample events as fallback")
     sample_events = [
         # Canadian Holidays
         {

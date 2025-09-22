@@ -12,7 +12,7 @@ interface Event {
   location?: string;
 }
 
-const Calendar: React.FC = () => {
+const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
@@ -236,6 +236,17 @@ const Calendar: React.FC = () => {
     setSelectedDate(undefined);
   };
 
+  const isHoliday = (eventTitle: string): boolean => {
+    const holidays = [
+      'Labour Day',
+      'Thanksgiving Day', 
+      'Remembrance Day',
+      'Christmas Day',
+      'National Day of Truth and Reconciliation'
+    ];
+    return holidays.some(holiday => eventTitle.includes(holiday));
+  };
+
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -255,7 +266,7 @@ const Calendar: React.FC = () => {
             title="Visit Seniors Kingston Website"
           />
           <button 
-            onClick={() => window.history.back()} 
+            onClick={() => onBackToMain ? onBackToMain() : window.history.back()} 
             className="back-to-home-button"
             title="Back to Program Schedule Update"
           >
@@ -323,7 +334,7 @@ const Calendar: React.FC = () => {
                   {dayEvents.map((event, eventIndex) => (
                     <div 
                       key={eventIndex} 
-                      className="event-item" 
+                      className={`event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEventClick(event);

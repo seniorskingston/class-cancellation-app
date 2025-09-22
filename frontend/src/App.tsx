@@ -505,7 +505,7 @@ function App() {
   if (currentView === 'calendar') {
     return (
       <div className="App">
-        <Calendar />
+        <Calendar onBackToMain={() => setCurrentView('main')} />
       </div>
     );
   }

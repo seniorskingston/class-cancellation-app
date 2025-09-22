@@ -220,6 +220,18 @@
   box-shadow: 0 2px 4px rgba(0, 114, 206, 0.3);
 }
 
+/* Holiday events with orange background */
+.holiday-event {
+  background: #ff8c00 !important;
+  color: white !important;
+}
+
+.holiday-event:hover {
+  background: #e07b00 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(255, 140, 0, 0.3);
+}
+
 .event-time {
   font-weight: 600;
   font-size: 0.7rem;
