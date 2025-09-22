@@ -718,9 +718,41 @@ def get_events():
         import traceback
         traceback.print_exc()
     
-    # Fallback to sample events
-    print("📅 Falling back to sample events")
-    sample_events = [
+    # Fallback to sample events + October events
+    print("📅 Falling back to sample events + October events")
+    
+    # Add October events to sample events
+    october_events = [
+        {
+            'title': "Sex and the Senior Woman",
+            'startDate': datetime(2024, 10, 1, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2024, 10, 1, 17, 0).isoformat() + 'Z',
+            'description': "Educational program for senior women",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 1, 12:00 pm',
+            'timeStr': '12:00 pm'
+        },
+        {
+            'title': "Hearing Clinic",
+            'startDate': datetime(2024, 10, 3, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2024, 10, 3, 17, 0).isoformat() + 'Z',
+            'description': "Free hearing assessment clinic",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 3, 12:00 pm',
+            'timeStr': '12:00 pm'
+        },
+        {
+            'title': "Top 10 Free Google App",
+            'startDate': datetime(2024, 10, 6, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2024, 10, 6, 17, 0).isoformat() + 'Z',
+            'description': "Learn about useful free Google applications",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 6, 12:00 pm',
+            'timeStr': '12:00 pm'
+        }
+    ]
+    
+    sample_events = october_events + [
         # Canadian Holidays
         {
             'title': "Labour Day",

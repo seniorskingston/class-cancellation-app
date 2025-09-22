@@ -231,7 +231,7 @@
 }
 
 .events-schedule-image {
-  height: clamp(30px, 8vw, 50px);
+  height: clamp(35px, 9vw, 55px);
   width: auto;
   object-fit: contain;
   border-radius: 8px;
@@ -634,7 +634,7 @@ tr:last-child td {
 }
 
 .mobile-events-schedule-image {
-  height: clamp(30px, 8vw, 50px);
+  height: clamp(35px, 9vw, 55px);
   width: auto;
   object-fit: contain;
   border-radius: 6px;
