@@ -1138,6 +1138,132 @@ def get_events():
             'dateStr': 'October 27, 2025, 4:30 pm',
             'timeStr': '4:30 pm'
         },
+        {
+            'title': "Service Canada Clinic",
+            'startDate': datetime(2025, 10, 14, 13, 0).isoformat() + 'Z',  # 9:00 am EDT
+            'endDate': datetime(2025, 10, 14, 14, 0).isoformat() + 'Z',
+            'description': "Get help with Service Canada programs and benefits",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 14, 2025, 9:00 am',
+            'timeStr': '9:00 am'
+        },
+        {
+            'title': "Domino Theatre Dress Rehearsal: Witness for Prosecution",
+            'startDate': datetime(2025, 10, 15, 23, 30).isoformat() + 'Z',  # 7:30 pm EDT
+            'endDate': datetime(2025, 10, 16, 0, 30).isoformat() + 'Z',
+            'description': "Dress rehearsal for the Domino Theatre production",
+            'location': 'Domino Theatre',
+            'dateStr': 'October 15, 2025, 7:30 pm',
+            'timeStr': '7:30 pm'
+        },
+        {
+            'title': "How to be an Ally",
+            'startDate': datetime(2025, 10, 16, 17, 0).isoformat() + 'Z',  # 1:00 pm EDT
+            'endDate': datetime(2025, 10, 16, 18, 0).isoformat() + 'Z',
+            'description': "Educational workshop on being an effective ally",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 16, 2025, 1:00 pm',
+            'timeStr': '1:00 pm'
+        },
+        {
+            'title': "Whisky Tasting",
+            'startDate': datetime(2025, 10, 17, 20, 0).isoformat() + 'Z',  # 4:00 pm EDT
+            'endDate': datetime(2025, 10, 17, 21, 0).isoformat() + 'Z',
+            'description': "Sample and learn about different whiskies",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 17, 2025, 4:00 pm',
+            'timeStr': '4:00 pm'
+        },
+        {
+            'title': "Line Dancing Class",
+            'startDate': datetime(2025, 10, 18, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
+            'endDate': datetime(2025, 10, 18, 20, 0).isoformat() + 'Z',
+            'description': "Learn traditional and modern line dances",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 18, 2025, 3:00 pm',
+            'timeStr': '3:00 pm'
+        },
+        {
+            'title': "Legal Aid Clinic",
+            'startDate': datetime(2025, 10, 19, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 19, 17, 0).isoformat() + 'Z',
+            'description': "Free legal advice and assistance",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 19, 2025, 12:00 pm',
+            'timeStr': '12:00 pm'
+        },
+        {
+            'title': "Health & Wellness Seminar",
+            'startDate': datetime(2025, 10, 20, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
+            'endDate': datetime(2025, 10, 20, 20, 0).isoformat() + 'Z',
+            'description': "Learn about healthy aging and wellness",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 20, 2025, 3:00 pm',
+            'timeStr': '3:00 pm'
+        },
+        {
+            'title': "Music Appreciation Group",
+            'startDate': datetime(2025, 10, 22, 18, 30).isoformat() + 'Z',  # 2:30 pm EDT
+            'endDate': datetime(2025, 10, 22, 19, 30).isoformat() + 'Z',
+            'description': "Listen to and discuss various musical genres",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 22, 2025, 2:30 pm',
+            'timeStr': '2:30 pm'
+        },
+        {
+            'title': "Art & Craft Workshop",
+            'startDate': datetime(2025, 10, 23, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
+            'endDate': datetime(2025, 10, 23, 20, 30).isoformat() + 'Z',
+            'description': "Creative arts and crafts session",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 23, 2025, 3:00 pm',
+            'timeStr': '3:00 pm'
+        },
+        {
+            'title': "Social Lunch",
+            'startDate': datetime(2025, 10, 24, 18, 0).isoformat() + 'Z',  # 2:00 pm EDT
+            'endDate': datetime(2025, 10, 24, 19, 0).isoformat() + 'Z',
+            'description': "Community lunch and social gathering",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 24, 2025, 2:00 pm',
+            'timeStr': '2:00 pm'
+        },
+        {
+            'title': "Exercise Class",
+            'startDate': datetime(2025, 10, 25, 18, 0).isoformat() + 'Z',  # 2:00 pm EDT
+            'endDate': datetime(2025, 10, 25, 19, 0).isoformat() + 'Z',
+            'description': "Gentle exercise class for seniors",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 25, 2025, 2:00 pm',
+            'timeStr': '2:00 pm'
+        },
+        {
+            'title': "Book Club Meeting",
+            'startDate': datetime(2025, 10, 28, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
+            'endDate': datetime(2025, 10, 28, 20, 0).isoformat() + 'Z',
+            'description': "Monthly book discussion group",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 28, 2025, 3:00 pm',
+            'timeStr': '3:00 pm'
+        },
+        {
+            'title': "Movie Afternoon",
+            'startDate': datetime(2025, 10, 29, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
+            'endDate': datetime(2025, 10, 29, 21, 0).isoformat() + 'Z',
+            'description': "Classic movie screening with discussion",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 29, 2025, 3:00 pm',
+            'timeStr': '3:00 pm'
+        },
+        {
+            'title': "Halloween Party",
+            'startDate': datetime(2025, 10, 31, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
+            'endDate': datetime(2025, 10, 31, 21, 0).isoformat() + 'Z',
+            'description': "Halloween celebration with costumes and treats",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 31, 2025, 3:00 pm',
+            'timeStr': '3:00 pm'
+        },
         
         # November 2025 Events
         {
