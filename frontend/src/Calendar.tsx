@@ -65,45 +65,6 @@ const Calendar: React.FC = () => {
     setCurrentDate(new Date());
   };
 
-  // Parse iCal data
-  const parseICalData = (icalData: string): Event[] => {
-    const events: Event[] = [];
-    const lines = icalData.split('\n');
-    
-    let currentEvent: Partial<Event> = {};
-    let inEvent = false;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      if (line === 'BEGIN:VEVENT') {
-        inEvent = true;
-        currentEvent = {};
-      } else if (line === 'END:VEVENT' && inEvent) {
-        if (currentEvent.title && currentEvent.startDate && currentEvent.endDate) {
-          events.push(currentEvent as Event);
-        }
-        inEvent = false;
-        currentEvent = {};
-      } else if (inEvent) {
-        if (line.startsWith('SUMMARY:')) {
-          currentEvent.title = line.substring(8).replace(/\\,/g, ',').replace(/\\;/g, ';');
-        } else if (line.startsWith('DTSTART')) {
-          const dateStr = line.split(':')[1];
-          currentEvent.startDate = parseICalDate(dateStr);
-        } else if (line.startsWith('DTEND')) {
-          const dateStr = line.split(':')[1];
-          currentEvent.endDate = parseICalDate(dateStr);
-        } else if (line.startsWith('DESCRIPTION:')) {
-          currentEvent.description = line.substring(12).replace(/\\,/g, ',').replace(/\\;/g, ';');
-        } else if (line.startsWith('LOCATION:')) {
-          currentEvent.location = line.substring(9).replace(/\\,/g, ',').replace(/\\;/g, ';');
-        }
-      }
-    }
-    
-    return events;
-  };
 
   // Parse iCal date format (YYYYMMDDTHHMMSSZ or YYYYMMDDTHHMMSS or YYYYMMDD)
   const parseICalDate = (dateStr: string): Date => {
@@ -254,7 +215,7 @@ const Calendar: React.FC = () => {
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDayClick = (day: number) => {
     const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);

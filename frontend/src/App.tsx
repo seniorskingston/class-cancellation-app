@@ -3,7 +3,6 @@ import "./App.css";
 import logo from "./logo.png";
 import QRCode from 'qrcode';
 import Calendar from './Calendar';
-import calendarIcon from './assets/calendar-icon.svg';
 
 type Cancellation = {
   sheet: string;
