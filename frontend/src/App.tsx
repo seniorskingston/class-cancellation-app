@@ -524,7 +524,13 @@ function App() {
       <div className="App mobile-view">
         <header className="mobile-header">
           <div className="mobile-header-left">
-            <img src={logo} alt="Company Logo" className="mobile-logo" />
+            <img 
+              src={logo} 
+              alt="Company Logo" 
+              className="mobile-logo clickable-logo"
+              onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
+              title="Visit Seniors Kingston Website"
+            />
             <button 
               onClick={() => setCurrentView('calendar')} 
               className="mobile-events-schedule-image-button"
@@ -863,7 +869,13 @@ function App() {
       <div className="sticky-header">
       <header className="app-header">
         <div className="header-left">
-          <img src={logo} alt="Company Logo" className="app-logo" />
+          <img 
+            src={logo} 
+            alt="Company Logo" 
+            className="app-logo clickable-logo"
+            onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
+            title="Visit Seniors Kingston Website"
+          />
           <button 
             onClick={() => setCurrentView('calendar')} 
             className="events-schedule-image-button"

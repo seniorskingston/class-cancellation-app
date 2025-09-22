@@ -247,16 +247,23 @@ const Calendar: React.FC = () => {
     <div className="calendar-container">
       <header className="app-header">
         <div className="header-left">
-          <img src={logo} alt="Company Logo" className="app-logo" />
+          <img 
+            src={logo} 
+            alt="Company Logo" 
+            className="app-logo clickable-logo"
+            onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
+            title="Visit Seniors Kingston Website"
+          />
+          <img src={logo} alt="Event Schedule" className="calendar-icon" />
           <button 
             onClick={() => window.history.back()} 
-            className="back-to-main-button"
-            title="Back to Main App"
+            className="back-to-home-button"
+            title="Back to Home"
           >
-            ← Main App
+            🏠
           </button>
         </div>
-        <h1>Upcoming Events</h1>
+        <h1>Event Schedule Update</h1>
         <div className="datetime-display">
           {new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {new Date().toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
         </div>
