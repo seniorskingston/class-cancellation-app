@@ -603,6 +603,138 @@ def scrape_seniors_kingston_events():
         print(f"❌ Error scraping website: {e}")
         return None
 
+def scrape_alternative_methods():
+    """Try alternative methods to scrape events"""
+    events = []
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        
+        url = "https://www.seniorskingston.ca/events"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        print(f"🔍 Alternative scraping from: {url}")
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Method 1: Extract all text and look for October events
+            events.extend(extract_all_october_events(soup))
+            
+            # Method 2: Look for specific HTML structures
+            events.extend(extract_from_html_structures(soup))
+            
+            # Method 3: Look for calendar-like structures
+            events.extend(extract_from_calendar_structures(soup))
+            
+            # Remove duplicates
+            unique_events = []
+            seen_titles = set()
+            for event in events:
+                if event['title'] not in seen_titles:
+                    unique_events.append(event)
+                    seen_titles.add(event['title'])
+            
+            print(f"📅 Alternative methods found {len(unique_events)} unique events")
+            return unique_events[:50]  # Limit to 50 events
+            
+        else:
+            print(f"❌ Alternative scraping failed: HTTP {response.status_code}")
+            return []
+            
+    except Exception as e:
+        print(f"❌ Alternative scraping error: {e}")
+        return []
+
+def extract_all_october_events(soup):
+    """Extract all October events from text content"""
+    events = []
+    try:
+        text_content = soup.get_text()
+        lines = text_content.split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            # Look for lines with "oct" and meaningful content
+            if 'oct' in line.lower() and len(line) > 15:
+                # Skip navigation and generic text
+                if not any(skip in line.lower() for skip in ['menu', 'navigation', 'header', 'footer', 'copyright', 'privacy']):
+                    events.append({
+                        'title': line,
+                        'startDate': datetime.now().isoformat() + 'Z',
+                        'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
+                        'description': '',
+                        'location': 'Seniors Kingston',
+                        'dateStr': 'TBA',
+                        'timeStr': 'TBA'
+                    })
+                    print(f"📅 Found October event: {line}")
+        
+        return events
+        
+    except Exception as e:
+        print(f"❌ Error extracting October events: {e}")
+        return []
+
+def extract_from_html_structures(soup):
+    """Extract events from various HTML structures"""
+    events = []
+    try:
+        # Look for any element that might contain event information
+        all_elements = soup.find_all(['div', 'span', 'p', 'li', 'td'])
+        
+        for element in all_elements:
+            text = element.get_text().strip()
+            if 'oct' in text.lower() and len(text) > 10 and len(text) < 200:
+                # Check if it looks like an event
+                if any(keyword in text.lower() for keyword in ['event', 'program', 'class', 'meeting', 'clinic', 'workshop', 'seminar']):
+                    events.append({
+                        'title': text,
+                        'startDate': datetime.now().isoformat() + 'Z',
+                        'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
+                        'description': '',
+                        'location': 'Seniors Kingston',
+                        'dateStr': 'TBA',
+                        'timeStr': 'TBA'
+                    })
+                    print(f"📅 Found event from HTML: {text[:50]}...")
+        
+        return events
+        
+    except Exception as e:
+        print(f"❌ Error extracting from HTML: {e}")
+        return []
+
+def extract_from_calendar_structures(soup):
+    """Extract events from calendar-like structures"""
+    events = []
+    try:
+        # Look for table cells, calendar grids, etc.
+        calendar_elements = soup.find_all(['td', 'div'], class_=lambda x: x and any(word in x.lower() for word in ['calendar', 'date', 'day', 'event']))
+        
+        for element in calendar_elements:
+            text = element.get_text().strip()
+            if 'oct' in text.lower() and len(text) > 5:
+                events.append({
+                    'title': text,
+                    'startDate': datetime.now().isoformat() + 'Z',
+                    'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
+                    'description': '',
+                    'location': 'Seniors Kingston',
+                    'dateStr': 'TBA',
+                    'timeStr': 'TBA'
+                })
+                print(f"📅 Found calendar event: {text}")
+        
+        return events
+        
+    except Exception as e:
+        print(f"❌ Error extracting from calendar: {e}")
+        return []
+
 def extract_events_from_text(soup):
     """Extract events from text content when selectors fail"""
     events = []
@@ -717,6 +849,22 @@ def get_events():
         print(f"❌ Error fetching real events: {e}")
         import traceback
         traceback.print_exc()
+    
+    # Try alternative scraping methods
+    print("🔍 Trying alternative scraping methods...")
+    try:
+        alternative_events = scrape_alternative_methods()
+        if alternative_events and len(alternative_events) > 0:
+            print(f"✅ Found {len(alternative_events)} events with alternative methods")
+            all_events = alternative_events + list(editable_events.values())
+            return {
+                "events": all_events,
+                "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
+                "count": len(all_events),
+                "source": "alternative"
+            }
+    except Exception as e:
+        print(f"❌ Alternative scraping failed: {e}")
     
     # Fallback to sample events + October events
     print("📅 Falling back to sample events + October events")
@@ -1053,21 +1201,36 @@ def test_scraping():
     """Test endpoint to debug website scraping"""
     print("🧪 Testing website scraping...")
     try:
+        # Test main scraping
         events = scrape_seniors_kingston_events()
-        if events:
+        print(f"🔍 Main scraping found {len(events) if events else 0} events")
+        
+        # Test alternative scraping
+        alt_events = scrape_alternative_methods()
+        print(f"🔍 Alternative scraping found {len(alt_events) if alt_events else 0} events")
+        
+        if events or alt_events:
+            all_events = (events or []) + (alt_events or [])
             return {
                 "success": True,
-                "count": len(events),
-                "events": events[:5],  # Show first 5 events
-                "message": f"Successfully scraped {len(events)} events"
+                "main_events": len(events) if events else 0,
+                "alt_events": len(alt_events) if alt_events else 0,
+                "total_events": len(all_events),
+                "events": all_events[:20],  # Show first 20 events
+                "message": f"Found {len(all_events)} total events"
             }
         else:
             return {
                 "success": False,
-                "message": "No events found",
-                "count": 0
+                "main_events": 0,
+                "alt_events": 0,
+                "total_events": 0,
+                "events": [],
+                "message": "No events found with any method"
             }
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return {
             "success": False,
             "error": str(e),
