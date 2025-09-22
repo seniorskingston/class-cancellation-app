@@ -10,6 +10,7 @@ import pandas as pd
 import io
 import pytz
 import time
+from dateutil import parser
 
 # Use environment variable for port, default to 8000 (Render uses PORT env var)
 PORT = int(os.environ.get("PORT", 8000))
@@ -456,53 +457,138 @@ def scrape_seniors_kingston_events():
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         
-        response = requests.get(url, headers=headers, timeout=10)
+        print(f"🔍 Scraping events from: {url}")
+        response = requests.get(url, headers=headers, timeout=15)
+        
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, 'html.parser')
+            print("✅ Successfully fetched website content")
             
             events = []
-            # Look for event elements (this will need to be adjusted based on their actual HTML structure)
-            event_elements = soup.find_all(['div', 'article'], class_=lambda x: x and ('event' in x.lower() or 'post' in x.lower()))
             
-            for element in event_elements:
-                try:
-                    title_elem = element.find(['h1', 'h2', 'h3', 'h4'], string=True)
-                    date_elem = element.find(['time', 'span'], class_=lambda x: x and 'date' in x.lower())
-                    
-                    if title_elem:
-                        title = title_elem.get_text().strip()
-                        # Simple date parsing - you may need to adjust this
-                        if date_elem:
-                            date_text = date_elem.get_text().strip()
-                            # Parse date and create event
-                            # This is a simplified version - you'll need to implement proper date parsing
-                            events.append({
-                                'title': title,
-                                'startDate': datetime.now().isoformat() + 'Z',
-                                'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
-                                'description': '',
-                                'location': 'Seniors Kingston',
-                                'dateStr': date_text,
-                                'timeStr': 'TBA'
-                            })
-                except Exception as e:
-                    print(f"Error parsing event element: {e}")
-                    continue
+            # Try multiple selectors to find events
+            selectors = [
+                'article',
+                '.event',
+                '.post',
+                '.event-item',
+                '[class*="event"]',
+                '.entry',
+                '.event-card',
+                '.event-listing'
+            ]
+            
+            for selector in selectors:
+                elements = soup.select(selector)
+                print(f"🔍 Found {len(elements)} elements with selector: {selector}")
+                
+                for element in elements:
+                    try:
+                        # Try to find title
+                        title_selectors = ['h1', 'h2', 'h3', 'h4', '.title', '.event-title', '.post-title']
+                        title = None
+                        
+                        for title_sel in title_selectors:
+                            title_elem = element.select_one(title_sel)
+                            if title_elem and title_elem.get_text().strip():
+                                title = title_elem.get_text().strip()
+                                break
+                        
+                        if not title:
+                            continue
+                            
+                        # Try to find date/time
+                        date_selectors = ['time', '.date', '.event-date', '.post-date', '[class*="date"]']
+                        date_text = None
+                        
+                        for date_sel in date_selectors:
+                            date_elem = element.select_one(date_sel)
+                            if date_elem and date_elem.get_text().strip():
+                                date_text = date_elem.get_text().strip()
+                                break
+                        
+                        # Try to find location
+                        location_selectors = ['.location', '.venue', '.event-location', '[class*="location"]']
+                        location = 'Seniors Kingston'
+                        
+                        for loc_sel in location_selectors:
+                            loc_elem = element.select_one(loc_sel)
+                            if loc_elem and loc_elem.get_text().strip():
+                                location = loc_elem.get_text().strip()
+                                break
+                        
+                        # Try to find description
+                        desc_selectors = ['.description', '.excerpt', '.event-description', 'p']
+                        description = ''
+                        
+                        for desc_sel in desc_selectors:
+                            desc_elem = element.select_one(desc_sel)
+                            if desc_elem and desc_elem.get_text().strip():
+                                description = desc_elem.get_text().strip()[:200]  # Limit length
+                                break
+                        
+                        # Parse date and time
+                        start_date, end_date = parse_event_date_time(date_text or "TBA")
+                        
+                        event_data = {
+                            'title': title,
+                            'startDate': start_date,
+                            'endDate': end_date,
+                            'description': description,
+                            'location': location,
+                            'dateStr': date_text or 'TBA',
+                            'timeStr': 'TBA'
+                        }
+                        
+                        # Avoid duplicates
+                        if not any(e['title'] == title for e in events):
+                            events.append(event_data)
+                            print(f"📅 Added event: {title}")
+                        
+                    except Exception as e:
+                        print(f"❌ Error parsing event: {e}")
+                        continue
+                
+                # If we found events, break out of selector loop
+                if events:
+                    break
             
             if events:
-                print(f"✅ Scraped {len(events)} events from website")
+                print(f"✅ Successfully scraped {len(events)} events from website")
                 return events
             else:
-                print("📅 No events found on website")
+                print("📅 No events found with any selector")
                 return None
                 
         else:
-            print(f"❌ Failed to fetch website: {response.status_code}")
+            print(f"❌ Failed to fetch website: HTTP {response.status_code}")
             return None
             
     except Exception as e:
         print(f"❌ Error scraping website: {e}")
         return None
+
+def parse_event_date_time(date_str):
+    """Parse date string and return start/end datetime"""
+    try:
+        # Simple parsing - you may need to adjust based on their date format
+        if not date_str or date_str == 'TBA':
+            # Default to today
+            start = datetime.now()
+            end = start + timedelta(hours=1)
+        else:
+            # Try to parse common date formats
+            from dateutil import parser
+            parsed_date = parser.parse(date_str)
+            start = parsed_date
+            end = parsed_date + timedelta(hours=1)
+        
+        return start.isoformat() + 'Z', end.isoformat() + 'Z'
+    except:
+        # Fallback to today
+        start = datetime.now()
+        end = start + timedelta(hours=1)
+        return start.isoformat() + 'Z', end.isoformat() + 'Z'
 
 @app.get("/api/events")
 def get_events():
@@ -595,8 +681,8 @@ def get_events():
         },
         {
             'title': "National Day of Truth and Reconciliation",
-            'startDate': datetime(2025, 9, 30, 0, 0).isoformat() + 'Z',
-            'endDate': datetime(2025, 9, 30, 23, 59).isoformat() + 'Z',
+            'startDate': datetime(2025, 9, 30, 4, 0).isoformat() + 'Z',  # 12:00 AM EDT = 4:00 AM UTC
+            'endDate': datetime(2025, 9, 30, 23, 0).isoformat() + 'Z',  # 7:00 PM EDT = 11:00 PM UTC
             'description': "All Seniors Association locations are closed today in honour of National Day of Truth and Reconciliation. No programs or rentals are scheduled.",
             'location': 'Seniors Kingston',
             'dateStr': 'September 30, 2025',
