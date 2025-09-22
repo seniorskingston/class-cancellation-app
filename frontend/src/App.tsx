@@ -505,14 +505,6 @@ function App() {
   if (currentView === 'calendar') {
     return (
       <div className="App">
-        <div className="calendar-navigation">
-          <button 
-            onClick={() => setCurrentView('main')}
-            className="back-to-main-button"
-          >
-            ← Back to Program Schedule
-          </button>
-        </div>
         <Calendar />
       </div>
     );

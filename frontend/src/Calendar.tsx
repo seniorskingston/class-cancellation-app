@@ -254,16 +254,10 @@ const Calendar: React.FC = () => {
             onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
             title="Visit Seniors Kingston Website"
           />
-          <img 
-            src={logo} 
-            alt="Event Schedule" 
-            className="calendar-icon"
-            title="Event Schedule"
-          />
           <button 
             onClick={() => window.history.back()} 
             className="back-to-home-button"
-            title="Back to Home"
+            title="Back to Program Schedule Update"
           >
             🏠
           </button>

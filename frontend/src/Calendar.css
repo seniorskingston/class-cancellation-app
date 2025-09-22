@@ -12,22 +12,6 @@
   gap: 10px;
 }
 
-/* Calendar icon styling */
-.calendar-icon {
-  height: 40px;
-  width: auto;
-  margin-left: 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 6px;
-  background: white;
-  padding: 0.2rem;
-}
-
-.calendar-icon:hover {
-  transform: scale(1.05);
-  filter: brightness(1.1);
-}
 
 /* Back to home button styling */
 .back-to-home-button {
