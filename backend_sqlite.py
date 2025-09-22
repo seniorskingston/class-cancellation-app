@@ -618,15 +618,15 @@ def get_events():
             'timeStr': '12:00 pm'
         }
                 ]
-                
-                # Combine sample events with editable events
-                all_events = sample_events + list(editable_events.values())
-                
-                return {
-                    "events": all_events,
-                    "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
-                    "count": len(all_events)
-                }
+        
+        # Combine sample events with editable events
+        all_events = sample_events + list(editable_events.values())
+        
+        return {
+            "events": all_events,
+            "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
+            "count": len(all_events)
+        }
 
 @app.post("/api/events")
 def create_event(event_data: dict):

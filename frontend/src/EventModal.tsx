@@ -6,8 +6,8 @@ interface Event {
   title: string;
   startDate: Date;
   endDate: Date;
-  description: string;
-  location: string;
+  description?: string;
+  location?: string;
 }
 
 interface EventModalProps {
@@ -45,8 +45,8 @@ const EventModal: React.FC<EventModalProps> = ({
         // Editing existing event
         setFormData({
           title: event.title,
-          description: event.description,
-          location: event.location,
+          description: event.description || '',
+          location: event.location || '',
           startDate: event.startDate.toISOString().split('T')[0],
           startTime: event.startDate.toTimeString().slice(0, 5),
           endDate: event.endDate.toISOString().split('T')[0],
