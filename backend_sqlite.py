@@ -705,12 +705,12 @@ def get_events():
     # Fallback to sample events + October events
     print("📅 Falling back to sample events + October events")
     
-    # Add comprehensive October events to sample events
+    # Add comprehensive October events to sample events (2025 dates)
     october_events = [
         {
             'title': "Sex and the Senior Woman",
-            'startDate': datetime(2024, 10, 1, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 1, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 1, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 1, 17, 0).isoformat() + 'Z',
             'description': "Educational program for senior women",
             'location': 'Seniors Kingston',
             'dateStr': 'October 1, 12:00 pm',
@@ -718,8 +718,8 @@ def get_events():
         },
         {
             'title': "Hearing Clinic",
-            'startDate': datetime(2024, 10, 3, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 3, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 3, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 3, 17, 0).isoformat() + 'Z',
             'description': "Free hearing assessment clinic",
             'location': 'Seniors Kingston',
             'dateStr': 'October 3, 12:00 pm',
@@ -727,8 +727,8 @@ def get_events():
         },
         {
             'title': "Top 10 Free Google App",
-            'startDate': datetime(2024, 10, 6, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 6, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 6, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 6, 17, 0).isoformat() + 'Z',
             'description': "Learn about useful free Google applications",
             'location': 'Seniors Kingston',
             'dateStr': 'October 6, 12:00 pm',
@@ -736,8 +736,8 @@ def get_events():
         },
         {
             'title': "October Vista Available for Pickup",
-            'startDate': datetime(2024, 10, 8, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 8, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 8, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 8, 17, 0).isoformat() + 'Z',
             'description': "October Vista newsletter available for pickup",
             'location': 'Seniors Kingston',
             'dateStr': 'October 8, 12:00 pm',
@@ -745,8 +745,8 @@ def get_events():
         },
         {
             'title': "Sound Escapes: You've Got a Friend",
-            'startDate': datetime(2024, 10, 10, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 10, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 10, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 10, 17, 0).isoformat() + 'Z',
             'description': "Musical program featuring friendship-themed songs",
             'location': 'Seniors Kingston',
             'dateStr': 'October 10, 12:00 pm',
@@ -754,8 +754,8 @@ def get_events():
         },
         {
             'title': "Selecting a Smart Phone",
-            'startDate': datetime(2024, 10, 15, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 15, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 15, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 15, 17, 0).isoformat() + 'Z',
             'description': "Workshop on choosing the right smartphone",
             'location': 'Seniors Kingston',
             'dateStr': 'October 15, 12:00 pm',
@@ -763,8 +763,8 @@ def get_events():
         },
         {
             'title': "Book & Puzzle EXCHANGE",
-            'startDate': datetime(2024, 10, 20, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 20, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 20, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 20, 17, 0).isoformat() + 'Z',
             'description': "Exchange books and puzzles with other members",
             'location': 'Seniors Kingston',
             'dateStr': 'October 20, 12:00 pm',
@@ -772,8 +772,8 @@ def get_events():
         },
         {
             'title': "Fall Health Fair",
-            'startDate': datetime(2024, 10, 22, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 22, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 22, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 22, 17, 0).isoformat() + 'Z',
             'description': "Health information and screenings",
             'location': 'Seniors Kingston',
             'dateStr': 'October 22, 12:00 pm',
@@ -781,8 +781,8 @@ def get_events():
         },
         {
             'title': "Technology Workshop",
-            'startDate': datetime(2024, 10, 25, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 25, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 25, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 25, 17, 0).isoformat() + 'Z',
             'description': "Learn about new technology tools",
             'location': 'Seniors Kingston',
             'dateStr': 'October 25, 12:00 pm',
@@ -790,8 +790,8 @@ def get_events():
         },
         {
             'title': "Halloween Social",
-            'startDate': datetime(2024, 10, 31, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2024, 10, 31, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 31, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 31, 17, 0).isoformat() + 'Z',
             'description': "Halloween celebration with costumes and treats",
             'location': 'Seniors Kingston',
             'dateStr': 'October 31, 12:00 pm',
@@ -799,7 +799,47 @@ def get_events():
         }
     ]
     
-    sample_events = october_events + [
+    # Add November and December events for future months
+    november_december_events = [
+        {
+            'title': "Remembrance Day Service",
+            'startDate': datetime(2025, 11, 11, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 11, 11, 17, 0).isoformat() + 'Z',
+            'description': "Annual Remembrance Day service",
+            'location': 'Seniors Kingston',
+            'dateStr': 'November 11, 12:00 pm',
+            'timeStr': '12:00 pm'
+        },
+        {
+            'title': "Holiday Craft Fair",
+            'startDate': datetime(2025, 11, 20, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 11, 20, 17, 0).isoformat() + 'Z',
+            'description': "Handmade crafts and holiday items",
+            'location': 'Seniors Kingston',
+            'dateStr': 'November 20, 12:00 pm',
+            'timeStr': '12:00 pm'
+        },
+        {
+            'title': "Christmas Luncheon",
+            'startDate': datetime(2025, 12, 15, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 12, 15, 17, 0).isoformat() + 'Z',
+            'description': "Annual Christmas celebration luncheon",
+            'location': 'Seniors Kingston',
+            'dateStr': 'December 15, 12:00 pm',
+            'timeStr': '12:00 pm'
+        },
+        {
+            'title': "New Year's Eve Party",
+            'startDate': datetime(2025, 12, 31, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 12, 31, 17, 0).isoformat() + 'Z',
+            'description': "Ring in the New Year celebration",
+            'location': 'Seniors Kingston',
+            'dateStr': 'December 31, 12:00 pm',
+            'timeStr': '12:00 pm'
+        }
+    ]
+    
+    sample_events = october_events + november_december_events + [
         # Canadian Holidays
         {
             'title': "Labour Day",
