@@ -1630,7 +1630,91 @@ def get_october_events():
         "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
         "count": len(all_events),
         "source": "manual_october"
-    }
+        }
+
+@app.get("/sync")
+def sync_web_interface():
+    """Web interface for manual sync operations"""
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Seniors Kingston Calendar Sync</title>
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+            .button { background: #0072ce; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px; }
+            .button:hover { background: #0056a3; }
+            .status { margin: 20px 0; padding: 10px; border-radius: 5px; }
+            .success { background: #d4edda; color: #155724; }
+            .error { background: #f8d7da; color: #721c24; }
+        </style>
+    </head>
+    <body>
+        <h1>🔄 Seniors Kingston Calendar Sync</h1>
+        <p>Use these buttons to manually sync events from the Seniors Kingston website:</p>
+        
+        <button class="button" onclick="syncEvents('force')">🔄 Force Sync Now</button>
+        <button class="button" onclick="syncEvents('monthly')">📅 Monthly Sync</button>
+        <button class="button" onclick="checkStatus()">📊 Check Status</button>
+        
+        <div id="status"></div>
+        
+        <script>
+            async function syncEvents(type) {
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerHTML = '<div class="status">Syncing... Please wait.</div>';
+                
+                try {
+                    const response = await fetch(`/api/${type}-sync`, { method: 'POST' });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        statusDiv.innerHTML = `<div class="status success">
+                            ✅ <strong>Success!</strong><br>
+                            ${data.message}<br>
+                            Events: ${data.events_count || 'N/A'}<br>
+                            Time: ${new Date(data.timestamp).toLocaleString()}
+                        </div>`;
+                    } else {
+                        statusDiv.innerHTML = `<div class="status error">
+                            ❌ <strong>Error:</strong><br>
+                            ${data.message || data.error}
+                        </div>`;
+                    }
+                } catch (error) {
+                    statusDiv.innerHTML = `<div class="status error">
+                        ❌ <strong>Network Error:</strong><br>
+                        ${error.message}
+                    </div>`;
+                }
+            }
+            
+            async function checkStatus() {
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerHTML = '<div class="status">Checking status... Please wait.</div>';
+                
+                try {
+                    const response = await fetch('/api/sync-status');
+                    const data = await response.json();
+                    
+                    statusDiv.innerHTML = `<div class="status success">
+                        📊 <strong>Sync Status:</strong><br>
+                        Last Sync: ${data.last_sync_time || 'Never'}<br>
+                        Next Sync: ${data.next_sync_time || 'Unknown'}<br>
+                        Frequency: ${data.sync_frequency}<br>
+                        Status: ${data.status}
+                    </div>`;
+                } catch (error) {
+                    statusDiv.innerHTML = `<div class="status error">
+                        ❌ <strong>Error:</strong><br>
+                        ${error.message}
+                    </div>`;
+                }
+            }
+        </script>
+    </body>
+    </html>
+    """
 
 @app.get("/api/sync-status")
 def get_sync_status():

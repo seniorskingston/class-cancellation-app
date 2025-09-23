@@ -374,6 +374,12 @@ const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => 
               >
                 Week
               </button>
+              <button 
+                className={`view-button ${viewMode === 'day' ? 'active' : ''}`}
+                onClick={() => setViewMode('day')}
+              >
+                Day
+              </button>
             </>
           )}
           {isMobile && (
@@ -414,68 +420,116 @@ const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => 
         </div>
       )}
 
-      <div className={`calendar-grid ${viewMode}-view`}>
-        {/* Day headers */}
-        {viewMode !== 'day' && (
-          <div className="calendar-weekdays">
-            {dayNames.map(day => (
-              <div key={day} className="weekday-header">{day}</div>
-            ))}
-          </div>
-        )}
-
-        {/* Calendar days */}
-        <div className={`calendar-days ${viewMode}-days`}>
+      {/* Mobile List View */}
+      {isMobile && (viewMode === 'week' || viewMode === 'day') ? (
+        <div className="mobile-list-view">
           {calendarDays.map((day, index) => {
             const isCurrentMonth = day.getMonth() === currentDate.getMonth();
             const isToday = day.toDateString() === new Date().toDateString();
             const dayEvents = getEventsForDate(day);
 
             return (
-              <div
-                key={index}
-                className={`calendar-day ${viewMode}-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`}
-                onClick={() => {
-                  if (viewMode === 'day') {
-                    setSelectedDate(day);
-                    setSelectedEvent(null);
-                    setIsModalOpen(true);
-                  } else {
-                    handleDayClick(day.getDate());
-                  }
-                }}
-              >
-                <div className="day-number">{day.getDate()}</div>
-                <div className="day-events">
-                  {dayEvents.map((event, eventIndex) => (
-                    <div 
-                      key={eventIndex} 
-                      className={`event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEventClick(event);
-                      }}
-                      title={`${event.title}${event.location ? ` - ${event.location}` : ''}${event.description ? `\n${event.description}` : ''}`}
-                    >
-                      <div className="event-time">
-                        {event.startDate.toLocaleTimeString('en-US', { 
-                          hour: 'numeric', 
-                          minute: '2-digit',
-                          hour12: true 
-                        })}
+              <div key={index} className={`mobile-list-day ${isToday ? 'today' : ''}`}>
+                <div className="mobile-day-header">
+                  <div className="mobile-day-name">{dayNames[day.getDay()]}</div>
+                  <div className="mobile-day-date">
+                    {day.getDate()} {monthNames[day.getMonth()].substring(0, 3)}
+                  </div>
+                </div>
+                <div className="mobile-day-events">
+                  {dayEvents.length > 0 ? (
+                    dayEvents.map((event, eventIndex) => (
+                      <div 
+                        key={eventIndex} 
+                        className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
+                        onClick={() => handleEventClick(event)}
+                      >
+                        <div className="mobile-event-time">
+                          {event.startDate.toLocaleTimeString('en-US', { 
+                            hour: 'numeric', 
+                            minute: '2-digit',
+                            hour12: true 
+                          })}
+                        </div>
+                        <div className="mobile-event-title">{event.title}</div>
+                        {event.location && (
+                          <div className="mobile-event-location">📍 {event.location}</div>
+                        )}
                       </div>
-                      <div className="event-title">{event.title}</div>
-                      {event.location && (
-                        <div className="event-location">📍 {event.location}</div>
-                      )}
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="mobile-no-events">No events</div>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
+      ) : (
+        /* Desktop Grid View */
+        <div className={`calendar-grid ${viewMode}-view`}>
+          {/* Day headers */}
+          {viewMode !== 'day' && (
+            <div className="calendar-weekdays">
+              {dayNames.map(day => (
+                <div key={day} className="weekday-header">{day}</div>
+              ))}
+            </div>
+          )}
+
+          {/* Calendar days */}
+          <div className={`calendar-days ${viewMode}-days`}>
+            {calendarDays.map((day, index) => {
+              const isCurrentMonth = day.getMonth() === currentDate.getMonth();
+              const isToday = day.toDateString() === new Date().toDateString();
+              const dayEvents = getEventsForDate(day);
+
+              return (
+                <div
+                  key={index}
+                  className={`calendar-day ${viewMode}-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`}
+                  onClick={() => {
+                    if (viewMode === 'day') {
+                      setSelectedDate(day);
+                      setSelectedEvent(null);
+                      setIsModalOpen(true);
+                    } else {
+                      handleDayClick(day.getDate());
+                    }
+                  }}
+                >
+                  <div className="day-number">{day.getDate()}</div>
+                  <div className="day-events">
+                    {dayEvents.map((event, eventIndex) => (
+                      <div 
+                        key={eventIndex} 
+                        className={`event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEventClick(event);
+                        }}
+                        title={`${event.title}${event.location ? ` - ${event.location}` : ''}${event.description ? `\n${event.description}` : ''}`}
+                      >
+                        <div className="event-time">
+                          {event.startDate.toLocaleTimeString('en-US', { 
+                            hour: 'numeric', 
+                            minute: '2-digit',
+                            hour12: true 
+                          })}
+                        </div>
+                        <div className="event-title">{event.title}</div>
+                        {event.location && (
+                          <div className="event-location">📍 {event.location}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <EventModal
         isOpen={isModalOpen}

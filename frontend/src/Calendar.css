@@ -420,4 +420,101 @@
   .calendar-day.day-day {
     min-height: 300px;
   }
+  
+  /* Mobile List View Styles */
+  .mobile-list-view {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin: 20px 0;
+  }
+  
+  .mobile-list-day {
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .mobile-list-day:last-child {
+    border-bottom: none;
+  }
+  
+  .mobile-list-day.today {
+    background: #f0f8ff;
+  }
+  
+  .mobile-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .mobile-day-name {
+    font-weight: 600;
+    color: #495057;
+    font-size: 1.1rem;
+  }
+  
+  .mobile-day-date {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+  
+  .mobile-day-events {
+    padding: 15px 20px;
+  }
+  
+  .mobile-event-item {
+    background: #0072ce;
+    color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .mobile-event-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .mobile-event-item:hover {
+    background: #005a9e;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 114, 206, 0.3);
+  }
+  
+  .mobile-event-item.holiday-event {
+    background: #ff8c00 !important;
+  }
+  
+  .mobile-event-item.holiday-event:hover {
+    background: #e07b00 !important;
+  }
+  
+  .mobile-event-time {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+  
+  .mobile-event-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  
+  .mobile-event-location {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  
+  .mobile-no-events {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 20px;
+  }
 }
