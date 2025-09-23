@@ -447,7 +447,99 @@ scheduler.start()
 editable_events = {}
 
 def scrape_seniors_kingston_events():
-    """Scrape real events from Seniors Kingston website"""
+    """Scrape real events from Seniors Kingston website using headless browser for JavaScript content"""
+    try:
+        # Check if we're in a cloud environment (no GUI available)
+        import os
+        if os.getenv('RENDER') or os.getenv('HEROKU'):
+            print("🌐 Running in cloud environment - using requests fallback")
+            return scrape_with_requests_fallback()
+        
+        # Try to use Selenium for JavaScript-heavy sites
+        try:
+            from selenium import webdriver
+            from selenium.webdriver.chrome.options import Options
+            from selenium.webdriver.common.by import By
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+            from selenium.common.exceptions import TimeoutException, WebDriverException
+            from webdriver_manager.chrome import ChromeDriverManager
+            from selenium.webdriver.chrome.service import Service
+            import time
+            
+            print("🌐 Using Selenium to scrape JavaScript-loaded content...")
+            
+            # Set up Chrome options
+            chrome_options = Options()
+            chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument('--disable-dev-shm-usage')
+            chrome_options.add_argument('--disable-gpu')
+            chrome_options.add_argument('--window-size=1920,1080')
+            chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
+            
+            # Try to create driver with webdriver-manager
+            try:
+                service = Service(ChromeDriverManager().install())
+                driver = webdriver.Chrome(service=service, options=chrome_options)
+            except Exception as e:
+                print(f"❌ Chrome driver setup failed: {e}")
+                return scrape_with_requests_fallback()
+            
+            url = "https://www.seniorskingston.ca/events"
+            print(f"🔍 Loading page: {url}")
+            
+            driver.get(url)
+            
+            # Wait for the page to load completely
+            print("⏳ Waiting for page to load...")
+            time.sleep(10)  # Give it time to load all JavaScript
+            
+            # Wait for any content to appear
+            try:
+                WebDriverWait(driver, 15).until(
+                    lambda driver: driver.execute_script("return document.readyState") == "complete"
+                )
+                print("✅ Page loaded completely")
+            except TimeoutException:
+                print("⏰ Page load timeout, continuing anyway...")
+            
+            # Wait a bit more for dynamic content
+            time.sleep(5)
+            
+            # Get the page source after JavaScript execution
+            page_source = driver.page_source
+            driver.quit()
+            
+            # Parse with BeautifulSoup
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(page_source, 'html.parser')
+            
+            print("✅ Successfully loaded page with JavaScript")
+            
+            # Look for events in the loaded content
+            events = extract_events_from_loaded_content(soup)
+            
+            if events:
+                print(f"✅ Successfully scraped {len(events)} events from website")
+                return events
+            else:
+                print("📅 No events found in loaded content")
+                return None
+                
+        except ImportError:
+            print("❌ Selenium not available, using requests fallback")
+            return scrape_with_requests_fallback()
+        except Exception as e:
+            print(f"❌ Selenium error: {e}")
+            return scrape_with_requests_fallback()
+            
+    except Exception as e:
+        print(f"❌ Error in scraping: {e}")
+        return None
+
+def scrape_with_requests_fallback():
+    """Fallback scraping method using requests only"""
     try:
         import requests
         from bs4 import BeautifulSoup
@@ -457,150 +549,172 @@ def scrape_seniors_kingston_events():
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         
-        print(f"🔍 Scraping events from: {url}")
+        print(f"🔍 Fallback scraping from: {url}")
         response = requests.get(url, headers=headers, timeout=15)
         
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, 'html.parser')
-            print("✅ Successfully fetched website content")
+            print("✅ Successfully fetched website content (fallback)")
             
-            events = []
-            
-            # Try multiple selectors to find events - more comprehensive
-            selectors = [
-                'article',
-                '.event',
-                '.post',
-                '.event-item',
-                '[class*="event"]',
-                '.entry',
-                '.event-card',
-                '.event-listing',
-                '.events-list li',
-                '.events li',
-                '.event-list-item',
-                '.calendar-event',
-                '.program-event',
-                'div[class*="event"]',
-                'li[class*="event"]',
-                '.event-wrapper',
-                '.event-container',
-                '.event-block',
-                'h3',
-                'h4',
-                '.event-title',
-                '.post-title',
-                '.entry-title'
-            ]
-            
-            for selector in selectors:
-                elements = soup.select(selector)
-                print(f"🔍 Found {len(elements)} elements with selector: {selector}")
-                
-                for element in elements:
-                    try:
-                        # Try to find title
-                        title_selectors = ['h1', 'h2', 'h3', 'h4', '.title', '.event-title', '.post-title', 'a', 'strong', 'b']
-                        title = None
-                        
-                        for title_sel in title_selectors:
-                            title_elem = element.select_one(title_sel)
-                            if title_elem and title_elem.get_text().strip():
-                                title = title_elem.get_text().strip()
-                                break
-                        
-                        # If no title found in child elements, use the element's text directly
-                        if not title:
-                            full_text = element.get_text().strip()
-                            # Split by common separators and take the first meaningful part
-                            lines = full_text.split('\n')
-                            for line in lines:
-                                line = line.strip()
-                                if len(line) > 5 and not line.startswith(('Date:', 'Time:', 'Location:', 'Description:')):
-                                    title = line
-                                    break
-                        
-                        if not title or len(title) < 3:
-                            continue
-                            
-                        # Skip very generic titles
-                        if title.lower() in ['events', 'calendar', 'programs', 'more info', 'read more']:
-                            continue
-                            
-                        # Try to find date/time
-                        date_selectors = ['time', '.date', '.event-date', '.post-date', '[class*="date"]']
-                        date_text = None
-                        
-                        for date_sel in date_selectors:
-                            date_elem = element.select_one(date_sel)
-                            if date_elem and date_elem.get_text().strip():
-                                date_text = date_elem.get_text().strip()
-                                break
-                        
-                        # Try to find location
-                        location_selectors = ['.location', '.venue', '.event-location', '[class*="location"]']
-                        location = 'Seniors Kingston'
-                        
-                        for loc_sel in location_selectors:
-                            loc_elem = element.select_one(loc_sel)
-                            if loc_elem and loc_elem.get_text().strip():
-                                location = loc_elem.get_text().strip()
-                                break
-                        
-                        # Try to find description
-                        desc_selectors = ['.description', '.excerpt', '.event-description', 'p']
-                        description = ''
-                        
-                        for desc_sel in desc_selectors:
-                            desc_elem = element.select_one(desc_sel)
-                            if desc_elem and desc_elem.get_text().strip():
-                                description = desc_elem.get_text().strip()[:200]  # Limit length
-                                break
-                        
-                        # Parse date and time
-                        start_date, end_date = parse_event_date_time(date_text or "TBA")
-                        
-                        event_data = {
-                            'title': title,
-                            'startDate': start_date,
-                            'endDate': end_date,
-                            'description': description,
-                            'location': location,
-                            'dateStr': date_text or 'TBA',
-                            'timeStr': 'TBA'
-                        }
-                        
-                        # Avoid duplicates
-                        if not any(e['title'] == title for e in events):
-                            events.append(event_data)
-                            print(f"📅 Added event: {title}")
-                        
-                    except Exception as e:
-                        print(f"❌ Error parsing event: {e}")
-                        continue
-                
-                # If we found events, break out of selector loop
-                if events:
-                    break
-            
-            # If no events found with selectors, try comprehensive text-based extraction
-            if not events:
-                print("🔍 No events found with selectors, trying comprehensive text extraction...")
-                events = extract_events_comprehensively(soup)
+            # Since this is a JavaScript-heavy site, we'll likely get minimal content
+            # But let's try anyway
+            events = extract_events_from_loaded_content(soup)
             
             if events:
-                print(f"✅ Successfully scraped {len(events)} events from website")
+                print(f"✅ Found {len(events)} events with fallback method")
                 return events
             else:
-                print("📅 No events found with any method")
+                print("📅 No events found with fallback method")
                 return None
-                
         else:
             print(f"❌ Failed to fetch website: HTTP {response.status_code}")
             return None
             
     except Exception as e:
-        print(f"❌ Error scraping website: {e}")
+        print(f"❌ Error in fallback scraping: {e}")
+        return None
+
+def extract_events_from_loaded_content(soup):
+    """Extract events from loaded page content"""
+    events = []
+    
+    try:
+        # Look for common event patterns in the loaded content
+        selectors = [
+            # Common event selectors
+            'article', '.event', '.post', '.event-item', '[class*="event"]', '.entry', '.event-card', '.event-listing',
+            '.events-list li', '.events li', '.event-list-item', '.calendar-event', '.program-event',
+            'div[class*="event"]', 'li[class*="event"]', '.event-wrapper', '.event-container', '.event-block',
+            'h3', 'h4', '.event-title', '.post-title', '.entry-title',
+            # Nuxt.js specific selectors
+            '[data-nuxt]', '.nuxt-content', '.content', '.page-content',
+            # Generic content selectors
+            'div', 'li', 'article', 'section'
+        ]
+        
+        for selector in selectors:
+            elements = soup.select(selector)
+            print(f"🔍 Found {len(elements)} elements with selector: {selector}")
+            
+            for element in elements:
+                try:
+                    # Get all text content
+                    text_content = element.get_text().strip()
+                    
+                    # Skip if too short or empty
+                    if len(text_content) < 10:
+                        continue
+                    
+                    # Look for event-like patterns
+                    if is_likely_event_content(text_content):
+                        event_data = parse_event_from_text(text_content)
+                        if event_data and not any(e['title'] == event_data['title'] for e in events):
+                            events.append(event_data)
+                            print(f"📅 Added event: {event_data['title']}")
+                
+                except Exception as e:
+                    print(f"❌ Error parsing element: {e}")
+                    continue
+        
+        return events
+        
+    except Exception as e:
+        print(f"❌ Error extracting events: {e}")
+        return []
+
+def is_likely_event_content(text):
+    """Check if text content looks like an event"""
+    # Look for event indicators
+    event_indicators = [
+        'october', 'november', 'december', 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september',
+        'am', 'pm', 'morning', 'afternoon', 'evening', 'night',
+        'clinic', 'workshop', 'class', 'meeting', 'party', 'lunch', 'dinner', 'seminar', 'presentation', 'tour', 'social', 'game', 'music', 'dance',
+        'health', 'legal', 'technology', 'book', 'puzzle', 'exchange', 'market', 'celtic', 'kitchen', 'whisky', 'tasting', 'board', 'vista', 'pickup',
+        'internet', 'smartphone', 'phone', 'medical', 'myths', 'fresh', 'food', 'senior', 'woman', 'google', 'app', 'hearing', 'sex', 'top', 'free',
+        'kingston', 'taxi', 'tales', 'fire', 'safety', 'cafe', 'franglish', 'domino', 'theatre', 'witness', 'prosecution', 'ally', 'later', 'life', 'learning',
+        'library', 'resources', 'tuesday', 'tom', 'sound', 'bath', 'board', 'meeting', 'paint', 'gouache', 'achieve', 'best', 'health', 'kenny', 'dolly',
+        'wearable', 'tech', 'legal', 'advice', 'astronomy', 'carole', 'dance', 'party'
+    ]
+    
+    text_lower = text.lower()
+    return any(indicator in text_lower for indicator in event_indicators)
+
+def parse_event_from_text(text):
+    """Parse event data from text content"""
+    try:
+        import re
+        from dateutil import parser
+        
+        lines = text.split('\n')
+        title = None
+        date_str = None
+        time_str = None
+        
+        # Look for title (usually the first meaningful line)
+        for line in lines:
+            line = line.strip()
+            if len(line) > 5 and not line.startswith(('Date:', 'Time:', 'Location:', 'Description:')):
+                title = line
+                break
+        
+        if not title:
+            return None
+        
+        # Look for date patterns
+        date_patterns = [
+            r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,\s*\d{4})?',
+            r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}(?:,\s*\d{4})?',
+            r'\d{1,2}\s+(January|February|March|April|May|June|July|August|September|October|November|December)(?:\s+\d{4})?',
+            r'\d{1,2}/\d{1,2}(?:/\d{2,4})?'
+        ]
+        
+        for line in lines:
+            for pattern in date_patterns:
+                date_match = re.search(pattern, line, re.IGNORECASE)
+                if date_match:
+                    date_str = date_match.group(0)
+                    break
+            if date_str:
+                break
+        
+        # Look for time patterns
+        time_patterns = [
+            r'(\d{1,2}:\d{2}\s*(?:am|pm|AM|PM)?)',
+            r'(\d{1,2}\s*(?:am|pm|AM|PM))'
+        ]
+        
+        for line in lines:
+            for pattern in time_patterns:
+                time_match = re.search(pattern, line, re.IGNORECASE)
+                if time_match:
+                    time_str = time_match.group(1)
+                    break
+            if time_str:
+                break
+        
+        # Parse date
+        event_date = None
+        if date_str:
+            try:
+                event_date = parser.parse(date_str, fuzzy=True)
+            except:
+                pass
+        
+        if not event_date:
+            event_date = datetime.now()
+        
+        return {
+            'title': title,
+            'startDate': event_date.isoformat() + 'Z',
+            'endDate': (event_date + timedelta(hours=1)).isoformat() + 'Z',
+            'description': '',
+            'location': 'Seniors Kingston',
+            'dateStr': date_str or 'TBA',
+            'timeStr': time_str or 'TBA'
+        }
+        
+    except Exception as e:
+        print(f"❌ Error parsing event from text: {e}")
         return None
 
 # Automatic syncing with Seniors Kingston website
