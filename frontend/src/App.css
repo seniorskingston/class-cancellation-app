@@ -501,6 +501,8 @@ tr:last-child td {
   align-items: center;
   gap: 0;
   margin-bottom: 10px;
+  justify-content: center;
+  width: 100%;
 }
 
 .mobile-header-buttons {
@@ -633,14 +635,14 @@ tr:last-child td {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: clamp(30px, 7vw, 45px);
+  height: clamp(30px, 8vw, 50px);
   width: clamp(150px, 20vw, 200px);
   margin: 0;
   padding: 0;
 }
 
 .mobile-events-schedule-image {
-  height: clamp(35px, 9vw, 55px);
+  height: clamp(30px, 8vw, 50px);
   width: auto;
   object-fit: contain;
   border-radius: 6px;

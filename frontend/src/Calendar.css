@@ -15,7 +15,7 @@
 
 /* Back to home button styling */
 .back-to-home-button {
-  background: linear-gradient(135deg, #00b388, #008a6b);
+  background: white;
   color: white;
   border: none;
   padding: 8px 12px;
@@ -25,8 +25,8 @@
   font-size: 16px;
   margin-left: 15px;
   transition: all 0.3s ease;
-  height: 40px;
-  width: 40px;
+  height: clamp(30px, 8vw, 50px);
+  width: clamp(30px, 8vw, 50px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,14 +39,61 @@
 }
 
 .back-to-home-button:hover {
-  background: linear-gradient(135deg, #008a6b, #006b52);
+  background: #f8f9fa;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 179, 136, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .calendar-header {
   text-align: center;
   margin-bottom: 30px;
+}
+
+/* Mobile header styles to match main app */
+@media (max-width: 768px) {
+  .app-header {
+    background: linear-gradient(135deg, #00b388 0%, #0072ce 100%);
+    color: white;
+    padding: 15px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .app-header h1 {
+    margin: 0 0 10px 0;
+    font-size: clamp(1.2rem, 5vw, 2rem);
+    font-weight: 600;
+  }
+  
+  .datetime-display {
+    font-size: clamp(0.7rem, 3vw, 1rem);
+    opacity: 0.9;
+  }
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 10px;
+  }
+  
+  .app-logo {
+    height: clamp(30px, 8vw, 50px);
+    max-width: 100%;
+    border-radius: 6px;
+  }
+  
+  .back-to-home-button {
+    height: clamp(30px, 8vw, 50px);
+    width: clamp(30px, 8vw, 50px);
+    margin-left: 10px;
+  }
 }
 
 .calendar-header h1 {
@@ -59,8 +106,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
   margin-bottom: 15px;
+  flex-wrap: wrap;
 }
 
 .view-controls {

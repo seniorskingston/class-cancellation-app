@@ -360,26 +360,8 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           <button onClick={goToPreviousMonth} className="nav-button">‹</button>
           <button onClick={goToToday} className="today-button">Today</button>
           <button onClick={goToNextMonth} className="nav-button">›</button>
-        </div>
-        
-        {/* Desktop/Mobile Switch */}
-        <div className="desktop-mobile-switch">
-          <button 
-            className={`switch-button ${!isMobile ? 'active' : ''}`}
-            onClick={() => setIsMobile(false)}
-          >
-            🖥️ Desktop
-          </button>
-          <button 
-            className={`switch-button ${isMobile ? 'active' : ''}`}
-            onClick={() => setIsMobile(true)}
-          >
-            📱 Mobile
-          </button>
-        </div>
-        
-        {/* View Mode Controls */}
-        <div className="view-controls">
+          
+          {/* View Mode Controls - moved next to Today button */}
           {!isMobile && (
             <>
               <button 
@@ -418,6 +400,22 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
               </button>
             </>
           )}
+        </div>
+        
+        {/* Desktop/Mobile Switch */}
+        <div className="desktop-mobile-switch">
+          <button 
+            className={`switch-button ${!isMobile ? 'active' : ''}`}
+            onClick={() => setIsMobile(false)}
+          >
+            🖥️ Desktop
+          </button>
+          <button 
+            className={`switch-button ${isMobile ? 'active' : ''}`}
+            onClick={() => setIsMobile(true)}
+          >
+            📱 Mobile
+          </button>
         </div>
         
         <h2 className="month-year">
