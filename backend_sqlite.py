@@ -1035,10 +1035,10 @@ def get_events():
     # If no real events found, try to provide some known real events as fallback
     print("📅 No real events found from scraping, providing known events as fallback")
     
-    # Comprehensive list of Seniors Kingston events - 2025 dates
-    # Based on their typical programming and website content
+    # Only confirmed real events from Seniors Kingston website - 2025 dates
+    # Based on actual events you've confirmed exist
     known_events = [
-        # October 2025 Events
+        # Only the events you've specifically confirmed exist on their website
         {
             'title': "Sex and the Senior Woman",
             'startDate': datetime(2025, 10, 2, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
@@ -1067,13 +1067,13 @@ def get_events():
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Celtic Kitchen Party",
-            'startDate': datetime(2025, 10, 14, 23, 30).isoformat() + 'Z',  # 7:30 pm EDT
-            'endDate': datetime(2025, 10, 15, 0, 30).isoformat() + 'Z',
-            'description': "Traditional Celtic music and dance celebration",
+            'title': "Service Canada Clinic",
+            'startDate': datetime(2025, 10, 14, 13, 0).isoformat() + 'Z',  # 9:00 am EDT
+            'endDate': datetime(2025, 10, 14, 14, 0).isoformat() + 'Z',
+            'description': "Get help with Service Canada programs and benefits",
             'location': 'Seniors Kingston',
-            'dateStr': 'October 14, 2025, 7:30 pm',
-            'timeStr': '7:30 pm'
+            'dateStr': 'October 14, 2025, 9:00 am',
+            'timeStr': '9:00 am'
         },
         {
             'title': "Book & Puzzle Exchange",
@@ -1092,6 +1092,33 @@ def get_events():
             'location': 'Seniors Kingston',
             'dateStr': 'October 14, 2025, 4:00 pm',
             'timeStr': '4:00 pm'
+        },
+        {
+            'title': "Celtic Kitchen Party",
+            'startDate': datetime(2025, 10, 14, 23, 30).isoformat() + 'Z',  # 7:30 pm EDT
+            'endDate': datetime(2025, 10, 15, 0, 30).isoformat() + 'Z',
+            'description': "Traditional Celtic music and dance celebration",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 14, 2025, 7:30 pm',
+            'timeStr': '7:30 pm'
+        },
+        {
+            'title': "Domino Theatre Dress Rehearsal: Witness for Prosecution",
+            'startDate': datetime(2025, 10, 15, 23, 30).isoformat() + 'Z',  # 7:30 pm EDT
+            'endDate': datetime(2025, 10, 16, 0, 30).isoformat() + 'Z',
+            'description': "Dress rehearsal for the Domino Theatre production",
+            'location': 'Domino Theatre',
+            'dateStr': 'October 15, 2025, 7:30 pm',
+            'timeStr': '7:30 pm'
+        },
+        {
+            'title': "How to be an Ally",
+            'startDate': datetime(2025, 10, 16, 17, 0).isoformat() + 'Z',  # 1:00 pm EDT
+            'endDate': datetime(2025, 10, 16, 18, 0).isoformat() + 'Z',
+            'description': "Educational workshop on being an effective ally",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 16, 2025, 1:00 pm',
+            'timeStr': '1:00 pm'
         },
         {
             'title': "How the Internet Works",
@@ -1119,53 +1146,7 @@ def get_events():
             'location': 'Seniors Kingston',
             'dateStr': 'October 21, 2025, 4:30 pm',
             'timeStr': '4:30 pm'
-        },
-        {
-            'title': "Medical Myths Debunked",
-            'startDate': datetime(2025, 10, 27, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
-            'endDate': datetime(2025, 10, 27, 20, 0).isoformat() + 'Z',
-            'description': "Separate medical fact from fiction",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 27, 2025, 3:00 pm',
-            'timeStr': '3:00 pm'
-        },
-        {
-            'title': "Board Game Social",
-            'startDate': datetime(2025, 10, 27, 20, 30).isoformat() + 'Z',  # 4:30 pm EDT
-            'endDate': datetime(2025, 10, 27, 21, 30).isoformat() + 'Z',
-            'description': "Social gathering with board games and refreshments",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 27, 2025, 4:30 pm',
-            'timeStr': '4:30 pm'
-        },
-        {
-            'title': "Service Canada Clinic",
-            'startDate': datetime(2025, 10, 14, 13, 0).isoformat() + 'Z',  # 9:00 am EDT
-            'endDate': datetime(2025, 10, 14, 14, 0).isoformat() + 'Z',
-            'description': "Get help with Service Canada programs and benefits",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 14, 2025, 9:00 am',
-            'timeStr': '9:00 am'
-        },
-        {
-            'title': "Domino Theatre Dress Rehearsal: Witness for Prosecution",
-            'startDate': datetime(2025, 10, 15, 23, 30).isoformat() + 'Z',  # 7:30 pm EDT
-            'endDate': datetime(2025, 10, 16, 0, 30).isoformat() + 'Z',
-            'description': "Dress rehearsal for the Domino Theatre production",
-            'location': 'Domino Theatre',
-            'dateStr': 'October 15, 2025, 7:30 pm',
-            'timeStr': '7:30 pm'
-        },
-        {
-            'title': "How to be an Ally",
-            'startDate': datetime(2025, 10, 16, 17, 0).isoformat() + 'Z',  # 1:00 pm EDT
-            'endDate': datetime(2025, 10, 16, 18, 0).isoformat() + 'Z',
-            'description': "Educational workshop on being an effective ally",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 16, 2025, 1:00 pm',
-            'timeStr': '1:00 pm'
-        },
-        
+        }
     ]
     
     # Combine known events with editable events
