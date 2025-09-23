@@ -236,7 +236,8 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
     // Set initial view mode based on screen size and mobile view setting
     const handleResize = () => {
       const mobile = window.innerWidth <= 768;
-      const useMobileView = isMobileView || mobile;
+      // Always use the isMobileView prop if provided, otherwise use screen size
+      const useMobileView = isMobileView !== undefined ? isMobileView : mobile;
       setIsMobile(useMobileView);
       
       // Auto-set view mode for mobile
@@ -251,6 +252,20 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Respond to isMobileView prop changes
+  useEffect(() => {
+    if (isMobileView !== undefined) {
+      setIsMobile(isMobileView);
+      
+      // Auto-set view mode for mobile
+      if (isMobileView && viewMode === 'month') {
+        setViewMode('week');
+      } else if (!isMobileView && viewMode === 'week') {
+        setViewMode('month');
+      }
+    }
+  }, [isMobileView, viewMode]);
 
   const handleDayClick = (day: number) => {
     const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
@@ -438,8 +453,8 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         </div>
       )}
 
-      {/* Mobile List View */}
-      {isMobile && (viewMode === 'week' || viewMode === 'day') ? (
+      {/* Mobile List View - Show when mobile view is active */}
+      {isMobile ? (
         <div className="mobile-list-view">
           {calendarDays.map((day, index) => {
             const isCurrentMonth = day.getMonth() === currentDate.getMonth();

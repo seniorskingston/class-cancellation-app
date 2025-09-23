@@ -225,8 +225,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 50px;
-  width: 50px;
+  height: 60px;
+  width: 60px;
   margin: 0;
   margin-left: -12px; /* Even closer to logo */
   padding: 0;
@@ -238,8 +238,8 @@
 }
 
 .events-schedule-image {
-  height: 50px;
-  width: 50px;
+  height: 60px;
+  width: 60px;
   object-fit: contain;
   border-radius: 8px;
 }
@@ -643,8 +643,8 @@ tr:last-child td {
 }
 
 .mobile-events-schedule-image {
-  height: 50px;
-  width: 50px;
+  height: 60px;
+  width: 60px;
   object-fit: contain;
   border-radius: 6px;
 }

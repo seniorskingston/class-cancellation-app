@@ -25,16 +25,16 @@
   font-size: 16px;
   margin-left: 15px;
   transition: all 0.3s ease;
-  height: 50px;
-  width: 50px;
+  height: 60px;
+  width: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .home-icon {
-  height: 40px;
-  width: 40px;
+  height: 50px;
+  width: 50px;
   object-fit: contain;
 }
 
@@ -507,13 +507,14 @@
     min-height: 300px;
   }
   
-  /* Mobile List View Styles */
+  /* Mobile List View Styles - Apply to all mobile views */
   .mobile-list-view {
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     margin: 20px 0;
+    max-width: 100%;
   }
   
   .mobile-list-day {
@@ -602,5 +603,26 @@
     color: #6c757d;
     font-style: italic;
     padding: 20px;
+  }
+}
+
+/* Ensure mobile view on computer looks exactly like mobile view on phone */
+@media (max-width: 768px) {
+  .mobile-list-view {
+    margin: 15px;
+    border-radius: 8px;
+  }
+  
+  .mobile-day-header {
+    padding: 12px 15px;
+  }
+  
+  .mobile-day-events {
+    padding: 12px 15px;
+  }
+  
+  .mobile-event-item {
+    padding: 10px 12px;
+    margin-bottom: 8px;
   }
 }
