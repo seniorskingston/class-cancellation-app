@@ -25,16 +25,16 @@
   font-size: 16px;
   margin-left: 15px;
   transition: all 0.3s ease;
-  height: clamp(35px, 8.5vw, 55px);
-  width: clamp(35px, 8.5vw, 55px);
+  height: 50px;
+  width: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .home-icon {
-  height: 24px;
-  width: 24px;
+  height: 40px;
+  width: 40px;
   object-fit: contain;
 }
 
@@ -84,15 +84,15 @@
   }
   
   .app-logo {
-    height: clamp(35px, 8.5vw, 55px);
-    width: clamp(35px, 8.5vw, 55px);
+    height: 50px;
+    width: 50px;
     max-width: 100%;
     border-radius: 6px;
   }
   
   .back-to-home-button {
-    height: clamp(35px, 8.5vw, 55px);
-    width: clamp(35px, 8.5vw, 55px);
+    height: 50px;
+    width: 50px;
     margin-left: 10px;
   }
 }

@@ -75,8 +75,8 @@
 }
 
 .app-logo {
-  height: clamp(35px, 8.5vw, 55px);
-  width: clamp(35px, 8.5vw, 55px);
+  height: 50px;
+  width: 50px;
   max-width: 100%;
   border-radius: 6px;
   background: white;
@@ -225,8 +225,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: clamp(35px, 8.5vw, 55px);
-  width: clamp(35px, 8.5vw, 55px);
+  height: 50px;
+  width: 50px;
   margin: 0;
   margin-left: -12px; /* Even closer to logo */
   padding: 0;
@@ -238,8 +238,8 @@
 }
 
 .events-schedule-image {
-  height: clamp(35px, 8.5vw, 55px);
-  width: clamp(35px, 8.5vw, 55px);
+  height: 50px;
+  width: 50px;
   object-fit: contain;
   border-radius: 8px;
 }
@@ -636,15 +636,15 @@ tr:last-child td {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: clamp(35px, 8.5vw, 55px);
-  width: clamp(35px, 8.5vw, 55px);
+  height: 50px;
+  width: 50px;
   margin: 0;
   padding: 0;
 }
 
 .mobile-events-schedule-image {
-  height: clamp(35px, 8.5vw, 55px);
-  width: clamp(35px, 8.5vw, 55px);
+  height: 50px;
+  width: 50px;
   object-fit: contain;
   border-radius: 6px;
 }
@@ -1092,8 +1092,8 @@ tr:last-child td {
 
 /* Ensure logo sizing is consistent during loading */
 .app-logo, .mobile-logo {
-  height: clamp(35px, 8.5vw, 55px) !important;
-  width: clamp(35px, 8.5vw, 55px) !important;
+  height: 50px !important;
+  width: 50px !important;
   max-width: 100% !important;
   object-fit: contain !important;
   transition: all 0.3s ease;
