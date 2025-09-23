@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Calendar.css';
 import logo from './logo.png';
+import homeIcon from './assets/home-icon.png';
 import EventModal from './EventModal';
 
 interface Event {
@@ -345,7 +346,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             className="back-to-home-button"
             title="Back to Program Schedule Update"
           >
-            🏠
+            <img src={homeIcon} alt="Home" className="home-icon" />
           </button>
         </div>
         <h1>Event Schedule Update</h1>
