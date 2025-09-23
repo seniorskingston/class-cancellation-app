@@ -12,37 +12,60 @@ interface Event {
   location?: string;
 }
 
+type ViewMode = 'month' | 'week' | 'day';
+
 const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState<'real' | 'sample' | 'none'>('none');
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
-  // Get the first day of the current month
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-  
-  // Get the first day of the calendar grid (might be from previous month)
-  const firstDayOfCalendar = new Date(firstDayOfMonth);
-  firstDayOfCalendar.setDate(firstDayOfCalendar.getDate() - firstDayOfMonth.getDay());
-  
-  // Get the last day of the calendar grid (might be from next month)
-  const lastDayOfCalendar = new Date(lastDayOfMonth);
-  lastDayOfCalendar.setDate(lastDayOfCalendar.getDate() + (6 - lastDayOfMonth.getDay()));
+  // Generate calendar days based on view mode
+  const generateCalendarDays = (): Date[] => {
+    if (viewMode === 'day') {
+      return [new Date(currentDate)];
+    } else if (viewMode === 'week') {
+      const startOfWeek = new Date(currentDate);
+      startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const day = new Date(startOfWeek);
+        day.setDate(startOfWeek.getDate() + i);
+        days.push(day);
+      }
+      return days;
+    } else {
+      // Month view
+      const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      
+      // Get the first day of the calendar grid (might be from previous month)
+      const firstDayOfCalendar = new Date(firstDayOfMonth);
+      firstDayOfCalendar.setDate(firstDayOfCalendar.getDate() - firstDayOfMonth.getDay());
+      
+      // Get the last day of the calendar grid (might be from next month)
+      const lastDayOfCalendar = new Date(lastDayOfMonth);
+      lastDayOfCalendar.setDate(lastDayOfCalendar.getDate() + (6 - lastDayOfMonth.getDay()));
 
-  // Generate calendar days
-  const calendarDays = [];
-  const currentDay = new Date(firstDayOfCalendar);
-  
-  while (currentDay <= lastDayOfCalendar) {
-    calendarDays.push(new Date(currentDay));
-    currentDay.setDate(currentDay.getDate() + 1);
-  }
+      const calendarDays = [];
+      const currentDay = new Date(firstDayOfCalendar);
+      
+      while (currentDay <= lastDayOfCalendar) {
+        calendarDays.push(new Date(currentDay));
+        currentDay.setDate(currentDay.getDate() + 1);
+      }
+      return calendarDays;
+    }
+  };
+
+  const calendarDays = generateCalendarDays();
 
   // Get events for a specific date
   const getEventsForDate = (date: Date): Event[] => {
@@ -52,18 +75,6 @@ const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => 
     });
   };
 
-  // Navigate months
-  const goToPreviousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  };
-
-  const goToNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-  };
-
-  const goToToday = () => {
-    setCurrentDate(new Date());
-  };
 
 
   // Parse iCal date format (YYYYMMDDTHHMMSSZ or YYYYMMDDTHHMMSS or YYYYMMDD)
@@ -215,6 +226,23 @@ const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => 
 
   useEffect(() => {
     fetchEvents();
+    
+    // Set initial view mode based on screen size
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      
+      // Auto-set view mode for mobile
+      if (mobile && viewMode === 'month') {
+        setViewMode('week');
+      } else if (!mobile && viewMode === 'week') {
+        setViewMode('month');
+      }
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDayClick = (day: number) => {
@@ -254,6 +282,47 @@ const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => 
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+  // Navigation functions
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    
+    if (viewMode === 'day') {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
+    } else if (viewMode === 'week') {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+    } else {
+      // Month view
+      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+    }
+    
+    setCurrentDate(newDate);
+  };
+
+  const goToPreviousMonth = () => navigateDate('prev');
+  const goToNextMonth = () => navigateDate('next');
+  
+  const goToToday = () => setCurrentDate(new Date());
+
+  // Get title for current view
+  const getViewTitle = () => {
+    if (viewMode === 'day') {
+      return `${monthNames[currentDate.getMonth()]} ${currentDate.getDate()}, ${currentDate.getFullYear()}`;
+    } else if (viewMode === 'week') {
+      const startOfWeek = new Date(currentDate);
+      startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      
+      if (startOfWeek.getMonth() === endOfWeek.getMonth()) {
+        return `${monthNames[startOfWeek.getMonth()]} ${startOfWeek.getDate()}-${endOfWeek.getDate()}, ${startOfWeek.getFullYear()}`;
+      } else {
+        return `${startOfWeek.getDate()} ${monthNames[startOfWeek.getMonth()]} - ${endOfWeek.getDate()} ${monthNames[endOfWeek.getMonth()]}, ${startOfWeek.getFullYear()}`;
+      }
+    } else {
+      return `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    }
+  };
+
   return (
     <div className="calendar-container">
       <header className="app-header">
@@ -288,8 +357,45 @@ const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => 
             {loading ? '⟳' : '🔄'} Refresh Events
           </button>
         </div>
+        
+        {/* View Mode Controls */}
+        <div className="view-controls">
+          {!isMobile && (
+            <>
+              <button 
+                className={`view-button ${viewMode === 'month' ? 'active' : ''}`}
+                onClick={() => setViewMode('month')}
+              >
+                Month
+              </button>
+              <button 
+                className={`view-button ${viewMode === 'week' ? 'active' : ''}`}
+                onClick={() => setViewMode('week')}
+              >
+                Week
+              </button>
+            </>
+          )}
+          {isMobile && (
+            <>
+              <button 
+                className={`view-button ${viewMode === 'week' ? 'active' : ''}`}
+                onClick={() => setViewMode('week')}
+              >
+                Week
+              </button>
+              <button 
+                className={`view-button ${viewMode === 'day' ? 'active' : ''}`}
+                onClick={() => setViewMode('day')}
+              >
+                Day
+              </button>
+            </>
+          )}
+        </div>
+        
         <h2 className="month-year">
-          {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+          {getViewTitle()}
         </h2>
         <div className="data-source-indicator">
           {dataSource === 'real' ? (
@@ -308,16 +414,18 @@ const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => 
         </div>
       )}
 
-      <div className="calendar-grid">
+      <div className={`calendar-grid ${viewMode}-view`}>
         {/* Day headers */}
-        <div className="calendar-weekdays">
-          {dayNames.map(day => (
-            <div key={day} className="weekday-header">{day}</div>
-          ))}
-        </div>
+        {viewMode !== 'day' && (
+          <div className="calendar-weekdays">
+            {dayNames.map(day => (
+              <div key={day} className="weekday-header">{day}</div>
+            ))}
+          </div>
+        )}
 
         {/* Calendar days */}
-        <div className="calendar-days">
+        <div className={`calendar-days ${viewMode}-days`}>
           {calendarDays.map((day, index) => {
             const isCurrentMonth = day.getMonth() === currentDate.getMonth();
             const isToday = day.toDateString() === new Date().toDateString();
@@ -326,8 +434,16 @@ const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => 
             return (
               <div
                 key={index}
-                className={`calendar-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`}
-                onClick={() => handleDayClick(day.getDate())}
+                className={`calendar-day ${viewMode}-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`}
+                onClick={() => {
+                  if (viewMode === 'day') {
+                    setSelectedDate(day);
+                    setSelectedEvent(null);
+                    setIsModalOpen(true);
+                  } else {
+                    handleDayClick(day.getDate());
+                  }
+                }}
               >
                 <div className="day-number">{day.getDate()}</div>
                 <div className="day-events">

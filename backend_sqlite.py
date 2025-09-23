@@ -731,11 +731,12 @@ def parse_event_from_text(text):
 # Automatic syncing with Seniors Kingston website
 import threading
 import time
+import re
 from datetime import datetime, timedelta
 
 # Global variable to store last sync time
 last_sync_time = None
-sync_interval_hours = 24 * 15  # Sync every 15 days (approximately monthly)
+sync_interval_hours = 24 * 7  # Sync every Monday (weekly)
 
 def sync_with_seniors_kingston():
     """Sync events with Seniors Kingston website"""
@@ -1719,6 +1720,9 @@ def monthly_sync():
             "sync_type": "error"
         }
 
+# Initialize known_events at module level
+known_events = []
+
 @app.get("/api/sync-status")
 def get_sync_status():
     """Get detailed sync status and next sync information"""
@@ -1741,8 +1745,8 @@ def get_sync_status():
                 "next_sync_in_days": round(next_sync_in_days, 1),
                 "sync_interval_days": sync_interval_hours / 24,
                 "status": "active",
-                "sync_frequency": "Monthly (every 15 days)",
-                "next_expected_update": "Around 3rd Friday of each month"
+                "sync_frequency": "Weekly (every Monday)",
+                "next_expected_update": "Every Monday"
             }
         else:
             return {
@@ -1752,8 +1756,8 @@ def get_sync_status():
                 "next_sync_in_days": sync_interval_hours / 24,
                 "sync_interval_days": sync_interval_hours / 24,
                 "status": "never_synced",
-                "sync_frequency": "Monthly (every 15 days)",
-                "next_expected_update": "Around 3rd Friday of each month"
+                "sync_frequency": "Weekly (every Monday)",
+                "next_expected_update": "Every Monday"
             }
     except Exception as e:
         return {
