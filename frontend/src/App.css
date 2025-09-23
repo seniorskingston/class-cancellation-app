@@ -75,7 +75,8 @@
 }
 
 .app-logo {
-  height: clamp(30px, 8vw, 50px);
+  height: clamp(35px, 8.5vw, 55px);
+  width: clamp(35px, 8.5vw, 55px);
   max-width: 100%;
   border-radius: 6px;
   background: white;
@@ -224,8 +225,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: clamp(30px, 8vw, 50px);
-  width: clamp(200px, 25vw, 300px);
+  height: clamp(35px, 8.5vw, 55px);
+  width: clamp(35px, 8.5vw, 55px);
   margin: 0;
   margin-left: -12px; /* Even closer to logo */
   padding: 0;
@@ -237,8 +238,8 @@
 }
 
 .events-schedule-image {
-  height: clamp(35px, 9vw, 55px);
-  width: auto;
+  height: clamp(35px, 8.5vw, 55px);
+  width: clamp(35px, 8.5vw, 55px);
   object-fit: contain;
   border-radius: 8px;
 }
@@ -635,15 +636,15 @@ tr:last-child td {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: clamp(30px, 8vw, 50px);
-  width: clamp(150px, 20vw, 200px);
+  height: clamp(35px, 8.5vw, 55px);
+  width: clamp(35px, 8.5vw, 55px);
   margin: 0;
   padding: 0;
 }
 
 .mobile-events-schedule-image {
-  height: clamp(30px, 8vw, 50px);
-  width: auto;
+  height: clamp(35px, 8.5vw, 55px);
+  width: clamp(35px, 8.5vw, 55px);
   object-fit: contain;
   border-radius: 6px;
 }
@@ -1091,7 +1092,8 @@ tr:last-child td {
 
 /* Ensure logo sizing is consistent during loading */
 .app-logo, .mobile-logo {
-  height: clamp(30px, 8vw, 50px) !important;
+  height: clamp(35px, 8.5vw, 55px) !important;
+  width: clamp(35px, 8.5vw, 55px) !important;
   max-width: 100% !important;
   object-fit: contain !important;
   transition: all 0.3s ease;
