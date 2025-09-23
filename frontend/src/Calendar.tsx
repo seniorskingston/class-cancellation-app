@@ -415,23 +415,18 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
               </button>
             </>
           )}
+          
+          {/* Desktop/Mobile Switch - moved to same line */}
+          <div className="desktop-mobile-switch">
+            <button 
+              className={`switch-button ${!isMobile ? 'active' : ''}`}
+              onClick={() => setIsMobile(false)}
+            >
+              {isMobile ? '🖥️ Desktop' : '📱 Mobile'}
+            </button>
+          </div>
         </div>
         
-        {/* Desktop/Mobile Switch */}
-        <div className="desktop-mobile-switch">
-          <button 
-            className={`switch-button ${!isMobile ? 'active' : ''}`}
-            onClick={() => setIsMobile(false)}
-          >
-            🖥️ Desktop
-          </button>
-          <button 
-            className={`switch-button ${isMobile ? 'active' : ''}`}
-            onClick={() => setIsMobile(true)}
-          >
-            📱 Mobile
-          </button>
-        </div>
         
         <h2 className="month-year">
           {getViewTitle()}
