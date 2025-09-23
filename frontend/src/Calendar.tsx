@@ -421,6 +421,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             <button 
               className={`switch-button ${!isMobile ? 'active' : ''}`}
               onClick={() => setIsMobile(false)}
+              title={isMobile ? "Switch to Desktop View" : "Switch to Mobile View"}
             >
               {isMobile ? '🖥️ Desktop' : '📱 Mobile'}
             </button>
