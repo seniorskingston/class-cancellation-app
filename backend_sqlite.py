@@ -581,11 +581,13 @@ def extract_events_from_loaded_content(soup):
     try:
         # Look for common event patterns in the loaded content
         selectors = [
+            # Seniors Kingston specific selectors (based on actual HTML structure)
+            'h5.green', 'h5[class*="green"]', 'h5[data-v-60d883ca]',
             # Common event selectors
             'article', '.event', '.post', '.event-item', '[class*="event"]', '.entry', '.event-card', '.event-listing',
             '.events-list li', '.events li', '.event-list-item', '.calendar-event', '.program-event',
             'div[class*="event"]', 'li[class*="event"]', '.event-wrapper', '.event-container', '.event-block',
-            'h3', 'h4', '.event-title', '.post-title', '.entry-title',
+            'h3', 'h4', 'h5', '.event-title', '.post-title', '.entry-title',
             # Nuxt.js specific selectors
             '[data-nuxt]', '.nuxt-content', '.content', '.page-content',
             # Generic content selectors
@@ -602,10 +604,19 @@ def extract_events_from_loaded_content(soup):
                     text_content = element.get_text().strip()
                     
                     # Skip if too short or empty
-                    if len(text_content) < 10:
+                    if len(text_content) < 3:
                         continue
                     
-                    # Look for event-like patterns
+                    # Special handling for h5.green elements (event titles)
+                    if element.name == 'h5' and 'green' in element.get('class', []):
+                        print(f"🎯 Found event title: {text_content}")
+                        event_data = parse_event_from_text(text_content)
+                        if event_data and not any(e['title'] == event_data['title'] for e in events):
+                            events.append(event_data)
+                            print(f"📅 Added event: {event_data['title']}")
+                        continue
+                    
+                    # Look for event-like patterns in other elements
                     if is_likely_event_content(text_content):
                         event_data = parse_event_from_text(text_content)
                         if event_data and not any(e['title'] == event_data['title'] for e in events):
@@ -1555,20 +1566,67 @@ def test_scraping():
             return {
                 "success": True,
                 "message": f"Found {len(events)} events",
-                "events": events[:5],  # Show first 5 events
-                "auto_sync": "Enabled - syncing every 6 hours"
+                "events": events[:10],  # Show first 10 events
+                "auto_sync": "Enabled - syncing every 6 hours",
+                "scraping_method": "Selenium + BeautifulSoup"
             }
         else:
             return {
                 "success": False,
                 "message": "No events found",
-                "auto_sync": "Enabled - syncing every 6 hours"
+                "auto_sync": "Enabled - syncing every 6 hours",
+                "scraping_method": "Selenium + BeautifulSoup"
             }
     except Exception as e:
         return {
             "success": False,
             "error": str(e),
-            "message": "Scraping test failed"
+            "message": "Scraping test failed",
+            "scraping_method": "Selenium + BeautifulSoup"
+        }
+
+@app.get("/api/debug-scraping")
+def debug_scraping():
+    """Debug endpoint to see what the scraper finds"""
+    print("🔍 Debug scraping...")
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        
+        url = "https://www.seniorskingston.ca/events"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        response = requests.get(url, headers=headers, timeout=15)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Look for h5.green elements specifically
+            h5_green_elements = soup.select('h5.green')
+            h5_elements = soup.select('h5')
+            green_elements = soup.select('.green')
+            
+            return {
+                "success": True,
+                "message": "Debug info collected",
+                "h5_green_elements": len(h5_green_elements),
+                "h5_elements": len(h5_elements),
+                "green_elements": len(green_elements),
+                "h5_green_texts": [elem.get_text().strip() for elem in h5_green_elements[:10]],
+                "page_title": soup.title.string if soup.title else "No title",
+                "content_length": len(response.text)
+            }
+        else:
+            return {
+                "success": False,
+                "message": f"Failed to fetch page: HTTP {response.status_code}"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Debug scraping failed"
         }
 
 @app.get("/api/test")
