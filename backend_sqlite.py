@@ -1160,55 +1160,10 @@ def get_events():
     # If no real events found, try to provide some known real events as fallback
     print("📅 No real events found from scraping, providing known events as fallback")
     
-    # REAL EVENTS from Seniors Kingston website - 2025 dates
-    # Extracted from actual website scraping (37 events found)
+    # REAL EVENTS from Seniors Kingston website - CORRECT DATES (2025)
+    # Based on your corrections and the actual website events
     known_events = [
-        # Events found from actual website scraping
-        {
-            'title': "Board Meeting",
-            'startDate': datetime(2025, 9, 24, 20, 0).isoformat() + 'Z',  # 4:00 pm EDT
-            'endDate': datetime(2025, 9, 24, 21, 0).isoformat() + 'Z',
-            'description': "The next scheduled Board meeting is September 24, 4:00pm",
-            'location': 'Seniors Kingston',
-            'dateStr': 'September 24, 2025, 4:00 pm',
-            'timeStr': '4:00 pm'
-        },
-        {
-            'title': "Medical Myths",
-            'startDate': datetime(2025, 10, 1, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 1, 17, 0).isoformat() + 'Z',
-            'description': "Educational program about medical myths and facts",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 1, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
-        {
-            'title': "Whisky Tasting",
-            'startDate': datetime(2025, 10, 2, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 2, 17, 0).isoformat() + 'Z',
-            'description': "Sample and learn about different whiskies",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 2, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
-        {
-            'title': "Sound Escapes: You've Got a Friend",
-            'startDate': datetime(2025, 10, 3, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 3, 17, 0).isoformat() + 'Z',
-            'description': "Musical program featuring classic friendship songs",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 3, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
-        {
-            'title': "Selecting a Smart Phone",
-            'startDate': datetime(2025, 10, 4, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 4, 17, 0).isoformat() + 'Z',
-            'description': "Workshop on choosing the right smartphone for seniors",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 4, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
+        # September 2025 Events
         {
             'title': "National Day of Truth and Reconciliation",
             'startDate': datetime(2025, 9, 30, 4, 0).isoformat() + 'Z',  # 12:00 am EDT
@@ -1219,228 +1174,212 @@ def get_events():
             'timeStr': 'All Day'
         },
         {
-            'title': "Biker Bros",
-            'startDate': datetime(2025, 10, 5, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 5, 17, 0).isoformat() + 'Z',
-            'description': "Motorcycle enthusiasts gathering",
+            'title': "Board Meeting",
+            'startDate': datetime(2025, 9, 24, 20, 0).isoformat() + 'Z',  # 4:00 pm EDT
+            'endDate': datetime(2025, 9, 24, 21, 0).isoformat() + 'Z',
+            'description': "The next scheduled Board meeting is September 24, 4:00pm",
             'location': 'Seniors Kingston',
-            'dateStr': 'October 5, 2025, 12:00 pm',
+            'dateStr': 'September 24, 2025, 4:00 pm',
+            'timeStr': '4:00 pm'
+        },
+        
+        # October 2025 Events - CORRECT DATES based on your corrections
+        {
+            'title': "Kingston Taxi Tales",
+            'startDate': datetime(2025, 10, 1, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 1, 17, 0).isoformat() + 'Z',
+            'description': "Stories and experiences from Kingston taxi drivers",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 1, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Kingston Taxi Tales",
+            'title': "Sex and the Senior Woman",
+            'startDate': datetime(2025, 10, 2, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 2, 17, 0).isoformat() + 'Z',
+            'description': "Educational program for senior women",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 2, 2025, 12:00 pm',
+            'timeStr': '12:00 pm'
+        },
+        {
+            'title': "Hearing Clinic",
+            'startDate': datetime(2025, 10, 3, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 3, 17, 0).isoformat() + 'Z',
+            'description': "Free hearing assessment clinic",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 3, 2025, 12:00 pm',
+            'timeStr': '12:00 pm'
+        },
+        {
+            'title': "Top 10 Free Google Apps for Every Device",
             'startDate': datetime(2025, 10, 6, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 6, 17, 0).isoformat() + 'Z',
-            'description': "Stories and experiences from Kingston taxi drivers",
+            'description': "Learn about useful free Google applications",
             'location': 'Seniors Kingston',
             'dateStr': 'October 6, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Sex and the Senior Woman",
+            'title': "Fresh Food Market",
             'startDate': datetime(2025, 10, 7, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 7, 17, 0).isoformat() + 'Z',
-            'description': "Educational program for senior women",
+            'description': "Local fresh produce and goods market",
             'location': 'Seniors Kingston',
             'dateStr': 'October 7, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Hearing Clinic",
+            'title': "Fire Safety for Seniors: Seniors Day with Kingston Fire & Rescue",
             'startDate': datetime(2025, 10, 8, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 8, 17, 0).isoformat() + 'Z',
-            'description': "Free hearing assessment clinic",
+            'description': "Fire safety education and prevention for seniors",
             'location': 'Seniors Kingston',
             'dateStr': 'October 8, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Top 10 Free Google Apps for Every Device",
+            'title': "Fresh Food Market",
             'startDate': datetime(2025, 10, 9, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 9, 17, 0).isoformat() + 'Z',
-            'description': "Learn about useful free Google applications",
+            'description': "Local fresh produce and goods market",
             'location': 'Seniors Kingston',
             'dateStr': 'October 9, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Fresh Food Market",
-            'startDate': datetime(2025, 10, 10, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 10, 17, 0).isoformat() + 'Z',
-            'description': "Local fresh produce and goods market",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 10, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
-        {
-            'title': "Fire Safety for Seniors: Seniors Day with Kingston Fire & Rescue",
-            'startDate': datetime(2025, 10, 11, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 11, 17, 0).isoformat() + 'Z',
-            'description': "Fire safety education and prevention for seniors",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 11, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
-        {
-            'title': "Autumn Floral Centerpiece",
-            'startDate': datetime(2025, 10, 12, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 12, 17, 0).isoformat() + 'Z',
-            'description': "Create beautiful autumn floral arrangements",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 12, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
-        {
-            'title': "Fraud Prevention",
-            'startDate': datetime(2025, 10, 13, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 13, 17, 0).isoformat() + 'Z',
-            'description': "Learn how to protect yourself from fraud and scams",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 13, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
-        {
-            'title': "Birthday Lunch",
+            'title': "Cafe Franglish",
             'startDate': datetime(2025, 10, 14, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 14, 17, 0).isoformat() + 'Z',
-            'description': "Monthly birthday celebration lunch",
+            'description': "French-English conversation cafe",
             'location': 'Seniors Kingston',
             'dateStr': 'October 14, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Thanksgiving Lunch",
-            'startDate': datetime(2025, 10, 15, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 15, 17, 0).isoformat() + 'Z',
-            'description': "Community Thanksgiving celebration with traditional meal",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 15, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
+            'title': "Domino Theatre Dress Rehearsal: Witness for the Prosecution",
+            'startDate': datetime(2025, 10, 15, 23, 30).isoformat() + 'Z',  # 7:30 pm EDT
+            'endDate': datetime(2025, 10, 16, 0, 30).isoformat() + 'Z',
+            'description': "Dress rehearsal for the Domino Theatre production",
+            'location': 'Domino Theatre',
+            'dateStr': 'October 15, 2025, 7:30 pm',
+            'timeStr': '7:30 pm'
         },
         {
-            'title': "Cafe Franglish",
+            'title': "Service Canada Clinic",
             'startDate': datetime(2025, 10, 16, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 16, 17, 0).isoformat() + 'Z',
-            'description': "French-English conversation cafe",
+            'description': "Get help with Service Canada programs and benefits",
             'location': 'Seniors Kingston',
             'dateStr': 'October 16, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Domino Theatre Dress Rehearsal: Witness for the Prosecution",
-            'startDate': datetime(2025, 10, 17, 23, 30).isoformat() + 'Z',  # 7:30 pm EDT
-            'endDate': datetime(2025, 10, 18, 0, 30).isoformat() + 'Z',
-            'description': "Dress rehearsal for the Domino Theatre production",
-            'location': 'Domino Theatre',
-            'dateStr': 'October 17, 2025, 7:30 pm',
-            'timeStr': '7:30 pm'
-        },
-        {
-            'title': "Service Canada Clinic",
-            'startDate': datetime(2025, 10, 18, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 18, 17, 0).isoformat() + 'Z',
-            'description': "Get help with Service Canada programs and benefits",
+            'title': "Book & Puzzle EXCHANGE",
+            'startDate': datetime(2025, 10, 17, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 17, 17, 0).isoformat() + 'Z',
+            'description': "Bring books and puzzles to exchange with others",
             'location': 'Seniors Kingston',
-            'dateStr': 'October 18, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
-        {
-            'title': "How to be an Ally",
-            'startDate': datetime(2025, 10, 19, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 19, 17, 0).isoformat() + 'Z',
-            'description': "Educational workshop on being an effective ally",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 19, 2025, 12:00 pm',
+            'dateStr': 'October 17, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
             'title': "Later Life Learning: Series B",
+            'startDate': datetime(2025, 10, 17, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
+            'endDate': datetime(2025, 10, 17, 20, 0).isoformat() + 'Z',
+            'description': "Educational program for continued learning",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 17, 2025, 3:00 pm',
+            'timeStr': '3:00 pm'
+        },
+        {
+            'title': "Library e-Resources",
             'startDate': datetime(2025, 10, 20, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 20, 17, 0).isoformat() + 'Z',
-            'description': "Educational program for continued learning",
+            'description': "Learn about digital library resources",
             'location': 'Seniors Kingston',
             'dateStr': 'October 20, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Book & Puzzle EXCHANGE",
+            'title': "Tuesday at Tom's",
             'startDate': datetime(2025, 10, 21, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 21, 17, 0).isoformat() + 'Z',
-            'description': "Bring books and puzzles to exchange with others",
-            'location': 'Seniors Kingston',
+            'description': "Social gathering at Tom's",
+            'location': 'Tom\'s',
             'dateStr': 'October 21, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Library e-Resources",
+            'title': "Sound Bath",
+            'startDate': datetime(2025, 10, 21, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
+            'endDate': datetime(2025, 10, 21, 20, 0).isoformat() + 'Z',
+            'description': "Relaxing sound therapy session",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 21, 2025, 3:00 pm',
+            'timeStr': '3:00 pm'
+        },
+        {
+            'title': "Board Meeting",
             'startDate': datetime(2025, 10, 22, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 22, 17, 0).isoformat() + 'Z',
-            'description': "Learn about digital library resources",
+            'description': "Seniors Kingston board meeting",
             'location': 'Seniors Kingston',
             'dateStr': 'October 22, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Tuesday at Tom's",
+            'title': "Paint with Gouache",
             'startDate': datetime(2025, 10, 23, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 23, 17, 0).isoformat() + 'Z',
-            'description': "Social gathering at Tom's",
-            'location': 'Tom\'s',
+            'description': "Art workshop using gouache painting techniques",
+            'location': 'Seniors Kingston',
             'dateStr': 'October 23, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Sound Bath",
+            'title': "Achieve Your Best Health",
+            'startDate': datetime(2025, 10, 23, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
+            'endDate': datetime(2025, 10, 23, 20, 0).isoformat() + 'Z',
+            'description': "Health and wellness workshop for seniors",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 23, 2025, 3:00 pm',
+            'timeStr': '3:00 pm'
+        },
+        {
+            'title': "Sound Escapes: Kenny & Dolly",
             'startDate': datetime(2025, 10, 24, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 24, 17, 0).isoformat() + 'Z',
-            'description': "Relaxing sound therapy session",
+            'description': "Musical program featuring Kenny Rogers and Dolly Parton songs",
             'location': 'Seniors Kingston',
             'dateStr': 'October 24, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Paint with Gouache",
-            'startDate': datetime(2025, 10, 25, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 25, 17, 0).isoformat() + 'Z',
-            'description': "Art workshop using gouache painting techniques",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 25, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
-        {
-            'title': "Achieve Your Best Health",
-            'startDate': datetime(2025, 10, 26, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 26, 17, 0).isoformat() + 'Z',
-            'description': "Health and wellness workshop for seniors",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 26, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
-        {
-            'title': "Sound Escapes: Kenny & Dolly",
+            'title': "Wearable Tech",
             'startDate': datetime(2025, 10, 27, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 27, 17, 0).isoformat() + 'Z',
-            'description': "Musical program featuring Kenny Rogers and Dolly Parton songs",
+            'description': "Learn about wearable technology for seniors",
             'location': 'Seniors Kingston',
             'dateStr': 'October 27, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
-            'title': "Wearable Tech",
-            'startDate': datetime(2025, 10, 28, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 28, 17, 0).isoformat() + 'Z',
-            'description': "Learn about wearable technology for seniors",
-            'location': 'Seniors Kingston',
-            'dateStr': 'October 28, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
-        },
-        {
             'title': "Legal Advice",
-            'startDate': datetime(2025, 10, 29, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 29, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 27, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
+            'endDate': datetime(2025, 10, 27, 20, 0).isoformat() + 'Z',
             'description': "Free legal advice session",
             'location': 'Seniors Kingston',
-            'dateStr': 'October 29, 2025, 12:00 pm',
+            'dateStr': 'October 27, 2025, 3:00 pm',
+            'timeStr': '3:00 pm'
+        },
+        {
+            'title': "Fresh Food Market",
+            'startDate': datetime(2025, 10, 28, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
+            'endDate': datetime(2025, 10, 28, 17, 0).isoformat() + 'Z',
+            'description': "Local fresh produce and goods market",
+            'location': 'Seniors Kingston',
+            'dateStr': 'October 28, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
         {
@@ -1454,12 +1393,12 @@ def get_events():
         },
         {
             'title': "Carole's Dance Party",
-            'startDate': datetime(2025, 10, 31, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
-            'endDate': datetime(2025, 10, 31, 17, 0).isoformat() + 'Z',
+            'startDate': datetime(2025, 10, 30, 19, 0).isoformat() + 'Z',  # 3:00 pm EDT
+            'endDate': datetime(2025, 10, 30, 20, 0).isoformat() + 'Z',
             'description': "Dance party hosted by Carole",
             'location': 'Seniors Kingston',
-            'dateStr': 'October 31, 2025, 12:00 pm',
-            'timeStr': '12:00 pm'
+            'dateStr': 'October 30, 2025, 3:00 pm',
+            'timeStr': '3:00 pm'
         }
     ]
     
