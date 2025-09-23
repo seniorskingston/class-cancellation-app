@@ -32,8 +32,8 @@
   font-size: 16px;
   margin-left: 15px;
   transition: all 0.3s ease;
-  height: 59.8px;
-  width: 59.8px;
+  height: 60px;
+  width: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -90,19 +90,19 @@
     gap: 10px;
     margin-bottom: 10px;
     width: 100%;
-    height: 59.8px; /* Match icon height */
+    height: 60px; /* Match icon height */
   }
   
   .app-logo {
-    height: 59.8px;
-    width: 59.8px;
+    height: 60px;
+    width: 60px;
     max-width: 100%;
     border-radius: 6px;
   }
   
   .back-to-home-button {
-    height: 59.8px;
-    width: 59.8px;
+    height: 60px;
+    width: 60px;
     margin-left: 10px;
   }
 }
