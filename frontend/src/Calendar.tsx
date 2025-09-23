@@ -14,7 +14,12 @@ interface Event {
 
 type ViewMode = 'month' | 'week' | 'day';
 
-const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => {
+interface CalendarProps {
+  onBackToMain?: () => void;
+  isMobileView?: boolean;
+}
+
+const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
@@ -227,15 +232,16 @@ const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => 
   useEffect(() => {
     fetchEvents();
     
-    // Set initial view mode based on screen size
+    // Set initial view mode based on screen size and mobile view setting
     const handleResize = () => {
       const mobile = window.innerWidth <= 768;
-      setIsMobile(mobile);
+      const useMobileView = isMobileView || mobile;
+      setIsMobile(useMobileView);
       
       // Auto-set view mode for mobile
-      if (mobile && viewMode === 'month') {
+      if (useMobileView && viewMode === 'month') {
         setViewMode('week');
-      } else if (!mobile && viewMode === 'week') {
+      } else if (!useMobileView && viewMode === 'week') {
         setViewMode('month');
       }
     };
@@ -353,8 +359,21 @@ const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => 
           <button onClick={goToPreviousMonth} className="nav-button">‹</button>
           <button onClick={goToToday} className="today-button">Today</button>
           <button onClick={goToNextMonth} className="nav-button">›</button>
-          <button onClick={fetchEvents} className="refresh-button" disabled={loading}>
-            {loading ? '⟳' : '🔄'} Refresh Events
+        </div>
+        
+        {/* Desktop/Mobile Switch */}
+        <div className="desktop-mobile-switch">
+          <button 
+            className={`switch-button ${!isMobile ? 'active' : ''}`}
+            onClick={() => setIsMobile(false)}
+          >
+            🖥️ Desktop
+          </button>
+          <button 
+            className={`switch-button ${isMobile ? 'active' : ''}`}
+            onClick={() => setIsMobile(true)}
+          >
+            📱 Mobile
           </button>
         </div>
         
@@ -405,7 +424,7 @@ const Calendar: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => 
         </h2>
         <div className="data-source-indicator">
           {dataSource === 'real' ? (
-            <span className="real-data">✅ Live events from Seniors Kingston</span>
+            <span className="real-data">✅ Live from Seniors Association Kingston Website</span>
           ) : dataSource === 'sample' ? (
             <span className="sample-data">📅 Seniors Kingston events (based on real events from their website)</span>
           ) : (

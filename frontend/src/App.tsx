@@ -501,14 +501,17 @@ function App() {
     }
   };
 
-  // Calendar view
-  if (currentView === 'calendar') {
-    return (
-      <div className="App">
-        <Calendar onBackToMain={() => setCurrentView('main')} />
-      </div>
-    );
-  }
+        // Calendar view
+        if (currentView === 'calendar') {
+          return (
+            <div className="App">
+              <Calendar 
+                onBackToMain={() => setCurrentView('main')} 
+                isMobileView={isMobileView}
+              />
+            </div>
+          );
+        }
 
   // Mobile view
   if (isMobileView) {
