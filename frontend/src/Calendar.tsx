@@ -29,8 +29,10 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   
   // Debug: Log view mode changes
   useEffect(() => {
-    console.log('View mode changed to:', viewMode);
-  }, [viewMode]);
+    console.log('🔍 View mode changed to:', viewMode);
+    console.log('📅 Calendar days count:', calendarDays.length);
+    console.log('📱 Is mobile:', isMobile);
+  }, [viewMode, calendarDays.length, isMobile]);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   // Modal state
@@ -40,8 +42,12 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
   // Generate calendar days based on view mode
   const generateCalendarDays = (): Date[] => {
+    console.log('🔄 Generating calendar days for view mode:', viewMode);
+    
     if (viewMode === 'day') {
-      return [new Date(currentDate)];
+      const day = [new Date(currentDate)];
+      console.log('📅 Day view: 1 day generated');
+      return day;
     } else if (viewMode === 'week') {
       const startOfWeek = new Date(currentDate);
       startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
@@ -51,6 +57,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         day.setDate(startOfWeek.getDate() + i);
         days.push(day);
       }
+      console.log('📅 Week view: 7 days generated:', days.map(d => d.toDateString()));
       return days;
     } else {
       // Month view
@@ -386,19 +393,28 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             <>
               <button 
                 className={`view-button ${viewMode === 'month' ? 'active' : ''}`}
-                onClick={() => setViewMode('month')}
+                onClick={() => {
+                  console.log('🔘 Month button clicked!');
+                  setViewMode('month');
+                }}
               >
                 Month
               </button>
               <button 
                 className={`view-button ${viewMode === 'week' ? 'active' : ''}`}
-                onClick={() => setViewMode('week')}
+                onClick={() => {
+                  console.log('🔘 Week button clicked!');
+                  setViewMode('week');
+                }}
               >
                 Week
               </button>
               <button 
                 className={`view-button ${viewMode === 'day' ? 'active' : ''}`}
-                onClick={() => setViewMode('day')}
+                onClick={() => {
+                  console.log('🔘 Day button clicked!');
+                  setViewMode('day');
+                }}
               >
                 Day
               </button>
@@ -491,7 +507,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         </div>
       ) : (
         /* Desktop Grid View */
-        <div className={`calendar-grid ${viewMode}-view`}>
+        <div className={`calendar-grid ${viewMode}-view`} data-view-mode={viewMode}>
           {/* Day headers */}
           {viewMode !== 'day' && (
             <div className="calendar-weekdays">
