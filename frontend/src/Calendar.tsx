@@ -30,9 +30,8 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   // Debug: Log view mode changes
   useEffect(() => {
     console.log('🔍 View mode changed to:', viewMode);
-    console.log('📅 Calendar days count:', calendarDays.length);
     console.log('📱 Is mobile:', isMobile);
-  }, [viewMode, calendarDays.length, isMobile]);
+  }, [viewMode, isMobile]);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   // Modal state
@@ -84,6 +83,11 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   };
 
   const calendarDays = generateCalendarDays();
+
+  // Debug: Log calendar days count after generation
+  useEffect(() => {
+    console.log('📅 Calendar days count:', calendarDays.length);
+  }, [calendarDays.length]);
 
   // Get events for a specific date
   const getEventsForDate = (date: Date): Event[] => {
