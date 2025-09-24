@@ -252,12 +252,11 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       const useMobileView = isMobileView !== undefined ? isMobileView : mobile;
       setIsMobile(useMobileView);
       
-      // Auto-set view mode for mobile
+      // Auto-set view mode for mobile only
       if (useMobileView && viewMode === 'month') {
         setViewMode('week');
-      } else if (!useMobileView && viewMode === 'week') {
-        setViewMode('month');
       }
+      // Removed automatic month override for desktop - let user choose
     };
     
     handleResize();
@@ -270,12 +269,11 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
     if (isMobileView !== undefined) {
       setIsMobile(isMobileView);
       
-      // Auto-set view mode for mobile
+      // Auto-set view mode for mobile only
       if (isMobileView && viewMode === 'month') {
         setViewMode('week');
-      } else if (!isMobileView && viewMode === 'week') {
-        setViewMode('month');
       }
+      // Removed automatic month override for desktop - let user choose
     }
   }, [isMobileView, viewMode]);
 
