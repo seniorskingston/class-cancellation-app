@@ -1857,7 +1857,7 @@ def get_analytics():
 
 @app.get("/analytics")
 def analytics_web_interface():
-    """Web interface for viewing analytics"""
+    """Simple analytics report showing just the visit numbers"""
     global analytics_data
     
     desktop_percentage = (analytics_data['desktop_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
@@ -1867,172 +1867,94 @@ def analytics_web_interface():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Seniors Kingston App Analytics</title>
+        <title>App Visit Report</title>
         <style>
             body {{
-                font-family: Arial, sans-serif;
-                max-width: 900px;
-                margin: 0 auto;
-                padding: 20px;
-                background: linear-gradient(135deg, #0072ce, #00b388);
-                color: white;
-                min-height: 100vh;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                max-width: 600px;
+                margin: 50px auto;
+                padding: 40px;
+                background: #f8f9fa;
+                color: #333;
             }}
-            .container {{
-                background: rgba(255, 255, 255, 0.1);
-                padding: 30px;
-                border-radius: 15px;
-                backdrop-filter: blur(10px);
+            .report-card {{
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                text-align: center;
             }}
             h1 {{
-                text-align: center;
+                color: #0072ce;
                 margin-bottom: 30px;
-                font-size: 2.5rem;
+                font-size: 2.2rem;
+                font-weight: 600;
             }}
-            .stats-grid {{
+            .visit-number {{
+                font-size: 3.5rem;
+                font-weight: bold;
+                color: #0072ce;
+                margin: 20px 0;
+                text-shadow: 2px 2px 4px rgba(0, 114, 206, 0.1);
+            }}
+            .visit-label {{
+                font-size: 1.3rem;
+                color: #666;
+                margin-bottom: 30px;
+            }}
+            .breakdown {{
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                grid-template-columns: 1fr 1fr;
                 gap: 20px;
-                margin-bottom: 30px;
+                margin: 30px 0;
             }}
-            .stat-card {{
-                background: rgba(255, 255, 255, 0.2);
+            .breakdown-item {{
+                background: #f8f9fa;
                 padding: 20px;
-                border-radius: 10px;
-                text-align: center;
+                border-radius: 8px;
+                border-left: 4px solid #0072ce;
             }}
-            .stat-number {{
+            .breakdown-number {{
                 font-size: 2rem;
                 font-weight: bold;
-                margin-bottom: 10px;
+                color: #0072ce;
             }}
-            .stat-label {{
-                font-size: 1.1rem;
-                opacity: 0.9;
-            }}
-            .button-group {{
-                display: flex;
-                gap: 15px;
-                justify-content: center;
-                margin: 20px 0;
-                flex-wrap: wrap;
-            }}
-            .export-button {{
-                background: #28a745;
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 8px;
+            .breakdown-label {{
                 font-size: 1rem;
-                cursor: pointer;
-                text-decoration: none;
-                display: inline-block;
+                color: #666;
+                margin-top: 5px;
             }}
-            .export-button:hover {{
-                background: #218838;
-            }}
-            .reset-button {{
-                background: #ff6b6b;
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 8px;
-                font-size: 1rem;
-                cursor: pointer;
-            }}
-            .reset-button:hover {{
-                background: #ff5252;
-            }}
-            .test-button {{
-                background: #17a2b8;
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 8px;
-                font-size: 1rem;
-                cursor: pointer;
-            }}
-            .test-button:hover {{
-                background: #138496;
-            }}
-            .last-updated {{
-                text-align: center;
-                opacity: 0.8;
-                margin-top: 20px;
+            .date-info {{
+                color: #888;
+                font-size: 0.9rem;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid #eee;
             }}
         </style>
     </head>
     <body>
-        <div class="container">
-            <h1>📊 App Usage Analytics</h1>
+        <div class="report-card">
+            <h1>📊 App Visit Report</h1>
             
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number">{analytics_data['total_visits']}</div>
-                    <div class="stat-label">Total Visits</div>
+            <div class="visit-number">{analytics_data['total_visits']}</div>
+            <div class="visit-label">Total App Visits</div>
+            
+            <div class="breakdown">
+                <div class="breakdown-item">
+                    <div class="breakdown-number">{analytics_data['desktop_visits']}</div>
+                    <div class="breakdown-label">Desktop Users</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number">{analytics_data['desktop_visits']}</div>
-                    <div class="stat-label">Desktop Visits</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">{analytics_data['mobile_visits']}</div>
-                    <div class="stat-label">Mobile Visits</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">{round(desktop_percentage, 1)}%</div>
-                    <div class="stat-label">Desktop %</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">{round(mobile_percentage, 1)}%</div>
-                    <div class="stat-label">Mobile %</div>
+                <div class="breakdown-item">
+                    <div class="breakdown-number">{analytics_data['mobile_visits']}</div>
+                    <div class="breakdown-label">Mobile Users</div>
                 </div>
             </div>
             
-            <div class="button-group">
-                <a href="/api/analytics/export/csv" class="export-button">📊 Export CSV</a>
-                <a href="/api/analytics/export/json" class="export-button">📄 Export JSON</a>
-                <button class="test-button" onclick="generateTestData()">🧪 Add Test Visits</button>
-                <button class="reset-button" onclick="resetAnalytics()">🔄 Reset Analytics</button>
-            </div>
-            
-            <div class="last-updated">
-                Last reset: {analytics_data['last_reset']}
+            <div class="date-info">
+                Report generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}
             </div>
         </div>
-        
-        <script>
-            function resetAnalytics() {{
-                if (confirm('Are you sure you want to reset all analytics data?')) {{
-                    fetch('/api/analytics/reset', {{ method: 'POST' }})
-                        .then(response => response.json())
-                        .then(data => {{
-                            alert('Analytics reset successfully!');
-                            location.reload();
-                        }})
-                        .catch(error => {{
-                            alert('Error resetting analytics: ' + error);
-                        }});
-                }}
-            }}
-            
-            function generateTestData() {{
-                fetch('/api/analytics/test-data', {{ method: 'POST' }})
-                    .then(response => response.json())
-                    .then(data => {{
-                        alert('Test data added! ' + data.message);
-                        location.reload();
-                    }})
-                    .catch(error => {{
-                        alert('Error adding test data: ' + error);
-                    }});
-            }}
-            
-            // Auto-refresh every 30 seconds
-            setTimeout(() => {{
-                location.reload();
-            }}, 30000);
-        </script>
     </body>
     </html>
     """
