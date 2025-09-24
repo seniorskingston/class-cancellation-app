@@ -26,6 +26,11 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState<'real' | 'sample' | 'none'>('none');
   const [viewMode, setViewMode] = useState<ViewMode>('month');
+  
+  // Debug: Log view mode changes
+  useEffect(() => {
+    console.log('View mode changed to:', viewMode);
+  }, [viewMode]);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   // Modal state
@@ -420,7 +425,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         
         
         <h2 className="month-year">
-          {getViewTitle()}
+          {getViewTitle()} <span style={{fontSize: '0.8em', color: '#0072ce', fontWeight: 'normal'}}>({viewMode.toUpperCase()} VIEW)</span>
         </h2>
         <div className="data-source-indicator">
           {dataSource === 'real' ? (

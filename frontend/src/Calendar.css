@@ -283,6 +283,11 @@
 .calendar-grid.week-view .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  background: #f0f8ff;
+  border: 2px solid #0072ce;
+  border-radius: 8px;
+  padding: 10px;
 }
 
 .calendar-grid.day-view .calendar-days {
@@ -301,6 +306,12 @@
 .calendar-grid.month-view .calendar-weekdays,
 .calendar-grid.week-view .calendar-weekdays {
   grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-grid.week-view .calendar-weekdays {
+  background: #0072ce;
+  color: white;
+  font-weight: bold;
 }
 
 .calendar-grid.day-view .calendar-weekdays {
