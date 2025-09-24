@@ -26,13 +26,13 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState<'real' | 'sample' | 'none'>('none');
   const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   // Debug: Log view mode changes
   useEffect(() => {
     console.log('🔍 View mode changed to:', viewMode);
     console.log('📱 Is mobile:', isMobile);
   }, [viewMode, isMobile]);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
