@@ -1853,6 +1853,140 @@ def get_analytics():
         "status": "success"
     }
 
+@app.get("/analytics")
+def analytics_web_interface():
+    """Web interface for viewing analytics"""
+    global analytics_data
+    
+    desktop_percentage = (analytics_data['desktop_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
+    mobile_percentage = (analytics_data['mobile_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
+    
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Seniors Kingston App Analytics</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                background: linear-gradient(135deg, #0072ce, #00b388);
+                color: white;
+                min-height: 100vh;
+            }}
+            .container {{
+                background: rgba(255, 255, 255, 0.1);
+                padding: 30px;
+                border-radius: 15px;
+                backdrop-filter: blur(10px);
+            }}
+            h1 {{
+                text-align: center;
+                margin-bottom: 30px;
+                font-size: 2.5rem;
+            }}
+            .stats-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+            }}
+            .stat-card {{
+                background: rgba(255, 255, 255, 0.2);
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+            }}
+            .stat-number {{
+                font-size: 2rem;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }}
+            .stat-label {{
+                font-size: 1.1rem;
+                opacity: 0.9;
+            }}
+            .reset-button {{
+                background: #ff6b6b;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 1rem;
+                cursor: pointer;
+                margin: 20px auto;
+                display: block;
+            }}
+            .reset-button:hover {{
+                background: #ff5252;
+            }}
+            .last-updated {{
+                text-align: center;
+                opacity: 0.8;
+                margin-top: 20px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>📊 App Usage Analytics</h1>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{analytics_data['total_visits']}</div>
+                    <div class="stat-label">Total Visits</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{analytics_data['desktop_visits']}</div>
+                    <div class="stat-label">Desktop Visits</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{analytics_data['mobile_visits']}</div>
+                    <div class="stat-label">Mobile Visits</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{round(desktop_percentage, 1)}%</div>
+                    <div class="stat-label">Desktop %</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{round(mobile_percentage, 1)}%</div>
+                    <div class="stat-label">Mobile %</div>
+                </div>
+            </div>
+            
+            <button class="reset-button" onclick="resetAnalytics()">🔄 Reset Analytics</button>
+            
+            <div class="last-updated">
+                Last reset: {analytics_data['last_reset']}
+            </div>
+        </div>
+        
+        <script>
+            function resetAnalytics() {{
+                if (confirm('Are you sure you want to reset all analytics data?')) {{
+                    fetch('/api/analytics/reset', {{ method: 'POST' }})
+                        .then(response => response.json())
+                        .then(data => {{
+                            alert('Analytics reset successfully!');
+                            location.reload();
+                        }})
+                        .catch(error => {{
+                            alert('Error resetting analytics: ' + error);
+                        }});
+                }}
+            }}
+            
+            // Auto-refresh every 30 seconds
+            setTimeout(() => {{
+                location.reload();
+            }}, 30000);
+        </script>
+    </body>
+    </html>
+    """
+
 @app.post("/api/analytics/reset")
 def reset_analytics():
     """Reset analytics data (admin only)"""

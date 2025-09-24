@@ -981,7 +981,7 @@ function App() {
               <th>Program Status</th>
               <th>Class Cancellation</th>
               <th>Additional Information</th>
-              <th>Withdrawal</th>
+              <th>Refund</th>
             </tr>
           </thead>
           <tbody>
@@ -1159,7 +1159,7 @@ function App() {
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Program Status</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Active / Cancelled / Additions</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Class Cancellation</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Specific cancelled dates</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Additional Information</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Notes or details</td></tr>
-                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Withdrawal</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Allowed (Yes/No, based on classes completed)</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Refund</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Allowed (Yes/No, based on classes completed)</td></tr>
                 </tbody>
               </table>
 
@@ -1181,10 +1181,10 @@ function App() {
                 <li>Both exports respect your current filters and include your favorites at the top</li>
               </ul>
 
-              <h3>11. Withdrawal Rules</h3>
+              <h3>11. Refund Rules</h3>
               <ul>
-                <li><strong>Yes</strong> – Withdrawal allowed if fewer than 3 classes are completed</li>
-                <li><strong>No</strong> – Withdrawal not allowed if 3 or more classes are completed</li>
+                <li><strong>Yes</strong> – Refund allowed if fewer than 3 classes are completed</li>
+                <li><strong>No</strong> – Refund not allowed if 3 or more classes are completed</li>
                 <li>The calculation considers start date, current date, and cancellations.</li>
               </ul>
 
