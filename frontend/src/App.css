@@ -72,12 +72,12 @@
   align-items: center;
   gap: 5px;
   margin-left: 0;
-  height: 58px; /* Match icon height for perfect alignment */
+  height: 57px; /* Match icon height for perfect alignment */
 }
 
 .app-logo {
-  height: 58px;
-  width: 58px;
+  height: 57px;
+  width: 57px;
   max-width: 100%;
   border-radius: 6px;
   background: white;
@@ -506,7 +506,7 @@ tr:last-child td {
   gap: 10px;
   margin-bottom: 10px;
   width: 100%;
-  height: 58px; /* Match icon height */
+  height: 57px; /* Match icon height */
   vertical-align: top; /* Ensure consistent baseline */
 }
 
@@ -565,8 +565,8 @@ tr:last-child td {
 }
 
 .mobile-logo {
-  height: 58px;
-  width: 58px;
+  height: 57px;
+  width: 57px;
   max-width: 100%;
   border-radius: 6px;
   background: white;
@@ -1102,8 +1102,8 @@ tr:last-child td {
 
 /* Ensure logo sizing is consistent during loading */
 .app-logo, .mobile-logo {
-  height: 58px !important;
-  width: 58px !important;
+  height: 57px !important;
+  width: 57px !important;
   max-width: 100% !important;
   object-fit: contain !important;
   transition: all 0.3s ease;
