@@ -1891,16 +1891,18 @@ def analytics_web_interface():
                 font-weight: 600;
             }}
             .visit-number {{
-                font-size: 3.5rem;
+                font-size: 4.5rem;
                 font-weight: bold;
                 color: #0072ce;
                 margin: 20px 0;
                 text-shadow: 2px 2px 4px rgba(0, 114, 206, 0.1);
+                line-height: 1;
             }}
             .visit-label {{
-                font-size: 1.3rem;
-                color: #666;
+                font-size: 1.5rem;
+                color: #333;
                 margin-bottom: 30px;
+                font-weight: 600;
             }}
             .breakdown {{
                 display: grid;
@@ -1915,14 +1917,16 @@ def analytics_web_interface():
                 border-left: 4px solid #0072ce;
             }}
             .breakdown-number {{
-                font-size: 2rem;
+                font-size: 2.5rem;
                 font-weight: bold;
                 color: #0072ce;
+                line-height: 1;
             }}
             .breakdown-label {{
-                font-size: 1rem;
-                color: #666;
-                margin-top: 5px;
+                font-size: 1.1rem;
+                color: #333;
+                margin-top: 8px;
+                font-weight: 500;
             }}
             .date-info {{
                 color: #888;
