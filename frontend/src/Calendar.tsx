@@ -471,7 +471,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                       <div 
                         key={eventIndex} 
                         className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                        onClick={() => handleEventClick(event)}
+                        // onClick={() => handleEventClick(event)} // Disabled - events are read-only
                       >
                         <div className="mobile-event-time">
                           {event.startDate.toLocaleTimeString('en-US', { 
@@ -517,15 +517,15 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                 <div
                   key={index}
                   className={`calendar-day ${viewMode}-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`}
-                  onClick={() => {
-                    if (viewMode === 'day') {
-                      setSelectedDate(day);
-                      setSelectedEvent(null);
-                      setIsModalOpen(true);
-                    } else {
-                      handleDayClick(day.getDate());
-                    }
-                  }}
+                  // onClick={() => {
+                  //   if (viewMode === 'day') {
+                  //     setSelectedDate(day);
+                  //     setSelectedEvent(null);
+                  //     setIsModalOpen(true);
+                  //   } else {
+                  //     handleDayClick(day.getDate());
+                  //   }
+                  // }} // Disabled - calendar is read-only
                 >
                   <div className="day-number">{day.getDate()}</div>
                   <div className="day-events">
@@ -533,10 +533,10 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                       <div 
                         key={eventIndex} 
                         className={`event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEventClick(event);
-                        }}
+                        // onClick={(e) => {
+                        //   e.stopPropagation();
+                        //   handleEventClick(event);
+                        // }} // Disabled - events are read-only
                         title={`${event.title}${event.location ? ` - ${event.location}` : ''}${event.description ? `\n${event.description}` : ''}`}
                       >
                         <div className="event-time">

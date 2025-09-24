@@ -565,10 +565,12 @@ tr:last-child td {
 }
 
 .mobile-logo {
-  height: clamp(30px, 8vw, 50px);
+  height: 60px;
+  width: 60px;
   max-width: 100%;
   margin-bottom: clamp(8px, 2vw, 15px);
   object-fit: contain; /* Maintain aspect ratio */
+  vertical-align: top; /* Ensure consistent baseline */
 }
 
 .mobile-header h1 {

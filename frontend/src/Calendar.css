@@ -379,7 +379,7 @@
   padding: 4px 6px;
   border-radius: 4px;
   font-size: 0.75rem;
-  cursor: pointer;
+  cursor: default; /* Changed from pointer to default since events are read-only */
   transition: all 0.2s ease;
   width: 100%;
   max-width: 100%;
@@ -570,15 +570,15 @@
     padding: 15px 20px;
   }
   
-  .mobile-event-item {
-    background: #0072ce !important;
-    color: white !important;
-    padding: 12px 15px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
+.mobile-event-item {
+  background: #0072ce !important;
+  color: white !important;
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  cursor: default; /* Changed from pointer to default since events are read-only */
+  transition: all 0.2s ease;
+}
   
   .mobile-event-item:last-child {
     margin-bottom: 0;
