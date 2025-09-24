@@ -572,7 +572,7 @@ tr:last-child td {
   background: white;
   padding: 0.2rem;
   margin-bottom: clamp(8px, 2vw, 15px);
-  margin-top: 14px; /* Move company logo up by 2px to align with event logo */
+  margin-top: 9px; /* Move company logo up by 5px more to reduce top margin */
   object-fit: contain; /* Maintain aspect ratio */
   vertical-align: top; /* Ensure consistent baseline */
   align-self: center; /* Force center alignment within flex container */
