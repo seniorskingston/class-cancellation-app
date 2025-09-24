@@ -572,6 +572,7 @@ tr:last-child td {
   background: white;
   padding: 0.2rem;
   margin-bottom: clamp(8px, 2vw, 15px);
+  margin-top: -5px; /* Move company logo down slightly */
   object-fit: contain; /* Maintain aspect ratio */
   vertical-align: top; /* Ensure consistent baseline */
   align-self: center; /* Force center alignment within flex container */
