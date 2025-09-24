@@ -3,6 +3,8 @@ import sqlite3
 import uuid
 from fastapi import FastAPI, Query, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from typing import Optional
 from datetime import datetime, timedelta
@@ -1813,9 +1815,9 @@ known_events = []
 
 # Analytics tracking
 analytics_data = {
-    'desktop_visits': 0,
-    'mobile_visits': 0,
-    'total_visits': 0,
+    'desktop_visits': 25,  # Sample data to show how reports look
+    'mobile_visits': 18,   # Sample data to show how reports look
+    'total_visits': 43,    # Sample data to show how reports look
     'last_reset': datetime.now().isoformat()
 }
 
@@ -1869,7 +1871,7 @@ def analytics_web_interface():
         <style>
             body {{
                 font-family: Arial, sans-serif;
-                max-width: 800px;
+                max-width: 900px;
                 margin: 0 auto;
                 padding: 20px;
                 background: linear-gradient(135deg, #0072ce, #00b388);
@@ -1889,7 +1891,7 @@ def analytics_web_interface():
             }}
             .stats-grid {{
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
                 gap: 20px;
                 margin-bottom: 30px;
             }}
@@ -1908,6 +1910,27 @@ def analytics_web_interface():
                 font-size: 1.1rem;
                 opacity: 0.9;
             }}
+            .button-group {{
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+                margin: 20px 0;
+                flex-wrap: wrap;
+            }}
+            .export-button {{
+                background: #28a745;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 1rem;
+                cursor: pointer;
+                text-decoration: none;
+                display: inline-block;
+            }}
+            .export-button:hover {{
+                background: #218838;
+            }}
             .reset-button {{
                 background: #ff6b6b;
                 color: white;
@@ -1916,11 +1939,21 @@ def analytics_web_interface():
                 border-radius: 8px;
                 font-size: 1rem;
                 cursor: pointer;
-                margin: 20px auto;
-                display: block;
             }}
             .reset-button:hover {{
                 background: #ff5252;
+            }}
+            .test-button {{
+                background: #17a2b8;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 1rem;
+                cursor: pointer;
+            }}
+            .test-button:hover {{
+                background: #138496;
             }}
             .last-updated {{
                 text-align: center;
@@ -1956,7 +1989,12 @@ def analytics_web_interface():
                 </div>
             </div>
             
-            <button class="reset-button" onclick="resetAnalytics()">🔄 Reset Analytics</button>
+            <div class="button-group">
+                <a href="/api/analytics/export/csv" class="export-button">📊 Export CSV</a>
+                <a href="/api/analytics/export/json" class="export-button">📄 Export JSON</a>
+                <button class="test-button" onclick="generateTestData()">🧪 Add Test Visits</button>
+                <button class="reset-button" onclick="resetAnalytics()">🔄 Reset Analytics</button>
+            </div>
             
             <div class="last-updated">
                 Last reset: {analytics_data['last_reset']}
@@ -1976,6 +2014,18 @@ def analytics_web_interface():
                             alert('Error resetting analytics: ' + error);
                         }});
                 }}
+            }}
+            
+            function generateTestData() {{
+                fetch('/api/analytics/test-data', {{ method: 'POST' }})
+                    .then(response => response.json())
+                    .then(data => {{
+                        alert('Test data added! ' + data.message);
+                        location.reload();
+                    }})
+                    .catch(error => {{
+                        alert('Error adding test data: ' + error);
+                    }});
             }}
             
             // Auto-refresh every 30 seconds
@@ -2003,6 +2053,74 @@ def reset_analytics():
         "message": "Analytics data reset successfully",
         "status": "success"
     }
+
+@app.post("/api/analytics/test-data")
+def add_test_data():
+    """Add test data to analytics"""
+    global analytics_data
+    
+    # Add random test visits
+    import random
+    desktop_add = random.randint(1, 5)
+    mobile_add = random.randint(1, 3)
+    
+    analytics_data['desktop_visits'] += desktop_add
+    analytics_data['mobile_visits'] += mobile_add
+    analytics_data['total_visits'] += desktop_add + mobile_add
+    
+    return {
+        "message": f"Added {desktop_add} desktop and {mobile_add} mobile test visits",
+        "status": "success",
+        "added": {
+            "desktop": desktop_add,
+            "mobile": mobile_add,
+            "total": desktop_add + mobile_add
+        }
+    }
+
+@app.get("/api/analytics/export/csv")
+def export_analytics_csv():
+    """Export analytics data as CSV"""
+    global analytics_data
+    
+    desktop_percentage = (analytics_data['desktop_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
+    mobile_percentage = (analytics_data['mobile_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
+    
+    csv_content = f"""Date,Total Visits,Desktop Visits,Mobile Visits,Desktop %,Mobile %,Last Reset
+{datetime.now().strftime('%Y-%m-%d %H:%M:%S')},{analytics_data['total_visits']},{analytics_data['desktop_visits']},{analytics_data['mobile_visits']},{round(desktop_percentage, 1)},{round(mobile_percentage, 1)},{analytics_data['last_reset']}
+"""
+    
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+    )
+
+@app.get("/api/analytics/export/json")
+def export_analytics_json():
+    """Export analytics data as JSON"""
+    global analytics_data
+    
+    desktop_percentage = (analytics_data['desktop_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
+    mobile_percentage = (analytics_data['mobile_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
+    
+    export_data = {
+        "export_date": datetime.now().isoformat(),
+        "analytics": {
+            "total_visits": analytics_data['total_visits'],
+            "desktop_visits": analytics_data['desktop_visits'],
+            "mobile_visits": analytics_data['mobile_visits'],
+            "desktop_percentage": round(desktop_percentage, 1),
+            "mobile_percentage": round(mobile_percentage, 1),
+            "last_reset": analytics_data['last_reset']
+        }
+    }
+    
+    return Response(
+        content=json.dumps(export_data, indent=2),
+        media_type="application/json",
+        headers={"Content-Disposition": f"attachment; filename=analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"}
+    )
 
 @app.get("/api/sync-status")
 def get_sync_status():
