@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import uuid
-from fastapi import FastAPI, Query, UploadFile, File
+from fastapi import FastAPI, Query, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 from typing import Optional
@@ -1133,9 +1133,13 @@ def parse_event_date_time(date_str):
         return start.isoformat() + 'Z', end.isoformat() + 'Z'
 
 @app.get("/api/events")
-def get_events():
+def get_events(request: Request):
     """Get all events (real + editable events) from Seniors Kingston"""
     print(f"🌐 Events API call received")
+    
+    # Track the visit
+    user_agent = request.headers.get('user-agent', '')
+    track_visit(user_agent)
     
     # Try to get real events from Seniors Kingston website first
     print("🔍 Attempting to fetch real events from Seniors Kingston website...")
@@ -1806,6 +1810,65 @@ def monthly_sync():
 
 # Initialize known_events at module level
 known_events = []
+
+# Analytics tracking
+analytics_data = {
+    'desktop_visits': 0,
+    'mobile_visits': 0,
+    'total_visits': 0,
+    'last_reset': datetime.now().isoformat()
+}
+
+def track_visit(user_agent: str):
+    """Track a visit and determine if it's desktop or mobile"""
+    global analytics_data
+    
+    # Simple mobile detection based on user agent
+    mobile_keywords = ['mobile', 'android', 'iphone', 'ipad', 'tablet', 'blackberry', 'windows phone']
+    is_mobile = any(keyword in user_agent.lower() for keyword in mobile_keywords)
+    
+    analytics_data['total_visits'] += 1
+    if is_mobile:
+        analytics_data['mobile_visits'] += 1
+    else:
+        analytics_data['desktop_visits'] += 1
+    
+    print(f"📊 Visit tracked: {'Mobile' if is_mobile else 'Desktop'} - Total: {analytics_data['total_visits']}")
+
+@app.get("/api/analytics")
+def get_analytics():
+    """Get usage analytics - desktop vs mobile visits"""
+    global analytics_data
+    
+    desktop_percentage = (analytics_data['desktop_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
+    mobile_percentage = (analytics_data['mobile_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
+    
+    return {
+        "desktop_visits": analytics_data['desktop_visits'],
+        "mobile_visits": analytics_data['mobile_visits'],
+        "total_visits": analytics_data['total_visits'],
+        "desktop_percentage": round(desktop_percentage, 1),
+        "mobile_percentage": round(mobile_percentage, 1),
+        "last_reset": analytics_data['last_reset'],
+        "status": "success"
+    }
+
+@app.post("/api/analytics/reset")
+def reset_analytics():
+    """Reset analytics data (admin only)"""
+    global analytics_data
+    
+    analytics_data = {
+        'desktop_visits': 0,
+        'mobile_visits': 0,
+        'total_visits': 0,
+        'last_reset': datetime.now().isoformat()
+    }
+    
+    return {
+        "message": "Analytics data reset successfully",
+        "status": "success"
+    }
 
 @app.get("/api/sync-status")
 def get_sync_status():

@@ -416,16 +416,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             </>
           )}
           
-          {/* Desktop/Mobile Switch - moved to same line */}
-          <div className="desktop-mobile-switch">
-            <button 
-              className={`switch-button ${!isMobile ? 'active' : ''}`}
-              onClick={() => setIsMobile(false)}
-              title={isMobile ? "Switch to Desktop View" : "Switch to Mobile View"}
-            >
-              {isMobile ? '🖥️ Desktop' : '📱 Mobile'}
-            </button>
-          </div>
         </div>
         
         
