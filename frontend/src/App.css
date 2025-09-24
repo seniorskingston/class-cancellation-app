@@ -647,15 +647,15 @@ tr:last-child td {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 60px;
-  width: 60px;
+  height: 61px;
+  width: 61px;
   margin: 0;
   padding: 0;
 }
 
 .mobile-events-schedule-image {
-  height: 60px;
-  width: 60px;
+  height: 61px;
+  width: 61px;
   object-fit: contain;
   border-radius: 6px;
   vertical-align: top; /* Ensure consistent baseline */
