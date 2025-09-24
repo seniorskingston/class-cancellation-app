@@ -90,12 +90,12 @@
     gap: 10px;
     margin-bottom: 10px;
     width: 100%;
-    height: 57px; /* Match icon height */
+    height: 56px; /* Match icon height */
   }
   
   .app-logo {
-    height: 57px;
-    width: 57px;
+    height: 56px;
+    width: 56px;
     max-width: 100%;
     border-radius: 6px;
   }
