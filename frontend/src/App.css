@@ -1140,7 +1140,7 @@ tr:last-child td {
   left: 50%;
   transform: translateX(-50%);
   margin-top: 8px;
-  background: #ff0000 !important;
+  background: #f0f0f0 !important;
   color: black !important;
   font-weight: bold;
   padding: 6px 10px;
@@ -1174,27 +1174,27 @@ tr:last-child td {
   visibility: visible !important;
 }
 
-/* Company logo tooltip - ensure it works with very high z-index and fixed positioning */
+/* Company logo tooltip - position below the button */
 .app-logo.custom-tooltip:hover::after,
 .mobile-logo.custom-tooltip:hover::after {
   content: attr(data-tooltip);
-  position: fixed !important;
-  top: 60px !important;
+  position: absolute !important;
+  top: 100% !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  margin-top: 0 !important;
-  background: #ff0000 !important;
-  color: white !important;
+  margin-top: 10px !important;
+  background: #f0f0f0 !important;
+  color: black !important;
   font-weight: bold;
-  padding: 15px 20px !important;
-  border-radius: 8px;
-  font-size: 1.2rem !important;
+  padding: 8px 12px !important;
+  border-radius: 4px;
+  font-size: 0.9rem !important;
   white-space: nowrap;
   z-index: 999999999 !important;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   pointer-events: none;
-  border: 3px solid #000 !important;
-  min-width: 200px !important;
+  border: 2px solid #ccc !important;
+  min-width: 120px !important;
   text-align: center;
   display: block !important;
   opacity: 1 !important;
@@ -1204,13 +1204,13 @@ tr:last-child td {
 .app-logo.custom-tooltip:hover::before,
 .mobile-logo.custom-tooltip:hover::before {
   content: '';
-  position: fixed !important;
-  top: 45px !important;
+  position: absolute !important;
+  top: 100% !important;
   left: 50% !important;
-  transform: translateX(-50%) !important;
-  margin-top: 0 !important;
-  border: 8px solid transparent;
-  border-bottom-color: #ff0000 !important;
+  transform: translateX(-50%) translateY(-100%) !important;
+  margin-top: 10px !important;
+  border: 6px solid transparent;
+  border-bottom-color: #f0f0f0 !important;
   z-index: 999999999 !important;
   pointer-events: none;
   display: block !important;
@@ -1221,29 +1221,40 @@ tr:last-child td {
 /* Mobile tooltips - position below to avoid header overlap */
 @media (max-width: 768px) {
   .mobile-header-buttons .custom-tooltip:hover::after {
-    top: 100%;
-    bottom: auto;
-    margin-top: 10px;
-    background: #ff0000 !important;
+    top: 50% !important;
+    left: 100% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+    margin-left: 15px !important;
+    margin-top: 0 !important;
+    background: #f0f0f0 !important;
     border: 2px solid #ccc !important;
     font-weight: bold;
-    padding: 10px 15px;
-    font-size: 1rem;
-    min-width: 100px;
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+    min-width: 120px !important;
     text-align: center;
-    z-index: 99999999 !important;
+    z-index: 999999999 !important;
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
+    color: black !important;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
   
   .mobile-header-buttons .custom-tooltip:hover::before {
-    top: 100%;
-    bottom: auto;
-    margin-top: 10px;
+    top: 50% !important;
+    left: 100% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) translateX(-100%) !important;
+    margin-left: 15px !important;
+    margin-top: 0 !important;
     border: 6px solid transparent;
-    border-bottom-color: #f0f0f0;
-    transform: translateX(-50%) translateY(-100%);
+    border-right-color: #f0f0f0 !important;
+    z-index: 999999999 !important;
   }
   
   /* Mobile company logo tooltip - position to the side */
@@ -1282,7 +1293,7 @@ tr:last-child td {
   transform: translateY(-50%);
   margin-left: 10px;
   margin-top: 0;
-  background: #ff0000 !important;
+  background: #f0f0f0 !important;
   color: black !important;
   font-weight: bold;
   padding: 6px 10px;
@@ -1323,7 +1334,7 @@ tr:last-child td {
   left: 50%;
   transform: translateX(-50%);
   margin-top: 8px;
-  background: #ff0000 !important;
+  background: #f0f0f0 !important;
   color: black !important;
   font-weight: bold;
   padding: 6px 10px;
