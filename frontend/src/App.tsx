@@ -853,7 +853,7 @@ function App() {
       {!isMobileView && showFloatingQR && (
         <div className="floating-qr-container">
           <button 
-            className="floating-qr-button"
+            className="floating-qr-button qr-code-button"
             onClick={() => setShowQRCode(true)}
             title="Open QR Code"
           >
