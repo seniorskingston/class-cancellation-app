@@ -22,6 +22,7 @@ DB_PATH = "class_cancellations.db"
 
 # Set timezone to Kingston, Ontario
 KINGSTON_TZ = pytz.timezone('America/Toronto')
+utc = pytz.UTC
 
 app = FastAPI(title="Program Schedule Update API")
 
