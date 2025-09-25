@@ -54,7 +54,6 @@ function App() {
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
   const [currentView, setCurrentView] = useState<'main' | 'calendar'>('main');
   const [showTooltips, setShowTooltips] = useState(true);
-  const [showFirstTimeGuide, setShowFirstTimeGuide] = useState(false);
 
   // Generate QR code for the current URL
   const generateQRCode = async () => {
@@ -544,11 +543,15 @@ function App() {
             <button 
               onClick={() => setIsMobileView(false)} 
               className="mobile-to-desktop-button"
-              title="Switch to Desktop View"
+              title={showTooltips ? "Switch to Desktop View" : ""}
             >
               🖥️ Desktop
             </button>
-            <button onClick={handleRefresh} className="refresh-button">
+            <button 
+              onClick={handleRefresh} 
+              className="refresh-button"
+              title={showTooltips ? "Refresh Data" : ""}
+            >
               🔄 Refresh
             </button>
             <button 
@@ -564,7 +567,7 @@ function App() {
                 setShowQRCode(true);
               }} 
               className="mobile-share-button"
-              title="Share App QR Code"
+              title={showTooltips ? "Share App QR Code" : ""}
             >
               <img src="/users-icon-white.svg" alt="Share" style={{ height: '1.2em', verticalAlign: 'middle', marginRight: '5px' }} />
               Share
@@ -572,7 +575,11 @@ function App() {
             {isInStandaloneMode ? (
               <div className="installed-status">✅ App Installed</div>
             ) : (
-              <button onClick={handleInstallClick} className="install-button">
+              <button 
+                onClick={handleInstallClick} 
+                className="install-button"
+                title={showTooltips ? "Install App on Device" : ""}
+              >
                 📲 Save
               </button>
             )}
@@ -871,7 +878,7 @@ function App() {
             alt="Company Logo" 
             className="app-logo clickable-logo"
             onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
-            title="Visit Seniors Kingston Website"
+            title={showTooltips ? "Visit Seniors Kingston Website" : ""}
           />
           <button 
             onClick={() => setCurrentView('calendar')} 
@@ -896,19 +903,13 @@ function App() {
           >
             {showTooltips ? "🔍 Turn off hints" : "💡 Turn on hints"}
           </button>
-          <button 
-            className="guide-button"
-            onClick={() => setShowFirstTimeGuide(true)}
-            title="Show app guide"
-          >
-            📖 App Guide
-          </button>
         </div>
       </header>
       <div className="filters">
         <button 
           onClick={() => setIsMobileView(true)} 
           style={{ background: "#00b388", color: "white", fontSize: "0.75rem", padding: "0.3rem 0.6rem" }}
+          title={showTooltips ? "Switch to Mobile View" : ""}
         >
           📱 Mobile
         </button>
@@ -1499,41 +1500,6 @@ function App() {
         </div>
       )}
       
-      {/* First Time Guide Modal */}
-      {showFirstTimeGuide && (
-        <div className="guide-modal">
-          <div className="guide-content">
-            <h2>📖 App Guide</h2>
-            
-            <div className="guide-step">
-              <h3>🏠 Main Page</h3>
-              <p>View program cancellations and updates. Use filters to find specific programs.</p>
-            </div>
-            
-            <div className="guide-step">
-              <h3>📅 Event Schedule</h3>
-              <p>Click the Event button to view Seniors Kingston events and Canadian holidays.</p>
-            </div>
-            
-            <div className="guide-step">
-              <h3>🔍 Navigation</h3>
-              <p>Desktop: Hover over buttons for tooltips. Mobile: Labels show button functions.</p>
-            </div>
-            
-            <div className="guide-step">
-              <h3>📱 Mobile View</h3>
-              <p>Switch to mobile view to see how the app looks on phones and tablets.</p>
-            </div>
-            
-            <button 
-              className="guide-close"
-              onClick={() => setShowFirstTimeGuide(false)}
-            >
-              Got it! Close Guide
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

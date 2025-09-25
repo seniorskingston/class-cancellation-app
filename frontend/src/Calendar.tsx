@@ -302,11 +302,21 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
   const isHoliday = (eventTitle: string): boolean => {
     const holidays = [
+      // 2025 Holidays
+      'New Year\'s Day',
+      'Good Friday',
+      'Easter Monday',
+      'Victoria Day',
+      'Saint-Jean-Baptiste Day',
+      'Canada Day',
+      'Civic Holiday',
       'Labour Day',
-      'Thanksgiving Day', 
-      'Remembrance Day',
+      'National Day for Truth and Reconciliation',
+      'Thanksgiving Day',
       'Christmas Day',
-      'National Day of Truth and Reconciliation'
+      'Boxing Day',
+      // 2026 Holidays
+      'Family Day'
     ];
     return holidays.some(holiday => eventTitle.includes(holiday));
   };

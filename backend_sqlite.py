@@ -1811,7 +1811,165 @@ def monthly_sync():
         }
 
 # Initialize known_events at module level
-known_events = []
+known_events = [
+    # 2025 Canadian Holidays
+    {
+        'title': 'New Year\'s Day',
+        'startDate': datetime(2025, 1, 1, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 1, 1, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'New Year\'s Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Good Friday',
+        'startDate': datetime(2025, 4, 18, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 4, 18, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Good Friday - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Easter Monday',
+        'startDate': datetime(2025, 4, 21, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 4, 21, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Easter Monday - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Victoria Day',
+        'startDate': datetime(2025, 5, 19, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 5, 19, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Victoria Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Saint-Jean-Baptiste Day',
+        'startDate': datetime(2025, 6, 24, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 6, 24, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Saint-Jean-Baptiste Day - Quebec holiday',
+        'location': 'Quebec'
+    },
+    {
+        'title': 'Canada Day',
+        'startDate': datetime(2025, 7, 1, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 7, 1, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Canada Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Civic Holiday',
+        'startDate': datetime(2025, 8, 4, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 8, 4, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Civic Holiday - Provincial holiday (excluding Quebec)',
+        'location': 'Canada (excluding Quebec)'
+    },
+    {
+        'title': 'Labour Day',
+        'startDate': datetime(2025, 9, 1, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 9, 1, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Labour Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'National Day for Truth and Reconciliation',
+        'startDate': datetime(2025, 9, 30, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 9, 30, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'National Day for Truth and Reconciliation - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Thanksgiving Day',
+        'startDate': datetime(2025, 10, 13, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 10, 13, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Thanksgiving Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Christmas Day',
+        'startDate': datetime(2025, 12, 25, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 12, 25, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Christmas Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Boxing Day',
+        'startDate': datetime(2025, 12, 26, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2025, 12, 26, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Boxing Day - Federal holiday',
+        'location': 'Canada'
+    },
+    
+    # 2026 Canadian Holidays
+    {
+        'title': 'New Year\'s Day',
+        'startDate': datetime(2026, 1, 1, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2026, 1, 1, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'New Year\'s Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Family Day',
+        'startDate': datetime(2026, 2, 16, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2026, 2, 16, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Family Day - Provincial holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Good Friday',
+        'startDate': datetime(2026, 4, 3, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2026, 4, 3, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Good Friday - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Victoria Day',
+        'startDate': datetime(2026, 5, 18, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2026, 5, 18, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Victoria Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Canada Day',
+        'startDate': datetime(2026, 7, 1, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2026, 7, 1, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Canada Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Civic Holiday',
+        'startDate': datetime(2026, 8, 3, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2026, 8, 3, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Civic Holiday - Provincial holiday (Optional)',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Labour Day',
+        'startDate': datetime(2026, 9, 7, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2026, 9, 7, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Labour Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Thanksgiving Day',
+        'startDate': datetime(2026, 10, 12, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2026, 10, 12, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Thanksgiving Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Christmas Day',
+        'startDate': datetime(2026, 12, 25, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2026, 12, 25, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Christmas Day - Federal holiday',
+        'location': 'Canada'
+    },
+    {
+        'title': 'Boxing Day',
+        'startDate': datetime(2026, 12, 26, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'endDate': datetime(2026, 12, 26, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
+        'description': 'Boxing Day - Federal holiday',
+        'location': 'Canada'
+    }
+]
 
 # Analytics tracking
 analytics_data = {
