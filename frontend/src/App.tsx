@@ -940,13 +940,14 @@ function App() {
             <option value="cancellations">Show Class Cancellations</option>
             <option value="all">Show All Programs</option>
         </select>
-        <button onClick={handleRefresh} disabled={loading}>
+        <button onClick={handleRefresh} disabled={loading} title="Refresh Data">
           {loading ? "Refreshing..." : "Refresh"}
         </button>
         <button 
           onClick={() => handleExport('excel')} 
           style={{ background: "#0072ce", color: "white" }}
           disabled={cancellations.length === 0}
+          title="Export to Excel"
         >
           📊 Excel
         </button>
@@ -954,12 +955,14 @@ function App() {
           onClick={() => handleExport('pdf')} 
           style={{ background: "#0072ce", color: "white" }}
           disabled={cancellations.length === 0}
+          title="Export to PDF"
         >
           📄 PDF
           </button>
         <button 
           onClick={() => setShowUserGuide(true)} 
           style={{ background: "#0072ce", color: "white" }}
+          title="View Help Guide"
         >
           📖 Help
           </button>

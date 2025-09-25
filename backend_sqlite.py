@@ -1150,8 +1150,8 @@ def get_events(request: Request):
         real_events = scrape_seniors_kingston_events()
         if real_events and len(real_events) > 0:
             print(f"✅ Successfully fetched {len(real_events)} real events from website")
-            # Combine real events with editable events only
-            all_events = real_events + list(editable_events.values())
+            # Combine real events with Canadian holidays and editable events
+            all_events = real_events + globals()['known_events'] + list(editable_events.values())
             return {
                 "events": all_events,
                 "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
@@ -1509,8 +1509,8 @@ def get_events(request: Request):
         }
     ]
     
-    # Combine known events with editable events
-    all_events = known_events + list(editable_events.values())
+    # Combine known events with Canadian holidays and editable events
+    all_events = known_events + globals()['known_events'] + list(editable_events.values())
     
     return {
         "events": all_events,

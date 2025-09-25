@@ -396,9 +396,9 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       
       <div className="calendar-header">
         <div className="calendar-controls">
-          <button onClick={goToPreviousMonth} className="nav-button">‹</button>
-          <button onClick={goToToday} className="today-button">Today</button>
-          <button onClick={goToNextMonth} className="nav-button">›</button>
+          <button onClick={goToPreviousMonth} className="nav-button" title="Previous Month/Week/Day">‹</button>
+          <button onClick={goToToday} className="today-button" title="Go to Today">Today</button>
+          <button onClick={goToNextMonth} className="nav-button" title="Next Month/Week/Day">›</button>
           
           {/* View Mode Controls - moved next to Today button */}
           {!isMobile && (
@@ -409,6 +409,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                   console.log('🔘 Month button clicked!');
                   setViewMode('month');
                 }}
+                title="Month View"
               >
                 Month
               </button>
@@ -418,6 +419,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                   console.log('🔘 Week button clicked!');
                   setViewMode('week');
                 }}
+                title="Week View"
               >
                 Week
               </button>
@@ -427,6 +429,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                   console.log('🔘 Day button clicked!');
                   setViewMode('day');
                 }}
+                title="Day View"
               >
                 Day
               </button>
@@ -437,12 +440,14 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
               <button 
                 className={`view-button ${viewMode === 'week' ? 'active' : ''}`}
                 onClick={() => setViewMode('week')}
+                title="Week View"
               >
                 Week
               </button>
               <button 
                 className={`view-button ${viewMode === 'day' ? 'active' : ''}`}
                 onClick={() => setViewMode('day')}
+                title="Day View"
               >
                 Day
               </button>
