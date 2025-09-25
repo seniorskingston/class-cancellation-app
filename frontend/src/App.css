@@ -292,7 +292,7 @@ h1 {
   border: 1px solid #b2d8d8;
   border-radius: 5px;
   font-size: 0.85rem;
-  min-width: 120px;
+  min-width: 100px;
   flex-shrink: 0;
 }
 
@@ -1138,15 +1138,15 @@ tr:last-child td {
   background: #f0f0f0 !important;
   color: black !important;
   font-weight: bold;
-  padding: 10px 15px;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
   white-space: nowrap;
-  z-index: 99999 !important;
+  z-index: 999999 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   pointer-events: none;
   border: 2px solid #ccc !important;
-  min-width: 120px;
+  min-width: 100px;
   text-align: center;
   display: block !important;
   opacity: 1 !important;
@@ -1162,7 +1162,7 @@ tr:last-child td {
   margin-top: 8px;
   border: 6px solid transparent;
   border-bottom-color: #f0f0f0 !important;
-  z-index: 99999 !important;
+  z-index: 999999 !important;
   pointer-events: none;
   display: block !important;
   opacity: 1 !important;
@@ -1180,9 +1180,9 @@ tr:last-child td {
     font-weight: bold;
     padding: 10px 15px;
     font-size: 1rem;
-    min-width: 120px;
+    min-width: 100px;
     text-align: center;
-    z-index: 99999 !important;
+    z-index: 999999 !important;
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
@@ -1210,7 +1210,7 @@ tr:last-child td {
     font-weight: bold;
     padding: 10px 15px;
     font-size: 1rem;
-    min-width: 120px;
+    min-width: 100px;
     text-align: center;
   }
   
@@ -1235,15 +1235,15 @@ tr:last-child td {
   background: #f0f0f0 !important;
   color: black !important;
   font-weight: bold;
-  padding: 10px 15px;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
   white-space: nowrap;
-  z-index: 99999 !important;
+  z-index: 999999 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   pointer-events: none;
   border: 2px solid #ccc !important;
-  min-width: 120px;
+  min-width: 100px;
   text-align: center;
   display: block !important;
   opacity: 1 !important;
@@ -1259,7 +1259,7 @@ tr:last-child td {
   margin-top: 8px;
   border: 6px solid transparent;
   border-bottom-color: #f0f0f0 !important;
-  z-index: 99999 !important;
+  z-index: 999999 !important;
   pointer-events: none;
   display: block !important;
   opacity: 1 !important;
@@ -1275,15 +1275,15 @@ tr:last-child td {
   background: #f0f0f0 !important;
   color: black !important;
   font-weight: bold;
-  padding: 10px 15px;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
   white-space: nowrap;
-  z-index: 99999 !important;
+  z-index: 999999 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   pointer-events: none;
   border: 2px solid #ccc !important;
-  min-width: 120px;
+  min-width: 100px;
   text-align: center;
   display: block !important;
   opacity: 1 !important;
@@ -1299,7 +1299,7 @@ tr:last-child td {
   margin-top: 8px;
   border: 6px solid transparent;
   border-bottom-color: #f0f0f0 !important;
-  z-index: 99999 !important;
+  z-index: 999999 !important;
   pointer-events: none;
   display: block !important;
   opacity: 1 !important;
@@ -1319,7 +1319,7 @@ tr:last-child td {
   font-weight: bold;
   padding: 10px 15px;
   font-size: 1rem;
-  min-width: 120px;
+  min-width: 100px;
   text-align: center;
 }
 
@@ -1347,7 +1347,7 @@ tr:last-child td {
     font-weight: bold;
     padding: 10px 15px;
     font-size: 1rem;
-    min-width: 120px;
+    min-width: 100px;
     text-align: center;
   }
   
@@ -1373,7 +1373,7 @@ tr:last-child td {
     font-weight: bold;
     padding: 10px 15px;
     font-size: 1rem;
-    min-width: 120px;
+    min-width: 100px;
     text-align: center;
     z-index: 10000;
   }
@@ -1555,7 +1555,7 @@ tr:last-child td {
   
   /* Ensure QR modal works properly on mobile */
   .modal-overlay {
-    z-index: 99999 !important;
+    z-index: 999999 !important;
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;

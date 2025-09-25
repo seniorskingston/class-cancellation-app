@@ -597,7 +597,8 @@ function App() {
             />
             <button 
               onClick={handleMobileSearch}
-              className="mobile-search-button"
+              className="mobile-search-button custom-tooltip"
+              data-tooltip="Search Programs"
             >
               🔍
             </button>
@@ -1228,7 +1229,12 @@ function App() {
               <p>For technical issues or questions, please contact your system administrator.</p>
             </div>
             <div className="modal-actions">
-              <button onClick={() => setShowUserGuide(false)} style={{ background: "#0072ce", color: "white" }}>
+              <button 
+                onClick={() => setShowUserGuide(false)} 
+                style={{ background: "#0072ce", color: "white" }}
+                className="custom-tooltip"
+                data-tooltip="Close Help Guide"
+              >
                 Close
               </button>
             </div>
@@ -1476,7 +1482,13 @@ function App() {
               ) : (
                 <div className="qr-code-loading">
                   <p>Generating QR code...</p>
-                  <button onClick={generateQRCode}>Retry</button>
+                  <button 
+                    onClick={generateQRCode}
+                    className="custom-tooltip"
+                    data-tooltip="Retry QR Code Generation"
+                  >
+                    Retry
+                  </button>
                   <div style={{ background: 'yellow', padding: '10px', margin: '10px 0' }}>
                     <strong>DEBUG:</strong> QR Code not generated yet. Click Retry or wait for generation.
                   </div>
