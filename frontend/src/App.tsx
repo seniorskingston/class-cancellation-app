@@ -571,9 +571,7 @@ function App() {
               <img src="/users-icon-white.svg" alt="Share" style={{ height: '1.2em', verticalAlign: 'middle', marginRight: '5px' }} />
               Share
             </button>
-            {isInStandaloneMode ? (
-              <div className="installed-status">✅ App Installed</div>
-            ) : (
+            {!isInStandaloneMode && (
               <button 
                 onClick={handleInstallClick} 
                 className="install-button custom-tooltip"
