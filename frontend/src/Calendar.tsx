@@ -558,14 +558,14 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                   <div className="day-number">{day.getDate()}</div>
                   <div className="day-events">
                     {dayEvents.map((event, eventIndex) => (
-                      <div 
-                        key={eventIndex} 
-                        className={`event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
+                      <div
+                        key={eventIndex}
+                        className={`event-item custom-tooltip ${isHoliday(event.title) ? 'holiday-event' : ''}`}
                         // onClick={(e) => {
                         //   e.stopPropagation();
                         //   handleEventClick(event);
                         // }} // Disabled - events are read-only
-                        title={`${event.title}${event.location ? ` - ${event.location}` : ''}${event.description ? `\n${event.description}` : ''}`}
+                        data-tooltip={`${event.title}${event.location ? ` - ${event.location}` : ''}${event.description ? `\n${event.description}` : ''}`}
                       >
                         <div className="event-time">
                           {event.startDate.toLocaleTimeString('en-US', { 

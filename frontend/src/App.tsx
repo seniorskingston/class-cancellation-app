@@ -860,9 +860,9 @@ function App() {
             📱
           </button>
           <button 
-            className="floating-qr-close"
+            className="floating-qr-close custom-tooltip"
             onClick={() => setShowFloatingQR(false)}
-            title="Close QR Code"
+            data-tooltip="Close QR Code"
           >
             ×
           </button>
@@ -1015,9 +1015,9 @@ function App() {
                 <tr key={i} className={isFavorite ? 'favorite-row' : ''}>
                   <td>
                     <span 
-                      className={`favorite-star ${isFavorite ? 'favorited' : ''}`}
+                      className={`favorite-star custom-tooltip ${isFavorite ? 'favorited' : ''}`}
                       onClick={() => toggleFavorite(c.program_id)}
-                      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                      data-tooltip={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                     >
                       {isFavorite ? '★' : '☆'}
                     </span>
