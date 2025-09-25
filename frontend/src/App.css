@@ -1140,7 +1140,7 @@ tr:last-child td {
   left: 50%;
   transform: translateX(-50%);
   margin-top: 8px;
-  background: #f0f0f0 !important;
+  background: #ff0000 !important;
   color: black !important;
   font-weight: bold;
   padding: 6px 10px;
@@ -1174,27 +1174,27 @@ tr:last-child td {
   visibility: visible !important;
 }
 
-/* Company logo tooltip - ensure it works */
+/* Company logo tooltip - ensure it works with very high z-index and fixed positioning */
 .app-logo.custom-tooltip:hover::after,
 .mobile-logo.custom-tooltip:hover::after {
   content: attr(data-tooltip);
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 8px;
-  background: #f0f0f0 !important;
-  color: black !important;
+  position: fixed !important;
+  top: 60px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin-top: 0 !important;
+  background: #ff0000 !important;
+  color: white !important;
   font-weight: bold;
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 0.85rem;
+  padding: 15px 20px !important;
+  border-radius: 8px;
+  font-size: 1.2rem !important;
   white-space: nowrap;
-  z-index: 99999999 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 999999999 !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
   pointer-events: none;
-  border: 2px solid #ccc !important;
-  min-width: 100px;
+  border: 3px solid #000 !important;
+  min-width: 200px !important;
   text-align: center;
   display: block !important;
   opacity: 1 !important;
@@ -1204,14 +1204,14 @@ tr:last-child td {
 .app-logo.custom-tooltip:hover::before,
 .mobile-logo.custom-tooltip:hover::before {
   content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-100%);
-  margin-top: 8px;
-  border: 6px solid transparent;
-  border-bottom-color: #f0f0f0 !important;
-  z-index: 99999999 !important;
+  position: fixed !important;
+  top: 45px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin-top: 0 !important;
+  border: 8px solid transparent;
+  border-bottom-color: #ff0000 !important;
+  z-index: 999999999 !important;
   pointer-events: none;
   display: block !important;
   opacity: 1 !important;
@@ -1224,7 +1224,7 @@ tr:last-child td {
     top: 100%;
     bottom: auto;
     margin-top: 10px;
-    background: #f0f0f0 !important;
+    background: #ff0000 !important;
     border: 2px solid #ccc !important;
     font-weight: bold;
     padding: 10px 15px;
@@ -1282,7 +1282,7 @@ tr:last-child td {
   transform: translateY(-50%);
   margin-left: 10px;
   margin-top: 0;
-  background: #f0f0f0 !important;
+  background: #ff0000 !important;
   color: black !important;
   font-weight: bold;
   padding: 6px 10px;
@@ -1323,7 +1323,7 @@ tr:last-child td {
   left: 50%;
   transform: translateX(-50%);
   margin-top: 8px;
-  background: #f0f0f0 !important;
+  background: #ff0000 !important;
   color: black !important;
   font-weight: bold;
   padding: 6px 10px;
