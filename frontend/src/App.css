@@ -572,7 +572,7 @@ tr:last-child td {
   background: white;
   padding: 0.2rem;
   margin-bottom: clamp(8px, 2vw, 15px);
-  margin-top: 11px; /* Increase gap between top of page and company logo by 2px */
+  margin-top: 8px; /* Move company logo 3px up (shorten gap by 3px) */
   object-fit: contain; /* Maintain aspect ratio */
   vertical-align: top; /* Ensure consistent baseline */
   align-self: center; /* Force center alignment within flex container */
@@ -1121,6 +1121,41 @@ tr:last-child td {
 .clickable-logo:hover {
   transform: scale(1.05);
   filter: brightness(1.1);
+}
+
+/* Custom Tooltip Styling */
+[title] {
+  position: relative;
+}
+
+[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #5ce1e6;
+  color: black;
+  font-weight: bold;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  border: 5px solid transparent;
+  border-top-color: #5ce1e6;
+  z-index: 1000;
+  pointer-events: none;
 }
 
 /* Additional Android PWA fixes - gentler scaling */
