@@ -1124,12 +1124,12 @@ tr:last-child td {
 }
 
 /* Custom Tooltip Styling - Bigger and better positioning */
-[title] {
+.custom-tooltip {
   position: relative;
 }
 
-[title]:hover::after {
-  content: attr(title);
+.custom-tooltip:hover::after {
+  content: attr(data-tooltip);
   position: absolute;
   top: 100%;
   left: 50%;
@@ -1150,7 +1150,7 @@ tr:last-child td {
   text-align: center;
 }
 
-[title]:hover::before {
+.custom-tooltip:hover::before {
   content: '';
   position: absolute;
   top: 100%;
@@ -1165,7 +1165,7 @@ tr:last-child td {
 
 /* Mobile tooltips - position below to avoid header overlap */
 @media (max-width: 768px) {
-  .mobile-header-buttons [title]:hover::after {
+  .mobile-header-buttons .custom-tooltip:hover::after {
     top: 100%;
     bottom: auto;
     margin-top: 10px;
@@ -1178,7 +1178,7 @@ tr:last-child td {
     text-align: center;
   }
   
-  .mobile-header-buttons [title]:hover::before {
+  .mobile-header-buttons .custom-tooltip:hover::before {
     top: 100%;
     bottom: auto;
     margin-top: 10px;
@@ -1188,7 +1188,7 @@ tr:last-child td {
   }
   
   /* Mobile company logo tooltip - position to the side */
-  .mobile-header-left .app-logo[title]:hover::after {
+  .mobile-header-left .app-logo.custom-tooltip:hover::after {
     top: 50%;
     right: 100%;
     left: auto;
@@ -1204,7 +1204,7 @@ tr:last-child td {
     text-align: center;
   }
   
-  .mobile-header-left .app-logo[title]:hover::before {
+  .mobile-header-left .app-logo.custom-tooltip:hover::before {
     top: 50%;
     right: 100%;
     left: auto;
@@ -1217,7 +1217,7 @@ tr:last-child td {
 }
 
 /* Event button tooltip - position to the side to avoid button overlap */
-.events-schedule-image-button[title]:hover::after {
+.events-schedule-image-button.custom-tooltip:hover::after {
   top: 50%;
   left: 100%;
   transform: translateY(-50%);
@@ -1232,7 +1232,7 @@ tr:last-child td {
   text-align: center;
 }
 
-.events-schedule-image-button[title]:hover::before {
+.events-schedule-image-button.custom-tooltip:hover::before {
   top: 50%;
   left: 100%;
   transform: translateY(-50%) translateX(-100%);
@@ -1243,7 +1243,7 @@ tr:last-child td {
 }
 
 /* QR Code tooltip - position to the left side */
-.qr-code-button[title]:hover::after {
+.qr-code-button.custom-tooltip:hover::after {
   top: 50%;
   right: 100%;
   left: auto;
@@ -1259,7 +1259,7 @@ tr:last-child td {
   text-align: center;
 }
 
-.qr-code-button[title]:hover::before {
+.qr-code-button.custom-tooltip:hover::before {
   top: 50%;
   right: 100%;
   left: auto;
@@ -1272,7 +1272,7 @@ tr:last-child td {
 
 /* Mobile event button tooltip - position to the side */
 @media (max-width: 768px) {
-  .events-schedule-image-button[title]:hover::after {
+  .events-schedule-image-button.custom-tooltip:hover::after {
     top: 50%;
     left: 100%;
     transform: translateY(-50%);
@@ -1287,7 +1287,7 @@ tr:last-child td {
     text-align: center;
   }
   
-  .events-schedule-image-button[title]:hover::before {
+  .events-schedule-image-button.custom-tooltip:hover::before {
     top: 50%;
     left: 100%;
     transform: translateY(-50%) translateX(-100%);
@@ -1300,7 +1300,7 @@ tr:last-child td {
 
 /* Calendar navigation tooltips on mobile event page */
 @media (max-width: 768px) {
-  .calendar-controls [title]:hover::after {
+  .calendar-controls .custom-tooltip:hover::after {
     top: 100%;
     bottom: auto;
     margin-top: 10px;
@@ -1314,7 +1314,7 @@ tr:last-child td {
     z-index: 10000;
   }
   
-  .calendar-controls [title]:hover::before {
+  .calendar-controls .custom-tooltip:hover::before {
     top: 100%;
     bottom: auto;
     margin-top: 10px;

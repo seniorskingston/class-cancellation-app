@@ -376,14 +376,14 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           <img 
             src={logo} 
             alt="Company Logo" 
-            className="app-logo clickable-logo"
+            className="app-logo clickable-logo custom-tooltip"
             onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
-            title="Visit Seniors Kingston Website"
+            data-tooltip="Visit Seniors Kingston Website"
           />
           <button 
             onClick={() => onBackToMain ? onBackToMain() : window.history.back()} 
-            className="back-to-home-button"
-            title="Back to Program Schedule Update"
+            className="back-to-home-button custom-tooltip"
+            data-tooltip="Back to Program Schedule Update"
           >
             <img src={homeIcon} alt="Home" className="home-icon" />
           </button>
@@ -396,40 +396,40 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       
       <div className="calendar-header">
         <div className="calendar-controls">
-          <button onClick={goToPreviousMonth} className="nav-button" title="Previous Month/Week/Day">‹</button>
-          <button onClick={goToToday} className="today-button" title="Go to Today">Today</button>
-          <button onClick={goToNextMonth} className="nav-button" title="Next Month/Week/Day">›</button>
+          <button onClick={goToPreviousMonth} className="nav-button custom-tooltip" data-tooltip="Previous Month/Week/Day">‹</button>
+          <button onClick={goToToday} className="today-button custom-tooltip" data-tooltip="Go to Today">Today</button>
+          <button onClick={goToNextMonth} className="nav-button custom-tooltip" data-tooltip="Next Month/Week/Day">›</button>
           
           {/* View Mode Controls - moved next to Today button */}
           {!isMobile && (
             <>
               <button 
-                className={`view-button ${viewMode === 'month' ? 'active' : ''}`}
+                className={`view-button custom-tooltip ${viewMode === 'month' ? 'active' : ''}`}
                 onClick={() => {
                   console.log('🔘 Month button clicked!');
                   setViewMode('month');
                 }}
-                title="Month View"
+                data-tooltip="Month View"
               >
                 Month
               </button>
               <button 
-                className={`view-button ${viewMode === 'week' ? 'active' : ''}`}
+                className={`view-button custom-tooltip ${viewMode === 'week' ? 'active' : ''}`}
                 onClick={() => {
                   console.log('🔘 Week button clicked!');
                   setViewMode('week');
                 }}
-                title="Week View"
+                data-tooltip="Week View"
               >
                 Week
               </button>
               <button 
-                className={`view-button ${viewMode === 'day' ? 'active' : ''}`}
+                className={`view-button custom-tooltip ${viewMode === 'day' ? 'active' : ''}`}
                 onClick={() => {
                   console.log('🔘 Day button clicked!');
                   setViewMode('day');
                 }}
-                title="Day View"
+                data-tooltip="Day View"
               >
                 Day
               </button>
@@ -438,16 +438,16 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           {isMobile && (
             <>
               <button 
-                className={`view-button ${viewMode === 'week' ? 'active' : ''}`}
+                className={`view-button custom-tooltip ${viewMode === 'week' ? 'active' : ''}`}
                 onClick={() => setViewMode('week')}
-                title="Week View"
+                data-tooltip="Week View"
               >
                 Week
               </button>
               <button 
-                className={`view-button ${viewMode === 'day' ? 'active' : ''}`}
+                className={`view-button custom-tooltip ${viewMode === 'day' ? 'active' : ''}`}
                 onClick={() => setViewMode('day')}
-                title="Day View"
+                data-tooltip="Day View"
               >
                 Day
               </button>

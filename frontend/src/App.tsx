@@ -522,14 +522,14 @@ function App() {
             <img 
               src={logo} 
               alt="Company Logo" 
-              className="mobile-logo clickable-logo"
+              className="mobile-logo clickable-logo custom-tooltip"
               onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
-              title="Visit Seniors Kingston Website"
+              data-tooltip="Visit Seniors Kingston Website"
             />
             <button 
               onClick={() => setCurrentView('calendar')} 
-              className="mobile-events-schedule-image-button"
-              title="View Event Schedule"
+              className="mobile-events-schedule-image-button custom-tooltip"
+              data-tooltip="View Event Schedule"
             >
               <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="mobile-events-schedule-image" />
             </button>
@@ -541,15 +541,15 @@ function App() {
           <div className="mobile-header-buttons">
             <button 
               onClick={() => setIsMobileView(false)} 
-              className="mobile-to-desktop-button"
-              title="Switch to Desktop View"
+              className="mobile-to-desktop-button custom-tooltip"
+              data-tooltip="Switch to Desktop View"
             >
               🖥️ Desktop
             </button>
             <button 
               onClick={handleRefresh} 
-              className="refresh-button"
-              title="Refresh Data"
+              className="refresh-button custom-tooltip"
+              data-tooltip="Refresh Data"
             >
               🔄 Refresh
             </button>
@@ -565,8 +565,8 @@ function App() {
                 
                 setShowQRCode(true);
               }} 
-              className="mobile-share-button"
-              title="Share App QR Code"
+              className="mobile-share-button custom-tooltip"
+              data-tooltip="Share App QR Code"
             >
               <img src="/users-icon-white.svg" alt="Share" style={{ height: '1.2em', verticalAlign: 'middle', marginRight: '5px' }} />
               Share
@@ -576,8 +576,8 @@ function App() {
             ) : (
               <button 
                 onClick={handleInstallClick} 
-                className="install-button"
-                title="Install App on Device"
+                className="install-button custom-tooltip"
+                data-tooltip="Install App on Device"
               >
                 📲 Save
               </button>
@@ -853,9 +853,9 @@ function App() {
       {!isMobileView && showFloatingQR && (
         <div className="floating-qr-container">
           <button 
-            className="floating-qr-button qr-code-button"
+            className="floating-qr-button qr-code-button custom-tooltip"
             onClick={() => setShowQRCode(true)}
-            title="Open QR Code"
+            data-tooltip="Open QR Code"
           >
             📱
           </button>
@@ -875,14 +875,14 @@ function App() {
           <img 
             src={logo} 
             alt="Company Logo" 
-            className="app-logo clickable-logo"
+            className="app-logo clickable-logo custom-tooltip"
             onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
-            title="Visit Seniors Kingston Website"
+            data-tooltip="Visit Seniors Kingston Website"
           />
           <button 
             onClick={() => setCurrentView('calendar')} 
-            className="events-schedule-image-button"
-            title="View Event Schedule"
+            className="events-schedule-image-button custom-tooltip"
+            data-tooltip="View Event Schedule"
           >
             <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="events-schedule-image" />
           </button>
@@ -897,7 +897,8 @@ function App() {
         <button 
           onClick={() => setIsMobileView(true)} 
           style={{ background: "#00b388", color: "white", fontSize: "0.75rem", padding: "0.3rem 0.6rem" }}
-          title="Switch to Mobile View"
+          className="custom-tooltip"
+          data-tooltip="Switch to Mobile View"
         >
           📱 Mobile
         </button>
@@ -940,14 +941,15 @@ function App() {
             <option value="cancellations">Show Class Cancellations</option>
             <option value="all">Show All Programs</option>
         </select>
-        <button onClick={handleRefresh} disabled={loading} title="Refresh Data">
+        <button onClick={handleRefresh} disabled={loading} className="custom-tooltip" data-tooltip="Refresh Data">
           {loading ? "Refreshing..." : "Refresh"}
         </button>
         <button 
           onClick={() => handleExport('excel')} 
           style={{ background: "#0072ce", color: "white" }}
           disabled={cancellations.length === 0}
-          title="Export to Excel"
+          className="custom-tooltip"
+          data-tooltip="Export to Excel"
         >
           📊 Excel
         </button>
@@ -955,14 +957,16 @@ function App() {
           onClick={() => handleExport('pdf')} 
           style={{ background: "#0072ce", color: "white" }}
           disabled={cancellations.length === 0}
-          title="Export to PDF"
+          className="custom-tooltip"
+          data-tooltip="Export to PDF"
         >
           📄 PDF
           </button>
         <button 
           onClick={() => setShowUserGuide(true)} 
           style={{ background: "#0072ce", color: "white" }}
-          title="View Help Guide"
+          className="custom-tooltip"
+          data-tooltip="View Help Guide"
         >
           📖 Help
           </button>
