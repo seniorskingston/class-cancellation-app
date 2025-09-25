@@ -53,6 +53,8 @@ function App() {
   const [showFloatingQR, setShowFloatingQR] = useState(true);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
   const [currentView, setCurrentView] = useState<'main' | 'calendar'>('main');
+  const [showTooltips, setShowTooltips] = useState(true);
+  const [showFirstTimeGuide, setShowFirstTimeGuide] = useState(false);
 
   // Generate QR code for the current URL
   const generateQRCode = async () => {
@@ -874,14 +876,33 @@ function App() {
           <button 
             onClick={() => setCurrentView('calendar')} 
             className="events-schedule-image-button"
-            title="View Event Schedule"
+            title={showTooltips ? "View Event Schedule" : ""}
           >
             <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="events-schedule-image" />
+            {!showTooltips && <span className="button-label">Events</span>}
           </button>
         </div>
         <h1>Program Schedule Update</h1>
         <div className="datetime-display">
             {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {currentDateTime.toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
+        </div>
+        
+        {/* Navigation Controls */}
+        <div className="navigation-controls">
+          <button 
+            className="hints-toggle"
+            onClick={() => setShowTooltips(!showTooltips)}
+            title={showTooltips ? "Turn off hints" : "Turn on hints"}
+          >
+            {showTooltips ? "🔍 Turn off hints" : "💡 Turn on hints"}
+          </button>
+          <button 
+            className="guide-button"
+            onClick={() => setShowFirstTimeGuide(true)}
+            title="Show app guide"
+          >
+            📖 App Guide
+          </button>
         </div>
       </header>
       <div className="filters">
@@ -1474,6 +1495,42 @@ function App() {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      
+      {/* First Time Guide Modal */}
+      {showFirstTimeGuide && (
+        <div className="guide-modal">
+          <div className="guide-content">
+            <h2>📖 App Guide</h2>
+            
+            <div className="guide-step">
+              <h3>🏠 Main Page</h3>
+              <p>View program cancellations and updates. Use filters to find specific programs.</p>
+            </div>
+            
+            <div className="guide-step">
+              <h3>📅 Event Schedule</h3>
+              <p>Click the Event button to view Seniors Kingston events and Canadian holidays.</p>
+            </div>
+            
+            <div className="guide-step">
+              <h3>🔍 Navigation</h3>
+              <p>Desktop: Hover over buttons for tooltips. Mobile: Labels show button functions.</p>
+            </div>
+            
+            <div className="guide-step">
+              <h3>📱 Mobile View</h3>
+              <p>Switch to mobile view to see how the app looks on phones and tablets.</p>
+            </div>
+            
+            <button 
+              className="guide-close"
+              onClick={() => setShowFirstTimeGuide(false)}
+            >
+              Got it! Close Guide
+            </button>
           </div>
         </div>
       )}

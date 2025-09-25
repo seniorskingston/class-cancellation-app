@@ -98,6 +98,7 @@
     width: 54.5px;
     max-width: 100%;
     border-radius: 6px;
+    margin-top: 2px; /* Lower company logo by 2px on mobile event page */
   }
   
   .back-to-home-button {

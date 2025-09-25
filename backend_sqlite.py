@@ -1855,6 +1855,249 @@ def get_analytics():
         "status": "success"
     }
 
+@app.get("/admin")
+def admin_interface():
+    """Admin interface for editing events"""
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Event Admin Panel</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 1000px;
+                margin: 0 auto;
+                padding: 20px;
+                background: #f8f9fa;
+            }
+            .admin-card {
+                background: white;
+                padding: 30px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                margin-bottom: 20px;
+            }
+            h1 {
+                color: #0072ce;
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .event-list {
+                max-height: 400px;
+                overflow-y: auto;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 15px;
+            }
+            .event-item {
+                background: #f8f9fa;
+                padding: 15px;
+                margin-bottom: 10px;
+                border-radius: 8px;
+                border-left: 4px solid #0072ce;
+            }
+            .event-title {
+                font-weight: bold;
+                color: #0072ce;
+                margin-bottom: 5px;
+            }
+            .event-details {
+                font-size: 0.9em;
+                color: #666;
+                margin-bottom: 10px;
+            }
+            .event-actions {
+                display: flex;
+                gap: 10px;
+            }
+            .btn {
+                padding: 8px 16px;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9em;
+                text-decoration: none;
+                display: inline-block;
+            }
+            .btn-edit {
+                background: #28a745;
+                color: white;
+            }
+            .btn-delete {
+                background: #dc3545;
+                color: white;
+            }
+            .btn-add {
+                background: #0072ce;
+                color: white;
+                margin-bottom: 20px;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+            .form-group input, .form-group textarea {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                box-sizing: border-box;
+            }
+            .form-group textarea {
+                height: 80px;
+                resize: vertical;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="admin-card">
+            <h1>🔧 Event Admin Panel</h1>
+            
+            <button class="btn btn-add" onclick="showAddForm()">➕ Add New Event</button>
+            
+            <div id="addForm" style="display: none;">
+                <h3>Add New Event</h3>
+                <form id="addEventForm">
+                    <div class="form-group">
+                        <label>Event Title:</label>
+                        <input type="text" id="addTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Start Date & Time:</label>
+                        <input type="datetime-local" id="addStartDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>End Date & Time:</label>
+                        <input type="datetime-local" id="addEndDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <textarea id="addDescription"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Location:</label>
+                        <input type="text" id="addLocation">
+                    </div>
+                    <button type="submit" class="btn btn-add">Save Event</button>
+                    <button type="button" class="btn" onclick="hideAddForm()" style="background: #6c757d; color: white;">Cancel</button>
+                </form>
+            </div>
+            
+            <h3>Current Events</h3>
+            <div id="eventList" class="event-list">
+                Loading events...
+            </div>
+        </div>
+        
+        <script>
+            // Load events on page load
+            loadEvents();
+            
+            function loadEvents() {
+                fetch('/api/events')
+                    .then(response => response.json())
+                    .then(data => {
+                        displayEvents(data.events || []);
+                    })
+                    .catch(error => {
+                        console.error('Error loading events:', error);
+                        document.getElementById('eventList').innerHTML = 'Error loading events';
+                    });
+            }
+            
+            function displayEvents(events) {
+                const eventList = document.getElementById('eventList');
+                if (events.length === 0) {
+                    eventList.innerHTML = 'No events found';
+                    return;
+                }
+                
+                eventList.innerHTML = events.map(event => `
+                    <div class="event-item">
+                        <div class="event-title">${event.title}</div>
+                        <div class="event-details">
+                            <strong>Date:</strong> ${new Date(event.startDate).toLocaleString()}<br>
+                            <strong>Location:</strong> ${event.location || 'Not specified'}<br>
+                            <strong>Description:</strong> ${event.description || 'None'}
+                        </div>
+                        <div class="event-actions">
+                            <button class="btn btn-edit" onclick="editEvent('${event.id}')">✏️ Edit</button>
+                            <button class="btn btn-delete" onclick="deleteEvent('${event.id}')">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            function showAddForm() {
+                document.getElementById('addForm').style.display = 'block';
+            }
+            
+            function hideAddForm() {
+                document.getElementById('addForm').style.display = 'none';
+                document.getElementById('addEventForm').reset();
+            }
+            
+            document.getElementById('addEventForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const eventData = {
+                    title: document.getElementById('addTitle').value,
+                    startDate: document.getElementById('addStartDate').value,
+                    endDate: document.getElementById('addEndDate').value,
+                    description: document.getElementById('addDescription').value,
+                    location: document.getElementById('addLocation').value
+                };
+                
+                fetch('/api/events', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(eventData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Event added successfully!');
+                    hideAddForm();
+                    loadEvents();
+                })
+                .catch(error => {
+                    console.error('Error adding event:', error);
+                    alert('Error adding event');
+                });
+            });
+            
+            function editEvent(eventId) {
+                // For now, just show an alert - you can implement a full edit form
+                alert('Edit functionality coming soon! Event ID: ' + eventId);
+            }
+            
+            function deleteEvent(eventId) {
+                if (confirm('Are you sure you want to delete this event?')) {
+                    fetch(`/api/events/${eventId}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert('Event deleted successfully!');
+                        loadEvents();
+                    })
+                    .catch(error => {
+                        console.error('Error deleting event:', error);
+                        alert('Error deleting event');
+                    });
+                }
+            }
+        </script>
+    </body>
+    </html>
+    """
+
 @app.get("/analytics")
 def analytics_web_interface():
     """Simple analytics report showing just the visit numbers"""
