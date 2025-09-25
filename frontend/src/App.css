@@ -1135,19 +1135,22 @@ tr:last-child td {
   left: 50%;
   transform: translateX(-50%);
   margin-top: 8px;
-  background: #f0f0f0;
-  color: black;
+  background: #ff0000 !important;
+  color: black !important;
   font-weight: bold;
   padding: 10px 15px;
   border-radius: 6px;
   font-size: 1rem;
   white-space: nowrap;
-  z-index: 10000;
+  z-index: 99999 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   pointer-events: none;
-  border: 2px solid #ccc;
+  border: 2px solid #ccc !important;
   min-width: 120px;
   text-align: center;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .custom-tooltip:hover::before {
@@ -1158,9 +1161,12 @@ tr:last-child td {
   transform: translateX(-50%) translateY(-100%);
   margin-top: 8px;
   border: 6px solid transparent;
-  border-bottom-color: #f0f0f0;
-  z-index: 10000;
+  border-bottom-color: #f0f0f0 !important;
+  z-index: 99999 !important;
   pointer-events: none;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 /* Mobile tooltips - position below to avoid header overlap */
@@ -1169,13 +1175,17 @@ tr:last-child td {
     top: 100%;
     bottom: auto;
     margin-top: 10px;
-    background: #f0f0f0;
-    border: 2px solid #ccc;
+    background: #f0f0f0 !important;
+    border: 2px solid #ccc !important;
     font-weight: bold;
     padding: 10px 15px;
     font-size: 1rem;
     min-width: 120px;
     text-align: center;
+    z-index: 99999 !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
   
   .mobile-header-buttons .custom-tooltip:hover::before {
