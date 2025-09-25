@@ -53,7 +53,6 @@ function App() {
   const [showFloatingQR, setShowFloatingQR] = useState(true);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
   const [currentView, setCurrentView] = useState<'main' | 'calendar'>('main');
-  const [showTooltips, setShowTooltips] = useState(true);
 
   // Generate QR code for the current URL
   const generateQRCode = async () => {
@@ -543,14 +542,14 @@ function App() {
             <button 
               onClick={() => setIsMobileView(false)} 
               className="mobile-to-desktop-button"
-              title={showTooltips ? "Switch to Desktop View" : ""}
+              title="Switch to Desktop View"
             >
               🖥️ Desktop
             </button>
             <button 
               onClick={handleRefresh} 
               className="refresh-button"
-              title={showTooltips ? "Refresh Data" : ""}
+              title="Refresh Data"
             >
               🔄 Refresh
             </button>
@@ -567,7 +566,7 @@ function App() {
                 setShowQRCode(true);
               }} 
               className="mobile-share-button"
-              title={showTooltips ? "Share App QR Code" : ""}
+              title="Share App QR Code"
             >
               <img src="/users-icon-white.svg" alt="Share" style={{ height: '1.2em', verticalAlign: 'middle', marginRight: '5px' }} />
               Share
@@ -578,7 +577,7 @@ function App() {
               <button 
                 onClick={handleInstallClick} 
                 className="install-button"
-                title={showTooltips ? "Install App on Device" : ""}
+                title="Install App on Device"
               >
                 📲 Save
               </button>
@@ -878,15 +877,14 @@ function App() {
             alt="Company Logo" 
             className="app-logo clickable-logo"
             onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
-            title={showTooltips ? "Visit Seniors Kingston Website" : ""}
+            title="Visit Seniors Kingston Website"
           />
           <button 
             onClick={() => setCurrentView('calendar')} 
             className="events-schedule-image-button"
-            title={showTooltips ? "View Event Schedule" : ""}
+            title="View Event Schedule"
           >
             <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="events-schedule-image" />
-            {!showTooltips && <span className="button-label">Events</span>}
           </button>
         </div>
         <h1>Program Schedule Update</h1>
@@ -894,22 +892,12 @@ function App() {
             {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {currentDateTime.toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
         </div>
         
-        {/* Navigation Controls */}
-        <div className="navigation-controls">
-          <button 
-            className="hints-toggle"
-            onClick={() => setShowTooltips(!showTooltips)}
-            title={showTooltips ? "Turn off hints" : "Turn on hints"}
-          >
-            {showTooltips ? "🔍 Turn off hints" : "💡 Turn on hints"}
-          </button>
-        </div>
       </header>
       <div className="filters">
         <button 
           onClick={() => setIsMobileView(true)} 
           style={{ background: "#00b388", color: "white", fontSize: "0.75rem", padding: "0.3rem 0.6rem" }}
-          title={showTooltips ? "Switch to Mobile View" : ""}
+          title="Switch to Mobile View"
         >
           📱 Mobile
         </button>
