@@ -1125,7 +1125,7 @@ tr:last-child td {
 
 /* Custom Tooltip Styling - Bigger and better positioning */
 .custom-tooltip {
-  position: relative;
+  position: relative !important;
 }
 
 .custom-tooltip:hover::after {
@@ -1154,6 +1154,50 @@ tr:last-child td {
 }
 
 .custom-tooltip:hover::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  margin-top: 8px;
+  border: 6px solid transparent;
+  border-bottom-color: #f0f0f0 !important;
+  z-index: 999999 !important;
+  pointer-events: none;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Company logo tooltip - ensure it works */
+.app-logo.custom-tooltip:hover::after,
+.mobile-logo.custom-tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: #f0f0f0 !important;
+  color: black !important;
+  font-weight: bold;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  z-index: 999999 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  border: 2px solid #ccc !important;
+  min-width: 100px;
+  text-align: center;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.app-logo.custom-tooltip:hover::before,
+.mobile-logo.custom-tooltip:hover::before {
   content: '';
   position: absolute;
   top: 100%;
@@ -1226,12 +1270,13 @@ tr:last-child td {
   }
 }
 
-/* Event button tooltip - same as other buttons */
+/* Event button tooltip - position to the right to avoid mobile button overlap */
 .events-schedule-image-button.custom-tooltip:hover::after {
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 8px;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  margin-left: 10px;
+  margin-top: 0;
   background: #f0f0f0 !important;
   color: black !important;
   font-weight: bold;
@@ -1253,12 +1298,13 @@ tr:last-child td {
 .events-schedule-image-button.custom-tooltip:hover::before {
   content: '';
   position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-100%);
-  margin-top: 8px;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%) translateX(-100%);
+  margin-left: 10px;
+  margin-top: 0;
   border: 6px solid transparent;
-  border-bottom-color: #f0f0f0 !important;
+  border-right-color: #f0f0f0 !important;
   z-index: 999999 !important;
   pointer-events: none;
   display: block !important;

@@ -560,12 +560,11 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                     {dayEvents.map((event, eventIndex) => (
                       <div
                         key={eventIndex}
-                        className={`event-item custom-tooltip ${isHoliday(event.title) ? 'holiday-event' : ''}`}
+                        className={`event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
                         // onClick={(e) => {
                         //   e.stopPropagation();
                         //   handleEventClick(event);
                         // }} // Disabled - events are read-only
-                        data-tooltip={`${event.title}${event.location ? ` - ${event.location}` : ''}${event.description ? `\n${event.description}` : ''}`}
                       >
                         <div className="event-time">
                           {event.startDate.toLocaleTimeString('en-US', { 
