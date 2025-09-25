@@ -1135,7 +1135,7 @@ tr:last-child td {
   left: 50%;
   transform: translateX(-50%);
   margin-top: 8px;
-  background: #ff0000 !important;
+  background: #f0f0f0 !important;
   color: black !important;
   font-weight: bold;
   padding: 10px 15px;
@@ -1226,30 +1226,84 @@ tr:last-child td {
   }
 }
 
-/* Event button tooltip - position to the side to avoid button overlap */
+/* Event button tooltip - same as other buttons */
 .events-schedule-image-button.custom-tooltip:hover::after {
-  top: 50%;
-  left: 100%;
-  transform: translateY(-50%);
-  margin-left: 8px;
-  margin-top: 0;
-  background: #f0f0f0;
-  border: 2px solid #ccc;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: #f0f0f0 !important;
+  color: black !important;
   font-weight: bold;
   padding: 10px 15px;
+  border-radius: 6px;
   font-size: 1rem;
+  white-space: nowrap;
+  z-index: 99999 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  border: 2px solid #ccc !important;
   min-width: 120px;
   text-align: center;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .events-schedule-image-button.custom-tooltip:hover::before {
-  top: 50%;
-  left: 100%;
-  transform: translateY(-50%) translateX(-100%);
-  margin-left: 8px;
-  margin-top: 0;
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  margin-top: 8px;
   border: 6px solid transparent;
-  border-right-color: #f0f0f0;
+  border-bottom-color: #f0f0f0 !important;
+  z-index: 99999 !important;
+  pointer-events: none;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Mobile event button tooltip - same as other buttons */
+.mobile-events-schedule-image-button.custom-tooltip:hover::after {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: #f0f0f0 !important;
+  color: black !important;
+  font-weight: bold;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 1rem;
+  white-space: nowrap;
+  z-index: 99999 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  border: 2px solid #ccc !important;
+  min-width: 120px;
+  text-align: center;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.mobile-events-schedule-image-button.custom-tooltip:hover::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  margin-top: 8px;
+  border: 6px solid transparent;
+  border-bottom-color: #f0f0f0 !important;
+  z-index: 99999 !important;
+  pointer-events: none;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 /* QR Code tooltip - position to the left side */
