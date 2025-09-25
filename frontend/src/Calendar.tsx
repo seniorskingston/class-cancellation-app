@@ -443,7 +443,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         
         
         <h2 className="month-year">
-          {getViewTitle()} <span style={{fontSize: '0.8em', color: '#0072ce', fontWeight: 'normal'}}>({viewMode.toUpperCase()} VIEW)</span>
+          {getViewTitle()} {!isMobile && <span style={{fontSize: '0.8em', color: '#0072ce', fontWeight: 'normal'}}>({viewMode.toUpperCase()} VIEW)</span>}
         </h2>
         <div className="data-source-indicator">
           {dataSource === 'real' ? (
