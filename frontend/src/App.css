@@ -227,8 +227,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 60px;
-  width: 60px;
+  height: 62px;
+  width: 62px;
   margin: 0;
   padding: 0;
 }
@@ -239,8 +239,8 @@
 }
 
 .events-schedule-image {
-  height: 60px;
-  width: 60px;
+  height: 62px;
+  width: 62px;
   object-fit: contain;
   border-radius: 8px;
   vertical-align: top; /* Ensure consistent baseline */
@@ -647,15 +647,15 @@ tr:last-child td {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 61px;
-  width: 61px;
+  height: 63px;
+  width: 63px;
   margin: 0;
   padding: 0;
 }
 
 .mobile-events-schedule-image {
-  height: 61px;
-  width: 61px;
+  height: 63px;
+  width: 63px;
   object-fit: contain;
   border-radius: 6px;
   vertical-align: top; /* Ensure consistent baseline */
@@ -1129,9 +1129,28 @@ tr:last-child td {
 }
 
 /* Ensure parent containers don't clip tooltips */
-.app-header, .filters, .sticky-header, .header-left, .mobile-header, .mobile-header-left, .mobile-header-buttons {
+.app-header, .filters, .sticky-header, .header-left, .mobile-header, .mobile-header-left, .mobile-header-buttons, table, tbody, tr, td {
   overflow: visible !important;
 }
+
+/* Ensure table cells can show tooltips */
+td {
+  position: relative !important;
+}
+
+/* Make location text blue to indicate it's hoverable */
+td.custom-tooltip {
+  color: #0072ce !important;
+  cursor: help !important;
+  text-decoration: underline !important;
+}
+
+.mobile-value.custom-tooltip {
+  color: #0072ce !important;
+  cursor: help !important;
+  text-decoration: underline !important;
+}
+
 
 /* Force company logo tooltips to work with maximum specificity */
 .header-left .app-logo.clickable-logo.custom-tooltip:hover::after,
@@ -1157,6 +1176,50 @@ tr:last-child td {
   border: 1px solid #ccc !important;
   min-width: 70px !important;
   text-align: center;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Location cell tooltips - ensure they work in table cells */
+td.custom-tooltip:hover::after,
+.mobile-value.custom-tooltip:hover::after {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  top: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin-top: 8px !important;
+  background: #f0f0f0 !important;
+  color: #000 !important;
+  font-weight: normal;
+  padding: 6px 10px !important;
+  border-radius: 4px;
+  font-size: 0.8rem !important;
+  white-space: nowrap;
+  z-index: 999999999 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  border: 1px solid #ccc !important;
+  min-width: 120px !important;
+  text-align: center;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+td.custom-tooltip:hover::before,
+.mobile-value.custom-tooltip:hover::before {
+  content: '';
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) translateY(40px) !important;
+  margin-top: 0 !important;
+  border: 10px solid transparent;
+  border-top-color: #ff0000 !important;
+  z-index: 999999999 !important;
+  pointer-events: none;
   display: block !important;
   opacity: 1 !important;
   visibility: visible !important;
@@ -1203,43 +1266,85 @@ tr:last-child td {
   visibility: visible !important;
 }
 
-/* Company logo tooltip - use fixed positioning to avoid being hidden */
-.app-logo.custom-tooltip:hover::after,
-.mobile-logo.custom-tooltip:hover::after {
+/* Company logo tooltip - desktop version below logo */
+.app-logo.custom-tooltip:hover::after {
   content: attr(data-tooltip);
-  position: fixed !important;
-  top: 70px !important;
+  position: absolute !important;
+  top: 100% !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  margin-top: 0 !important;
+  margin-top: 8px !important;
   background: #f0f0f0 !important;
-  color: black !important;
-  font-weight: bold;
-  padding: 4px 6px !important;
-  border-radius: 2px;
-  font-size: 0.75rem !important;
+  color: #000 !important;
+  font-weight: normal;
+  padding: 6px 10px !important;
+  border-radius: 4px;
+  font-size: 0.8rem !important;
   white-space: nowrap;
   z-index: 999999999 !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   pointer-events: none;
   border: 1px solid #ccc !important;
-  min-width: 70px !important;
+  min-width: 120px !important;
   text-align: center;
   display: block !important;
   opacity: 1 !important;
   visibility: visible !important;
 }
 
-.app-logo.custom-tooltip:hover::before,
+/* Mobile company logo tooltip - fixed positioning for mobile */
+.mobile-logo.custom-tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute !important;
+  top: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin-top: 8px !important;
+  background: #f0f0f0 !important;
+  color: #000 !important;
+  font-weight: normal;
+  padding: 6px 10px !important;
+  border-radius: 4px;
+  font-size: 0.8rem !important;
+  white-space: nowrap;
+  z-index: 999999999 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  border: 1px solid #ccc !important;
+  min-width: 120px !important;
+  text-align: center;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Desktop company logo tooltip arrow */
+.app-logo.custom-tooltip:hover::before {
+  content: '';
+  position: absolute !important;
+  top: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) translateY(-100%) !important;
+  margin-top: 8px !important;
+  border: 6px solid transparent;
+  border-bottom-color: #000000 !important;
+  z-index: 999999999 !important;
+  pointer-events: none;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Mobile company logo tooltip arrow */
 .mobile-logo.custom-tooltip:hover::before {
   content: '';
   position: fixed !important;
-  top: 55px !important;
+  top: 50px !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
   margin-top: 0 !important;
-  border: 4px solid transparent;
-  border-bottom-color: #f0f0f0 !important;
+  border: 6px solid transparent;
+  border-bottom-color: #000000 !important;
   z-index: 999999999 !important;
   pointer-events: none;
   display: block !important;
@@ -1755,4 +1860,68 @@ tr:last-child td {
 
 .back-to-main-button:hover {
   background: #0056a3;
+}
+
+/* Location clickable styles */
+.location-clickable {
+  color: #0072ce !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+}
+
+.location-clickable:hover {
+  color: #0056a3 !important;
+  text-decoration: underline !important;
+}
+
+/* Location modal overlay */
+.location-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.location-modal {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+}
+
+.location-modal h3 {
+  color: #0072ce;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.location-modal p {
+  color: #333;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.location-modal .close-btn {
+  background: #0072ce;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.location-modal .close-btn:hover {
+  background: #005a9e;
 }
