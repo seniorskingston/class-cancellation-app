@@ -2017,117 +2017,39 @@ def get_analytics():
 @app.get("/upload")
 def upload_interface():
     """Simple Excel file upload interface"""
-    return """
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(content="""
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Excel Upload - Program Schedule Update</title>
+        <title>Excel Upload</title>
         <style>
-            body { 
-                font-family: Arial, sans-serif; 
-                max-width: 600px; 
-                margin: 50px auto; 
-                padding: 20px; 
-                background: #f8f9fa;
-            }
-            .upload-card {
-                background: white;
-                padding: 30px;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-                margin-bottom: 20px;
-            }
-            h1 { 
-                color: #0072ce; 
-                text-align: center; 
-                margin-bottom: 30px;
-            }
-            .upload-form { 
-                text-align: center; 
-                padding: 30px; 
-                border: 2px dashed #0072ce; 
-                border-radius: 8px; 
-                margin: 20px 0; 
-                background: #f8f9fa;
-            }
-            input[type="file"] { 
-                margin: 20px 0; 
-                padding: 10px; 
-                font-size: 16px; 
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                width: 100%;
-                max-width: 400px;
-            }
-            button { 
-                background: #0072ce; 
-                color: white; 
-                padding: 12px 30px; 
-                border: none; 
-                border-radius: 6px; 
-                font-size: 16px; 
-                cursor: pointer; 
-            }
+            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+            h1 { color: #0072ce; text-align: center; }
+            .upload-form { text-align: center; padding: 30px; border: 2px dashed #0072ce; border-radius: 8px; margin: 20px 0; }
+            input[type="file"] { margin: 20px 0; padding: 10px; font-size: 16px; }
+            button { background: #0072ce; color: white; padding: 12px 30px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
             button:hover { background: #005a9e; }
-            button:disabled { 
-                background: #6c757d; 
-                cursor: not-allowed; 
-            }
-            .status { 
-                padding: 15px; 
-                margin: 20px 0; 
-                border-radius: 6px; 
-                text-align: center; 
-                font-weight: bold; 
-            }
-            .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-            .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-            .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+            .status { padding: 15px; margin: 20px 0; border-radius: 6px; text-align: center; font-weight: bold; }
+            .success { background: #d4edda; color: #155724; }
+            .error { background: #f8d7da; color: #721c24; }
             .back { text-align: center; margin-top: 20px; }
-            .back a { 
-                color: #0072ce; 
-                text-decoration: none; 
-                background: #f8f9fa;
-                padding: 10px 20px;
-                border-radius: 6px;
-                border: 1px solid #0072ce;
-            }
-            .back a:hover { background: #0072ce; color: white; }
-            .instructions {
-                background: #e7f3ff;
-                padding: 20px;
-                border-radius: 8px;
-                margin-bottom: 20px;
-                border-left: 4px solid #0072ce;
-            }
+            .back a { color: #0072ce; text-decoration: none; }
         </style>
     </head>
     <body>
-        <div class="upload-card">
-            <h1>📊 Upload Excel File</h1>
-            
-            <div class="instructions">
-                <h3>📋 Instructions:</h3>
-                <ol>
-                    <li>Prepare your Excel file (.xlsx format only)</li>
-                    <li>Click "Choose File" to select your Excel file</li>
-                    <li>Click "Upload File" to import the data</li>
-                    <li>Wait for the upload to complete</li>
-                </ol>
-                <p><strong>Note:</strong> Only .xlsx files are supported. The file will be processed and imported into the database.</p>
-            </div>
-            
-            <form id="uploadForm" class="upload-form">
-                <input type="file" id="fileInput" accept=".xlsx" required>
-                <br>
-                <button type="submit" id="uploadBtn">📤 Upload File</button>
-            </form>
+        <h1>📊 Upload Excel File</h1>
+        
+        <form id="uploadForm" class="upload-form">
+            <input type="file" id="fileInput" accept=".xlsx" required>
+            <br>
+            <button type="submit">Upload File</button>
+        </form>
 
-            <div id="status"></div>
+        <div id="status"></div>
 
-            <div class="back">
-                <a href="/">← Back to Main App</a>
-            </div>
+        <div class="back">
+            <a href="/">← Back to Main App</a>
         </div>
 
         <script>
@@ -2136,7 +2058,7 @@ def upload_interface():
                 
                 const fileInput = document.getElementById('fileInput');
                 const statusDiv = document.getElementById('status');
-                const uploadBtn = document.getElementById('uploadBtn');
+                const button = document.querySelector('button');
                 
                 if (!fileInput.files[0]) {
                     statusDiv.innerHTML = '<div class="status error">Please select a file first!</div>';
@@ -2146,9 +2068,9 @@ def upload_interface():
                 const formData = new FormData();
                 formData.append('file', fileInput.files[0]);
                 
-                uploadBtn.textContent = '⏳ Uploading...';
-                uploadBtn.disabled = true;
-                statusDiv.innerHTML = '<div class="status info">📤 Uploading file, please wait...</div>';
+                button.textContent = 'Uploading...';
+                button.disabled = true;
+                statusDiv.innerHTML = '<div class="status">Uploading file, please wait...</div>';
                 
                 try {
                     const response = await fetch('/api/import-excel', {
@@ -2162,19 +2084,19 @@ def upload_interface():
                         statusDiv.innerHTML = '<div class="status success">✅ File uploaded successfully!</div>';
                         fileInput.value = '';
                     } else {
-                        statusDiv.innerHTML = '<div class="status error">❌ ' + (result.message || result.error || 'Upload failed') + '</div>';
+                        statusDiv.innerHTML = '<div class="status error">❌ ' + result.message + '</div>';
                     }
                 } catch (error) {
                     statusDiv.innerHTML = '<div class="status error">❌ Upload failed: ' + error.message + '</div>';
                 }
                 
-                uploadBtn.textContent = '📤 Upload File';
-                uploadBtn.disabled = false;
+                button.textContent = 'Upload File';
+                button.disabled = false;
             });
         </script>
     </body>
     </html>
-    """
+    """)
 
 @app.get("/admin")
 def admin_interface():
