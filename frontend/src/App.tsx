@@ -39,8 +39,8 @@ const getFullAddress = (locationCode: string): string => {
   }
   
   // Try exact match first
-  if (locationData[locationCode]) {
-    return locationData[locationCode];
+  if (locationData as any)[locationCode]) {
+    return locationData as any)[locationCode];
   }
   
   // Try case-insensitive match
