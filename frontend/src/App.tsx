@@ -32,24 +32,30 @@ type Filters = {
 
       const API_URL = "http://localhost:8000";
 
-// Helper function to get full address from location
 const getFullAddress = (locationCode: string): string => {
   if (!locationCode || !locationData) {
     return "Address not available";
   }
   
-  // Try exact match first
   if ((locationData as any)[locationCode]) {
     return (locationData as any)[locationCode];
   }
   
-  // Try case-insensitive match
   const lowerLocationCode = locationCode.toLowerCase();
   for (const [key, value] of Object.entries(locationData)) {
     if (key.toLowerCase() === lowerLocationCode) {
       return value;
     }
   }
+  
+  for (const [key, value] of Object.entries(locationData)) {
+    if (key.toLowerCase().includes(lowerLocationCode) || lowerLocationCode.includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+  
+  return "Address not available";
+};
   
   // Try partial match
   for (const [key, value] of Object.entries(locationData)) {
