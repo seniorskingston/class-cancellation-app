@@ -32,6 +32,7 @@ type Filters = {
 
       const API_URL = "http://localhost:8000";
 
+// Helper function to get full address from location
 const getFullAddress = (locationCode: string): string => {
   if (!locationCode || !locationData) {
     return "Address not available";
@@ -48,36 +49,6 @@ const getFullAddress = (locationCode: string): string => {
     }
   }
   
-  for (const [key, value] of Object.entries(locationData)) {
-    if (key.toLowerCase().includes(lowerLocationCode) || lowerLocationCode.includes(key.toLowerCase())) {
-      return value;
-    }
-  }
-  
-  return "Address not available";
-};
-  
-  // Try partial match
-  for (const [key, value] of Object.entries(locationData)) {
-    if (key.toLowerCase().includes(lowerLocationCode) || lowerLocationCode.includes(key.toLowerCase())) {
-      return value;
-    }
-  }
-  
-  return "Address not available";
-};
-  
-  // Try partial match
-  for (const [key, value] of Object.entries(locationData)) {
-    if (key.toLowerCase().includes(lowerLocationCode) || lowerLocationCode.includes(key.toLowerCase())) {
-      return value;
-    }
-  }
-  
-  return "Address not available";
-};
-  
-  // Try partial match
   for (const [key, value] of Object.entries(locationData)) {
     if (key.toLowerCase().includes(lowerLocationCode) || lowerLocationCode.includes(key.toLowerCase())) {
       return value;
@@ -110,49 +81,6 @@ function App() {
   const [showFloatingQR, setShowFloatingQR] = useState(true);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
   const [currentView, setCurrentView] = useState<'main' | 'calendar'>('main');
-
-  // Function to get full address from location code - Updated for clickable locations
-  const getFullAddress = (locationCode: string): string => {
-    console.log('Looking for address for location code:', locationCode);
-    
-    // First try exact match
-    if (locationData[locationCode as keyof typeof locationData]) {
-      console.log('Found exact match:', locationData[locationCode as keyof typeof locationData]);
-      return locationData[locationCode as keyof typeof locationData];
-    }
-    
-    // Try partial matches - look for the location code in the keys
-    const locationKeys = Object.keys(locationData);
-    console.log('Available location keys:', locationKeys);
-    
-    for (const key of locationKeys) {
-      // Check various matching patterns
-      const keyWithoutDescription = key.split(' - ')[0]; // Get just the code part
-      
-      // Exact match with code part
-      if (locationCode === keyWithoutDescription) {
-        console.log('Found code match:', key, '->', locationData[key as keyof typeof locationData]);
-        return locationData[key as keyof typeof locationData];
-      }
-      
-      // Check if location code starts with the key or vice versa
-      if (key.startsWith(locationCode) || locationCode.startsWith(keyWithoutDescription)) {
-        console.log('Found partial match:', key, '->', locationData[key as keyof typeof locationData]);
-        return locationData[key as keyof typeof locationData];
-      }
-      
-      // Check if location code contains the key or vice versa (case insensitive)
-      if (key.toLowerCase().includes(locationCode.toLowerCase()) || 
-          locationCode.toLowerCase().includes(keyWithoutDescription.toLowerCase())) {
-        console.log('Found substring match:', key, '->', locationData[key as keyof typeof locationData]);
-        return locationData[key as keyof typeof locationData];
-      }
-    }
-    
-    // If no match found, return the original location code
-    console.log('No match found for:', locationCode);
-    return locationCode;
-  };
 
   // Generate QR code for the current URL
   const generateQRCode = async () => {
