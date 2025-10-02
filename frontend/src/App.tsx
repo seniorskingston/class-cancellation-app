@@ -39,8 +39,8 @@ const getFullAddress = (locationCode: string): string => {
   }
   
   // Try exact match first
-  if (locationData as any)[locationCode]) {
-    return locationData as any)[locationCode];
+  if ((locationData as any)[locationCode]) {
+    return (locationData as any)[locationCode];
   }
   
   // Try case-insensitive match
@@ -50,6 +50,26 @@ const getFullAddress = (locationCode: string): string => {
       return value;
     }
   }
+  
+  // Try partial match
+  for (const [key, value] of Object.entries(locationData)) {
+    if (key.toLowerCase().includes(lowerLocationCode) || lowerLocationCode.includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+  
+  return "Address not available";
+};
+  
+  // Try partial match
+  for (const [key, value] of Object.entries(locationData)) {
+    if (key.toLowerCase().includes(lowerLocationCode) || lowerLocationCode.includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+  
+  return "Address not available";
+};
   
   // Try partial match
   for (const [key, value] of Object.entries(locationData)) {
