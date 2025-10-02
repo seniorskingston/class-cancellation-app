@@ -3,6 +3,7 @@ import "./App.css";
 import logo from "./logo.png";
 import QRCode from 'qrcode';
 import Calendar from './Calendar';
+import locationData from './locations.json';
 
 type Cancellation = {
   sheet: string;
@@ -29,7 +30,36 @@ type Filters = {
   view_type: string;
 };
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+      const API_URL = "http://localhost:8000";
+
+// Helper function to get full address from location
+const getFullAddress = (locationCode: string): string => {
+  if (!locationCode || !locationData) {
+    return "Address not available";
+  }
+  
+  // Try exact match first
+  if (locationData[locationCode]) {
+    return locationData[locationCode];
+  }
+  
+  // Try case-insensitive match
+  const lowerLocationCode = locationCode.toLowerCase();
+  for (const [key, value] of Object.entries(locationData)) {
+    if (key.toLowerCase() === lowerLocationCode) {
+      return value;
+    }
+  }
+  
+  // Try partial match
+  for (const [key, value] of Object.entries(locationData)) {
+    if (key.toLowerCase().includes(lowerLocationCode) || lowerLocationCode.includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+  
+  return "Address not available";
+};
 
 function App() {
   console.log("API_URL:", API_URL);
@@ -40,19 +70,63 @@ function App() {
     day: "",
     location: "",
     program_status: "",
-    view_type: "cancellations", // New: "cancellations" or "all"
+    view_type: "all", // New: "cancellations" or "all"
   });
   const [lastLoaded, setLastLoaded] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
   const [showUserGuide, setShowUserGuide] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [mobileSearch, setMobileSearch] = useState<string>("");
   const [showQRCode, setShowQRCode] = useState(false);
   const [showFloatingQR, setShowFloatingQR] = useState(true);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
   const [currentView, setCurrentView] = useState<'main' | 'calendar'>('main');
+
+  // Function to get full address from location code - Updated for clickable locations
+  const getFullAddress = (locationCode: string): string => {
+    console.log('Looking for address for location code:', locationCode);
+    
+    // First try exact match
+    if (locationData[locationCode as keyof typeof locationData]) {
+      console.log('Found exact match:', locationData[locationCode as keyof typeof locationData]);
+      return locationData[locationCode as keyof typeof locationData];
+    }
+    
+    // Try partial matches - look for the location code in the keys
+    const locationKeys = Object.keys(locationData);
+    console.log('Available location keys:', locationKeys);
+    
+    for (const key of locationKeys) {
+      // Check various matching patterns
+      const keyWithoutDescription = key.split(' - ')[0]; // Get just the code part
+      
+      // Exact match with code part
+      if (locationCode === keyWithoutDescription) {
+        console.log('Found code match:', key, '->', locationData[key as keyof typeof locationData]);
+        return locationData[key as keyof typeof locationData];
+      }
+      
+      // Check if location code starts with the key or vice versa
+      if (key.startsWith(locationCode) || locationCode.startsWith(keyWithoutDescription)) {
+        console.log('Found partial match:', key, '->', locationData[key as keyof typeof locationData]);
+        return locationData[key as keyof typeof locationData];
+      }
+      
+      // Check if location code contains the key or vice versa (case insensitive)
+      if (key.toLowerCase().includes(locationCode.toLowerCase()) || 
+          locationCode.toLowerCase().includes(keyWithoutDescription.toLowerCase())) {
+        console.log('Found substring match:', key, '->', locationData[key as keyof typeof locationData]);
+        return locationData[key as keyof typeof locationData];
+      }
+    }
+    
+    // If no match found, return the original location code
+    console.log('No match found for:', locationCode);
+    return locationCode;
+  };
 
   // Generate QR code for the current URL
   const generateQRCode = async () => {
@@ -266,7 +340,7 @@ function App() {
     });
       if (filtersToUse.view_type === "cancellations") params.append("has_cancellation", "true");
       
-      const url = `${API_URL}/cancellations?${params.toString()}`;
+      const url = `${API_URL}/api/cancellations?${params.toString()}`;
       console.log("Fetching from:", url);
       console.log("Filters being used:", filtersToUse);
       console.log("URL parameters:", params.toString());
@@ -298,7 +372,7 @@ function App() {
 
   useEffect(() => {
     fetchCancellations();
-    fetchAllPrograms(); // Also fetch all programs for pinned items
+    fetchAllcancellations(); // Also fetch all cancellations for pinned items
     const interval = setInterval(() => fetchCancellations(), 5 * 60 * 1000); // 5 min
     return () => clearInterval(interval);
     // eslint-disable-next-line
@@ -313,7 +387,7 @@ function App() {
         ...filters, 
         program: value, 
         program_id: value,
-        view_type: "all" // Always search all programs to show pinned classes
+        view_type: "all" // Always search all cancellations to show pinned classes
       };
       setFilters(newFilters);
       
@@ -380,12 +454,12 @@ function App() {
   const handleMobileSearch = async () => {
     const searchTerm = mobileSearch.trim();
     
-    // Always search all programs to show pinned classes
+    // Always search all cancellations to show pinned classes
     const newFilters = { 
       ...filters, 
       program: searchTerm, 
       program_id: searchTerm, // Use original search term for ID search
-      view_type: "all" // Always search all programs to show pinned classes
+      view_type: "all" // Always search all cancellations to show pinned classes
     };
     setFilters(newFilters);
     
@@ -393,44 +467,44 @@ function App() {
     await fetchCancellations(newFilters);
   };
 
-  // Get all programs (for pinned programs that might not be in filtered results)
-  const [allPrograms, setAllPrograms] = useState<Cancellation[]>([]);
+  // Get all cancellations (for pinned cancellations that might not be in filtered results)
+  const [allcancellations, setAllcancellations] = useState<Cancellation[]>([]);
 
-  // Fetch all programs (without filters) to ensure pinned programs are always available
-  const fetchAllPrograms = async () => {
+  // Fetch all cancellations (without filters) to ensure pinned cancellations are always available
+  const fetchAllcancellations = async () => {
     try {
-      const url = `${API_URL}/cancellations`;
+      const url = `${API_URL}/api/cancellations`;
       const res = await fetch(url);
       
       if (res.ok) {
         const data = await res.json();
-        setAllPrograms(data.data || []);
+        setAllcancellations(data.data || []);
       }
     } catch (error) {
-      console.error("Failed to fetch all programs:", error);
+      console.error("Failed to fetch all cancellations:", error);
     }
   };
 
-  // Fetch all programs when favorites change (to ensure pinned programs are available)
+  // Fetch all cancellations when favorites change (to ensure pinned cancellations are available)
   useEffect(() => {
     if (favorites.size > 0) {
-      fetchAllPrograms();
+      fetchAllcancellations();
     }
   }, [favorites]);
 
-  // Combine pinned programs with current filtered results
+  // Combine pinned cancellations with current filtered results
   const sortedCancellations = (() => {
     const currentResults = [...cancellations];
-    const allProgramsList = [...allPrograms];
+    const allcancellationsList = [...allcancellations];
     
-    // Get pinned programs from all programs
-    const pinnedResults = allProgramsList.filter(p => favorites.has(p.program_id));
+    // Get pinned cancellations from all cancellations
+    const pinnedResults = allcancellationsList.filter(p => favorites.has(p.program_id));
     
-    // Remove duplicates (pinned programs that are already in current results)
+    // Remove duplicates (pinned cancellations that are already in current results)
     const currentIds = new Set(currentResults.map(p => p.program_id));
     const uniquePinned = pinnedResults.filter(p => !currentIds.has(p.program_id));
     
-    // Combine: unique pinned programs first, then current results
+    // Combine: unique pinned cancellations first, then current results
     const combined = [...uniquePinned, ...currentResults];
     
     // Sort within each group (pinned first, then regular)
@@ -446,10 +520,10 @@ function App() {
 
   // Debug logging
   console.log('Favorites state:', Array.from(favorites));
-  console.log('All programs count:', allPrograms.length);
+  console.log('All cancellations count:', allcancellations.length);
   console.log('Current filtered results count:', cancellations.length);
   console.log('Sorted cancellations count:', sortedCancellations.length);
-  console.log('Pinned programs in results:', sortedCancellations.filter(p => favorites.has(p.program_id)).length);
+  console.log('Pinned cancellations in results:', sortedCancellations.filter(p => favorites.has(p.program_id)).length);
 
   const handleExport = async (format: 'excel' | 'pdf') => {
     try {
@@ -520,11 +594,11 @@ function App() {
         <header className="mobile-header">
           <div className="mobile-header-left">
             <img 
-              src={logo} 
-              alt="Company Logo" 
-              className="mobile-logo clickable-logo custom-tooltip"
-              onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
-              data-tooltip="Visit Seniors Kingston Website"
+            src={logo} 
+            alt="Company Logo" 
+            className="mobile-logo clickable-logo custom-tooltip"
+            onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
+            data-tooltip="Visit Seniors Kingston Website"
             />
             <button 
               onClick={() => setCurrentView('calendar')} 
@@ -596,7 +670,7 @@ function App() {
             <button 
               onClick={handleMobileSearch}
               className="mobile-search-button custom-tooltip"
-              data-tooltip="Search Programs"
+              data-tooltip="Search cancellations"
             >
               🔍
             </button>
@@ -744,7 +818,7 @@ function App() {
 
         {/* Debug info for mobile */}
         <div className="mobile-debug" style={{ fontSize: '12px', color: '#666', padding: '5px', textAlign: 'center' }}>
-          Mobile View: {isMobileView ? 'Yes' : 'No'} | Data: {sortedCancellations.length} programs
+          Mobile View: {isMobileView ? 'Yes' : 'No'} | Data: {sortedCancellations.length} cancellations
         </div>
 
         <div className="mobile-data">
@@ -766,7 +840,7 @@ function App() {
                     </span>
                     <div className="mobile-program-info">
                       <div className="mobile-program-name">{c.program}</div>
-                      <div className="mobile-program-id">ID: {c.program_id}</div>
+                      <div className="mobile-program-id">ID: {c.program_id.split('.')[0]}</div>
                     </div>
                   </div>
                   
@@ -780,8 +854,14 @@ function App() {
                       <span className="mobile-value">{c.time}</span>
                     </div>
                     <div className="mobile-detail-row">
-                      <span className="mobile-label">Location:</span>
-                      <span className="mobile-value">{c.location}</span>
+                    <span className="mobile-label">Location:</span>
+                    <span 
+                      className="mobile-value location-clickable" 
+                      onClick={() => setSelectedLocation(c.location)}
+                      style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
+                    >
+                      {c.location}
+                    </span>
                     </div>
                     <div className="mobile-detail-row">
                       <span className="mobile-label">Room:</span>
@@ -872,11 +952,11 @@ function App() {
       <header className="app-header">
         <div className="header-left">
           <img 
-            src={logo} 
-            alt="Company Logo" 
-            className="app-logo clickable-logo custom-tooltip"
-            onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
-            data-tooltip="Visit Seniors Kingston Website"
+          src={logo} 
+          alt="Company Logo" 
+          className="app-logo clickable-logo custom-tooltip"
+          onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
+          data-tooltip="Visit Seniors Kingston Website"
           />
           <button 
             onClick={() => setCurrentView('calendar')} 
@@ -1004,7 +1084,7 @@ function App() {
             {sortedCancellations.length === 0 && (
               <tr>
                 <td colSpan={13} style={{ textAlign: "center" }}>
-                  No programs found.
+                  No cancellations found.
                 </td>
               </tr>
             )}
@@ -1023,10 +1103,16 @@ function App() {
                   </td>
                 <td>{c.sheet}</td>
                 <td>{c.program}</td>
-                <td>{c.program_id}</td>
+                <td>{c.program_id.split('.')[0]}</td>
                 <td>{c.date_range}</td>
                 <td>{c.time}</td>
-                <td>{c.location}</td>
+                <td 
+                  className="location-clickable" 
+                  onClick={() => setSelectedLocation(c.location)}
+                  style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
+                >
+                  {c.location}
+                </td>
                   <td>{c.class_room}</td>
                   <td>{c.instructor}</td>
                 <td>{c.program_status}</td>
@@ -1120,16 +1206,16 @@ function App() {
               </ul>
 
               <h3>4. Understanding Program Statuses</h3>
-              <p>Programs may appear with one of these statuses:</p>
+              <p>cancellations may appear with one of these statuses:</p>
               <ul>
                 <li><strong>Active</strong> – The program is currently running (default view).</li>
                 <li><strong>Cancelled</strong> – The program has been fully cancelled.</li>
-                <li><strong>Additions</strong> – New programs added after the session started (displayed as Active).</li>
+                <li><strong>Additions</strong> – New cancellations added after the session started (displayed as Active).</li>
               </ul>
-              <p>💡 <strong>Tip:</strong> Use the Active filter to see all current programs.</p>
+              <p>💡 <strong>Tip:</strong> Use the Active filter to see all current cancellations.</p>
 
               <h3>5. Using the View Filter (Dropdown)</h3>
-              <p>The app uses a dropdown filter to select which programs to display:</p>
+              <p>The app uses a dropdown filter to select which cancellations to display:</p>
               <ul>
                 <li><strong>Show Class Cancellations</strong> – Displays only classes that have individual cancellations.</li>
                 <li><strong>Show All Programs</strong> – Displays all scheduled programs, including Active, Cancelled, and Additions.</li>
@@ -1148,7 +1234,7 @@ function App() {
               <h3>7. Favorites Feature (Star Pinning)</h3>
               <ul>
                 <li><strong>Click the star (★/☆)</strong> in the leftmost column to pin a program to the top</li>
-                <li><strong>Favorites persist</strong> – Your starred programs stay at the top even after closing and reopening the app</li>
+                <li><strong>Favorites persist</strong> – Your starred cancellations stay at the top even after closing and reopening the app</li>
                 <li><strong>Per-device storage</strong> – Each device remembers its own favorites</li>
                 <li><strong>Visual indicator</strong> – Filled star (★) = favorited, empty star (☆) = not favorited</li>
                 <li><strong>Works everywhere</strong> – Both desktop and mobile views support favorites</li>
@@ -1181,8 +1267,8 @@ function App() {
 
               <h3>9. Mobile View Features</h3>
               <ul>
-                <li><strong>Card Layout:</strong> Programs displayed as easy-to-read cards</li>
-                <li><strong>Favorites Support:</strong> Star programs to pin them to the top</li>
+                <li><strong>Card Layout:</strong> cancellations displayed as easy-to-read cards</li>
+                <li><strong>Favorites Support:</strong> Star cancellations to pin them to the top</li>
                 <li><strong>Class Cancellations Only:</strong> Mobile view focuses on cancelled classes</li>
                 <li><strong>Touch-Friendly:</strong> Large buttons and easy navigation</li>
                 <li><strong>Header Buttons:</strong> Desktop switch (🖥️), Refresh (🔄), and Save App (📲) buttons in header</li>
@@ -1206,7 +1292,7 @@ function App() {
 
               <h3>12. Tips & Best Practices</h3>
               <ul>
-                <li><strong>Use favorites</strong> to keep important programs at the top</li>
+                <li><strong>Use favorites</strong> to keep important cancellations at the top</li>
                 <li><strong>Install on mobile</strong> for quick access to class cancellations</li>
                 <li><strong>Automatic view switching</strong> - the app automatically chooses the best view for your device</li>
                 <li><strong>Export data</strong> to share or print schedules</li>
@@ -1240,49 +1326,64 @@ function App() {
         </div>
       )}
 
-      {/* Super Simple Test Modal */}
-      {showQRCode && (
+
+
+
+
+      {/* Location Address Floating Box */}
+      {selectedLocation && (
         <div 
+          className="location-modal-overlay" 
+          onClick={() => setSelectedLocation(null)}
           style={{
             position: 'fixed',
-            top: '0',
-            left: '0',
-            width: '100vw',
-            height: '100vh',
-            backgroundColor: 'yellow',
-            zIndex: 9999999,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
             display: 'flex',
-            alignItems: 'center',
             justifyContent: 'center',
-            flexDirection: 'column',
-            fontSize: '24px',
-            fontWeight: 'bold'
+            alignItems: 'center',
+            zIndex: 10000
           }}
         >
-          <div style={{ color: 'red', marginBottom: '20px' }}>
-            🚨 MODAL IS WORKING! 🚨
-          </div>
-          <div style={{ color: 'blue', marginBottom: '20px' }}>
-            QR Code: {qrCodeDataURL ? 'Generated' : 'Not Generated'}
-          </div>
-          <button 
-            onClick={() => setShowQRCode(false)}
-            style={{ 
-              padding: '15px 30px', 
-              fontSize: '18px',
-              backgroundColor: 'red',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px'
+          <div 
+            className="location-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              padding: '30px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+              maxWidth: '500px',
+              textAlign: 'center'
             }}
           >
-            Close Modal
-          </button>
+            <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedLocation}</h3>
+            <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
+              {getFullAddress(selectedLocation)}
+            </p>
+            <button 
+              onClick={() => setSelectedLocation(null)}
+              style={{
+                background: '#0072ce',
+                color: 'white',
+                border: 'none',
+                padding: '12px 30px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: 'bold'
+              }}
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
 
-
-      {/* Desktop QR Code Modal */}
+      {/* QR Code Modal */}
       {showQRCode && (
         <div style={{
           position: 'fixed',
@@ -1389,114 +1490,6 @@ function App() {
                   borderRadius: '6px',
                   cursor: 'pointer'
                 }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-
-      {/* QR Code Modal */}
-      {showQRCode && (
-        <div 
-          className="modal-overlay" 
-          onClick={() => setShowQRCode(false)}
-          style={{
-            position: 'fixed',
-            top: '0',
-            left: '0',
-            right: '0',
-            bottom: '0',
-            zIndex: 999999,
-            background: 'rgba(255, 0, 0, 0.9)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-            width: '100vw',
-            height: '100vh',
-            minWidth: '100vw',
-            minHeight: '100vh'
-          }}
-        >
-          <div 
-            className="modal-content qr-modal" 
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'white',
-              borderRadius: '12px',
-              padding: '20px',
-              maxWidth: '90vw',
-              maxHeight: '90vh',
-              overflow: 'auto',
-              position: 'relative',
-              zIndex: 1000000,
-              border: '10px solid #00ff00',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
-              minWidth: '300px',
-              minHeight: '200px',
-              width: '80vw',
-              height: '60vh'
-            }}
-          >
-            <div className="modal-header">
-              <h2>Scan with your phone to open the app</h2>
-              <button 
-                className="modal-close" 
-                onClick={() => setShowQRCode(false)}
-                aria-label="Close QR Code"
-              >
-                ×
-              </button>
-            </div>
-            <div style={{ background: 'red', color: 'white', padding: '20px', margin: '10px 0', fontSize: '18px', fontWeight: 'bold' }}>
-              🚨 MODAL IS VISIBLE! 🚨
-              <br />
-              If you can see this red box, the modal is working!
-              <br />
-              QR Code Data: {qrCodeDataURL ? 'Generated' : 'Not Generated'}
-              <br />
-              Current URL: {window.location.href}
-            </div>
-            <div className="qr-code-container">
-              {qrCodeDataURL ? (
-                <div className="qr-code-wrapper">
-                  <img 
-                    src={qrCodeDataURL} 
-                    alt="QR Code for app" 
-                    className="qr-code-image"
-                    style={{ width: '200px', height: '200px', border: '2px solid #000' }}
-                  />
-                  <div className="qr-code-logo-overlay">
-                    <img 
-                      src={logo} 
-                      alt="Company Logo" 
-                      className="qr-code-logo"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="qr-code-loading">
-                  <p>Generating QR code...</p>
-                  <button 
-                    onClick={generateQRCode}
-                    className="custom-tooltip"
-                    data-tooltip="Retry QR Code Generation"
-                  >
-                    Retry
-                  </button>
-                  <div style={{ background: 'yellow', padding: '10px', margin: '10px 0' }}>
-                    <strong>DEBUG:</strong> QR Code not generated yet. Click Retry or wait for generation.
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="modal-actions">
-              <button 
-                onClick={() => setShowQRCode(false)} 
-                style={{ background: "#0072ce", color: "white" }}
               >
                 Close
               </button>
