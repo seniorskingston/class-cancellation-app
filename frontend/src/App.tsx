@@ -38,23 +38,42 @@ const getFullAddress = (locationCode: string): string => {
     return "Address not available";
   }
   
+  console.log('Looking for address for:', locationCode);
+  console.log('Available locations:', Object.keys(locationData));
+  
+  // Try exact match first
   if ((locationData as any)[locationCode]) {
+    console.log('Found exact match:', locationCode);
     return (locationData as any)[locationCode];
   }
   
+  // Try case-insensitive exact match
   const lowerLocationCode = locationCode.toLowerCase();
   for (const [key, value] of Object.entries(locationData)) {
     if (key.toLowerCase() === lowerLocationCode) {
+      console.log('Found case-insensitive match:', key);
       return value;
     }
   }
   
+  // Try partial matches - look for location code in the key
   for (const [key, value] of Object.entries(locationData)) {
-    if (key.toLowerCase().includes(lowerLocationCode) || lowerLocationCode.includes(key.toLowerCase())) {
+    const keyWithoutDescription = key.split(' - ')[0]; // Get just the code part (e.g., "SC" from "SC - Seniors Centre")
+    
+    // Check if location code matches the key part
+    if (locationCode === keyWithoutDescription || locationCode.toLowerCase() === keyWithoutDescription.toLowerCase()) {
+      console.log('Found key part match:', key);
+      return value;
+    }
+    
+    // Check if location code is contained in the key
+    if (key.toLowerCase().includes(lowerLocationCode) || lowerLocationCode.includes(keyWithoutDescription.toLowerCase())) {
+      console.log('Found substring match:', key);
       return value;
     }
   }
   
+  console.log('No match found for:', locationCode);
   return "Address not available";
 };
 
@@ -811,7 +830,10 @@ function App() {
                     <span className="mobile-label">Location:</span>
                     <span 
                       className="mobile-value location-clickable" 
-                      onClick={() => setSelectedLocation(c.location)}
+                      onClick={() => {
+                        console.log('Mobile location clicked:', c.location);
+                        setSelectedLocation(c.location);
+                      }}
                       style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                     >
                       {c.location}
@@ -1062,7 +1084,10 @@ function App() {
                 <td>{c.time}</td>
                 <td 
                   className="location-clickable" 
-                  onClick={() => setSelectedLocation(c.location)}
+                  onClick={() => {
+                    console.log('Desktop location clicked:', c.location);
+                    setSelectedLocation(c.location);
+                  }}
                   style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                 >
                   {c.location}
