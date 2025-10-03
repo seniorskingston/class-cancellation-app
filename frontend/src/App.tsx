@@ -123,6 +123,9 @@ function App() {
     if (selectedLocation) {
       console.log('🎯 Modal should be visible now for:', selectedLocation);
       console.log('🎯 Address will be:', getFullAddress(selectedLocation));
+      console.log('🎯 LOCATION MODAL SHOULD BE RENDERING NOW!');
+    } else {
+      console.log('🎯 selectedLocation is null/empty - no modal should show');
     }
   }, [selectedLocation]);
   const [showUserGuide, setShowUserGuide] = useState(false);
@@ -640,7 +643,14 @@ function App() {
               }}
               onClick={() => {
                 console.log('🧪 TEST: Setting selectedLocation to test value');
+                console.log('🧪 TEST: Current selectedLocation before set:', selectedLocation);
                 setSelectedLocation('TEST - Mobile Modal');
+                console.log('🧪 TEST: selectedLocation should be set to: TEST - Mobile Modal');
+                
+                // Force a re-render check
+                setTimeout(() => {
+                  console.log('🧪 TEST: Delayed check - selectedLocation is now:', selectedLocation);
+                }, 100);
               }}
             >
               🧪 Test Modal
