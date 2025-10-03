@@ -868,36 +868,47 @@ function App() {
           )}
         </div>
         
-        {/* SIMPLE TEST POPUP - NOT A MODAL */}
+        {/* SIMPLE TEST MODAL - WORKING VERSION */}
         {testModal && (
           <div style={{
-            position: 'relative',
-            background: 'lime',
-            padding: '20px',
-            margin: '10px',
-            border: '3px solid green',
-            borderRadius: '10px',
-            textAlign: 'center',
-            zIndex: 9999999999
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 255, 0, 0.9)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999999999,
+            padding: '20px'
           }}>
-            <h2 style={{ color: 'green', marginBottom: '20px' }}>🧪 SIMPLE TEST POPUP</h2>
-            <p style={{ marginBottom: '30px' }}>If you see this, popups work on mobile!</p>
-            <button 
-              onClick={() => {
-                console.log('🧪 SIMPLE TEST: Closing test popup');
-                setTestModal(false);
-              }}
-              style={{
-                background: 'green',
-                color: 'white',
-                padding: '15px 30px',
-                border: 'none',
-                borderRadius: '5px',
-                fontSize: '16px'
-              }}
-            >
-              Close Test Popup
-            </button>
+            <div style={{
+              background: 'white',
+              padding: '50px',
+              borderRadius: '10px',
+              border: '5px solid green',
+              textAlign: 'center'
+            }}>
+              <h2 style={{ color: 'green', marginBottom: '20px' }}>🧪 SIMPLE TEST MODAL</h2>
+              <p style={{ marginBottom: '30px' }}>If you see this, modals work on mobile!</p>
+              <button 
+                onClick={() => {
+                  console.log('🧪 SIMPLE TEST: Closing test modal');
+                  setTestModal(false);
+                }}
+                style={{
+                  background: 'green',
+                  color: 'white',
+                  padding: '15px 30px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  fontSize: '16px'
+                }}
+              >
+                Close Test Modal
+              </button>
+            </div>
           </div>
         )}
       </div>
