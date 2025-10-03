@@ -6,20 +6,19 @@ import Calendar from './Calendar';
 import locationData from './locations.json';
 
 type Cancellation = {
+  sheet: string;
   program: string;
   program_id: string;
-  date: string;
-  day: string;
+  date_range: string;
+  time: string;
   location: string;
+  class_room: string;  // Class Room from Facility
+  instructor: string;  // Instructor
   program_status: string;
-  has_cancellation: boolean;
-  cancellation_reason?: string;
-  cancellation_date?: string;
-  time?: string;
-  instructor?: string;
-  cost?: string;
-  withdrawal?: string;
-  view_type: string;
+  class_cancellation: string;
+  note: string;
+  withdrawal: string;
+  is_favorite?: boolean;  // Favorite status
 };
 
 type Filters = {
@@ -734,7 +733,7 @@ function App() {
                   <div className="mobile-card-details">
                     <div className="mobile-detail-row">
                       <span className="mobile-label">Day:</span>
-                      <span className="mobile-value">{c.day}</span>
+                      <span className="mobile-value">{c.sheet}</span>
                     </div>
                     <div className="mobile-detail-row">
                       <span className="mobile-label">Time:</span>
@@ -757,26 +756,57 @@ function App() {
                     </span>
                     </div>
                     <div className="mobile-detail-row">
+                      <span className="mobile-label">Room:</span>
+                      <span className="mobile-value">{c.class_room}</span>
+                    </div>
+                    <div className="mobile-detail-row">
                       <span className="mobile-label">Instructor:</span>
                       <span className="mobile-value">{c.instructor}</span>
                     </div>
                     <div className="mobile-detail-row">
                       <span className="mobile-label">Cancelled:</span>
                       <span className="mobile-value mobile-cancellation">
-                        {c.has_cancellation ? (
-                          <div>
-                            <div style={{ marginBottom: '4px' }}>
-                              🚫 {c.cancellation_reason}
-                            </div>
-                            {c.cancellation_date && (
-                              <div style={{ marginBottom: '4px' }}>
-                                📅 {c.cancellation_date}
-                              </div>
-                            )}
-                          </div>
-                        ) : 'N/A'}
+                        {c.class_cancellation && c.class_cancellation !== '' ? 
+                          c.class_cancellation.split(';').map((date, index) => {
+                            const trimmedDate = date.trim();
+                            if (trimmedDate) {
+                              try {
+                                // Normalize date format: replace period with comma for better parsing
+                                const normalizedDate = trimmedDate.replace(/\./g, ',');
+                                const parsedDate = new Date(normalizedDate);
+                                if (!isNaN(parsedDate.getTime())) {
+                                  return (
+                                    <div key={index}>
+                                      {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
+                                    </div>
+                                  );
+                                } else {
+                                  // If parsing still fails, show the original text
+                                  return (
+                                    <div key={index}>
+                                      {trimmedDate}
+                                    </div>
+                                  );
+                                }
+                              } catch (e) {
+                                // If parsing fails, show the original text
+                                return (
+                                  <div key={index}>
+                                    {trimmedDate}
+                                  </div>
+                                );
+                              }
+                            }
+                            return null;
+                          }).filter(Boolean) || c.class_cancellation : 'N/A'}
                       </span>
                     </div>
+                    {c.note && c.note !== '' && (
+                      <div className="mobile-detail-row">
+                        <span className="mobile-label">Note:</span>
+                        <span className="mobile-value">{c.note}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -931,12 +961,14 @@ function App() {
               <th>Day</th>
               <th>Program</th>
               <th>Program ID</th>
-              <th>Date</th>
+              <th>Date Range</th>
               <th>Time</th>
               <th>Location</th>
+              <th>Class Room</th>
               <th>Instructor</th>
               <th>Program Status</th>
-              <th>Cancellation Info</th>
+              <th>Class Cancellation</th>
+              <th>Additional Information</th>
               <th>Refund</th>
             </tr>
           </thead>
@@ -961,10 +993,10 @@ function App() {
                       {isFavorite ? '★' : '☆'}
                     </span>
                   </td>
-                <td>{c.day}</td>
+                <td>{c.sheet}</td>
                 <td>{c.program}</td>
                 <td>{c.program_id.split('.')[0]}</td>
-                <td>{c.date}</td>
+                <td>{c.date_range}</td>
                 <td>{c.time}</td>
                 <td 
                   className="location-clickable" 
@@ -978,16 +1010,43 @@ function App() {
                 >
                   {c.location}
                 </td>
+                  <td>{c.class_room}</td>
                   <td>{c.instructor}</td>
                 <td>{c.program_status}</td>
-                  <td>
-                    {c.has_cancellation ? (
-                      <div>
-                        <div>🚫 {c.cancellation_reason}</div>
-                        {c.cancellation_date && <div>📅 {c.cancellation_date}</div>}
-                      </div>
-                    ) : ''}
-                  </td>
+                  <td>{c.class_cancellation && c.class_cancellation !== '' ? 
+                    c.class_cancellation.split(';').map((date, index) => {
+                      const trimmedDate = date.trim();
+                      if (trimmedDate) {
+                        try {
+                          // Normalize date format: replace period with comma for better parsing
+                          const normalizedDate = trimmedDate.replace(/\./g, ',');
+                          const parsedDate = new Date(normalizedDate);
+                          if (!isNaN(parsedDate.getTime())) {
+                            return (
+                              <div key={index}>
+                                {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
+                              </div>
+                            );
+                          } else {
+                            // If parsing still fails, show the original text
+                            return (
+                              <div key={index}>
+                                {trimmedDate}
+                              </div>
+                            );
+                          }
+                        } catch (e) {
+                          // If parsing fails, show the original text
+                          return (
+                            <div key={index}>
+                              {trimmedDate}
+                            </div>
+                          );
+                        }
+                      }
+                      return null;
+                    }).filter(Boolean) || c.class_cancellation : ''}</td>
+                  <td>{c.note && c.note !== '' ? c.note : ''}</td>
                 <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
               </tr>
               );
@@ -1245,105 +1304,4 @@ function App() {
           <div style={{
             backgroundColor: 'white',
             borderRadius: '12px',
-            padding: '20px',
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            position: 'relative',
-            border: '4px solid #0072ce',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
-            textAlign: 'center'
-          }}>
-            <div style={{ marginBottom: '20px' }}>
-              <h2 style={{ margin: '0 0 10px 0', color: '#0072ce' }}>Scan with your phone to open the app</h2>
-              <button 
-                onClick={() => setShowQRCode(false)}
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  color: '#666'
-                }}
-              >
-                ×
-              </button>
-            </div>
-            
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              {qrCodeDataURL ? (
-                <div style={{ position: 'relative', display: 'inline-block' }}>
-                  <img 
-                    src={qrCodeDataURL} 
-                    alt="QR Code for app" 
-                    style={{ 
-                      width: '300px', 
-                      height: '300px', 
-                      border: '2px solid #ddd',
-                      borderRadius: '8px'
-                    }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    background: 'white',
-                    padding: '8px',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
-                  }}>
-                    <img 
-                      src={logo} 
-                      alt="Company Logo" 
-                      style={{ width: '30px', height: '30px', objectFit: 'contain' }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div style={{ padding: '40px', color: '#666' }}>
-                  <p>Generating QR code...</p>
-                  <button 
-                    onClick={generateQRCode}
-                    style={{
-                      background: '#0072ce',
-                      color: 'white',
-                      border: 'none',
-                      padding: '10px 20px',
-                      borderRadius: '6px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-            </div>
-            
-            <div style={{ marginTop: '20px' }}>
-              <button 
-                onClick={() => setShowQRCode(false)} 
-                style={{ 
-                  background: '#0072ce', 
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
-                  cursor: 'pointer'
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-    </div>
-  );
-}
-
-export default App;
+       
