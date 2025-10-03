@@ -911,6 +911,69 @@ function App() {
             </div>
           </div>
         )}
+        
+        {/* LOCATION MODAL - MOVED HERE TO MATCH WORKING MODAL */}
+        {selectedLocation && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 0, 0, 0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999999999,
+            padding: '20px'
+          }}
+          onClick={() => {
+            console.log('📱 MOBILE modal background clicked - closing modal');
+            setSelectedLocation(null);
+          }}
+          >
+            <div style={{
+              background: 'white',
+              padding: '30px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+              maxWidth: '90vw',
+              maxHeight: '80vh',
+              border: '5px solid #ff0000',
+              textAlign: 'center',
+              position: 'relative',
+              overflow: 'auto'
+            }}
+            onClick={(e) => {
+              console.log('📱 MOBILE modal content clicked - preventing close');
+              e.stopPropagation();
+            }}
+            >
+              <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedLocation}</h3>
+              <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
+                {getFullAddress(selectedLocation)}
+              </p>
+              <div style={{ background: 'yellow', padding: '10px', margin: '10px', fontSize: '0.8rem' }}>
+                🧪 LOCATION MODAL TEST - If you see this, the location modal is working!
+              </div>
+              <button 
+                onClick={() => setSelectedLocation(null)}
+                style={{
+                  background: '#0072ce',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px 30px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1325,68 +1388,6 @@ function App() {
 
 
 
-      {/* Location Address Modal - FIXED VERSION */}
-      {selectedLocation && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 9999999999,
-          padding: '20px'
-        }}
-        onClick={() => {
-          console.log('📱 MOBILE modal background clicked - closing modal');
-          setSelectedLocation(null);
-        }}
-        >
-          <div style={{
-            background: 'white',
-            padding: '30px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-            maxWidth: '90vw',
-            maxHeight: '80vh',
-            border: '3px solid #0072ce',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'auto'
-          }}
-          onClick={(e) => {
-            console.log('📱 MOBILE modal content clicked - preventing close');
-            e.stopPropagation();
-          }}
-          >
-          <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedLocation}</h3>
-          <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
-            {getFullAddress(selectedLocation)}
-          </p>
-          <div style={{ background: 'yellow', padding: '10px', margin: '10px', fontSize: '0.8rem' }}>
-            🧪 LOCATION POPUP TEST - If you see this, the popup is working!
-          </div>
-            <button 
-              onClick={() => setSelectedLocation(null)}
-              style={{
-                background: '#0072ce',
-                color: 'white',
-                border: 'none',
-                padding: '12px 30px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: 'bold'
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* QR Code Modal */}
       {showQRCode && (
