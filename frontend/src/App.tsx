@@ -123,6 +123,9 @@ function App() {
   // Debug selectedLocation state
   useEffect(() => {
     console.log('selectedLocation state changed to:', selectedLocation);
+    if (selectedLocation) {
+      console.log('🚨 MODAL SHOULD BE RENDERING NOW! selectedLocation:', selectedLocation);
+    }
   }, [selectedLocation]);
 
   // Generate QR code for the current URL
@@ -1226,7 +1229,6 @@ function App() {
 
       {/* Location Address Floating Box */}
       {selectedLocation && (
-        console.log('🚨 MODAL IS RENDERING! selectedLocation:', selectedLocation),
         <div 
           className="location-modal-overlay" 
           onClick={() => {
@@ -1370,4 +1372,3 @@ function App() {
                       color: 'white',
                       border: 'none',
                       padding: '10px 20px',
-                      borderRadius: '6px',
