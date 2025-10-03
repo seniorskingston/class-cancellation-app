@@ -38,14 +38,37 @@ const getFullAddress = (locationCode: string): string => {
     return "Address not available";
   }
   
-  console.log('Looking for address for:', locationCode);
+  console.log('🔍 Looking for address for:', locationCode);
   
-  // Clean the location code - remove extra spaces and normalize
-  const cleanLocationCode = locationCode.trim().replace(/\s+/g, ' ');
+  // Clean the location code
+  const cleanLocationCode = locationCode.trim();
   
-  // Try exact match first
+  // Direct mapping for the specific cases you mentioned
+  const directMappings: { [key: string]: string } = {
+    "SCE – Seniors Centre East": "SCE - Seniors Center East",
+    "SCE - Seniors Centre East": "SCE - Seniors Center East", 
+    "SCW – Seniors Centre West": "SCW - Seniors Centre West",
+    "SCW - Seniors Centre West": "SCW - Seniors Centre West",
+    "SCG - Seniors Centre Saint George's": "SCG - Seniors Centre Saint George's",
+    "SCL - Seniors Centre Loyalist Amherstview": "SCLA - Seniors Centre Loyalist Amherstview",
+    "SCN – Seniors Centre North": "SCN - Seniors Center North",
+    "SCN - Seniors Centre North": "SCN - Seniors Center North"
+  };
+  
+  // Try direct mapping first
+  if (directMappings[cleanLocationCode]) {
+    const mappedKey = directMappings[cleanLocationCode];
+    console.log('✅ Found direct mapping:', cleanLocationCode, '->', mappedKey);
+    const address = (locationData as any)[mappedKey];
+    if (address) {
+      console.log('✅ Address found:', address);
+      return address;
+    }
+  }
+  
+  // Try exact match
   if ((locationData as any)[cleanLocationCode]) {
-    console.log('Found exact match:', cleanLocationCode);
+    console.log('✅ Found exact match:', cleanLocationCode);
     return (locationData as any)[cleanLocationCode];
   }
   
@@ -53,66 +76,26 @@ const getFullAddress = (locationCode: string): string => {
   const lowerLocationCode = cleanLocationCode.toLowerCase();
   for (const [key, value] of Object.entries(locationData)) {
     if (key.toLowerCase() === lowerLocationCode) {
-      console.log('Found case-insensitive match:', key);
+      console.log('✅ Found case-insensitive match:', key);
       return value;
     }
   }
   
-  // Try partial matches - look for location code in the key
+  // Try to match by first part (before dash)
+  const firstPart = cleanLocationCode.split(/[–-]/)[0].trim();
+  console.log('🔍 First part extracted:', firstPart);
+  
   for (const [key, value] of Object.entries(locationData)) {
-    const keyWithoutDescription = key.split(' - ')[0]; // Get just the code part (e.g., "SCW" from "SCW - Seniors Centre West")
+    const keyFirstPart = key.split(' - ')[0].trim();
+    console.log('🔍 Checking key:', key, '| first part:', keyFirstPart);
     
-    // Extract the code part from the location (handle both – and - dashes)
-    const locationCodePart = cleanLocationCode.split(/[–-]/)[0].trim();
-    
-    console.log('Checking:', key, '| code part:', keyWithoutDescription, '| location part:', locationCodePart);
-    
-    // Check if location code starts with the key part
-    if (cleanLocationCode.startsWith(keyWithoutDescription) || 
-        keyWithoutDescription.startsWith(locationCodePart) ||
-        locationCodePart === keyWithoutDescription) {
-      console.log('Found key part match:', key);
+    if (firstPart === keyFirstPart) {
+      console.log('✅ Found first part match:', key);
       return value;
-    }
-    
-    // Check if location code contains the key part
-    if (cleanLocationCode.toLowerCase().includes(keyWithoutDescription.toLowerCase()) || 
-        keyWithoutDescription.toLowerCase().includes(locationCodePart.toLowerCase())) {
-      console.log('Found substring match:', key);
-      return value;
-    }
-    
-    // Additional check for specific cases you mentioned
-    if (locationCodePart && keyWithoutDescription) {
-      // Handle "SCE" -> "SCE - Seniors Center East"
-      if (locationCodePart === 'SCE' && keyWithoutDescription === 'SCE') {
-        console.log('Found SCE match');
-        return value;
-      }
-      // Handle "SCW" -> "SCW - Seniors Centre West"  
-      if (locationCodePart === 'SCW' && keyWithoutDescription === 'SCW') {
-        console.log('Found SCW match');
-        return value;
-      }
-      // Handle "SCG" -> "SCG - Seniors Centre Saint George's"
-      if (locationCodePart === 'SCG' && keyWithoutDescription === 'SCG') {
-        console.log('Found SCG match');
-        return value;
-      }
-      // Handle "SCL" -> "SCLA - Seniors Centre Loyalist Amherstview"
-      if (locationCodePart === 'SCL' && (keyWithoutDescription === 'SCL' || keyWithoutDescription === 'SCLA')) {
-        console.log('Found SCL match');
-        return value;
-      }
-      // Handle "SCN" -> "SCN - Seniors Center North"
-      if (locationCodePart === 'SCN' && keyWithoutDescription === 'SCN') {
-        console.log('Found SCN match');
-        return value;
-      }
     }
   }
   
-  console.log('No match found for:', cleanLocationCode);
+  console.log('❌ No match found for:', cleanLocationCode);
   return "Address not available";
 };
 
@@ -135,7 +118,11 @@ function App() {
 
   // Debug selectedLocation state changes
   useEffect(() => {
-    console.log('selectedLocation state changed to:', selectedLocation);
+    console.log('🎯 selectedLocation state changed to:', selectedLocation);
+    if (selectedLocation) {
+      console.log('🎯 Modal should be visible now for:', selectedLocation);
+      console.log('🎯 Address will be:', getFullAddress(selectedLocation));
+    }
   }, [selectedLocation]);
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
