@@ -38,11 +38,14 @@ const getFullAddress = (locationCode: string): string => {
     return "Address not available";
   }
   
+  console.log('Looking for address for:', locationCode);
+  
   // Clean the location code - remove extra spaces and normalize
   const cleanLocationCode = locationCode.trim().replace(/\s+/g, ' ');
   
   // Try exact match first
   if ((locationData as any)[cleanLocationCode]) {
+    console.log('Found exact match:', cleanLocationCode);
     return (locationData as any)[cleanLocationCode];
   }
   
@@ -50,6 +53,7 @@ const getFullAddress = (locationCode: string): string => {
   const lowerLocationCode = cleanLocationCode.toLowerCase();
   for (const [key, value] of Object.entries(locationData)) {
     if (key.toLowerCase() === lowerLocationCode) {
+      console.log('Found case-insensitive match:', key);
       return value;
     }
   }
@@ -61,20 +65,54 @@ const getFullAddress = (locationCode: string): string => {
     // Extract the code part from the location (handle both – and - dashes)
     const locationCodePart = cleanLocationCode.split(/[–-]/)[0].trim();
     
+    console.log('Checking:', key, '| code part:', keyWithoutDescription, '| location part:', locationCodePart);
+    
     // Check if location code starts with the key part
     if (cleanLocationCode.startsWith(keyWithoutDescription) || 
         keyWithoutDescription.startsWith(locationCodePart) ||
         locationCodePart === keyWithoutDescription) {
+      console.log('Found key part match:', key);
       return value;
     }
     
     // Check if location code contains the key part
     if (cleanLocationCode.toLowerCase().includes(keyWithoutDescription.toLowerCase()) || 
         keyWithoutDescription.toLowerCase().includes(locationCodePart.toLowerCase())) {
+      console.log('Found substring match:', key);
       return value;
+    }
+    
+    // Additional check for specific cases you mentioned
+    if (locationCodePart && keyWithoutDescription) {
+      // Handle "SCE" -> "SCE - Seniors Center East"
+      if (locationCodePart === 'SCE' && keyWithoutDescription === 'SCE') {
+        console.log('Found SCE match');
+        return value;
+      }
+      // Handle "SCW" -> "SCW - Seniors Centre West"  
+      if (locationCodePart === 'SCW' && keyWithoutDescription === 'SCW') {
+        console.log('Found SCW match');
+        return value;
+      }
+      // Handle "SCG" -> "SCG - Seniors Centre Saint George's"
+      if (locationCodePart === 'SCG' && keyWithoutDescription === 'SCG') {
+        console.log('Found SCG match');
+        return value;
+      }
+      // Handle "SCL" -> "SCLA - Seniors Centre Loyalist Amherstview"
+      if (locationCodePart === 'SCL' && (keyWithoutDescription === 'SCL' || keyWithoutDescription === 'SCLA')) {
+        console.log('Found SCL match');
+        return value;
+      }
+      // Handle "SCN" -> "SCN - Seniors Center North"
+      if (locationCodePart === 'SCN' && keyWithoutDescription === 'SCN') {
+        console.log('Found SCN match');
+        return value;
+      }
     }
   }
   
+  console.log('No match found for:', cleanLocationCode);
   return "Address not available";
 };
 
@@ -94,6 +132,11 @@ function App() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+
+  // Debug selectedLocation state changes
+  useEffect(() => {
+    console.log('selectedLocation state changed to:', selectedLocation);
+  }, [selectedLocation]);
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [mobileSearch, setMobileSearch] = useState<string>("");
@@ -718,7 +761,11 @@ function App() {
                     <span className="mobile-label">Location:</span>
                     <span 
                       className="mobile-value"
-                      onClick={() => setSelectedLocation(c.location)}
+                      onClick={() => {
+                        console.log('Mobile location clicked:', c.location);
+                        setSelectedLocation(c.location);
+                        console.log('Mobile selectedLocation set to:', c.location);
+                      }}
                       style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                     >
                       {c.location}
@@ -969,7 +1016,11 @@ function App() {
                 <td>{c.date_range}</td>
                 <td>{c.time}</td>
                 <td 
-                  onClick={() => setSelectedLocation(c.location)}
+                  onClick={() => {
+                    console.log('Desktop location clicked:', c.location);
+                    setSelectedLocation(c.location);
+                    console.log('Desktop selectedLocation set to:', c.location);
+                  }}
                   style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                 >
                   {c.location}
