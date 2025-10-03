@@ -41,14 +41,17 @@ const getFullAddress = (locationCode: string): string => {
   console.log('Looking for address for:', locationCode);
   console.log('Available locations:', Object.keys(locationData));
   
+  // Clean the location code - remove extra spaces and normalize
+  const cleanLocationCode = locationCode.trim().replace(/\s+/g, ' ');
+  
   // Try exact match first
-  if ((locationData as any)[locationCode]) {
-    console.log('Found exact match:', locationCode);
-    return (locationData as any)[locationCode];
+  if ((locationData as any)[cleanLocationCode]) {
+    console.log('Found exact match:', cleanLocationCode);
+    return (locationData as any)[cleanLocationCode];
   }
   
   // Try case-insensitive exact match
-  const lowerLocationCode = locationCode.toLowerCase();
+  const lowerLocationCode = cleanLocationCode.toLowerCase();
   for (const [key, value] of Object.entries(locationData)) {
     if (key.toLowerCase() === lowerLocationCode) {
       console.log('Found case-insensitive match:', key);
@@ -58,22 +61,23 @@ const getFullAddress = (locationCode: string): string => {
   
   // Try partial matches - look for location code in the key
   for (const [key, value] of Object.entries(locationData)) {
-    const keyWithoutDescription = key.split(' - ')[0]; // Get just the code part (e.g., "SC" from "SC - Seniors Centre")
+    const keyWithoutDescription = key.split(' - ')[0]; // Get just the code part (e.g., "SCW" from "SCW - Senior Centre West")
     
-    // Check if location code matches the key part
-    if (locationCode === keyWithoutDescription || locationCode.toLowerCase() === keyWithoutDescription.toLowerCase()) {
-      console.log('Found key part match:', key);
+    // Check if location code starts with the key part (e.g., "SCW – Seniors Centre West" matches "SCW")
+    if (cleanLocationCode.startsWith(keyWithoutDescription) || keyWithoutDescription.startsWith(cleanLocationCode.split(/[–-]/)[0].trim())) {
+      console.log('Found key part match:', key, 'for location:', cleanLocationCode);
       return value;
     }
     
-    // Check if location code is contained in the key
-    if (key.toLowerCase().includes(lowerLocationCode) || lowerLocationCode.includes(keyWithoutDescription.toLowerCase())) {
-      console.log('Found substring match:', key);
+    // Check if location code contains the key part
+    if (cleanLocationCode.toLowerCase().includes(keyWithoutDescription.toLowerCase()) || 
+        keyWithoutDescription.toLowerCase().includes(cleanLocationCode.split(/[–-]/)[0].trim().toLowerCase())) {
+      console.log('Found substring match:', key, 'for location:', cleanLocationCode);
       return value;
     }
   }
   
-  console.log('No match found for:', locationCode);
+  console.log('No match found for:', cleanLocationCode);
   return "Address not available";
 };
 
@@ -100,6 +104,11 @@ function App() {
   const [showFloatingQR, setShowFloatingQR] = useState(true);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
   const [currentView, setCurrentView] = useState<'main' | 'calendar'>('main');
+
+  // Debug selectedLocation state
+  useEffect(() => {
+    console.log('selectedLocation state changed to:', selectedLocation);
+  }, [selectedLocation]);
 
   // Generate QR code for the current URL
   const generateQRCode = async () => {
@@ -832,7 +841,9 @@ function App() {
                       className="mobile-value location-clickable" 
                       onClick={() => {
                         console.log('Mobile location clicked:', c.location);
+                        console.log('Setting selectedLocation to:', c.location);
                         setSelectedLocation(c.location);
+                        console.log('selectedLocation state should now be:', c.location);
                       }}
                       style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                     >
@@ -1086,7 +1097,9 @@ function App() {
                   className="location-clickable" 
                   onClick={() => {
                     console.log('Desktop location clicked:', c.location);
+                    console.log('Setting selectedLocation to:', c.location);
                     setSelectedLocation(c.location);
+                    console.log('selectedLocation state should now be:', c.location);
                   }}
                   style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                 >
@@ -1313,7 +1326,10 @@ function App() {
       {selectedLocation && (
         <div 
           className="location-modal-overlay" 
-          onClick={() => setSelectedLocation(null)}
+          onClick={() => {
+            console.log('Closing location modal');
+            setSelectedLocation(null);
+          }}
           style={{
             position: 'fixed',
             top: 0,
@@ -1444,41 +1460,4 @@ function App() {
                   <button 
                     onClick={generateQRCode}
                     style={{
-                      background: '#0072ce',
-                      color: 'white',
-                      border: 'none',
-                      padding: '10px 20px',
-                      borderRadius: '6px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-            </div>
-            
-            <div style={{ marginTop: '20px' }}>
-              <button 
-                onClick={() => setShowQRCode(false)} 
-                style={{ 
-                  background: "#0072ce", 
-                  color: "white",
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
-                  cursor: 'pointer'
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-    </div>
-  );
-}
-
-export default App;
+                   
