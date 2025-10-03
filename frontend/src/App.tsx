@@ -1275,6 +1275,64 @@ function App() {
 
 
 
+      {/* Location Address Modal - Desktop */}
+      {selectedLocation && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999999999,
+          padding: '20px'
+        }}
+        onClick={() => {
+          setSelectedLocation(null);
+        }}
+        >
+          <div style={{
+            background: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+            maxWidth: '90vw',
+            maxHeight: '80vh',
+            border: '3px solid #0072ce',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'auto'
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          >
+            <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedLocation}</h3>
+            <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
+              {getFullAddress(selectedLocation)}
+            </p>
+            <button 
+              onClick={() => setSelectedLocation(null)}
+              style={{
+                background: '#0072ce',
+                color: 'white',
+                border: 'none',
+                padding: '12px 30px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: 'bold'
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* QR Code Modal */}
       {showQRCode && (
         <div style={{
