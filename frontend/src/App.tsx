@@ -107,13 +107,6 @@ function App() {
   const [locations, setLocations] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
-  // Debug selectedLocation state changes
-  useEffect(() => {
-    console.log('🎯 selectedLocation state changed to:', selectedLocation);
-    if (selectedLocation) {
-      console.log('🎯 Modal should be visible now for:', selectedLocation);
-    }
-  }, [selectedLocation]);
 
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -853,7 +846,10 @@ function App() {
                 {getFullAddress(selectedLocation)}
               </p>
               <button 
-                onClick={() => setSelectedLocation(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedLocation(null);
+                }}
                 style={{
                   background: '#0072ce',
                   color: 'white',
@@ -1058,9 +1054,7 @@ function App() {
                 <td>{c.time}</td>
                 <td 
                   onClick={() => {
-                    console.log('🖥️ DESKTOP location clicked:', c.location);
                     setSelectedLocation(c.location);
-                    console.log('🖥️ DESKTOP selectedLocation should be set to:', c.location);
                   }}
                   style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                 >
@@ -1293,7 +1287,7 @@ function App() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(255, 0, 0, 0.8)', // Red background for testing
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
@@ -1325,7 +1319,10 @@ function App() {
               {getFullAddress(selectedLocation)}
             </p>
             <button 
-              onClick={() => setSelectedLocation(null)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedLocation(null);
+              }}
               style={{
                 background: '#0072ce',
                 color: 'white',
