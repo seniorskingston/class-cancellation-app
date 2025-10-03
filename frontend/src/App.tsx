@@ -864,6 +864,7 @@ function App() {
         </div>
         
       </header>
+      </div>
       <div className="filters">
         <button 
           onClick={() => setIsMobileView(true)} 
@@ -1304,6 +1305,4 @@ function App() {
           <div style={{
             backgroundColor: 'white',
             borderRadius: '12px',
-            padding: '20px',
-
-          
+            paddin
