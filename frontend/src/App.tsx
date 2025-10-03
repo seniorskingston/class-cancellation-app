@@ -6,19 +6,20 @@ import Calendar from './Calendar';
 import locationData from './locations.json';
 
 type Cancellation = {
-  sheet: string;
   program: string;
   program_id: string;
-  date_range: string;
-  time: string;
+  date: string;
+  day: string;
   location: string;
-  class_room: string;  // New: Class Room from Facility
-  instructor: string;  // New: Instructor
   program_status: string;
-  class_cancellation: string;
-  note: string;
-  withdrawal: string;
-  is_favorite?: boolean;  // New: Favorite status
+  has_cancellation: boolean;
+  cancellation_reason?: string;
+  cancellation_date?: string;
+  time?: string;
+  instructor?: string;
+  cost?: string;
+  withdrawal?: string;
+  view_type: string;
 };
 
 type Filters = {
@@ -733,7 +734,7 @@ function App() {
                   <div className="mobile-card-details">
                     <div className="mobile-detail-row">
                       <span className="mobile-label">Day:</span>
-                      <span className="mobile-value">{c.sheet}</span>
+                      <span className="mobile-value">{c.day}</span>
                     </div>
                     <div className="mobile-detail-row">
                       <span className="mobile-label">Time:</span>
@@ -766,47 +767,20 @@ function App() {
                     <div className="mobile-detail-row">
                       <span className="mobile-label">Cancelled:</span>
                       <span className="mobile-value mobile-cancellation">
-                        {c.class_cancellation && c.class_cancellation !== '' ? 
-                          c.class_cancellation.split(';').map((date, index) => {
-                            const trimmedDate = date.trim();
-                            if (trimmedDate) {
-                              try {
-                                // Normalize date format: replace period with comma for better parsing
-                                const normalizedDate = trimmedDate.replace(/\./g, ',');
-                                const parsedDate = new Date(normalizedDate);
-                                if (!isNaN(parsedDate.getTime())) {
-                                  return (
-                                    <div key={index}>
-                                      {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
-                                    </div>
-                                  );
-                                } else {
-                                  // If parsing still fails, show the original text
-                                  return (
-                                    <div key={index}>
-                                      {trimmedDate}
-                                    </div>
-                                  );
-                                }
-                              } catch (e) {
-                                // If parsing fails, show the original text
-                                return (
-                                  <div key={index}>
-                                    {trimmedDate}
-                                  </div>
-                                );
-                              }
-                            }
-                            return null;
-                          }).filter(Boolean) || c.class_cancellation : 'N/A'}
+                        {c.has_cancellation ? (
+                          <div>
+                            <div style={{ marginBottom: '4px' }}>
+                              🚫 {c.cancellation_reason}
+                            </div>
+                            {c.cancellation_date && (
+                              <div style={{ marginBottom: '4px' }}>
+                                📅 {c.cancellation_date}
+                              </div>
+                            )}
+                          </div>
+                        ) : 'N/A'}
                       </span>
                     </div>
-                    {c.note && c.note !== '' && (
-                      <div className="mobile-detail-row">
-                        <span className="mobile-label">Note:</span>
-                        <span className="mobile-value">{c.note}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               );
@@ -993,10 +967,10 @@ function App() {
                       {isFavorite ? '★' : '☆'}
                     </span>
                   </td>
-                <td>{c.sheet}</td>
+                <td>{c.day}</td>
                 <td>{c.program}</td>
                 <td>{c.program_id.split('.')[0]}</td>
-                <td>{c.date_range}</td>
+                <td>{c.date}</td>
                 <td>{c.time}</td>
                 <td 
                   className="location-clickable" 
@@ -1010,43 +984,16 @@ function App() {
                 >
                   {c.location}
                 </td>
-                  <td>{c.class_room}</td>
                   <td>{c.instructor}</td>
                 <td>{c.program_status}</td>
-                  <td>{c.class_cancellation && c.class_cancellation !== '' ? 
-                    c.class_cancellation.split(';').map((date, index) => {
-                      const trimmedDate = date.trim();
-                      if (trimmedDate) {
-                        try {
-                          // Normalize date format: replace period with comma for better parsing
-                          const normalizedDate = trimmedDate.replace(/\./g, ',');
-                          const parsedDate = new Date(normalizedDate);
-                          if (!isNaN(parsedDate.getTime())) {
-                            return (
-                              <div key={index}>
-                                {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
-                              </div>
-                            );
-                          } else {
-                            // If parsing still fails, show the original text
-                            return (
-                              <div key={index}>
-                                {trimmedDate}
-                              </div>
-                            );
-                          }
-                        } catch (e) {
-                          // If parsing fails, show the original text
-                          return (
-                            <div key={index}>
-                              {trimmedDate}
-                            </div>
-                          );
-                        }
-                      }
-                      return null;
-                    }).filter(Boolean) || c.class_cancellation : ''}</td>
-                  <td>{c.note && c.note !== '' ? c.note : ''}</td>
+                  <td>
+                    {c.has_cancellation ? (
+                      <div>
+                        <div>🚫 {c.cancellation_reason}</div>
+                        {c.cancellation_date && <div>📅 {c.cancellation_date}</div>}
+                      </div>
+                    ) : ''}
+                  </td>
                 <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
               </tr>
               );
@@ -1372,4 +1319,37 @@ function App() {
                       color: 'white',
                       border: 'none',
                       padding: '10px 20px',
-  
+                      borderRadius: '6px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            <div style={{ marginTop: '20px' }}>
+              <button 
+                onClick={() => setShowQRCode(false)} 
+                style={{ 
+                  background: '#0072ce', 
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+    </div>
+  );
+}
+
+export default App;
