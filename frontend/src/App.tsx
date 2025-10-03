@@ -868,47 +868,36 @@ function App() {
           )}
         </div>
         
-        {/* SIMPLE TEST MODAL */}
+        {/* SIMPLE TEST POPUP - NOT A MODAL */}
         {testModal && (
           <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 255, 0, 0.9)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 9999999999,
-            padding: '20px'
+            position: 'relative',
+            background: 'lime',
+            padding: '20px',
+            margin: '10px',
+            border: '3px solid green',
+            borderRadius: '10px',
+            textAlign: 'center',
+            zIndex: 9999999999
           }}>
-            <div style={{
-              background: 'white',
-              padding: '50px',
-              borderRadius: '10px',
-              border: '5px solid green',
-              textAlign: 'center'
-            }}>
-              <h2 style={{ color: 'green', marginBottom: '20px' }}>🧪 SIMPLE TEST MODAL</h2>
-              <p style={{ marginBottom: '30px' }}>If you see this, modals work on mobile!</p>
-              <button 
-                onClick={() => {
-                  console.log('🧪 SIMPLE TEST: Closing test modal');
-                  setTestModal(false);
-                }}
-                style={{
-                  background: 'green',
-                  color: 'white',
-                  padding: '15px 30px',
-                  border: 'none',
-                  borderRadius: '5px',
-                  fontSize: '16px'
-                }}
-              >
-                Close Test Modal
-              </button>
-            </div>
+            <h2 style={{ color: 'green', marginBottom: '20px' }}>🧪 SIMPLE TEST POPUP</h2>
+            <p style={{ marginBottom: '30px' }}>If you see this, popups work on mobile!</p>
+            <button 
+              onClick={() => {
+                console.log('🧪 SIMPLE TEST: Closing test popup');
+                setTestModal(false);
+              }}
+              style={{
+                background: 'green',
+                color: 'white',
+                padding: '15px 30px',
+                border: 'none',
+                borderRadius: '5px',
+                fontSize: '16px'
+              }}
+            >
+              Close Test Popup
+            </button>
           </div>
         )}
       </div>
@@ -1325,57 +1314,50 @@ function App() {
 
 
 
-      {/* Location Address Floating Box */}
+      {/* Location Address Modal - FIXED VERSION */}
       {selectedLocation && (
-        <div 
-          className="location-modal-overlay"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(255, 0, 0, 0.8)', // Red background for testing
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 9999999999,
-            padding: '20px',
-            width: '100vw',
-            height: '100vh',
-            overflow: 'hidden'
-          }}
-          onClick={() => {
-            console.log('📱 MOBILE modal background clicked - closing modal');
-            setSelectedLocation(null);
-          }}
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999999999,
+          padding: '20px'
+        }}
+        onClick={() => {
+          console.log('📱 MOBILE modal background clicked - closing modal');
+          setSelectedLocation(null);
+        }}
         >
-          <div 
-            style={{
-              background: 'white',
-              padding: '30px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-              maxWidth: '90vw',
-              maxHeight: '80vh',
-              border: '5px solid #ff0000', // Red border for testing
-              textAlign: 'center',
-              position: 'relative',
-              zIndex: 9999999999,
-              overflow: 'auto'
-            }}
-            onClick={(e) => {
-              console.log('📱 MOBILE modal content clicked - preventing close');
-              e.stopPropagation();
-            }}
+          <div style={{
+            background: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+            maxWidth: '90vw',
+            maxHeight: '80vh',
+            border: '3px solid #0072ce',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'auto'
+          }}
+          onClick={(e) => {
+            console.log('📱 MOBILE modal content clicked - preventing close');
+            e.stopPropagation();
+          }}
           >
-            <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedLocation}</h3>
-            <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
-              {getFullAddress(selectedLocation)}
-            </p>
-            <div style={{ background: 'yellow', padding: '10px', margin: '10px', fontSize: '0.8rem' }}>
-              🧪 MOBILE MODAL TEST - If you see this, the modal is working!
-            </div>
+          <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedLocation}</h3>
+          <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
+            {getFullAddress(selectedLocation)}
+          </p>
+          <div style={{ background: 'yellow', padding: '10px', margin: '10px', fontSize: '0.8rem' }}>
+            🧪 LOCATION POPUP TEST - If you see this, the popup is working!
+          </div>
             <button 
               onClick={() => setSelectedLocation(null)}
               style={{
