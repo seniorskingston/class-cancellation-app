@@ -1235,7 +1235,7 @@ function App() {
             console.log('Closing location modal');
             setSelectedLocation(null);
           }}
-            style={{
+          style={{
               position: 'fixed',
               top: 0,
               left: 0,
@@ -1372,3 +1372,4 @@ function App() {
                       color: 'white',
                       border: 'none',
                       padding: '10px 20px',
+  
