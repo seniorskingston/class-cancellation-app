@@ -115,6 +115,7 @@ function App() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [testModal, setTestModal] = useState<boolean>(false);
 
   // Debug selectedLocation state changes
   useEffect(() => {
@@ -644,6 +645,25 @@ function App() {
             >
               🧪 Test Modal
             </button>
+            
+            {/* SIMPLE TEST MODAL BUTTON */}
+            <button
+              style={{
+                background: 'purple',
+                color: 'white',
+                padding: '8px 12px',
+                margin: '0 5px',
+                border: 'none',
+                borderRadius: '5px',
+                fontSize: '0.8rem'
+              }}
+              onClick={() => {
+                console.log('🧪 SIMPLE TEST: Setting testModal to true');
+                setTestModal(true);
+              }}
+            >
+              🧪 Simple Test
+            </button>
             <button 
               onClick={handleRefresh} 
               className="refresh-button custom-tooltip"
@@ -848,6 +868,50 @@ function App() {
           )}
         </div>
       </div>
+      
+      {/* SIMPLE TEST MODAL */}
+      {testModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 255, 0, 0.9)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999999999,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'white',
+            padding: '50px',
+            borderRadius: '10px',
+            border: '5px solid green',
+            textAlign: 'center'
+          }}>
+            <h2 style={{ color: 'green', marginBottom: '20px' }}>🧪 SIMPLE TEST MODAL</h2>
+            <p style={{ marginBottom: '30px' }}>If you see this, modals work on mobile!</p>
+            <button 
+              onClick={() => {
+                console.log('🧪 SIMPLE TEST: Closing test modal');
+                setTestModal(false);
+              }}
+              style={{
+                background: 'green',
+                color: 'white',
+                padding: '15px 30px',
+                border: 'none',
+                borderRadius: '5px',
+                fontSize: '16px'
+              }}
+            >
+              Close Test Modal
+            </button>
+          </div>
+        </div>
+      )}
     );
   }
 
