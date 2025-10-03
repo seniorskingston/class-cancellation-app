@@ -1372,6 +1372,6 @@ function App() {
               <button 
                 onClick={() => setShowQRCode(false)} 
                 style={{ 
-                  background: "#0072ce", 
-                  color: "white",
+                  background: '#0072ce', 
+                  color: 'white',
                   border: '
