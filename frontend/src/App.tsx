@@ -1264,6 +1264,7 @@ function App() {
       {/* Location Address Floating Box */}
       {selectedLocation && (
         <div 
+          className="location-modal-overlay"
           style={{
             position: 'fixed',
             top: 0,
@@ -1274,7 +1275,7 @@ function App() {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 999999999,
+            zIndex: 9999999999,
             padding: '20px',
             width: '100vw',
             height: '100vh',
@@ -1296,7 +1297,7 @@ function App() {
               border: '5px solid #ff0000', // Red border for testing
               textAlign: 'center',
               position: 'relative',
-              zIndex: 999999999,
+              zIndex: 9999999999,
               overflow: 'auto'
             }}
             onClick={(e) => {
