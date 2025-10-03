@@ -749,9 +749,15 @@ function App() {
                     <span 
                       className="mobile-value"
                       onClick={() => {
-                        console.log('Mobile location clicked:', c.location);
+                        console.log('📱 MOBILE location clicked:', c.location);
+                        console.log('📱 MOBILE about to set selectedLocation');
                         setSelectedLocation(c.location);
-                        console.log('Mobile selectedLocation set to:', c.location);
+                        console.log('📱 MOBILE selectedLocation should be set now');
+                        
+                        // Force a re-render check
+                        setTimeout(() => {
+                          console.log('📱 MOBILE delayed check - selectedLocation is now:', selectedLocation);
+                        }, 100);
                       }}
                       style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                     >
@@ -1239,14 +1245,17 @@ function App() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backgroundColor: 'rgba(255, 0, 0, 0.8)', // Red background for testing
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             zIndex: 999999999,
             padding: '20px'
           }}
-          onClick={() => setSelectedLocation(null)}
+          onClick={() => {
+            console.log('📱 MOBILE modal background clicked - closing modal');
+            setSelectedLocation(null);
+          }}
         >
           <div 
             style={{
@@ -1256,9 +1265,13 @@ function App() {
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
               maxWidth: '500px',
               border: '3px solid #0072ce',
-              textAlign: 'center'
+              textAlign: 'center',
+              position: 'relative'
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              console.log('📱 MOBILE modal content clicked - preventing close');
+              e.stopPropagation();
+            }}
           >
             <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedLocation}</h3>
             <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
