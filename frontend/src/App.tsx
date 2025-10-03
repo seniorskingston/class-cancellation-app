@@ -38,7 +38,6 @@ const getFullAddress = (locationCode: string): string => {
     return "Address not available";
   }
   
-  console.log('🔍 Looking for address for:', locationCode);
   
   // Clean the location code
   const cleanLocationCode = locationCode.trim();
@@ -58,17 +57,14 @@ const getFullAddress = (locationCode: string): string => {
   // Try direct mapping first
   if (directMappings[cleanLocationCode]) {
     const mappedKey = directMappings[cleanLocationCode];
-    console.log('✅ Found direct mapping:', cleanLocationCode, '->', mappedKey);
     const address = (locationData as any)[mappedKey];
     if (address) {
-      console.log('✅ Address found:', address);
       return address;
     }
   }
   
   // Try exact match
   if ((locationData as any)[cleanLocationCode]) {
-    console.log('✅ Found exact match:', cleanLocationCode);
     return (locationData as any)[cleanLocationCode];
   }
   
@@ -76,26 +72,21 @@ const getFullAddress = (locationCode: string): string => {
   const lowerLocationCode = cleanLocationCode.toLowerCase();
   for (const [key, value] of Object.entries(locationData)) {
     if (key.toLowerCase() === lowerLocationCode) {
-      console.log('✅ Found case-insensitive match:', key);
       return value;
     }
   }
   
   // Try to match by first part (before dash)
   const firstPart = cleanLocationCode.split(/[–-]/)[0].trim();
-  console.log('🔍 First part extracted:', firstPart);
   
   for (const [key, value] of Object.entries(locationData)) {
     const keyFirstPart = key.split(' - ')[0].trim();
-    console.log('🔍 Checking key:', key, '| first part:', keyFirstPart);
     
     if (firstPart === keyFirstPart) {
-      console.log('✅ Found first part match:', key);
       return value;
     }
   }
   
-  console.log('❌ No match found for:', cleanLocationCode);
   return "Address not available";
 };
 
@@ -115,19 +106,7 @@ function App() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const [testModal, setTestModal] = useState<boolean>(false);
 
-  // Debug selectedLocation state changes
-  useEffect(() => {
-    console.log('🎯 selectedLocation state changed to:', selectedLocation);
-    if (selectedLocation) {
-      console.log('🎯 Modal should be visible now for:', selectedLocation);
-      console.log('🎯 Address will be:', getFullAddress(selectedLocation));
-      console.log('🎯 LOCATION MODAL SHOULD BE RENDERING NOW!');
-    } else {
-      console.log('🎯 selectedLocation is null/empty - no modal should show');
-    }
-  }, [selectedLocation]);
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [mobileSearch, setMobileSearch] = useState<string>("");
@@ -630,50 +609,6 @@ function App() {
               🖥️ Desktop
             </button>
             
-            {/* TEMPORARY TEST BUTTON FOR MOBILE MODAL */}
-            <button
-              style={{
-                background: 'orange',
-                color: 'white',
-                padding: '8px 12px',
-                margin: '0 5px',
-                border: 'none',
-                borderRadius: '5px',
-                fontSize: '0.8rem'
-              }}
-              onClick={() => {
-                console.log('🧪 TEST: Setting selectedLocation to test value');
-                console.log('🧪 TEST: Current selectedLocation before set:', selectedLocation);
-                setSelectedLocation('TEST - Mobile Modal');
-                console.log('🧪 TEST: selectedLocation should be set to: TEST - Mobile Modal');
-                
-                // Force a re-render check
-                setTimeout(() => {
-                  console.log('🧪 TEST: Delayed check - selectedLocation is now:', selectedLocation);
-                }, 100);
-              }}
-            >
-              🧪 Test Modal
-            </button>
-            
-            {/* SIMPLE TEST MODAL BUTTON */}
-            <button
-              style={{
-                background: 'purple',
-                color: 'white',
-                padding: '8px 12px',
-                margin: '0 5px',
-                border: 'none',
-                borderRadius: '5px',
-                fontSize: '0.8rem'
-              }}
-              onClick={() => {
-                console.log('🧪 SIMPLE TEST: Setting testModal to true');
-                setTestModal(true);
-              }}
-            >
-              🧪 Simple Test
-            </button>
             <button 
               onClick={handleRefresh} 
               className="refresh-button custom-tooltip"
@@ -803,16 +738,7 @@ function App() {
                     <span 
                       className="mobile-value"
                       onClick={() => {
-                        console.log('📱 MOBILE location clicked:', c.location);
-                        console.log('📱 MOBILE about to set selectedLocation');
-                        console.log('📱 MOBILE current selectedLocation before set:', selectedLocation);
-                        
-                        // Force state update
-                        setSelectedLocation(null); // Clear first
-                        setTimeout(() => {
-                          setSelectedLocation(c.location); // Then set
-                          console.log('📱 MOBILE selectedLocation set to:', c.location);
-                        }, 10);
+                        setSelectedLocation(c.location);
                       }}
                       style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                     >
@@ -878,49 +804,6 @@ function App() {
           )}
         </div>
         
-        {/* SIMPLE TEST MODAL - WORKING VERSION */}
-        {testModal && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 255, 0, 0.9)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 9999999999,
-            padding: '20px'
-          }}>
-            <div style={{
-              background: 'white',
-              padding: '50px',
-              borderRadius: '10px',
-              border: '5px solid green',
-              textAlign: 'center'
-            }}>
-              <h2 style={{ color: 'green', marginBottom: '20px' }}>🧪 SIMPLE TEST MODAL</h2>
-              <p style={{ marginBottom: '30px' }}>If you see this, modals work on mobile!</p>
-              <button 
-                onClick={() => {
-                  console.log('🧪 SIMPLE TEST: Closing test modal');
-                  setTestModal(false);
-                }}
-                style={{
-                  background: 'green',
-                  color: 'white',
-                  padding: '15px 30px',
-                  border: 'none',
-                  borderRadius: '5px',
-                  fontSize: '16px'
-                }}
-              >
-                Close Test Modal
-              </button>
-            </div>
-          </div>
-        )}
         
         {/* LOCATION MODAL - MOVED HERE TO MATCH WORKING MODAL */}
         {selectedLocation && (
@@ -930,7 +813,7 @@ function App() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(255, 0, 0, 0.8)',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -938,7 +821,6 @@ function App() {
             padding: '20px'
           }}
           onClick={() => {
-            console.log('📱 MOBILE modal background clicked - closing modal');
             setSelectedLocation(null);
           }}
           >
@@ -949,13 +831,12 @@ function App() {
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
               maxWidth: '90vw',
               maxHeight: '80vh',
-              border: '5px solid #ff0000',
+              border: '3px solid #0072ce',
               textAlign: 'center',
               position: 'relative',
               overflow: 'auto'
             }}
             onClick={(e) => {
-              console.log('📱 MOBILE modal content clicked - preventing close');
               e.stopPropagation();
             }}
             >
@@ -963,9 +844,6 @@ function App() {
               <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
                 {getFullAddress(selectedLocation)}
               </p>
-              <div style={{ background: 'yellow', padding: '10px', margin: '10px', fontSize: '0.8rem' }}>
-                🧪 LOCATION MODAL TEST - If you see this, the location modal is working!
-              </div>
               <button 
                 onClick={() => setSelectedLocation(null)}
                 style={{
@@ -1172,9 +1050,7 @@ function App() {
                 <td>{c.time}</td>
                 <td 
                   onClick={() => {
-                    console.log('Desktop location clicked:', c.location);
                     setSelectedLocation(c.location);
-                    console.log('Desktop selectedLocation set to:', c.location);
                   }}
                   style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                 >
