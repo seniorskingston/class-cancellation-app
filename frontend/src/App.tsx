@@ -1374,4 +1374,21 @@ function App() {
                 style={{ 
                   background: '#0072ce', 
                   color: 'white',
-                  border: '
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+    </div>
+  );
+}
+
+export default App;
