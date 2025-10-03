@@ -3,7 +3,6 @@ import "./App.css";
 import logo from "./logo.png";
 import QRCode from 'qrcode';
 import Calendar from './Calendar';
-import locationData from './locations.json';
 
 type Cancellation = {
   sheet: string;
@@ -32,69 +31,6 @@ type Filters = {
 
       const API_URL = "https://class-cancellation-backend.onrender.com";
 
-// Helper function to get full address from location
-const getFullAddress = (locationCode: string): string => {
-  if (!locationCode || !locationData) {
-    return "Address not available";
-  }
-  
-  console.log('🔍 Looking for address for:', locationCode);
-  console.log('📋 Available locations:', Object.keys(locationData));
-  
-  // Clean the location code - remove extra spaces and normalize
-  const cleanLocationCode = locationCode.trim().replace(/\s+/g, ' ');
-  
-  // Try exact match first
-  if ((locationData as any)[cleanLocationCode]) {
-    console.log('✅ Found exact match:', cleanLocationCode);
-    return (locationData as any)[cleanLocationCode];
-  }
-  
-  // Try case-insensitive exact match
-  const lowerLocationCode = cleanLocationCode.toLowerCase();
-  for (const [key, value] of Object.entries(locationData)) {
-    if (key.toLowerCase() === lowerLocationCode) {
-      console.log('✅ Found case-insensitive match:', key);
-      return value;
-    }
-  }
-  
-  // Try partial matches - look for location code in the key
-  for (const [key, value] of Object.entries(locationData)) {
-    const keyWithoutDescription = key.split(' - ')[0]; // Get just the code part (e.g., "SCW" from "SCW - Seniors Centre West")
-    
-    // Extract the code part from the location (handle both – and - dashes)
-    const locationCodePart = cleanLocationCode.split(/[–-]/)[0].trim();
-    
-    console.log('🔍 Checking key:', key, '| code part:', keyWithoutDescription, '| location part:', locationCodePart);
-    
-    // Check if location code starts with the key part (e.g., "SCW – Seniors Centre West" matches "SCW")
-    if (cleanLocationCode.startsWith(keyWithoutDescription) || 
-        keyWithoutDescription.startsWith(locationCodePart) ||
-        locationCodePart === keyWithoutDescription) {
-      console.log('✅ Found key part match:', key, 'for location:', cleanLocationCode, 'code part:', locationCodePart);
-      return value;
-    }
-    
-    // Check if location code contains the key part
-    if (cleanLocationCode.toLowerCase().includes(keyWithoutDescription.toLowerCase()) || 
-        keyWithoutDescription.toLowerCase().includes(locationCodePart.toLowerCase())) {
-      console.log('✅ Found substring match:', key, 'for location:', cleanLocationCode);
-      return value;
-    }
-    
-    // Additional check: if the location code contains any part of the key
-    if (locationCodePart && keyWithoutDescription && 
-        (locationCodePart.toLowerCase().includes(keyWithoutDescription.toLowerCase()) ||
-         keyWithoutDescription.toLowerCase().includes(locationCodePart.toLowerCase()))) {
-      console.log('✅ Found additional substring match:', key, 'for location:', cleanLocationCode);
-      return value;
-    }
-  }
-  
-  console.log('❌ No match found for:', cleanLocationCode);
-  return "Address not available";
-};
 
 function App() {
   console.log("API_URL:", API_URL);
@@ -112,7 +48,6 @@ function App() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
   const [showUserGuide, setShowUserGuide] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [mobileSearch, setMobileSearch] = useState<string>("");
   const [showQRCode, setShowQRCode] = useState(false);
@@ -120,13 +55,6 @@ function App() {
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
   const [currentView, setCurrentView] = useState<'main' | 'calendar'>('main');
 
-  // Debug selectedLocation state
-  useEffect(() => {
-    console.log('selectedLocation state changed to:', selectedLocation);
-    if (selectedLocation) {
-      console.log('🚨 MODAL SHOULD BE RENDERING NOW! selectedLocation:', selectedLocation);
-    }
-  }, [selectedLocation]);
 
   // Generate QR code for the current URL
   const generateQRCode = async () => {
@@ -741,17 +669,7 @@ function App() {
                     </div>
                     <div className="mobile-detail-row">
                     <span className="mobile-label">Location:</span>
-                    <span 
-                      className="mobile-value location-clickable" 
-                      onClick={() => {
-                        console.log('🖱️ Mobile location clicked:', c.location);
-                        console.log('🔧 Setting selectedLocation to:', c.location);
-                        setSelectedLocation(c.location);
-                        console.log('✅ selectedLocation state should now be:', c.location);
-                        console.log('📱 Mobile modal should appear now!');
-                      }}
-                      style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
-                    >
+                    <span className="mobile-value">
                       {c.location}
                     </span>
                     </div>
@@ -999,18 +917,7 @@ function App() {
                 <td>{c.program_id.split('.')[0]}</td>
                 <td>{c.date_range}</td>
                 <td>{c.time}</td>
-                <td 
-                  className="location-clickable" 
-                  onClick={() => {
-                    console.log('Desktop location clicked:', c.location);
-                    console.log('Setting selectedLocation to:', c.location);
-                    setSelectedLocation(c.location);
-                    console.log('selectedLocation state should now be:', c.location);
-                  }}
-                  style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
-                >
-                  {c.location}
-                </td>
+                <td>{c.location}</td>
                   <td>{c.class_room}</td>
                   <td>{c.instructor}</td>
                 <td>{c.program_status}</td>
@@ -1228,64 +1135,6 @@ function App() {
 
 
 
-      {/* Location Address Floating Box */}
-      {selectedLocation && (
-        <div 
-          className="location-modal-overlay" 
-          onClick={() => {
-            console.log('Closing location modal');
-            setSelectedLocation(null);
-          }}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 999999999,
-            padding: '20px'
-          }}
-        >
-          <div 
-            className="location-box"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'white',
-              padding: '30px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-              maxWidth: '500px',
-              border: '3px solid #0072ce',
-              zIndex: 999999999,
-              textAlign: 'center'
-            }}
-          >
-            <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedLocation}</h3>
-            <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
-              {getFullAddress(selectedLocation)}
-            </p>
-            <button 
-              onClick={() => setSelectedLocation(null)}
-              style={{
-                background: '#0072ce',
-                color: 'white',
-                border: 'none',
-                padding: '12px 30px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: 'bold'
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* QR Code Modal */}
       {showQRCode && (
@@ -1306,4 +1155,104 @@ function App() {
             backgroundColor: 'white',
             borderRadius: '12px',
             padding: '20px',
-   
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative',
+            border: '4px solid #0072ce',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+            textAlign: 'center'
+          }}>
+            <div style={{ marginBottom: '20px' }}>
+              <h2 style={{ margin: '0 0 10px 0', color: '#0072ce' }}>Scan with your phone to open the app</h2>
+              <button 
+                onClick={() => setShowQRCode(false)}
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              {qrCodeDataURL ? (
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <img 
+                    src={qrCodeDataURL} 
+                    alt="QR Code for app" 
+                    style={{ 
+                      width: '300px', 
+                      height: '300px', 
+                      border: '2px solid #ddd',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    background: 'white',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+                  }}>
+                    <img 
+                      src={logo} 
+                      alt="Company Logo" 
+                      style={{ width: '30px', height: '30px', objectFit: 'contain' }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding: '40px', color: '#666' }}>
+                  <p>Generating QR code...</p>
+                  <button 
+                    onClick={generateQRCode}
+                    style={{
+                      background: '#0072ce',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: '6px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            <div style={{ marginTop: '20px' }}>
+              <button 
+                onClick={() => setShowQRCode(false)} 
+                style={{ 
+                  background: '#0072ce', 
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+    </div>
+  );
+}
+
+export default App;
