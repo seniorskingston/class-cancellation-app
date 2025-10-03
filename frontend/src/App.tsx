@@ -1275,7 +1275,10 @@ function App() {
             justifyContent: 'center',
             alignItems: 'center',
             zIndex: 999999999,
-            padding: '20px'
+            padding: '20px',
+            width: '100vw',
+            height: '100vh',
+            overflow: 'hidden'
           }}
           onClick={() => {
             console.log('📱 MOBILE modal background clicked - closing modal');
@@ -1288,10 +1291,13 @@ function App() {
               padding: '30px',
               borderRadius: '12px',
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-              maxWidth: '500px',
-              border: '3px solid #0072ce',
+              maxWidth: '90vw',
+              maxHeight: '80vh',
+              border: '5px solid #ff0000', // Red border for testing
               textAlign: 'center',
-              position: 'relative'
+              position: 'relative',
+              zIndex: 999999999,
+              overflow: 'auto'
             }}
             onClick={(e) => {
               console.log('📱 MOBILE modal content clicked - preventing close');
@@ -1302,6 +1308,9 @@ function App() {
             <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
               {getFullAddress(selectedLocation)}
             </p>
+            <div style={{ background: 'yellow', padding: '10px', margin: '10px', fontSize: '0.8rem' }}>
+              🧪 MOBILE MODAL TEST - If you see this, the modal is working!
+            </div>
             <button 
               onClick={() => setSelectedLocation(null)}
               style={{
