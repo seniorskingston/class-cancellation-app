@@ -951,7 +951,7 @@ function App() {
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Loading program data...</p>
-      </div>
+        </div>
       )}
 
       <div className="table-container">
@@ -1050,7 +1050,7 @@ function App() {
                   <td>{c.note && c.note !== '' ? c.note : ''}</td>
                 <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
               </tr>
-              );
+            );
             })}
           </tbody>
         </table>
