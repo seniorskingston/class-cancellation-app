@@ -625,6 +625,25 @@ function App() {
             >
               🖥️ Desktop
             </button>
+            
+            {/* TEMPORARY TEST BUTTON FOR MOBILE MODAL */}
+            <button
+              style={{
+                background: 'orange',
+                color: 'white',
+                padding: '8px 12px',
+                margin: '0 5px',
+                border: 'none',
+                borderRadius: '5px',
+                fontSize: '0.8rem'
+              }}
+              onClick={() => {
+                console.log('🧪 TEST: Setting selectedLocation to test value');
+                setSelectedLocation('TEST - Mobile Modal');
+              }}
+            >
+              🧪 Test Modal
+            </button>
             <button 
               onClick={handleRefresh} 
               className="refresh-button custom-tooltip"
@@ -710,6 +729,11 @@ function App() {
         {/* Debug info for mobile */}
         <div className="mobile-debug" style={{ fontSize: '12px', color: '#666', padding: '5px', textAlign: 'center' }}>
           Mobile View: {isMobileView ? 'Yes' : 'No'} | Data: {sortedCancellations.length} cancellations
+          {selectedLocation && (
+            <div style={{ background: 'yellow', color: 'black', padding: '5px', margin: '5px' }}>
+              🚨 MODAL SHOULD BE VISIBLE! selectedLocation: {selectedLocation}
+            </div>
+          )}
         </div>
 
         <div className="mobile-data">
@@ -751,13 +775,14 @@ function App() {
                       onClick={() => {
                         console.log('📱 MOBILE location clicked:', c.location);
                         console.log('📱 MOBILE about to set selectedLocation');
-                        setSelectedLocation(c.location);
-                        console.log('📱 MOBILE selectedLocation should be set now');
+                        console.log('📱 MOBILE current selectedLocation before set:', selectedLocation);
                         
-                        // Force a re-render check
+                        // Force state update
+                        setSelectedLocation(null); // Clear first
                         setTimeout(() => {
-                          console.log('📱 MOBILE delayed check - selectedLocation is now:', selectedLocation);
-                        }, 100);
+                          setSelectedLocation(c.location); // Then set
+                          console.log('📱 MOBILE selectedLocation set to:', c.location);
+                        }, 10);
                       }}
                       style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                     >
