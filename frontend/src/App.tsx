@@ -61,17 +61,22 @@ const getFullAddress = (locationCode: string): string => {
   
   // Try partial matches - look for location code in the key
   for (const [key, value] of Object.entries(locationData)) {
-    const keyWithoutDescription = key.split(' - ')[0]; // Get just the code part (e.g., "SCW" from "SCW - Senior Centre West")
+    const keyWithoutDescription = key.split(' - ')[0]; // Get just the code part (e.g., "SCW" from "SCW - Seniors Centre West")
+    
+    // Extract the code part from the location (handle both – and - dashes)
+    const locationCodePart = cleanLocationCode.split(/[–-]/)[0].trim();
     
     // Check if location code starts with the key part (e.g., "SCW – Seniors Centre West" matches "SCW")
-    if (cleanLocationCode.startsWith(keyWithoutDescription) || keyWithoutDescription.startsWith(cleanLocationCode.split(/[–-]/)[0].trim())) {
-      console.log('Found key part match:', key, 'for location:', cleanLocationCode);
+    if (cleanLocationCode.startsWith(keyWithoutDescription) || 
+        keyWithoutDescription.startsWith(locationCodePart) ||
+        locationCodePart === keyWithoutDescription) {
+      console.log('Found key part match:', key, 'for location:', cleanLocationCode, 'code part:', locationCodePart);
       return value;
     }
     
     // Check if location code contains the key part
     if (cleanLocationCode.toLowerCase().includes(keyWithoutDescription.toLowerCase()) || 
-        keyWithoutDescription.toLowerCase().includes(cleanLocationCode.split(/[–-]/)[0].trim().toLowerCase())) {
+        keyWithoutDescription.toLowerCase().includes(locationCodePart.toLowerCase())) {
       console.log('Found substring match:', key, 'for location:', cleanLocationCode);
       return value;
     }
@@ -1226,7 +1231,8 @@ function App() {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 10000
+            zIndex: 999999999,
+            padding: '20px'
           }}
         >
           <div 
@@ -1238,6 +1244,8 @@ function App() {
               borderRadius: '12px',
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
               maxWidth: '500px',
+              border: '3px solid #0072ce',
+              zIndex: 999999999,
               textAlign: 'center'
             }}
           >
@@ -1366,21 +1374,4 @@ function App() {
                 style={{ 
                   background: "#0072ce", 
                   color: "white",
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
-                  cursor: 'pointer'
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-    </div>
-  );
-}
-
-export default App;
+                  border: '
