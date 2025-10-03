@@ -30,7 +30,7 @@ type Filters = {
   view_type: string;
 };
 
-      const API_URL = "http://localhost:8000";
+      const API_URL = "https://class-cancellation-backend.onrender.com";
 
 // Helper function to get full address from location
 const getFullAddress = (locationCode: string): string => {
