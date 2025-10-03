@@ -757,10 +757,6 @@ function App() {
                     </span>
                     </div>
                     <div className="mobile-detail-row">
-                      <span className="mobile-label">Room:</span>
-                      <span className="mobile-value">{c.class_room}</span>
-                    </div>
-                    <div className="mobile-detail-row">
                       <span className="mobile-label">Instructor:</span>
                       <span className="mobile-value">{c.instructor}</span>
                     </div>
@@ -935,14 +931,12 @@ function App() {
               <th>Day</th>
               <th>Program</th>
               <th>Program ID</th>
-              <th>Date Range</th>
+              <th>Date</th>
               <th>Time</th>
               <th>Location</th>
-              <th>Class Room</th>
               <th>Instructor</th>
               <th>Program Status</th>
-              <th>Class Cancellation</th>
-              <th>Additional Information</th>
+              <th>Cancellation Info</th>
               <th>Refund</th>
             </tr>
           </thead>
