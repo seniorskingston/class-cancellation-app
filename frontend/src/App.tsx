@@ -38,15 +38,15 @@ const getFullAddress = (locationCode: string): string => {
     return "Address not available";
   }
   
-  console.log('Looking for address for:', locationCode);
-  console.log('Available locations:', Object.keys(locationData));
+  console.log('🔍 Looking for address for:', locationCode);
+  console.log('📋 Available locations:', Object.keys(locationData));
   
   // Clean the location code - remove extra spaces and normalize
   const cleanLocationCode = locationCode.trim().replace(/\s+/g, ' ');
   
   // Try exact match first
   if ((locationData as any)[cleanLocationCode]) {
-    console.log('Found exact match:', cleanLocationCode);
+    console.log('✅ Found exact match:', cleanLocationCode);
     return (locationData as any)[cleanLocationCode];
   }
   
@@ -54,7 +54,7 @@ const getFullAddress = (locationCode: string): string => {
   const lowerLocationCode = cleanLocationCode.toLowerCase();
   for (const [key, value] of Object.entries(locationData)) {
     if (key.toLowerCase() === lowerLocationCode) {
-      console.log('Found case-insensitive match:', key);
+      console.log('✅ Found case-insensitive match:', key);
       return value;
     }
   }
@@ -66,23 +66,33 @@ const getFullAddress = (locationCode: string): string => {
     // Extract the code part from the location (handle both – and - dashes)
     const locationCodePart = cleanLocationCode.split(/[–-]/)[0].trim();
     
+    console.log('🔍 Checking key:', key, '| code part:', keyWithoutDescription, '| location part:', locationCodePart);
+    
     // Check if location code starts with the key part (e.g., "SCW – Seniors Centre West" matches "SCW")
     if (cleanLocationCode.startsWith(keyWithoutDescription) || 
         keyWithoutDescription.startsWith(locationCodePart) ||
         locationCodePart === keyWithoutDescription) {
-      console.log('Found key part match:', key, 'for location:', cleanLocationCode, 'code part:', locationCodePart);
+      console.log('✅ Found key part match:', key, 'for location:', cleanLocationCode, 'code part:', locationCodePart);
       return value;
     }
     
     // Check if location code contains the key part
     if (cleanLocationCode.toLowerCase().includes(keyWithoutDescription.toLowerCase()) || 
         keyWithoutDescription.toLowerCase().includes(locationCodePart.toLowerCase())) {
-      console.log('Found substring match:', key, 'for location:', cleanLocationCode);
+      console.log('✅ Found substring match:', key, 'for location:', cleanLocationCode);
+      return value;
+    }
+    
+    // Additional check: if the location code contains any part of the key
+    if (locationCodePart && keyWithoutDescription && 
+        (locationCodePart.toLowerCase().includes(keyWithoutDescription.toLowerCase()) ||
+         keyWithoutDescription.toLowerCase().includes(locationCodePart.toLowerCase()))) {
+      console.log('✅ Found additional substring match:', key, 'for location:', cleanLocationCode);
       return value;
     }
   }
   
-  console.log('No match found for:', cleanLocationCode);
+  console.log('❌ No match found for:', cleanLocationCode);
   return "Address not available";
 };
 
@@ -731,10 +741,11 @@ function App() {
                     <span 
                       className="mobile-value location-clickable" 
                       onClick={() => {
-                        console.log('Mobile location clicked:', c.location);
-                        console.log('Setting selectedLocation to:', c.location);
+                        console.log('🖱️ Mobile location clicked:', c.location);
+                        console.log('🔧 Setting selectedLocation to:', c.location);
                         setSelectedLocation(c.location);
-                        console.log('selectedLocation state should now be:', c.location);
+                        console.log('✅ selectedLocation state should now be:', c.location);
+                        console.log('📱 Mobile modal should appear now!');
                       }}
                       style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                     >
@@ -1215,25 +1226,26 @@ function App() {
 
       {/* Location Address Floating Box */}
       {selectedLocation && (
+        console.log('🚨 MODAL IS RENDERING! selectedLocation:', selectedLocation),
         <div 
           className="location-modal-overlay" 
           onClick={() => {
             console.log('Closing location modal');
             setSelectedLocation(null);
           }}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 999999999,
-            padding: '20px'
-          }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 999999999,
+              padding: '20px'
+            }}
         >
           <div 
             className="location-box"
@@ -1359,36 +1371,3 @@ function App() {
                       border: 'none',
                       padding: '10px 20px',
                       borderRadius: '6px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-            </div>
-            
-            <div style={{ marginTop: '20px' }}>
-              <button 
-                onClick={() => setShowQRCode(false)} 
-                style={{ 
-                  background: '#0072ce', 
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
-                  cursor: 'pointer'
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-    </div>
-  );
-}
-
-export default App;
