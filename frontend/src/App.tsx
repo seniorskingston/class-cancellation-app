@@ -1236,18 +1236,18 @@ function App() {
             setSelectedLocation(null);
           }}
           style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              zIndex: 999999999,
-              padding: '20px'
-            }}
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 999999999,
+            padding: '20px'
+          }}
         >
           <div 
             className="location-box"
@@ -1304,4 +1304,6 @@ function App() {
           <div style={{
             backgroundColor: 'white',
             borderRadius: '12px',
-       
+            padding: '20px',
+
+          
