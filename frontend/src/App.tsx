@@ -933,7 +933,7 @@ function App() {
           data-tooltip="Export to PDF"
         >
           📄 PDF
-          </button>
+        </button>
         <button 
           onClick={() => setShowUserGuide(true)} 
           style={{ background: "#0072ce", color: "white" }}
@@ -941,11 +941,11 @@ function App() {
           data-tooltip="View Help Guide"
         >
           📖 Help
-          </button>
+        </button>
       </div>
+      
       <div className="last-loaded">
-          Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}
-        </div>
+        Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}
       </div>
       {loading && (
         <div className="loading-container">
@@ -1305,4 +1305,5 @@ function App() {
           <div style={{
             backgroundColor: 'white',
             borderRadius: '12px',
-            paddin
+            padding: '20px',
+   
