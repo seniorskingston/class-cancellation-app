@@ -3,6 +3,7 @@ import "./App.css";
 import logo from "./logo.png";
 import QRCode from 'qrcode';
 import Calendar from './Calendar';
+import locationData from './locations.json';
 
 type Cancellation = {
   sheet: string;
@@ -31,6 +32,51 @@ type Filters = {
 
       const API_URL = "https://class-cancellation-backend.onrender.com";
 
+// Helper function to get full address from location
+const getFullAddress = (locationCode: string): string => {
+  if (!locationCode || !locationData) {
+    return "Address not available";
+  }
+  
+  // Clean the location code - remove extra spaces and normalize
+  const cleanLocationCode = locationCode.trim().replace(/\s+/g, ' ');
+  
+  // Try exact match first
+  if ((locationData as any)[cleanLocationCode]) {
+    return (locationData as any)[cleanLocationCode];
+  }
+  
+  // Try case-insensitive exact match
+  const lowerLocationCode = cleanLocationCode.toLowerCase();
+  for (const [key, value] of Object.entries(locationData)) {
+    if (key.toLowerCase() === lowerLocationCode) {
+      return value;
+    }
+  }
+  
+  // Try partial matches - look for location code in the key
+  for (const [key, value] of Object.entries(locationData)) {
+    const keyWithoutDescription = key.split(' - ')[0]; // Get just the code part (e.g., "SCW" from "SCW - Seniors Centre West")
+    
+    // Extract the code part from the location (handle both – and - dashes)
+    const locationCodePart = cleanLocationCode.split(/[–-]/)[0].trim();
+    
+    // Check if location code starts with the key part
+    if (cleanLocationCode.startsWith(keyWithoutDescription) || 
+        keyWithoutDescription.startsWith(locationCodePart) ||
+        locationCodePart === keyWithoutDescription) {
+      return value;
+    }
+    
+    // Check if location code contains the key part
+    if (cleanLocationCode.toLowerCase().includes(keyWithoutDescription.toLowerCase()) || 
+        keyWithoutDescription.toLowerCase().includes(locationCodePart.toLowerCase())) {
+      return value;
+    }
+  }
+  
+  return "Address not available";
+};
 
 function App() {
   console.log("API_URL:", API_URL);
@@ -47,6 +93,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [mobileSearch, setMobileSearch] = useState<string>("");
@@ -669,7 +716,11 @@ function App() {
                     </div>
                     <div className="mobile-detail-row">
                     <span className="mobile-label">Location:</span>
-                    <span className="mobile-value">
+                    <span 
+                      className="mobile-value"
+                      onClick={() => setSelectedLocation(c.location)}
+                      style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
+                    >
                       {c.location}
                     </span>
                     </div>
@@ -917,7 +968,12 @@ function App() {
                 <td>{c.program_id.split('.')[0]}</td>
                 <td>{c.date_range}</td>
                 <td>{c.time}</td>
-                <td>{c.location}</td>
+                <td 
+                  onClick={() => setSelectedLocation(c.location)}
+                  style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
+                >
+                  {c.location}
+                </td>
                   <td>{c.class_room}</td>
                   <td>{c.instructor}</td>
                 <td>{c.program_status}</td>
@@ -1135,6 +1191,59 @@ function App() {
 
 
 
+
+      {/* Location Address Floating Box */}
+      {selectedLocation && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 999999999,
+            padding: '20px'
+          }}
+          onClick={() => setSelectedLocation(null)}
+        >
+          <div 
+            style={{
+              background: 'white',
+              padding: '30px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+              maxWidth: '500px',
+              border: '3px solid #0072ce',
+              textAlign: 'center'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedLocation}</h3>
+            <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
+              {getFullAddress(selectedLocation)}
+            </p>
+            <button 
+              onClick={() => setSelectedLocation(null)}
+              style={{
+                background: '#0072ce',
+                color: 'white',
+                border: 'none',
+                padding: '12px 30px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: 'bold'
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* QR Code Modal */}
       {showQRCode && (
