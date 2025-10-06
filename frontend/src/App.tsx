@@ -348,6 +348,7 @@ function App() {
       console.log("Data count:", data.data ? data.data.length : 0);
       console.log("Is mobile view:", isMobileView);
       console.log("API URL:", url);
+      
     setCancellations(data.data);
     setLastLoaded(data.last_loaded);
       
@@ -858,14 +859,6 @@ function App() {
             >
               <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedProgram.program}</h3>
               
-              {/* Debug info */}
-              <div style={{ fontSize: '12px', color: '#666', marginBottom: '20px', textAlign: 'left' }}>
-                <p>Debug Info:</p>
-                <p>Description: "{selectedProgram.description}"</p>
-                <p>Fee: "{selectedProgram.fee}"</p>
-                <p>Description exists: {selectedProgram.description ? 'Yes' : 'No'}</p>
-                <p>Fee exists: {selectedProgram.fee ? 'Yes' : 'No'}</p>
-              </div>
               
               {/* Always show Description section */}
               <div style={{ marginBottom: '20px' }}>
@@ -1539,14 +1532,6 @@ function App() {
           >
             <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedProgram.program}</h3>
             
-            {/* Debug info */}
-            <div style={{ fontSize: '12px', color: '#666', marginBottom: '20px', textAlign: 'left' }}>
-              <p>Debug Info:</p>
-              <p>Description: "{selectedProgram.description}"</p>
-              <p>Fee: "{selectedProgram.fee}"</p>
-              <p>Description exists: {selectedProgram.description ? 'Yes' : 'No'}</p>
-              <p>Fee exists: {selectedProgram.fee ? 'Yes' : 'No'}</p>
-            </div>
             
             {/* Always show Description section */}
             <div style={{ marginBottom: '20px' }}>
