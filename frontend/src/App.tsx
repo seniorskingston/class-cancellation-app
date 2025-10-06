@@ -18,6 +18,8 @@ type Cancellation = {
   class_cancellation: string;
   note: string;
   withdrawal: string;
+  description: string;  // Description column
+  fee: string;         // Fee column
   is_favorite?: boolean;  // Favorite status
 };
 
@@ -106,6 +108,7 @@ function App() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [selectedProgram, setSelectedProgram] = useState<Cancellation | null>(null);
 
 
   const [showUserGuide, setShowUserGuide] = useState(false);
@@ -726,7 +729,13 @@ function App() {
                       {isFavorite ? '★' : '☆'}
                     </span>
                     <div className="mobile-program-info">
-                      <div className="mobile-program-name">{c.program}</div>
+                      <div 
+                        className="mobile-program-name"
+                        onClick={() => setSelectedProgram(c)}
+                        style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
+                      >
+                        {c.program}
+                      </div>
                       <div className="mobile-program-id">ID: {c.program_id.split('.')[0]}</div>
                     </div>
                   </div>
@@ -812,6 +821,83 @@ function App() {
         </div>
         
         
+        {/* PROGRAM DETAILS MODAL - Mobile */}
+        {selectedProgram && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999999999,
+            padding: '20px'
+          }}
+          onClick={() => {
+            setSelectedProgram(null);
+          }}
+          >
+            <div style={{
+              background: 'white',
+              padding: '30px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+              maxWidth: '90vw',
+              maxHeight: '80vh',
+              border: '3px solid #0072ce',
+              textAlign: 'center',
+              position: 'relative',
+              overflow: 'auto'
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            >
+              <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedProgram.program}</h3>
+              
+              {selectedProgram.description && selectedProgram.description.trim() !== '' && (
+                <div style={{ marginBottom: '20px' }}>
+                  <h4 style={{ color: '#333', marginBottom: '10px' }}>Description:</h4>
+                  <p style={{ fontSize: '1rem', lineHeight: '1.6', textAlign: 'left' }}>
+                    {selectedProgram.description}
+                  </p>
+                </div>
+              )}
+              
+              {selectedProgram.fee && selectedProgram.fee.trim() !== '' && (
+                <div style={{ marginBottom: '30px' }}>
+                  <h4 style={{ color: '#333', marginBottom: '10px' }}>Fee:</h4>
+                  <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#0072ce' }}>
+                    {selectedProgram.fee}
+                  </p>
+                </div>
+              )}
+              
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedProgram(null);
+                }}
+                style={{
+                  background: '#0072ce',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px 30px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* LOCATION MODAL - MOVED HERE TO MATCH WORKING MODAL */}
         {selectedLocation && (
           <div style={{
@@ -1169,7 +1255,12 @@ function App() {
                     </span>
                   </td>
                 <td>{c.sheet}</td>
-                <td>{c.program}</td>
+                <td 
+                  onClick={() => setSelectedProgram(c)}
+                  style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
+                >
+                  {c.program}
+                </td>
                 <td>{c.program_id.split('.')[0]}</td>
                 <td>{c.date_range}</td>
                 <td>{c.time}</td>
@@ -1399,6 +1490,83 @@ function App() {
 
 
 
+
+      {/* Program Details Modal - Desktop */}
+      {selectedProgram && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999999999,
+          padding: '20px'
+        }}
+        onClick={() => {
+          setSelectedProgram(null);
+        }}
+        >
+          <div style={{
+            background: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+            maxWidth: '90vw',
+            maxHeight: '80vh',
+            border: '3px solid #0072ce',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'auto'
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          >
+            <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedProgram.program}</h3>
+            
+            {selectedProgram.description && selectedProgram.description.trim() !== '' && (
+              <div style={{ marginBottom: '20px' }}>
+                <h4 style={{ color: '#333', marginBottom: '10px' }}>Description:</h4>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', textAlign: 'left' }}>
+                  {selectedProgram.description}
+                </p>
+              </div>
+            )}
+            
+            {selectedProgram.fee && selectedProgram.fee.trim() !== '' && (
+              <div style={{ marginBottom: '30px' }}>
+                <h4 style={{ color: '#333', marginBottom: '10px' }}>Fee:</h4>
+                <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#0072ce' }}>
+                  {selectedProgram.fee}
+                </p>
+              </div>
+            )}
+            
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedProgram(null);
+              }}
+              style={{
+                background: '#0072ce',
+                color: 'white',
+                border: 'none',
+                padding: '12px 30px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: 'bold'
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Location Address Modal - Desktop */}
       {selectedLocation && (
