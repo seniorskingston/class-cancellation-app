@@ -751,6 +751,10 @@ function App() {
                       <span className="mobile-value">{c.time}</span>
                     </div>
                     <div className="mobile-detail-row">
+                      <span className="mobile-label">Date Range:</span>
+                      <span className="mobile-value">{c.date_range}</span>
+                    </div>
+                    <div className="mobile-detail-row">
                     <span className="mobile-label">Location:</span>
                     <span 
                       className="mobile-value"
