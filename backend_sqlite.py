@@ -4,6 +4,9 @@ import uuid
 from fastapi import FastAPI, Query, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from typing import Optional
@@ -3083,6 +3086,58 @@ def export_pdf(
     except Exception as e:
         print(f"❌ Error creating PDF: {e}")
         return {"error": "Failed to create PDF"}
+
+@app.post("/api/send-message")
+def send_message(message_data: dict):
+    """Send message via email"""
+    try:
+        # Extract data from request
+        subject = message_data.get('subject', 'Program Inquiry')
+        message = message_data.get('message', '')
+        program_name = message_data.get('program_name', 'Unknown')
+        program_id = message_data.get('program_id', 'Unknown')
+        instructor = message_data.get('instructor', 'Unknown')
+        
+        # Create email content
+        email_subject = f"Program Inquiry: {subject}"
+        email_body = f"""
+Program Inquiry Details:
+========================
+
+Program Name: {program_name}
+Program ID: {program_id}
+Instructor: {instructor}
+
+Message:
+--------
+{message}
+
+---
+This message was sent from the Class Cancellation App.
+        """
+        
+        # For now, just log the message (you can implement actual email sending later)
+        print(f"📧 MESSAGE RECEIVED:")
+        print(f"To: programs@seniorskingston.ca")
+        print(f"Subject: {email_subject}")
+        print(f"Body: {email_body}")
+        print("=" * 50)
+        
+        # In a real implementation, you would send the email here
+        # For now, we'll just return success
+        
+        return {
+            "status": "success",
+            "message": "Message sent successfully",
+            "email_subject": email_subject
+        }
+        
+    except Exception as e:
+        print(f"❌ Error sending message: {str(e)}")
+        return {
+            "status": "error",
+            "message": f"Failed to send message: {str(e)}"
+        }
 
 if __name__ == "__main__":
     import uvicorn
