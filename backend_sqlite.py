@@ -287,6 +287,8 @@ def init_database():
             class_cancellation TEXT,
             note TEXT,
             withdrawal TEXT,
+            description TEXT,
+            fee TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -356,13 +358,17 @@ def import_excel_data(file_path_or_content):
                 # Calculate withdrawal eligibility
                 withdrawal = calculate_withdrawal(date_range, class_cancellation)
                 
+                # Extract description and fee from Excel
+                description = safe_str(row.get('Description', row.get('description', '')))
+                fee = safe_str(row.get('Fee', row.get('fee', '')))
+                
                 # Insert into database with sheet name
                 cursor.execute('''
                     INSERT INTO programs (sheet, program, program_id, date_range, time, location, 
-                                       class_room, instructor, program_status, class_cancellation, note, withdrawal)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                       class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (sheet_name, program, program_id, date_range, time, location, 
-                      class_room, instructor, program_status, class_cancellation, note, withdrawal))
+                      class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee))
                 
                 total_records += 1
         
