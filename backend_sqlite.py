@@ -271,9 +271,13 @@ def init_database():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # Create main table
+    # Drop existing table to ensure clean schema
+    cursor.execute('DROP TABLE IF EXISTS programs')
+    print("🗑️ Dropped existing programs table")
+    
+    # Create main table with new schema
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS programs (
+        CREATE TABLE programs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             sheet TEXT,
             program TEXT,
@@ -295,7 +299,7 @@ def init_database():
     
     conn.commit()
     conn.close()
-    print("✅ Database initialized successfully")
+    print("✅ Database recreated with new schema (including description and fee columns)")
 
 def import_excel_data(file_path_or_content):
     """Import data from Excel file into SQLite database"""
@@ -308,10 +312,34 @@ def import_excel_data(file_path_or_content):
             # It's file content (bytes), use BytesIO
             excel_data = pd.read_excel(io.BytesIO(file_path_or_content), sheet_name=None)
         
-        # Clear existing data
+        # Clear existing data and ensure schema is up to date
+        print("🗑️ Clearing existing data and ensuring schema is current...")
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM programs")
+        
+        # Drop and recreate table to ensure schema is current
+        cursor.execute("DROP TABLE IF EXISTS programs")
+        cursor.execute('''
+            CREATE TABLE programs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sheet TEXT,
+                program TEXT,
+                program_id TEXT,
+                date_range TEXT,
+                time TEXT,
+                location TEXT,
+                class_room TEXT,
+                instructor TEXT,
+                program_status TEXT,
+                class_cancellation TEXT,
+                note TEXT,
+                withdrawal TEXT,
+                description TEXT,
+                fee TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        print("✅ Database table recreated with current schema")
         
         total_records = 0
         
@@ -2793,18 +2821,69 @@ async def refresh_data():
     except Exception as e:
         return {"error": f"Failed to refresh: {str(e)}"}
 
+@app.post("/api/force-refresh")
+async def force_refresh_data():
+    """Force refresh by recreating database and re-importing Excel"""
+    try:
+        print("🔄 FORCE refresh requested - recreating database")
+        
+        # Recreate database with new schema
+        init_database()
+        
+        # Re-import Excel data
+        check_and_import_excel()
+        
+        # Get current data count
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM programs")
+        count = cursor.fetchone()[0]
+        
+        # Check if description and fee columns are working
+        cursor.execute("SELECT description, fee FROM programs LIMIT 1")
+        sample = cursor.fetchone()
+        conn.close()
+        
+        return {
+            "message": "Database recreated and data refreshed",
+            "timestamp": datetime.now(KINGSTON_TZ).isoformat(),
+            "data_count": count,
+            "database": "SQLite",
+            "sample_description": sample[0] if sample else None,
+            "sample_fee": sample[1] if sample else None
+        }
+    except Exception as e:
+        print(f"❌ Error force refreshing data: {e}")
+        return {"error": str(e)}
+
 @app.post("/api/import-excel")
 async def import_excel(file: UploadFile = File(...)):
     """Import Excel file to update database"""
-    if file.filename.endswith('.xlsx'):
+    try:
+        print(f"📤 Upload request received for file: {file.filename}")
+        
+        if not file.filename.endswith('.xlsx'):
+            return {"message": "Please upload an Excel (.xlsx) file", "status": "error"}
+        
+        print(f"📖 Reading file content...")
         content = await file.read()
+        print(f"📊 File size: {len(content)} bytes")
+        
+        print(f"🔄 Starting import process...")
         success = import_excel_data(content)
+        
         if success:
+            print(f"✅ Excel file imported successfully")
             return {"message": "Excel file imported successfully", "status": "success"}
         else:
+            print(f"❌ Failed to import Excel file")
             return {"message": "Error importing Excel file", "status": "error"}
-    else:
-        return {"message": "Please upload an Excel (.xlsx) file", "status": "error"}
+            
+    except Exception as e:
+        print(f"❌ Upload error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"message": f"Upload failed: {str(e)}", "status": "error"}
 
 @app.get("/api/export-excel")
 def export_excel(
