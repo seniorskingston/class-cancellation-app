@@ -611,7 +611,10 @@ function App() {
             </button>
             
             <button 
-              onClick={handleRefresh} 
+              onClick={() => {
+                console.log('🔄 MOBILE REFRESH clicked');
+                handleRefresh();
+              }} 
               className="refresh-button custom-tooltip"
               data-tooltip="Refresh Data"
             >
@@ -619,7 +622,9 @@ function App() {
             </button>
             <button 
               onClick={() => {
-                console.log('Share App button clicked, setting showQRCode to true');
+                console.log('📱 MOBILE QR CODE clicked');
+                console.log('Current showQRCode state:', showQRCode);
+                console.log('Current qrCodeDataURL:', qrCodeDataURL ? 'Generated' : 'Not generated');
                 
                 // Generate QR code if not already generated
                 if (!qrCodeDataURL) {
@@ -627,6 +632,7 @@ function App() {
                   generateQRCode();
                 }
                 
+                console.log('Setting showQRCode to true');
                 setShowQRCode(true);
               }} 
               className="mobile-share-button custom-tooltip"
@@ -1349,7 +1355,7 @@ function App() {
           width: '100vw',
           height: '100vh',
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          zIndex: 9999999,
+          zIndex: 9999999999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
