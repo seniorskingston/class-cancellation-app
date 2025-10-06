@@ -499,7 +499,9 @@ def get_programs_from_db(
             'program_status': row[9],
             'class_cancellation': row[10],
             'note': row[11],
-            'withdrawal': row[12]
+            'withdrawal': row[12],
+            'description': row[13],  # Added description column
+            'fee': row[14]          # Added fee column
         })
     
     conn.close()
