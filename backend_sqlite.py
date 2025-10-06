@@ -362,6 +362,13 @@ def import_excel_data(file_path_or_content):
                 description = safe_str(row.get('Description', row.get('description', '')))
                 fee = safe_str(row.get('Fee', row.get('fee', '')))
                 
+                # Debug: Print available columns and values
+                if program == "Aquafit" or "27681" in str(program_id):  # Debug for your specific example
+                    print(f"🔍 Debug for {program} (ID: {program_id}):")
+                    print(f"   Available columns: {list(row.keys())}")
+                    print(f"   Description: '{description}'")
+                    print(f"   Fee: '{fee}'")
+                
                 # Insert into database with sheet name
                 cursor.execute('''
                     INSERT INTO programs (sheet, program, program_id, date_range, time, location, 
