@@ -360,14 +360,25 @@ def import_excel_data(file_path_or_content):
                 
                 # Extract description and fee from Excel
                 description = safe_str(row.get('Description', row.get('description', '')))
-                fee = safe_str(row.get('Fee', row.get('fee', '')))
+                fee = safe_str(row.get('Fees', row.get('Fee', row.get('fee', row.get('fees', '')))))
                 
-                # Debug: Print available columns and values
-                if program == "Aquafit" or "27681" in str(program_id):  # Debug for your specific example
-                    print(f"🔍 Debug for {program} (ID: {program_id}):")
-                    print(f"   Available columns: {list(row.keys())}")
-                    print(f"   Description: '{description}'")
-                    print(f"   Fee: '{fee}'")
+                # Debug: Print available columns and values for ALL rows
+                print(f"🔍 Debug for {program} (ID: {program_id}):")
+                print(f"   Available columns: {list(row.keys())}")
+                print(f"   Description: '{description}'")
+                print(f"   Fee: '{fee}'")
+                
+                # Check for variations of column names
+                desc_variations = ['Description', 'description', 'DESCRIPTION', 'Desc', 'desc']
+                fee_variations = ['Fees', 'fees', 'FEES', 'Fee', 'fee', 'FEE', 'Price', 'price', 'Cost', 'cost']
+                
+                for desc_col in desc_variations:
+                    if desc_col in row:
+                        print(f"   Found description column '{desc_col}': '{row[desc_col]}'")
+                
+                for fee_col in fee_variations:
+                    if fee_col in row:
+                        print(f"   Found fee column '{fee_col}': '{row[fee_col]}'")
                 
                 # Insert into database with sheet name
                 cursor.execute('''
