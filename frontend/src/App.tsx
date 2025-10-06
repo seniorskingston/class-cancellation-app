@@ -109,6 +109,9 @@ function App() {
   const [locations, setLocations] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<Cancellation | null>(null);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageProgram, setMessageProgram] = useState<Cancellation | null>(null);
+  const [messageText, setMessageText] = useState("");
 
 
   const [showUserGuide, setShowUserGuide] = useState(false);
@@ -438,6 +441,38 @@ function App() {
     });
   };
 
+  const handleSendMessage = async (program: Cancellation, message: string) => {
+    try {
+      const subject = `${program.program} (ID: ${program.program_id.split('.')[0]}) - ${program.instructor}`;
+      
+      const response = await fetch(`${API_URL}/api/send-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subject: subject,
+          message: message,
+          program_name: program.program,
+          program_id: program.program_id.split('.')[0],
+          instructor: program.instructor
+        })
+      });
+
+      if (response.ok) {
+        alert('Message sent successfully!');
+        setShowMessageModal(false);
+        setMessageText("");
+        setMessageProgram(null);
+      } else {
+        alert('Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Error sending message. Please try again.');
+    }
+  };
+
   // Normalize program ID by stripping leading zeros
   const normalizeProgramId = (id: string): string => {
     return id.replace(/^0+/, '') || '0';
@@ -737,7 +772,19 @@ function App() {
                       >
                         {c.program}
                       </div>
-                      <div className="mobile-program-id">ID: {c.program_id.split('.')[0]}</div>
+                      <div className="mobile-program-id">
+              ID: {c.program_id.split('.')[0]}
+              <span 
+                className="message-icon"
+                onClick={() => {
+                  setMessageProgram(c);
+                  setShowMessageModal(true);
+                }}
+                title="Send message about this program"
+              >
+                💬
+              </span>
+            </div>
                     </div>
                   </div>
                   
@@ -1269,7 +1316,19 @@ function App() {
                 >
                   {c.program}
                 </td>
-                <td>{c.program_id.split('.')[0]}</td>
+                <td>
+                  {c.program_id.split('.')[0]}
+                  <span 
+                    className="message-icon"
+                    onClick={() => {
+                      setMessageProgram(c);
+                      setShowMessageModal(true);
+                    }}
+                    title="Send message about this program"
+                  >
+                    💬
+                  </span>
+                </td>
                 <td>{c.date_range}</td>
                 <td>{c.time}</td>
                 <td 
@@ -1749,6 +1808,68 @@ function App() {
                 }}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Message Modal */}
+      {showMessageModal && messageProgram && (
+        <div className="location-modal-overlay" onClick={() => setShowMessageModal(false)}>
+          <div className="location-modal-content" onClick={e => e.stopPropagation()}>
+            <h3>Send Message</h3>
+            <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
+              <strong>Program:</strong> {messageProgram.program}<br/>
+              <strong>ID:</strong> {messageProgram.program_id.split('.')[0]}<br/>
+              <strong>Instructor:</strong> {messageProgram.instructor}
+            </div>
+            <textarea
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              placeholder="Enter your message here..."
+              rows={6}
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                fontSize: '14px',
+                resize: 'vertical',
+                marginBottom: '15px'
+              }}
+            />
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowMessageModal(false);
+                  setMessageText("");
+                  setMessageProgram(null);
+                }}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleSendMessage(messageProgram, messageText)}
+                disabled={!messageText.trim()}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: messageText.trim() ? '#0072ce' : '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: messageText.trim() ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Send Message
               </button>
             </div>
           </div>
