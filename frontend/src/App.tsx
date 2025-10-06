@@ -858,23 +858,34 @@ function App() {
             >
               <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedProgram.program}</h3>
               
-              {selectedProgram.description && selectedProgram.description.trim() !== '' && (
-                <div style={{ marginBottom: '20px' }}>
-                  <h4 style={{ color: '#333', marginBottom: '10px' }}>Description:</h4>
-                  <p style={{ fontSize: '1rem', lineHeight: '1.6', textAlign: 'left' }}>
-                    {selectedProgram.description}
-                  </p>
-                </div>
-              )}
+              {/* Debug info */}
+              <div style={{ fontSize: '12px', color: '#666', marginBottom: '20px', textAlign: 'left' }}>
+                <p>Debug Info:</p>
+                <p>Description: "{selectedProgram.description}"</p>
+                <p>Fee: "{selectedProgram.fee}"</p>
+                <p>Description exists: {selectedProgram.description ? 'Yes' : 'No'}</p>
+                <p>Fee exists: {selectedProgram.fee ? 'Yes' : 'No'}</p>
+              </div>
               
-              {selectedProgram.fee && selectedProgram.fee.trim() !== '' && (
-                <div style={{ marginBottom: '30px' }}>
-                  <h4 style={{ color: '#333', marginBottom: '10px' }}>Fee:</h4>
-                  <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#0072ce' }}>
-                    {selectedProgram.fee}
-                  </p>
-                </div>
-              )}
+              {/* Always show Description section */}
+              <div style={{ marginBottom: '20px' }}>
+                <h4 style={{ color: '#333', marginBottom: '10px' }}>Description:</h4>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', textAlign: 'left' }}>
+                  {selectedProgram.description && selectedProgram.description.trim() !== '' 
+                    ? selectedProgram.description 
+                    : 'No description available'}
+                </p>
+              </div>
+              
+              {/* Always show Fee section */}
+              <div style={{ marginBottom: '30px' }}>
+                <h4 style={{ color: '#333', marginBottom: '10px' }}>Fee:</h4>
+                <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#0072ce' }}>
+                  {selectedProgram.fee && selectedProgram.fee.trim() !== '' 
+                    ? selectedProgram.fee 
+                    : 'No fee information available'}
+                </p>
+              </div>
               
               <button 
                 onClick={(e) => {
@@ -1528,23 +1539,34 @@ function App() {
           >
             <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedProgram.program}</h3>
             
-            {selectedProgram.description && selectedProgram.description.trim() !== '' && (
-              <div style={{ marginBottom: '20px' }}>
-                <h4 style={{ color: '#333', marginBottom: '10px' }}>Description:</h4>
-                <p style={{ fontSize: '1rem', lineHeight: '1.6', textAlign: 'left' }}>
-                  {selectedProgram.description}
-                </p>
-              </div>
-            )}
+            {/* Debug info */}
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '20px', textAlign: 'left' }}>
+              <p>Debug Info:</p>
+              <p>Description: "{selectedProgram.description}"</p>
+              <p>Fee: "{selectedProgram.fee}"</p>
+              <p>Description exists: {selectedProgram.description ? 'Yes' : 'No'}</p>
+              <p>Fee exists: {selectedProgram.fee ? 'Yes' : 'No'}</p>
+            </div>
             
-            {selectedProgram.fee && selectedProgram.fee.trim() !== '' && (
-              <div style={{ marginBottom: '30px' }}>
-                <h4 style={{ color: '#333', marginBottom: '10px' }}>Fee:</h4>
-                <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#0072ce' }}>
-                  {selectedProgram.fee}
-                </p>
-              </div>
-            )}
+            {/* Always show Description section */}
+            <div style={{ marginBottom: '20px' }}>
+              <h4 style={{ color: '#333', marginBottom: '10px' }}>Description:</h4>
+              <p style={{ fontSize: '1rem', lineHeight: '1.6', textAlign: 'left' }}>
+                {selectedProgram.description && selectedProgram.description.trim() !== '' 
+                  ? selectedProgram.description 
+                  : 'No description available'}
+              </p>
+            </div>
+            
+            {/* Always show Fee section */}
+            <div style={{ marginBottom: '30px' }}>
+              <h4 style={{ color: '#333', marginBottom: '10px' }}>Fee:</h4>
+              <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#0072ce' }}>
+                {selectedProgram.fee && selectedProgram.fee.trim() !== '' 
+                  ? selectedProgram.fee 
+                  : 'No fee information available'}
+              </p>
+            </div>
             
             <button 
               onClick={(e) => {
