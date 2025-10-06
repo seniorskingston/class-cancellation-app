@@ -390,26 +390,26 @@ function App() {
   const handleRefresh = async () => {
     setLoading(true);
     try {
-      // Force refresh by adding timestamp to prevent caching
+      console.log('🔄 REFRESH: Starting data refresh...');
+      // Force fresh data fetch with timestamp to prevent caching
       const timestamp = new Date().getTime();
-      const res = await fetch(`${API_URL}/refresh?t=${timestamp}`, { 
-        method: "POST",
+      await fetch(`${API_URL}/api/cancellations?t=${timestamp}`, {
+        method: 'GET',
         cache: 'no-cache',
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
         }
+      }).then(res => res.json()).then(data => {
+        console.log('🔄 REFRESH: Data refreshed successfully');
+        setCancellations(data.data);
+        setLastLoaded(data.last_loaded);
       });
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      // Force fresh data fetch
-      await fetchCancellations();
     } catch (error) {
-      console.error("Error refreshing:", error);
+      console.error("🔄 REFRESH ERROR:", error);
       alert("Refresh failed. Please try refreshing the browser page instead.");
     } finally {
-    setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -1346,8 +1346,13 @@ function App() {
         </div>
       )}
 
-      {/* QR Code Modal */}
-      {showQRCode && (
+      
+    </div>
+  );
+}
+
+// QR Code Modal - Outside both mobile and desktop sections
+{showQRCode && (
         <div style={{
           position: 'fixed',
           top: '0',
@@ -1460,9 +1465,5 @@ function App() {
           </div>
         </div>
       )}
-      
-    </div>
-  );
-}
 
 export default App;
