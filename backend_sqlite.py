@@ -533,6 +533,7 @@ def check_and_import_excel():
         print("⚠️ Excel file not found")
 
 # Auto-import Excel file on startup if it exists
+print("🚀 Starting up - checking for Excel file...")
 check_and_import_excel()
 
 # Set up periodic check every 30 seconds
@@ -2870,6 +2871,15 @@ async def import_excel(file: UploadFile = File(...)):
         print(f"📖 Reading file content...")
         content = await file.read()
         print(f"📊 File size: {len(content)} bytes")
+        
+        # Save the Excel file to persistent storage
+        EXCEL_PATH = "Class Cancellation App.xlsx"
+        try:
+            with open(EXCEL_PATH, 'wb') as f:
+                f.write(content)
+            print(f"💾 Excel file saved to: {EXCEL_PATH}")
+        except Exception as e:
+            print(f"⚠️ Could not save Excel file: {e}")
         
         print(f"🔄 Starting import process...")
         success = import_excel_data(content)
