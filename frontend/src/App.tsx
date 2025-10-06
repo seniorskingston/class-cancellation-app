@@ -872,6 +872,121 @@ function App() {
             </div>
           </div>
         )}
+
+        {/* QR Code Modal - Mobile */}
+        {showQRCode && (
+          <div style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            zIndex: 9999999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '20px',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              position: 'relative',
+              border: '4px solid #0072ce',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+              textAlign: 'center'
+            }}>
+              <div style={{ marginBottom: '20px' }}>
+                <h2 style={{ margin: '0 0 10px 0', color: '#0072ce' }}>Scan with your phone to open the app</h2>
+                <button 
+                  onClick={() => setShowQRCode(false)}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    color: '#666'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                {qrCodeDataURL ? (
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <img 
+                      src={qrCodeDataURL} 
+                      alt="QR Code for app" 
+                      style={{ 
+                        width: '250px', 
+                        height: '250px', 
+                        border: '2px solid #ddd',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      background: 'white',
+                      padding: '6px',
+                      borderRadius: '6px',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+                    }}>
+                      <img 
+                        src={logo} 
+                        alt="Company Logo" 
+                        style={{ width: '25px', height: '25px', objectFit: 'contain' }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '40px', color: '#666' }}>
+                    <p>Generating QR code...</p>
+                    <button 
+                      onClick={generateQRCode}
+                      style={{
+                        background: '#0072ce',
+                        color: 'white',
+                        border: 'none',
+                        padding: '10px 20px',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              <div style={{ marginTop: '20px' }}>
+                <button 
+                  onClick={() => setShowQRCode(false)} 
+                  style={{ 
+                    background: '#0072ce', 
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1346,13 +1461,8 @@ function App() {
         </div>
       )}
 
-      
-    </div>
-  );
-}
-
-// QR Code Modal - Outside both mobile and desktop sections
-{showQRCode && (
+      {/* QR Code Modal - Global for both mobile and desktop */}
+      {showQRCode && (
         <div style={{
           position: 'fixed',
           top: '0',
@@ -1465,5 +1575,8 @@ function App() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
 
 export default App;
