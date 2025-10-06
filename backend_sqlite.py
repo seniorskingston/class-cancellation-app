@@ -198,18 +198,58 @@ def calculate_withdrawal(date_range: str, class_cancellation: str) -> str:
         
         print(f"📋 All class days found: {', '.join(class_days_found)}")
         
-        # Count cancelled classes
+        # Count cancelled classes that occurred BEFORE today (future cancellations don't count)
         cancelled_count = 0
         if class_cancellation and class_cancellation.strip() != '':
-            # Split by semicolon and count each cancelled date
+            # Split by semicolon and process each cancelled date
             cancelled_dates = [d.strip() for d in class_cancellation.split(';') if d.strip()]
-            cancelled_count = len(cancelled_dates)
-            print(f"🚫 Cancelled classes: {cancelled_count}")
+            
+            for cancelled_date_str in cancelled_dates:
+                try:
+                    # Try to parse the cancelled date
+                    cancelled_date = None
+                    
+                    # Try different date formats for cancelled dates
+                    cancelled_formats = [
+                        "%Y-%m-%d",       # "2025-10-07"
+                        "%m/%d/%Y",       # "10/07/2025"
+                        "%d/%m/%Y",       # "07/10/2025"
+                        "%b %d, %Y",      # "Oct 7, 2025"
+                        "%B %d, %Y",      # "October 7, 2025"
+                        "%b %d %Y",       # "Oct 7 2025"
+                        "%B %d %Y",       # "October 7 2025"
+                    ]
+                    
+                    for fmt in cancelled_formats:
+                        try:
+                            cancelled_date = datetime.strptime(cancelled_date_str, fmt).date()
+                            break
+                        except ValueError:
+                            continue
+                    
+                    if cancelled_date and cancelled_date <= today:
+                        # Only count cancellations that happened before or on today
+                        cancelled_count += 1
+                        print(f"🚫 Cancelled class (before today): {cancelled_date.strftime('%Y-%m-%d')}")
+                    elif cancelled_date and cancelled_date > today:
+                        print(f"⏭️ Future cancellation (ignored): {cancelled_date.strftime('%Y-%m-%d')}")
+                    else:
+                        print(f"❌ Could not parse cancelled date: '{cancelled_date_str}'")
+                        
+                except Exception as e:
+                    print(f"❌ Error parsing cancelled date '{cancelled_date_str}': {e}")
+                    continue
         
-        # Subtract cancelled classes from total
+        print(f"🚫 Total cancelled classes (before today): {cancelled_count}")
+        
+        # Subtract only past cancellations from total
         total_classes = max(0, total_classes - cancelled_count)
         
-        print(f"📊 Total classes that would have happened: {total_classes}")
+        print(f"📊 Final calculation:")
+        print(f"   - Classes scheduled from {start_date.strftime('%Y-%m-%d')} to {today.strftime('%Y-%m-%d')}: {total_classes + cancelled_count}")
+        print(f"   - Cancelled classes (before today): {cancelled_count}")
+        print(f"   - Classes actually completed: {total_classes}")
+        print(f"   - Refund eligible (less than 3 classes): {'Yes' if total_classes < 3 else 'No'}")
         
         # Determine withdrawal eligibility
         if total_classes >= 3:
