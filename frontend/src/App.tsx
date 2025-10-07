@@ -782,7 +782,7 @@ function App() {
                 }}
                 title="Send message about this program"
               >
-                💬
+                ✉️
               </span>
             </div>
                     </div>
@@ -1316,7 +1316,7 @@ function App() {
                 >
                   {c.program}
                 </td>
-                <td>
+                <td style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {c.program_id.split('.')[0]}
                   <span 
                     className="message-icon"
@@ -1326,7 +1326,7 @@ function App() {
                     }}
                     title="Send message about this program"
                   >
-                    💬
+                    ✉️
                   </span>
                 </td>
                 <td>{c.date_range}</td>
