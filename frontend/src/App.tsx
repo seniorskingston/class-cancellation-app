@@ -477,7 +477,7 @@ function App() {
       }
     } catch (error) {
       console.error('❌ Error sending message:', error);
-      alert(`Error sending message: ${error.message}`);
+      alert(`Error sending message: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
