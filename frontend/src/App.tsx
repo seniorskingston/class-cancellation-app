@@ -442,8 +442,12 @@ function App() {
   };
 
   const handleSendMessage = async (program: Cancellation, message: string) => {
+    console.log('🚀 Sending message:', { program: program.program, message });
     try {
       const subject = `${program.program} (ID: ${program.program_id.split('.')[0]}) - ${program.instructor}`;
+      
+      console.log('📧 API URL:', API_URL);
+      console.log('📧 Subject:', subject);
       
       const response = await fetch(`${API_URL}/api/send-message`, {
         method: 'POST',
@@ -459,17 +463,21 @@ function App() {
         })
       });
 
+      console.log('📧 Response status:', response.status);
+      const responseData = await response.json();
+      console.log('📧 Response data:', responseData);
+
       if (response.ok) {
         alert('Message sent successfully!');
         setShowMessageModal(false);
         setMessageText("");
         setMessageProgram(null);
       } else {
-        alert('Failed to send message. Please try again.');
+        alert(`Failed to send message: ${responseData.message || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      alert('Error sending message. Please try again.');
+      console.error('❌ Error sending message:', error);
+      alert(`Error sending message: ${error.message}`);
     }
   };
 
@@ -1858,7 +1866,12 @@ function App() {
                 Cancel
               </button>
               <button
-                onClick={() => handleSendMessage(messageProgram, messageText)}
+                onClick={() => {
+                  console.log('🖱️ Send Message button clicked!');
+                  console.log('📝 Message text:', messageText);
+                  console.log('📋 Program:', messageProgram);
+                  handleSendMessage(messageProgram, messageText);
+                }}
                 disabled={!messageText.trim()}
                 style={{
                   padding: '8px 16px',
