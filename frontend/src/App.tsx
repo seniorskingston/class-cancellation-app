@@ -113,6 +113,11 @@ function App() {
   const [messageProgram, setMessageProgram] = useState<Cancellation | null>(null);
   const [messageText, setMessageText] = useState("");
 
+  // Debug: Log modal state changes
+  useEffect(() => {
+    console.log('📱 Modal state changed:', { showMessageModal, messageProgram: messageProgram?.program });
+  }, [showMessageModal, messageProgram]);
+
 
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -780,19 +785,35 @@ function App() {
                       >
                         {c.program}
                       </div>
-                      <div className="mobile-program-id">
-              ID: {c.program_id.split('.')[0]}
-              <span 
-                className="message-icon"
-                onClick={() => {
-                  setMessageProgram(c);
-                  setShowMessageModal(true);
-                }}
-                title="Send message about this program"
-              >
-                ✉️
-              </span>
-            </div>
+                      <div className="mobile-program-id" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        ID: {c.program_id.split('.')[0]}
+                        <span 
+                          className="message-icon"
+                          onClick={() => {
+                            console.log('🖱️ Mobile email icon clicked!', c.program);
+                            console.log('📱 Setting showMessageModal to true');
+                            setMessageProgram(c);
+                            setShowMessageModal(true);
+                            console.log('📱 Modal should be visible now');
+                          }}
+                          title="Send message about this program"
+                          style={{
+                            cursor: 'pointer',
+                            fontSize: '20px',
+                            opacity: 0.8,
+                            transition: 'opacity 0.2s ease',
+                            display: 'inline-block',
+                            padding: '4px',
+                            backgroundColor: '#f0f8ff',
+                            borderRadius: '4px',
+                            border: '1px solid #0072ce'
+                          }}
+                          onMouseEnter={(e) => e.target.style.opacity = '1'}
+                          onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+                        >
+                          ✉️
+                        </span>
+                      </div>
                     </div>
                   </div>
                   
@@ -1824,9 +1845,47 @@ function App() {
 
       {/* Message Modal */}
       {showMessageModal && messageProgram && (
-        <div className="location-modal-overlay" onClick={() => setShowMessageModal(false)}>
-          <div className="location-modal-content" onClick={e => e.stopPropagation()}>
-            <h3>Send Message</h3>
+        <div 
+          className="message-modal-overlay" 
+          onClick={() => setShowMessageModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999999999,
+            width: '100vw',
+            height: '100vh',
+            padding: '20px',
+            boxSizing: 'border-box'
+          }}
+        >
+          <div 
+            className="message-modal-content" 
+            onClick={e => e.stopPropagation()}
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '20px',
+              width: '100%',
+              maxWidth: '500px',
+              maxHeight: '80vh',
+              overflow: 'auto',
+              position: 'relative',
+              border: '3px solid #0072ce',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+              margin: '0'
+            }}
+          >
+            <h3 style={{ color: '#0072ce', marginTop: 0 }}>Send Message</h3>
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px', backgroundColor: '#e7f3ff', padding: '8px', borderRadius: '4px' }}>
+              ✅ Modal is working! ✉️ (Mobile & Desktop) - {new Date().toLocaleTimeString()}
+            </div>
             <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
               <strong>Program:</strong> {messageProgram.program}<br/>
               <strong>ID:</strong> {messageProgram.program_id.split('.')[0]}<br/>
@@ -1847,20 +1906,23 @@ function App() {
                 marginBottom: '15px'
               }}
             />
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
               <button
                 onClick={() => {
+                  console.log('🖱️ Cancel button clicked!');
                   setShowMessageModal(false);
                   setMessageText("");
                   setMessageProgram(null);
                 }}
                 style={{
-                  padding: '8px 16px',
+                  padding: '10px 20px',
                   backgroundColor: '#6c757d',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
                 }}
               >
                 Cancel
@@ -1870,16 +1932,22 @@ function App() {
                   console.log('🖱️ Send Message button clicked!');
                   console.log('📝 Message text:', messageText);
                   console.log('📋 Program:', messageProgram);
-                  handleSendMessage(messageProgram, messageText);
+                  if (messageText.trim()) {
+                    handleSendMessage(messageProgram, messageText);
+                  } else {
+                    alert('Please enter a message first!');
+                  }
                 }}
                 disabled={!messageText.trim()}
                 style={{
-                  padding: '8px 16px',
+                  padding: '10px 20px',
                   backgroundColor: messageText.trim() ? '#0072ce' : '#6c757d',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
-                  cursor: messageText.trim() ? 'pointer' : 'not-allowed'
+                  borderRadius: '6px',
+                  cursor: messageText.trim() ? 'pointer' : 'not-allowed',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
                 }}
               >
                 Send Message
