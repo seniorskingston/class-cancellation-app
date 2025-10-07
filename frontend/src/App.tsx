@@ -449,9 +449,6 @@ function App() {
   const handleSendMessage = async (program: Cancellation, message: string) => {
     console.log('🚀 Sending message:', { program: program.program, message });
     
-    // Show loading state
-    alert('Sending message... Please wait.');
-    
     try {
       const subject = `${program.program} (ID: ${program.program_id.split('.')[0]}) - ${program.instructor}`;
       
@@ -791,12 +788,11 @@ function App() {
                       </div>
                       <div className="mobile-program-id" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         ID: {c.program_id.split('.')[0]}
-                        <span 
-                          className="message-icon"
+                        <button
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            console.log('🖱️ Mobile email icon clicked!', c.program);
+                            console.log('🖱️ Mobile email button clicked!', c.program);
                             console.log('📱 Setting showMessageModal to true');
                             setMessageProgram(c);
                             setShowMessageModal(true);
@@ -804,17 +800,17 @@ function App() {
                           }}
                           title="Send message about this program"
                           style={{
+                            background: 'none',
+                            border: 'none',
                             cursor: 'pointer',
                             fontSize: '16px',
-                            opacity: 0.7,
-                            transition: 'opacity 0.2s ease',
-                            display: 'inline-block'
+                            padding: '2px',
+                            display: 'inline-block',
+                            opacity: 0.7
                           }}
-                          onMouseEnter={(e) => (e.target as HTMLElement).style.opacity = '1'}
-                          onMouseLeave={(e) => (e.target as HTMLElement).style.opacity = '0.8'}
                         >
                           ✉️
-                        </span>
+                        </button>
                       </div>
                     </div>
                   </div>
