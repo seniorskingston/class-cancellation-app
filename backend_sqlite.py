@@ -3098,6 +3098,13 @@ def test_email():
         sender_password = "YOUR_16_CHARACTER_APP_PASSWORD_HERE"  # Replace with your Gmail App Password
         recipient_email = "programs@seniorskingston.ca"
         
+        # Check if password is still placeholder
+        if sender_password == "YOUR_16_CHARACTER_APP_PASSWORD_HERE":
+            return {
+                "status": "error",
+                "message": "❌ Gmail App Password not configured! Please update the password in backend_sqlite.py"
+            }
+        
         # Create test message
         msg = MIMEMultipart()
         msg['From'] = sender_email
@@ -3169,7 +3176,7 @@ This message was sent from the Class Cancellation App.
             smtp_server = "smtp.gmail.com"
             smtp_port = 587
             sender_email = "seniorskingstonapp@gmail.com"  # Your Gmail address
-            sender_password = "ouvu mhzh aijl fkpx"  # Replace with your Gmail App Password
+            sender_password = "fvim kuqf bbjt zcuv"  # Replace with your Gmail App Password
             recipient_email = "programs@seniorskingston.ca"
             
             # Create message
@@ -3203,6 +3210,13 @@ This message was sent from the Class Cancellation App.
             print(f"Subject: {email_subject}")
             print(f"Body: {email_body}")
             print("=" * 50)
+            
+            # Return success anyway since message is logged
+            return {
+                "status": "warning",
+                "message": "Message received but email delivery failed. Message has been logged to server console.",
+                "error_details": str(email_error)
+            }
         
         return {
             "status": "success",
