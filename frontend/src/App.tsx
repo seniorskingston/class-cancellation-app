@@ -808,8 +808,8 @@ function App() {
                             borderRadius: '4px',
                             border: '1px solid #0072ce'
                           }}
-                          onMouseEnter={(e) => e.target.style.opacity = '1'}
-                          onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+                          onMouseEnter={(e) => (e.target as HTMLElement).style.opacity = '1'}
+                          onMouseLeave={(e) => (e.target as HTMLElement).style.opacity = '0.8'}
                         >
                           ✉️
                         </span>
