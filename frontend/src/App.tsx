@@ -483,7 +483,11 @@ function App() {
       }
     } catch (error) {
       console.error('❌ Error sending message:', error);
-      alert(`❌ Error sending message: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        alert('❌ Cannot connect to server. Backend might be down. Please try again later.');
+      } else {
+        alert(`❌ Error sending message: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     }
   };
 
@@ -1860,7 +1864,8 @@ function App() {
             width: '100vw',
             height: '100vh',
             padding: '20px',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            overflow: 'hidden'
           }}
         >
           <div 
@@ -1885,6 +1890,8 @@ function App() {
               ✅ Modal is working! ✉️ (Mobile & Desktop) - {new Date().toLocaleTimeString()}
               <br/>
               📱 Mobile: {window.innerWidth < 768 ? 'YES' : 'NO'} | 📏 Width: {window.innerWidth}px
+              <br/>
+              🔧 Modal State: {showMessageModal ? 'OPEN' : 'CLOSED'}
             </div>
             <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
               <strong>Program:</strong> {messageProgram.program}<br/>
