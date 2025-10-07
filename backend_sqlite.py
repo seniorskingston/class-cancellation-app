@@ -3087,6 +3087,53 @@ def export_pdf(
         print(f"❌ Error creating PDF: {e}")
         return {"error": "Failed to create PDF"}
 
+@app.get("/api/test-email")
+def test_email():
+    """Test email configuration"""
+    try:
+        # Email configuration - Gmail Setup
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = "seniorskingstonapp@gmail.com"  # Your Gmail address
+        sender_password = "YOUR_16_CHARACTER_APP_PASSWORD_HERE"  # Replace with your Gmail App Password
+        recipient_email = "programs@seniorskingston.ca"
+        
+        # Create test message
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = recipient_email
+        msg['Subject'] = "Test Email from Class Cancellation App"
+        
+        test_body = """
+This is a test email from the Class Cancellation App.
+
+If you receive this email, the email configuration is working correctly!
+
+Test sent at: """ + datetime.now(KINGSTON_TZ).strftime('%Y-%m-%d %H:%M:%S')
+        
+        msg.attach(MIMEText(test_body, 'plain'))
+        
+        # Create SMTP session
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        
+        # Send email
+        text = msg.as_string()
+        server.sendmail(sender_email, recipient_email, text)
+        server.quit()
+        
+        return {
+            "status": "success",
+            "message": "Test email sent successfully to programs@seniorskingston.ca"
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Test email failed: {str(e)}"
+        }
+
 @app.post("/api/send-message")
 def send_message(message_data: dict):
     """Send message via email"""
@@ -3116,15 +3163,46 @@ Message:
 This message was sent from the Class Cancellation App.
         """
         
-        # For now, just log the message (you can implement actual email sending later)
-        print(f"📧 MESSAGE RECEIVED:")
-        print(f"To: programs@seniorskingston.ca")
-        print(f"Subject: {email_subject}")
-        print(f"Body: {email_body}")
-        print("=" * 50)
-        
-        # In a real implementation, you would send the email here
-        # For now, we'll just return success
+        # Send actual email to programs@seniorskingston.ca
+        try:
+            # Email configuration - Gmail Setup
+            smtp_server = "smtp.gmail.com"
+            smtp_port = 587
+            sender_email = "seniorskingstonapp@gmail.com"  # Your Gmail address
+            sender_password = "ouvu mhzh aijl fkpx"  # Replace with your Gmail App Password
+            recipient_email = "programs@seniorskingston.ca"
+            
+            # Create message
+            msg = MIMEMultipart()
+            msg['From'] = sender_email
+            msg['To'] = recipient_email
+            msg['Subject'] = email_subject
+            
+            # Add body to email
+            msg.attach(MIMEText(email_body, 'plain'))
+            
+            # Create SMTP session
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()  # Enable security
+            server.login(sender_email, sender_password)
+            
+            # Send email
+            text = msg.as_string()
+            server.sendmail(sender_email, recipient_email, text)
+            server.quit()
+            
+            print(f"✅ EMAIL SENT SUCCESSFULLY:")
+            print(f"To: {recipient_email}")
+            print(f"Subject: {email_subject}")
+            print("=" * 50)
+            
+        except Exception as email_error:
+            print(f"❌ EMAIL FAILED: {str(email_error)}")
+            print(f"📧 MESSAGE RECEIVED (FALLBACK LOGGING):")
+            print(f"To: programs@seniorskingston.ca")
+            print(f"Subject: {email_subject}")
+            print(f"Body: {email_body}")
+            print("=" * 50)
         
         return {
             "status": "success",
