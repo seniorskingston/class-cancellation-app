@@ -448,6 +448,10 @@ function App() {
 
   const handleSendMessage = async (program: Cancellation, message: string) => {
     console.log('🚀 Sending message:', { program: program.program, message });
+    
+    // Show loading state
+    alert('Sending message... Please wait.');
+    
     try {
       const subject = `${program.program} (ID: ${program.program_id.split('.')[0]}) - ${program.instructor}`;
       
@@ -473,16 +477,16 @@ function App() {
       console.log('📧 Response data:', responseData);
 
       if (response.ok) {
-        alert('Message sent successfully!');
+        alert('✅ Message sent successfully to programs@seniorskingston.ca!');
         setShowMessageModal(false);
         setMessageText("");
         setMessageProgram(null);
       } else {
-        alert(`Failed to send message: ${responseData.message || 'Unknown error'}`);
+        alert(`❌ Failed to send message: ${responseData.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('❌ Error sending message:', error);
-      alert(`Error sending message: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(`❌ Error sending message: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -789,7 +793,9 @@ function App() {
                         ID: {c.program_id.split('.')[0]}
                         <span 
                           className="message-icon"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             console.log('🖱️ Mobile email icon clicked!', c.program);
                             console.log('📱 Setting showMessageModal to true');
                             setMessageProgram(c);
@@ -799,14 +805,10 @@ function App() {
                           title="Send message about this program"
                           style={{
                             cursor: 'pointer',
-                            fontSize: '20px',
-                            opacity: 0.8,
+                            fontSize: '16px',
+                            opacity: 0.7,
                             transition: 'opacity 0.2s ease',
-                            display: 'inline-block',
-                            padding: '4px',
-                            backgroundColor: '#f0f8ff',
-                            borderRadius: '4px',
-                            border: '1px solid #0072ce'
+                            display: 'inline-block'
                           }}
                           onMouseEnter={(e) => (e.target as HTMLElement).style.opacity = '1'}
                           onMouseLeave={(e) => (e.target as HTMLElement).style.opacity = '0.8'}
@@ -1885,6 +1887,8 @@ function App() {
             <h3 style={{ color: '#0072ce', marginTop: 0 }}>Send Message</h3>
             <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px', backgroundColor: '#e7f3ff', padding: '8px', borderRadius: '4px' }}>
               ✅ Modal is working! ✉️ (Mobile & Desktop) - {new Date().toLocaleTimeString()}
+              <br/>
+              📱 Mobile: {window.innerWidth < 768 ? 'YES' : 'NO'} | 📏 Width: {window.innerWidth}px
             </div>
             <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
               <strong>Program:</strong> {messageProgram.program}<br/>
@@ -1928,7 +1932,9 @@ function App() {
                 Cancel
               </button>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   console.log('🖱️ Send Message button clicked!');
                   console.log('📝 Message text:', messageText);
                   console.log('📋 Program:', messageProgram);
