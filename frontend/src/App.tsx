@@ -474,7 +474,11 @@ function App() {
       console.log('📧 Response data:', responseData);
 
       if (response.ok) {
-        alert('✅ Message sent successfully to programs@seniorskingston.ca!');
+        if (responseData.status === 'warning') {
+          alert(`⚠️ ${responseData.message}\n\nYour message has been logged on the server. Please check with the administrator.`);
+        } else {
+          alert('✅ Message sent successfully to info@seniorskingston.ca!');
+        }
         setShowMessageModal(false);
         setMessageText("");
         setMessageProgram(null);
