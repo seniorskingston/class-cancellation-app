@@ -115,7 +115,14 @@ function App() {
 
   // Debug: Log modal state changes
   useEffect(() => {
-    console.log('📱 Modal state changed:', { showMessageModal, messageProgram: messageProgram?.program });
+    console.log('📱 Modal state changed:', { 
+      showMessageModal, 
+      messageProgram: messageProgram?.program,
+      isMobile: window.innerWidth < 768 
+    });
+    if (showMessageModal && messageProgram) {
+      console.log('✅ MODAL SHOULD BE VISIBLE NOW!');
+    }
   }, [showMessageModal, messageProgram]);
 
 
@@ -797,27 +804,28 @@ function App() {
                       </div>
                       <div className="mobile-program-id" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                         <span>ID: {c.program_id.split('.')[0]}</span>
-                        <button
+                        <span
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            console.log('🖱️ Mobile email button clicked!', c.program);
+                            console.log('🖱️ Mobile email icon clicked!', c.program);
+                            console.log('📱 Program:', messageProgram);
                             setMessageProgram(c);
                             setShowMessageModal(true);
+                            console.log('📱 showMessageModal set to true');
                           }}
                           data-tooltip="Send a message regarding this program"
                           style={{
-                            background: 'none',
-                            border: 'none',
                             cursor: 'pointer',
                             fontSize: '18px',
-                            padding: '2px',
+                            padding: '2px 6px',
                             display: 'inline-block',
-                            color: '#0072ce'
+                            color: '#0072ce',
+                            filter: 'hue-rotate(200deg) saturate(3)'
                           }}
                         >
                           ✉️
-                        </button>
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1364,7 +1372,8 @@ function App() {
                       marginLeft: '8px',
                       cursor: 'pointer',
                       fontSize: '18px',
-                      color: '#0072ce'
+                      color: '#0072ce',
+                      filter: 'hue-rotate(200deg) saturate(3)'
                     }}
                   >
                     ✉️
