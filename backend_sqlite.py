@@ -3205,9 +3205,9 @@ This message was sent from the Class Cancellation App.
         
         # Try Brevo first, fallback to SMTP
         try:
-            send_email_via_brevo("programs@seniorskingston.ca", email_subject, email_body)
+            send_email_via_brevo("info@seniorskingston.ca", email_subject, email_body)
             print(f"✅ EMAIL SENT VIA BREVO:")
-            print(f"To: programs@seniorskingston.ca")
+            print(f"To: info@seniorskingston.ca")
             print(f"Subject: {email_subject}")
             print("=" * 50)
             
@@ -3256,7 +3256,7 @@ This message was sent from the Class Cancellation App.
         except Exception as email_error:
             print(f"❌ EMAIL FAILED: {str(email_error)}")
             print(f"📧 MESSAGE RECEIVED (FALLBACK LOGGING):")
-            print(f"To: programs@seniorskingston.ca")
+            print(f"To: info@seniorskingston.ca")
             print(f"Subject: {email_subject}")
             print(f"Body: {email_body}")
             print("=" * 50)
