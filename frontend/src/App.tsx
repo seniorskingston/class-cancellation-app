@@ -790,31 +790,30 @@ function App() {
                       <div 
                         className="mobile-program-name"
                         onClick={() => setSelectedProgram(c)}
+                        data-tooltip="More information about this program"
                         style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                       >
                         {c.program}
                       </div>
-                      <div className="mobile-program-id" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        ID: {c.program_id.split('.')[0]}
+                      <div className="mobile-program-id" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <span>ID: {c.program_id.split('.')[0]}</span>
                         <button
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('🖱️ Mobile email button clicked!', c.program);
-                            console.log('📱 Setting showMessageModal to true');
                             setMessageProgram(c);
                             setShowMessageModal(true);
-                            console.log('📱 Modal should be visible now');
                           }}
-                          title="Send message about this program"
+                          data-tooltip="Send a message regarding this program"
                           style={{
                             background: 'none',
                             border: 'none',
                             cursor: 'pointer',
-                            fontSize: '16px',
+                            fontSize: '18px',
                             padding: '2px',
                             display: 'inline-block',
-                            opacity: 0.7
+                            color: '#0072ce'
                           }}
                         >
                           ✉️
@@ -1345,21 +1344,28 @@ function App() {
                     </span>
                   </td>
                 <td>{c.sheet}</td>
-                <td 
+                <td
                   onClick={() => setSelectedProgram(c)}
+                  data-tooltip="More information about this program"
                   style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
                 >
                   {c.program}
                 </td>
-                <td style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {c.program_id.split('.')[0]}
+                <td style={{ textAlign: 'center' }}>
+                  <span>{c.program_id.split('.')[0]}</span>
                   <span 
                     className="message-icon"
                     onClick={() => {
                       setMessageProgram(c);
                       setShowMessageModal(true);
                     }}
-                    title="Send message about this program"
+                    data-tooltip="Send a message regarding this program"
+                    style={{
+                      marginLeft: '8px',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      color: '#0072ce'
+                    }}
                   >
                     ✉️
                   </span>
