@@ -1866,22 +1866,7 @@ td.custom-tooltip:hover::before,
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important;
   }
   
-  /* Ensure message icon tooltips work on mobile */
-  .message-icon.custom-tooltip:hover::after {
-    top: auto !important;
-    bottom: 100% !important;
-    margin-bottom: 8px !important;
-    margin-top: 0 !important;
-  }
-  
-  .message-icon.custom-tooltip:hover::before {
-    top: auto !important;
-    bottom: 100% !important;
-    margin-bottom: 2px !important;
-    margin-top: 0 !important;
-    border-bottom-color: transparent !important;
-    border-top-color: #333 !important;
-  }
+  /* Message icon tooltips use general mobile tooltip rules */
 }
 
 /* Calendar Navigation */
@@ -1984,36 +1969,4 @@ td.custom-tooltip:hover::before,
   transform: scale(1.2);
 }
 
-/* Message icon tooltip - use same approach as other working tooltips */
-.message-icon.custom-tooltip:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #333;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 1;
-  visibility: visible;
-  z-index: 999999999;
-  margin-top: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.message-icon.custom-tooltip:hover::before {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-bottom-color: #333;
-  opacity: 1;
-  visibility: visible;
-  z-index: 999999999;
-  margin-top: 2px;
-}
+/* Message icon tooltips - let general custom-tooltip rules handle this */
