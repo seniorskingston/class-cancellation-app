@@ -7,6 +7,7 @@ from fastapi.responses import Response
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import requests  # For SendGrid API
 import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from typing import Optional
@@ -3141,6 +3142,38 @@ Test sent at: """ + datetime.now(KINGSTON_TZ).strftime('%Y-%m-%d %H:%M:%S')
             "message": f"Test email failed: {str(e)}"
         }
 
+def send_email_via_brevo(to_email: str, subject: str, body: str):
+    """Send email using Brevo (Sendinblue) API"""
+    brevo_api_key = os.environ.get("BREVO_API_KEY", "YOUR_BREVO_API_KEY_HERE")
+    
+    if brevo_api_key == "YOUR_BREVO_API_KEY_HERE":
+        raise Exception("Brevo API key not configured")
+    
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "api-key": brevo_api_key,
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "sender": {
+            "name": "Seniors Kingston App",
+            "email": "noreply@seniorskingston.ca"
+        },
+        "to": [
+            {
+                "email": to_email,
+                "name": "Programs Department"
+            }
+        ],
+        "subject": subject,
+        "textContent": body
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    response.raise_for_status()
+    return response
+
 @app.post("/api/send-message")
 def send_message(message_data: dict):
     """Send message via email"""
@@ -3170,13 +3203,30 @@ Message:
 This message was sent from the Class Cancellation App.
         """
         
-        # Send actual email to programs@seniorskingston.ca
+        # Try Brevo first, fallback to SMTP
+        try:
+            send_email_via_brevo("programs@seniorskingston.ca", email_subject, email_body)
+            print(f"✅ EMAIL SENT VIA BREVO:")
+            print(f"To: programs@seniorskingston.ca")
+            print(f"Subject: {email_subject}")
+            print("=" * 50)
+            
+            return {
+                "status": "success",
+                "message": "Message sent successfully via Brevo",
+                "email_subject": email_subject
+            }
+        except Exception as brevo_error:
+            print(f"❌ Brevo failed: {str(brevo_error)}")
+            print(f"🔄 Trying SMTP fallback...")
+            
+        # SMTP Fallback
         try:
             # Email configuration - Gmail Setup
             smtp_server = "smtp.gmail.com"
             smtp_port = 587
             sender_email = "seniorskingstonapp@gmail.com"  # Your Gmail address
-            sender_password = "fvim kuqf bbjt zcuv"  # Replace with your Gmail App Password
+            sender_password = "YOUR_16_CHARACTER_APP_PASSWORD_HERE"  # Replace with your Gmail App Password
             recipient_email = "programs@seniorskingston.ca"
             
             # Create message
