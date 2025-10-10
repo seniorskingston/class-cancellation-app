@@ -1984,42 +1984,36 @@ td.custom-tooltip:hover::before,
   transform: scale(1.2);
 }
 
-/* Message icon tooltip styling - maximum specificity to override other rules */
-img.message-icon.custom-tooltip:hover::after,
+/* Message icon tooltip - use same approach as other working tooltips */
 .message-icon.custom-tooltip:hover::after {
-  content: attr(data-tooltip) !important;
-  position: absolute !important;
-  top: 100% !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  background: #333 !important;
-  color: white !important;
-  padding: 8px 12px !important;
-  border-radius: 6px !important;
-  font-size: 12px !important;
-  white-space: nowrap !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  z-index: 999999999 !important;
-  margin-top: 8px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
-  display: block !important;
-  pointer-events: none !important;
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 1;
+  visibility: visible;
+  z-index: 999999999;
+  margin-top: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-img.message-icon.custom-tooltip:hover::before,
 .message-icon.custom-tooltip:hover::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 100% !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  border: 6px solid transparent !important;
-  border-bottom-color: #333 !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  z-index: 999999999 !important;
-  margin-top: 2px !important;
-  display: block !important;
-  pointer-events: none !important;
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: #333;
+  opacity: 1;
+  visibility: visible;
+  z-index: 999999999;
+  margin-top: 2px;
 }
