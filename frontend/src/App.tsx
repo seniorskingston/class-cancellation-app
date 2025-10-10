@@ -688,6 +688,37 @@ function App() {
             >
               🔄 Refresh
             </button>
+            
+            <button 
+              onClick={() => {
+                console.log('🧪 TEST MESSAGE MODAL clicked');
+                // Create a test program object with all required fields
+                const testProgram: Cancellation = {
+                  sheet: 'Test Sheet',
+                  program: 'Test Program',
+                  program_id: 'TEST.001',
+                  instructor: 'Test Instructor',
+                  location: 'Test Location',
+                  class_room: 'Test Room',
+                  date_range: 'Test Date',
+                  time: 'Test Time',
+                  program_status: 'Active',
+                  class_cancellation: 'No',
+                  note: 'Test Note',
+                  withdrawal: 'No',
+                  description: 'Test Description',
+                  fee: 'Free'
+                };
+                setMessageProgram(testProgram);
+                setShowMessageModal(true);
+                console.log('🧪 Test modal should be visible now');
+              }} 
+              className="refresh-button custom-tooltip"
+              data-tooltip="Test Message Modal"
+              style={{ backgroundColor: '#ff6b35' }}
+            >
+              🧪 Test
+            </button>
             <button 
               onClick={() => {
                 console.log('📱 MOBILE QR CODE clicked');
@@ -812,25 +843,29 @@ function App() {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('📱 Mobile message icon touch start!', c.program);
-                            setMessageProgram(c);
-                            setShowMessageModal(true);
-                            console.log('📱 showMessageModal set to true via touch');
-                            // Force immediate re-render
-                            setTimeout(() => {
-                              console.log('📱 Touch - Modal should be visible now');
-                            }, 0);
+                            // Use a more direct approach
+                            const handleMessage = () => {
+                              setMessageProgram(c);
+                              setShowMessageModal(true);
+                              console.log('📱 showMessageModal set to true via touch');
+                            };
+                            handleMessage();
+                            // Also try with a slight delay
+                            setTimeout(handleMessage, 10);
                           }}
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('🖱️ Mobile message icon clicked!', c.program);
-                            setMessageProgram(c);
-                            setShowMessageModal(true);
-                            console.log('📱 showMessageModal set to true via click');
-                            // Force immediate re-render
-                            setTimeout(() => {
-                              console.log('📱 Click - Modal should be visible now');
-                            }, 0);
+                            // Use a more direct approach
+                            const handleMessage = () => {
+                              setMessageProgram(c);
+                              setShowMessageModal(true);
+                              console.log('📱 showMessageModal set to true via click');
+                            };
+                            handleMessage();
+                            // Also try with a slight delay
+                            setTimeout(handleMessage, 10);
                           }}
                           data-tooltip="Send a message regarding this program"
                           style={{
@@ -1921,16 +1956,21 @@ function App() {
             }}
           >
             <h3 style={{ color: '#0072ce', marginTop: 0 }}>Send Message</h3>
-            <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px', backgroundColor: '#e7f3ff', padding: '8px', borderRadius: '4px' }}>
-              ✅ Modal is working! ✉️ (Mobile & Desktop) - {new Date().toLocaleTimeString()}
-              <br/>
-              📱 Mobile: {window.innerWidth < 768 ? 'YES' : 'NO'} | 📏 Width: {window.innerWidth}px
-              <br/>
-              🔧 Modal State: {showMessageModal ? 'OPEN' : 'CLOSED'}
-              <br/>
-              📱 Touch Device: {('ontouchstart' in window) ? 'YES' : 'NO'}
-              <br/>
-              🖱️ Click Type: {navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'}
+            <div style={{ fontSize: '14px', color: '#333', marginBottom: '10px', backgroundColor: '#e7f3ff', padding: '12px', borderRadius: '6px', border: '2px solid #0072ce' }}>
+              <div style={{ fontWeight: 'bold', color: '#0072ce', marginBottom: '8px' }}>
+                ✅ MESSAGE MODAL IS WORKING! ✉️
+              </div>
+              <div style={{ fontSize: '12px', color: '#666' }}>
+                📱 Mobile: {window.innerWidth < 768 ? 'YES' : 'NO'} | 📏 Width: {window.innerWidth}px
+                <br/>
+                🔧 Modal State: {showMessageModal ? 'OPEN' : 'CLOSED'}
+                <br/>
+                📱 Touch Device: {('ontouchstart' in window) ? 'YES' : 'NO'}
+                <br/>
+                🖱️ Click Type: {navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'}
+                <br/>
+                ⏰ Time: {new Date().toLocaleTimeString()}
+              </div>
             </div>
             <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
               <strong>Program:</strong> {messageProgram.program}<br/>
