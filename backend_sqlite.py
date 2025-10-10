@@ -3145,9 +3145,13 @@ Test sent at: """ + datetime.now(KINGSTON_TZ).strftime('%Y-%m-%d %H:%M:%S')
 def send_email_via_brevo(to_email: str, subject: str, body: str):
     """Send email using Brevo (Sendinblue) API"""
     brevo_api_key = os.environ.get("BREVO_API_KEY", "YOUR_BREVO_API_KEY_HERE")
+    brevo_sender_email = os.environ.get("BREVO_SENDER_EMAIL", "")  # Email you verified in Brevo
     
     if brevo_api_key == "YOUR_BREVO_API_KEY_HERE":
         raise Exception("Brevo API key not configured")
+    
+    if not brevo_sender_email:
+        raise Exception("Brevo sender email not configured. Add BREVO_SENDER_EMAIL environment variable with your verified email.")
     
     url = "https://api.brevo.com/v3/smtp/email"
     headers = {
@@ -3158,7 +3162,7 @@ def send_email_via_brevo(to_email: str, subject: str, body: str):
     data = {
         "sender": {
             "name": "Seniors Kingston App",
-            "email": "noreply@seniorskingston.ca"
+            "email": brevo_sender_email  # Use verified email
         },
         "to": [
             {
