@@ -803,29 +803,34 @@ function App() {
                         {c.program}
                       </div>
                       <div className="mobile-program-id" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <span>ID: {c.program_id.split('.')[0]}</span>
-                        <span
+                        <span style={{ fontWeight: 'bold' }}>ID: {c.program_id.split('.')[0]}</span>
+                        <img 
+                          src="/message-icon.svg"
+                          alt="Send message"
+                          className="message-icon"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            console.log('🖱️ Mobile email icon clicked!', c.program);
-                            console.log('📱 Program:', messageProgram);
+                            console.log('🖱️ Mobile message icon clicked!', c.program);
+                            console.log('📱 Before: showMessageModal =', showMessageModal);
+                            console.log('📱 Before: messageProgram =', messageProgram);
                             setMessageProgram(c);
                             setShowMessageModal(true);
-                            console.log('📱 showMessageModal set to true');
+                            console.log('📱 After: showMessageModal should be true');
+                            console.log('📱 After: messageProgram should be set to', c.program);
+                            // Force a re-render check
+                            setTimeout(() => {
+                              console.log('📱 Delayed check: showMessageModal =', showMessageModal);
+                            }, 100);
                           }}
-                          data-tooltip="Send a message regarding this program"
+                          title="Send a message regarding this program"
                           style={{
                             cursor: 'pointer',
-                            fontSize: '18px',
-                            padding: '2px 6px',
-                            display: 'inline-block',
-                            color: '#0072ce',
-                            filter: 'hue-rotate(200deg) saturate(3)'
+                            width: '20px',
+                            height: '20px',
+                            transition: 'transform 0.2s ease'
                           }}
-                        >
-                          ✉️
-                        </span>
+                        />
                       </div>
                     </div>
                   </div>
@@ -1360,24 +1365,25 @@ function App() {
                   {c.program}
                 </td>
                 <td style={{ textAlign: 'center' }}>
-                  <span>{c.program_id.split('.')[0]}</span>
-                  <span 
-                    className="message-icon"
-                    onClick={() => {
-                      setMessageProgram(c);
-                      setShowMessageModal(true);
-                    }}
-                    data-tooltip="Send a message regarding this program"
-                    style={{
-                      marginLeft: '8px',
-                      cursor: 'pointer',
-                      fontSize: '18px',
-                      color: '#0072ce',
-                      filter: 'hue-rotate(200deg) saturate(3)'
-                    }}
-                  >
-                    ✉️
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <span style={{ fontWeight: 'bold' }}>{c.program_id.split('.')[0]}</span>
+                    <img 
+                      src="/message-icon.svg"
+                      alt="Send message"
+                      className="message-icon"
+                      onClick={() => {
+                        setMessageProgram(c);
+                        setShowMessageModal(true);
+                      }}
+                      title="Send a message regarding this program"
+                      style={{
+                        cursor: 'pointer',
+                        width: '20px',
+                        height: '20px',
+                        transition: 'transform 0.2s ease'
+                      }}
+                    />
+                  </div>
                 </td>
                 <td>{c.date_range}</td>
                 <td>{c.time}</td>
@@ -1886,6 +1892,7 @@ function App() {
             boxSizing: 'border-box',
             overflow: 'hidden'
           }}
+          onLoad={() => console.log('📱 Modal overlay loaded!')}
         >
           <div 
             className="message-modal-content" 
