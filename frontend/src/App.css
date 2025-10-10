@@ -1967,43 +1967,4 @@ td.custom-tooltip:hover::before,
   transform: scale(1.2);
 }
 
-/* Tooltip for message icon */
-.message-icon::after {
-  content: attr(title);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #333;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s, visibility 0.3s;
-  z-index: 1000;
-  margin-bottom: 8px;
-}
-
-.message-icon::before {
-  content: '';
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: #333;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s, visibility 0.3s;
-  z-index: 1000;
-  margin-bottom: 2px;
-}
-
-.message-icon:hover::after,
-.message-icon:hover::before {
-  opacity: 1;
-  visibility: visible;
-}
+/* Message icon uses the uniformed custom-tooltip style */
