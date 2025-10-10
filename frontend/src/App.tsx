@@ -815,6 +815,10 @@ function App() {
                             setMessageProgram(c);
                             setShowMessageModal(true);
                             console.log('📱 showMessageModal set to true via touch');
+                            // Force immediate re-render
+                            setTimeout(() => {
+                              console.log('📱 Touch - Modal should be visible now');
+                            }, 0);
                           }}
                           onClick={(e) => {
                             e.preventDefault();
@@ -823,6 +827,10 @@ function App() {
                             setMessageProgram(c);
                             setShowMessageModal(true);
                             console.log('📱 showMessageModal set to true via click');
+                            // Force immediate re-render
+                            setTimeout(() => {
+                              console.log('📱 Click - Modal should be visible now');
+                            }, 0);
                           }}
                           data-tooltip="Send a message regarding this program"
                           style={{
