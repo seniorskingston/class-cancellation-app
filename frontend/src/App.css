@@ -1865,6 +1865,23 @@ td.custom-tooltip:hover::before,
     border: 3px solid #0072ce !important;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important;
   }
+  
+  /* Ensure message icon tooltips work on mobile */
+  .message-icon.custom-tooltip:hover::after {
+    top: auto !important;
+    bottom: 100% !important;
+    margin-bottom: 8px !important;
+    margin-top: 0 !important;
+  }
+  
+  .message-icon.custom-tooltip:hover::before {
+    top: auto !important;
+    bottom: 100% !important;
+    margin-bottom: 2px !important;
+    margin-top: 0 !important;
+    border-bottom-color: transparent !important;
+    border-top-color: #333 !important;
+  }
 }
 
 /* Calendar Navigation */
@@ -1960,11 +1977,43 @@ td.custom-tooltip:hover::before,
   margin-left: 8px;
   cursor: pointer;
   transition: transform 0.2s ease;
-  position: relative;
+  position: relative !important;
 }
 
 .message-icon:hover {
   transform: scale(1.2);
 }
 
-/* Message icon uses the uniformed custom-tooltip style */
+/* Message icon tooltip styling - ensure it works with custom-tooltip */
+.message-icon.custom-tooltip:hover::after {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  top: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: #333 !important;
+  color: white !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 999999999 !important;
+  margin-top: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.message-icon.custom-tooltip:hover::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  border: 6px solid transparent !important;
+  border-bottom-color: #333 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 999999999 !important;
+  margin-top: 2px !important;
+}
