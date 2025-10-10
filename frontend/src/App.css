@@ -1933,10 +1933,12 @@ td.custom-tooltip:hover::before,
   margin-left: 8px;
   cursor: pointer;
   font-size: 18px;
-  color: #0072ce;
+  color: #0072ce !important;
+  filter: hue-rotate(200deg) saturate(3) !important;
   transition: transform 0.2s ease;
 }
 
 .message-icon:hover {
   transform: scale(1.2);
+  filter: hue-rotate(200deg) saturate(4) brightness(1.1) !important;
 }
