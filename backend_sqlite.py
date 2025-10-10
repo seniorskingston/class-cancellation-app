@@ -3088,6 +3088,19 @@ def export_pdf(
         print(f"❌ Error creating PDF: {e}")
         return {"error": "Failed to create PDF"}
 
+@app.get("/api/test-brevo")
+def test_brevo_config():
+    """Test Brevo configuration"""
+    brevo_api_key = os.environ.get("BREVO_API_KEY", "")
+    brevo_sender_email = os.environ.get("BREVO_SENDER_EMAIL", "")
+    
+    return {
+        "brevo_api_key_configured": bool(brevo_api_key and brevo_api_key != "YOUR_BREVO_API_KEY_HERE"),
+        "brevo_sender_email_configured": bool(brevo_sender_email),
+        "brevo_sender_email": brevo_sender_email if brevo_sender_email else "NOT SET",
+        "api_key_first_chars": brevo_api_key[:20] + "..." if brevo_api_key else "NOT SET"
+    }
+
 @app.get("/api/test-email")
 def test_email():
     """Test email configuration"""
