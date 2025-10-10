@@ -807,23 +807,24 @@ function App() {
                         <img 
                           src="/message-icon.svg"
                           alt="Send message"
-                          className="message-icon"
+                          className="message-icon custom-tooltip"
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('📱 Mobile message icon touch start!', c.program);
+                            setMessageProgram(c);
+                            setShowMessageModal(true);
+                            console.log('📱 showMessageModal set to true via touch');
+                          }}
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('🖱️ Mobile message icon clicked!', c.program);
-                            console.log('📱 Before: showMessageModal =', showMessageModal);
-                            console.log('📱 Before: messageProgram =', messageProgram);
                             setMessageProgram(c);
                             setShowMessageModal(true);
-                            console.log('📱 After: showMessageModal should be true');
-                            console.log('📱 After: messageProgram should be set to', c.program);
-                            // Force a re-render check
-                            setTimeout(() => {
-                              console.log('📱 Delayed check: showMessageModal =', showMessageModal);
-                            }, 100);
+                            console.log('📱 showMessageModal set to true via click');
                           }}
-                          title="Send a message regarding this program"
+                          data-tooltip="Send a message regarding this program"
                           style={{
                             cursor: 'pointer',
                             width: '20px',
@@ -1370,12 +1371,12 @@ function App() {
                     <img 
                       src="/message-icon.svg"
                       alt="Send message"
-                      className="message-icon"
+                      className="message-icon custom-tooltip"
                       onClick={() => {
                         setMessageProgram(c);
                         setShowMessageModal(true);
                       }}
-                      title="Send a message regarding this program"
+                      data-tooltip="Send a message regarding this program"
                       style={{
                         cursor: 'pointer',
                         width: '20px',
@@ -1918,6 +1919,10 @@ function App() {
               📱 Mobile: {window.innerWidth < 768 ? 'YES' : 'NO'} | 📏 Width: {window.innerWidth}px
               <br/>
               🔧 Modal State: {showMessageModal ? 'OPEN' : 'CLOSED'}
+              <br/>
+              📱 Touch Device: {('ontouchstart' in window) ? 'YES' : 'NO'}
+              <br/>
+              🖱️ Click Type: {navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'}
             </div>
             <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
               <strong>Program:</strong> {messageProgram.program}<br/>
