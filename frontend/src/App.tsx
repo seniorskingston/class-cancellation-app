@@ -838,34 +838,32 @@ function App() {
                         <img 
                           src="/message-icon.svg"
                           alt="Send message"
-                          className="message-icon custom-tooltip"
+                          className="message-icon refresh-button custom-tooltip"
                           onTouchStart={(e) => {
+                            console.log('📱 TOUCH START DETECTED!', c.program);
                             e.preventDefault();
                             e.stopPropagation();
-                            console.log('📱 Mobile message icon touch start!', c.program);
-                            // Use a more direct approach
-                            const handleMessage = () => {
-                              setMessageProgram(c);
-                              setShowMessageModal(true);
-                              console.log('📱 showMessageModal set to true via touch');
-                            };
-                            handleMessage();
-                            // Also try with a slight delay
-                            setTimeout(handleMessage, 10);
+                            // Visual feedback
+                            e.currentTarget.style.backgroundColor = 'yellow';
+                            setTimeout(() => {
+                              e.currentTarget.style.backgroundColor = '';
+                            }, 500);
+                            setMessageProgram(c);
+                            setShowMessageModal(true);
+                            console.log('📱 Touch handlers completed');
                           }}
                           onClick={(e) => {
+                            console.log('🖱️ CLICK DETECTED!', c.program);
                             e.preventDefault();
                             e.stopPropagation();
-                            console.log('🖱️ Mobile message icon clicked!', c.program);
-                            // Use a more direct approach
-                            const handleMessage = () => {
-                              setMessageProgram(c);
-                              setShowMessageModal(true);
-                              console.log('📱 showMessageModal set to true via click');
-                            };
-                            handleMessage();
-                            // Also try with a slight delay
-                            setTimeout(handleMessage, 10);
+                            // Visual feedback
+                            e.currentTarget.style.backgroundColor = 'yellow';
+                            setTimeout(() => {
+                              e.currentTarget.style.backgroundColor = '';
+                            }, 500);
+                            setMessageProgram(c);
+                            setShowMessageModal(true);
+                            console.log('🖱️ Click handlers completed');
                           }}
                           data-tooltip="Send a message regarding this program"
                           style={{
@@ -1414,7 +1412,7 @@ function App() {
                     <img 
                       src="/message-icon.svg"
                       alt="Send message"
-                      className="message-icon custom-tooltip"
+                      className="message-icon refresh-button custom-tooltip"
                       onClick={() => {
                         setMessageProgram(c);
                         setShowMessageModal(true);
