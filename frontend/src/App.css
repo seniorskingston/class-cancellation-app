@@ -973,14 +973,7 @@ tr:last-child td {
 }
 
 /* Pinned favorite rows - NO background highlighting, just pinning */
-.favorite-row {
-  /* No background color change */
-  /* No border change */
-}
-
-.favorite-row td {
-  /* No font weight change */
-}
+/* .favorite-row and .favorite-row td intentionally left empty for pinning without styling changes */
 
 /* Responsive design for all screen sizes */
 .mobile-view {
@@ -1840,6 +1833,40 @@ td.custom-tooltip:hover::before,
   }
 }
 
+/* Mobile-specific message modal styles */
+@media (max-width: 768px) {
+  .message-modal-overlay {
+    z-index: 9999999999 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+    background-color: rgba(0, 0, 0, 0.8) !important;
+    overflow: hidden !important;
+  }
+  
+  .message-modal-content {
+    width: 100% !important;
+    max-width: 500px !important;
+    max-height: 80vh !important;
+    overflow: auto !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    background: white !important;
+    border-radius: 12px !important;
+    border: 3px solid #0072ce !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important;
+  }
+}
+
 /* Calendar Navigation */
 .calendar-navigation {
   padding: 15px 20px;
@@ -1932,13 +1959,51 @@ td.custom-tooltip:hover::before,
 .message-icon {
   margin-left: 8px;
   cursor: pointer;
-  font-size: 18px;
-  color: #0072ce !important;
-  filter: hue-rotate(200deg) saturate(3) !important;
   transition: transform 0.2s ease;
+  position: relative;
 }
 
 .message-icon:hover {
   transform: scale(1.2);
-  filter: hue-rotate(200deg) saturate(4) brightness(1.1) !important;
+}
+
+/* Tooltip for message icon */
+.message-icon::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 1000;
+  margin-bottom: 8px;
+}
+
+.message-icon::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #333;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 1000;
+  margin-bottom: 2px;
+}
+
+.message-icon:hover::after,
+.message-icon:hover::before {
+  opacity: 1;
+  visibility: visible;
 }
