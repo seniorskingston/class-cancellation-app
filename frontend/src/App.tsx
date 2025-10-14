@@ -688,37 +688,6 @@ function App() {
             >
               🔄 Refresh
             </button>
-            
-            <button 
-              onClick={() => {
-                console.log('🧪 TEST MESSAGE MODAL clicked');
-                // Create a test program object with all required fields
-                const testProgram: Cancellation = {
-                  sheet: 'Test Sheet',
-                  program: 'Test Program',
-                  program_id: 'TEST.001',
-                  instructor: 'Test Instructor',
-                  location: 'Test Location',
-                  class_room: 'Test Room',
-                  date_range: 'Test Date',
-                  time: 'Test Time',
-                  program_status: 'Active',
-                  class_cancellation: 'No',
-                  note: 'Test Note',
-                  withdrawal: 'No',
-                  description: 'Test Description',
-                  fee: 'Free'
-                };
-                setMessageProgram(testProgram);
-                setShowMessageModal(true);
-                console.log('🧪 Test modal should be visible now');
-              }} 
-              className="refresh-button custom-tooltip"
-              data-tooltip="Test Message Modal"
-              style={{ backgroundColor: '#ff6b35' }}
-            >
-              🧪 Test
-            </button>
             <button 
               onClick={() => {
                 console.log('📱 MOBILE QR CODE clicked');
@@ -799,15 +768,10 @@ function App() {
 
         {/* Debug info for mobile */}
         <div className="mobile-debug" style={{ fontSize: '12px', color: '#666', padding: '5px', textAlign: 'center' }}>
-          Mobile View: {isMobileView ? 'Yes' : 'No'} | Data: {sortedCancellations.length} cancellations
+          Mobile View: {isMobileView ? 'Yes' : 'No'} | Data: {sortedCancellations.length} Programs
           {selectedLocation && (
             <div style={{ background: 'yellow', color: 'black', padding: '5px', margin: '5px' }}>
               🚨 MODAL SHOULD BE VISIBLE! selectedLocation: {selectedLocation}
-            </div>
-          )}
-          {showMessageModal && (
-            <div style={{ background: 'red', color: 'white', padding: '10px', margin: '5px', fontWeight: 'bold' }}>
-              🚨 MESSAGE MODAL STATE IS TRUE! Program: {messageProgram?.program || 'NULL'}
             </div>
           )}
         </div>
@@ -843,7 +807,7 @@ function App() {
                         <img 
                           src="/message-icon.svg"
                           alt="Send message"
-                          className="message-icon"
+                          className="message-icon custom-tooltip"
                           onClick={(e) => {
                             e.stopPropagation();
                             console.log('🖱️ MESSAGE ICON CLICKED!', c.program);
@@ -857,7 +821,7 @@ function App() {
                             setShowMessageModal(true);
                             console.log('🖱️ State set - modal should appear');
                           }}
-                          title="Send a message regarding this program"
+                          data-tooltip="Send a message regarding this program"
                           style={{
                             cursor: 'pointer',
                             width: '20px',
@@ -1242,14 +1206,6 @@ function App() {
             onClick={e => e.stopPropagation()}
             >
               <h3 style={{ color: '#0072ce', marginTop: 0 }}>Send Message</h3>
-              <div style={{ fontSize: '14px', color: '#333', marginBottom: '10px', backgroundColor: '#e7f3ff', padding: '12px', borderRadius: '6px', border: '2px solid #0072ce' }}>
-                <div style={{ fontWeight: 'bold', color: '#0072ce', marginBottom: '8px' }}>
-                  ✅ MOBILE MESSAGE MODAL IS WORKING! ✉️
-                </div>
-                <div style={{ fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
-                  🎯 TRIGGERED BY: {messageProgram?.program_id === 'TEST.001' ? 'TEST BUTTON' : 'MESSAGE ICON'}
-                </div>
-              </div>
               <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
                 <strong>Program:</strong> {messageProgram.program}<br/>
                 <strong>ID:</strong> {messageProgram.program_id.split('.')[0]}<br/>
@@ -1504,12 +1460,12 @@ function App() {
                     <img 
                       src="/message-icon.svg"
                       alt="Send message"
-                      className="message-icon"
+                      className="message-icon custom-tooltip"
                       onClick={() => {
                         setMessageProgram(c);
                         setShowMessageModal(true);
                       }}
-                      title="Send a message regarding this program"
+                      data-tooltip="Send a message regarding this program"
                       style={{
                         cursor: 'pointer',
                         width: '20px',
@@ -2167,25 +2123,6 @@ function App() {
           onClick={e => e.stopPropagation()}
           >
             <h3 style={{ color: '#0072ce', marginTop: 0 }}>Send Message</h3>
-            <div style={{ fontSize: '14px', color: '#333', marginBottom: '10px', backgroundColor: '#e7f3ff', padding: '12px', borderRadius: '6px', border: '2px solid #0072ce' }}>
-              <div style={{ fontWeight: 'bold', color: '#0072ce', marginBottom: '8px' }}>
-                ✅ GLOBAL MESSAGE MODAL IS WORKING! ✉️
-              </div>
-              <div style={{ fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
-                🎯 TRIGGERED BY: {messageProgram?.program_id === 'TEST.001' ? 'TEST BUTTON' : 'MESSAGE ICON'}
-              </div>
-              <div style={{ fontSize: '12px', color: '#666' }}>
-                📱 Mobile: {window.innerWidth < 768 ? 'YES' : 'NO'} | 📏 Width: {window.innerWidth}px
-                <br/>
-                🔧 Modal State: {showMessageModal ? 'OPEN' : 'CLOSED'}
-                <br/>
-                📱 Touch Device: {('ontouchstart' in window) ? 'YES' : 'NO'}
-                <br/>
-                🖱️ Click Type: {navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'}
-                <br/>
-                ⏰ Time: {new Date().toLocaleTimeString()}
-              </div>
-            </div>
             <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
               <strong>Program:</strong> {messageProgram.program}<br/>
               <strong>ID:</strong> {messageProgram.program_id.split('.')[0]}<br/>
