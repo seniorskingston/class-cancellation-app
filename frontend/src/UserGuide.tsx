@@ -22,9 +22,9 @@ const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
 
           <h4>Installing as a Mobile App</h4>
           <ul>
-            <li><strong>iPhone/iPad (Safari):</strong> Tap 📲 Save App → Tap the Share button (□↑) at the bottom of Safari → Select Add to Home Screen.</li>
+            <li><strong>iPhone/iPad (Safari):</strong> Tap the Share button (□↑) at the bottom of Safari → Select Add to Home Screen.</li>
             <li><strong>iPhone/iPad (Chrome):</strong> Tap the Share button in the top address bar → Select Add to Home Screen.</li>
-            <li><strong>Android (Chrome):</strong> Chrome may prompt automatically, or use the browser menu → Add to Home Screen.</li>
+            <li><strong>Android (Chrome):</strong> Tap the three dots on the right top corner → Add to Home Screen.</li>
             <li><strong>App Name:</strong> Defaults to "Program" when installed.</li>
             <li><strong>Benefits:</strong> Opens like a native app, provides faster access, and supports offline use.</li>
           </ul>
