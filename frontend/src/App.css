@@ -1969,31 +1969,4 @@ td.custom-tooltip:hover::before,
   transform: scale(1.2);
 }
 
-/* Message icon tooltips - simple and working */
-img.message-icon[data-tooltip]:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #333;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  white-space: nowrap;
-  margin-bottom: 8px;
-  z-index: 999999;
-}
-
-img.message-icon[data-tooltip]:hover::before {
-  content: '';
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: #333;
-  margin-bottom: 2px;
-  z-index: 999999;
-}
+/* Message icon tooltips use standard custom-tooltip class */
