@@ -1209,6 +1209,106 @@ function App() {
             </div>
           </div>
         )}
+
+        {/* Message Modal - Global for mobile */}
+        {showMessageModal && messageProgram && (
+          <div style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            zIndex: 9999999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+          onClick={() => setShowMessageModal(false)}
+          >
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '20px',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              position: 'relative',
+              border: '4px solid #0072ce',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+              textAlign: 'center'
+            }}
+            onClick={e => e.stopPropagation()}
+            >
+              <h3 style={{ color: '#0072ce', marginTop: 0 }}>Send Message</h3>
+              <div style={{ fontSize: '14px', color: '#333', marginBottom: '10px', backgroundColor: '#e7f3ff', padding: '12px', borderRadius: '6px', border: '2px solid #0072ce' }}>
+                <div style={{ fontWeight: 'bold', color: '#0072ce', marginBottom: '8px' }}>
+                  ✅ MOBILE MESSAGE MODAL IS WORKING! ✉️
+                </div>
+                <div style={{ fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
+                  🎯 TRIGGERED BY: {messageProgram?.program_id === 'TEST.001' ? 'TEST BUTTON' : 'MESSAGE ICON'}
+                </div>
+              </div>
+              <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
+                <strong>Program:</strong> {messageProgram.program}<br/>
+                <strong>ID:</strong> {messageProgram.program_id.split('.')[0]}<br/>
+                <strong>Instructor:</strong> {messageProgram.instructor}
+              </div>
+              <textarea
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Type your message here..."
+                style={{
+                  width: '100%',
+                  height: '100px',
+                  padding: '10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  marginBottom: '15px',
+                  resize: 'vertical'
+                }}
+              />
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <button
+                  onClick={() => {
+                    console.log('🖱️ Cancel button clicked!');
+                    setShowMessageModal(false);
+                    setMessageText("");
+                    setMessageProgram(null);
+                  }}
+                  style={{
+                    background: '#6c757d',
+                    color: 'white',
+                    padding: '10px 20px',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleSendMessage(messageProgram, messageText)}
+                  disabled={!messageText.trim()}
+                  style={{
+                    background: messageText.trim() ? '#0072ce' : '#ccc',
+                    color: 'white',
+                    padding: '10px 20px',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: messageText.trim() ? 'pointer' : 'not-allowed',
+                    fontSize: '14px'
+                  }}
+                >
+                  Send Message
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
