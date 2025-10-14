@@ -805,6 +805,11 @@ function App() {
               🚨 MODAL SHOULD BE VISIBLE! selectedLocation: {selectedLocation}
             </div>
           )}
+          {showMessageModal && (
+            <div style={{ background: 'red', color: 'white', padding: '10px', margin: '5px', fontWeight: 'bold' }}>
+              🚨 MESSAGE MODAL STATE IS TRUE! Program: {messageProgram?.program || 'NULL'}
+            </div>
+          )}
         </div>
 
         <div className="mobile-data">
@@ -838,7 +843,7 @@ function App() {
                         <img 
                           src="/message-icon.svg"
                           alt="Send message"
-                          className="message-icon custom-tooltip"
+                          className="message-icon"
                           onClick={(e) => {
                             e.stopPropagation();
                             console.log('🖱️ MESSAGE ICON CLICKED!', c.program);
@@ -852,7 +857,7 @@ function App() {
                             setShowMessageModal(true);
                             console.log('🖱️ State set - modal should appear');
                           }}
-                          data-tooltip="Send a message regarding this program"
+                          title="Send a message regarding this program"
                           style={{
                             cursor: 'pointer',
                             width: '20px',
@@ -1399,12 +1404,12 @@ function App() {
                     <img 
                       src="/message-icon.svg"
                       alt="Send message"
-                      className="message-icon custom-tooltip"
+                      className="message-icon"
                       onClick={() => {
                         setMessageProgram(c);
                         setShowMessageModal(true);
                       }}
-                      data-tooltip="Send a message regarding this program"
+                      title="Send a message regarding this program"
                       style={{
                         cursor: 'pointer',
                         width: '20px',
