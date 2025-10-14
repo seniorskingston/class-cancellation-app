@@ -810,16 +810,8 @@ function App() {
                           className="message-icon custom-tooltip"
                           onClick={(e) => {
                             e.stopPropagation();
-                            console.log('🖱️ MESSAGE ICON CLICKED!', c.program);
-                            // Visual feedback
-                            e.currentTarget.style.backgroundColor = 'yellow';
-                            setTimeout(() => {
-                              e.currentTarget.style.backgroundColor = '';
-                            }, 200);
-                            // Set state exactly like test button
                             setMessageProgram(c);
                             setShowMessageModal(true);
-                            console.log('🖱️ State set - modal should appear');
                           }}
                           data-tooltip="Send a message regarding this program"
                           style={{
