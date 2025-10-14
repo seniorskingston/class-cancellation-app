@@ -329,12 +329,9 @@ function App() {
         if (isInStandaloneMode) {
           // We're already in PWA mode
           alert('📱 This app is already installed!\n\nYou\'re currently using the installed version.\n\nTo reinstall or update:\n1. Delete the current app from your home screen\n2. Open Safari and visit this website\n3. Use the Share button to add it again\n\n✨ The app is working as intended!');
-        } else if (isSafari) {
-          // iPhone/iPad (Safari)
-          alert('📱 iPhone/iPad (Safari):\n\n1. Tap the Share button (□↑) at the bottom of Safari\n2. Select "Add to Home Screen"\n3. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
         } else {
-          // iPhone/iPad (Chrome)
-          alert('📱 iPhone/iPad (Chrome):\n\n1. Tap the Share button in the top address bar\n2. Select "Add to Home Screen"\n3. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
+          // iPhone/iPad - Show both Safari and Chrome instructions
+          alert('📱 iPhone/iPad:\n\n📍 Safari:\n1. Tap the Share button (□↑) at the bottom of Safari\n2. Select "Add to Home Screen"\n\n📍 Chrome:\n1. Tap the Share button in the top address bar\n2. Select "Add to Home Screen"\n\n✨ The app will then work like a native app!');
         }
       } else {
         // Android (Chrome)
