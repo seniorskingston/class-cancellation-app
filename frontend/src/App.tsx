@@ -320,18 +320,25 @@ function App() {
       setDeferredPrompt(null);
       setShowInstallPrompt(false);
     } else {
-      // iOS Safari - show instructions
+      // Detect device type
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isChrome = /Chrome/.test(navigator.userAgent);
+      const isSafari = /Safari/.test(navigator.userAgent) && !isChrome;
+      
       if (isIOS) {
         if (isInStandaloneMode) {
-          // We're already in PWA mode, so we can't add to home screen again
+          // We're already in PWA mode
           alert('📱 This app is already installed!\n\nYou\'re currently using the installed version.\n\nTo reinstall or update:\n1. Delete the current app from your home screen\n2. Open Safari and visit this website\n3. Use the Share button to add it again\n\n✨ The app is working as intended!');
+        } else if (isSafari) {
+          // iPhone/iPad (Safari)
+          alert('📱 iPhone/iPad (Safari):\n\n1. Tap the Share button (□↑) at the bottom of Safari\n2. Select "Add to Home Screen"\n3. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
         } else {
-          // We're in Safari, show normal instructions
-          alert('📱 To save this app:\n\n1. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: [share icon])\n2. Tap the Share button\n3. Scroll down and tap "Add to Home Screen"\n4. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
+          // iPhone/iPad (Chrome)
+          alert('📱 iPhone/iPad (Chrome):\n\n1. Tap the Share button in the top address bar\n2. Select "Add to Home Screen"\n3. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
         }
       } else {
-        alert('📱 To save this app:\n\n1. Look for the install icon in your browser\n2. Or use your browser\'s menu to "Add to Home Screen"\n3. Follow the prompts to install\n\n✨ The app will then work like a native app!');
+        // Android (Chrome)
+        alert('📱 Android (Chrome):\n\n1. Tap the three dots on the right top corner\n2. Select "Add to Home Screen"\n3. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
       }
     }
   };
