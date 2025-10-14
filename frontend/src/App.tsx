@@ -848,9 +848,14 @@ function App() {
                             setTimeout(() => {
                               e.currentTarget.style.backgroundColor = '';
                             }, 500);
-                            setMessageProgram(c);
-                            setShowMessageModal(true);
-                            console.log('📱 Touch handlers completed');
+                            // Force state update with delay to ensure it works
+                            setTimeout(() => {
+                              console.log('📱 Setting message program:', c);
+                              setMessageProgram(c);
+                              console.log('📱 Setting showMessageModal to true');
+                              setShowMessageModal(true);
+                              console.log('📱 State should be updated now');
+                            }, 100);
                           }}
                           onClick={(e) => {
                             console.log('🖱️ CLICK DETECTED!', c.program);
@@ -861,9 +866,14 @@ function App() {
                             setTimeout(() => {
                               e.currentTarget.style.backgroundColor = '';
                             }, 500);
-                            setMessageProgram(c);
-                            setShowMessageModal(true);
-                            console.log('🖱️ Click handlers completed');
+                            // Force state update with delay to ensure it works
+                            setTimeout(() => {
+                              console.log('🖱️ Setting message program:', c);
+                              setMessageProgram(c);
+                              console.log('🖱️ Setting showMessageModal to true');
+                              setShowMessageModal(true);
+                              console.log('🖱️ State should be updated now');
+                            }, 100);
                           }}
                           data-tooltip="Send a message regarding this program"
                           style={{
@@ -2078,6 +2088,9 @@ function App() {
             <div style={{ fontSize: '14px', color: '#333', marginBottom: '10px', backgroundColor: '#e7f3ff', padding: '12px', borderRadius: '6px', border: '2px solid #0072ce' }}>
               <div style={{ fontWeight: 'bold', color: '#0072ce', marginBottom: '8px' }}>
                 ✅ GLOBAL MESSAGE MODAL IS WORKING! ✉️
+              </div>
+              <div style={{ fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
+                🎯 TRIGGERED BY: {messageProgram?.program_id === 'TEST.001' ? 'TEST BUTTON' : 'MESSAGE ICON'}
               </div>
               <div style={{ fontSize: '12px', color: '#666' }}>
                 📱 Mobile: {window.innerWidth < 768 ? 'YES' : 'NO'} | 📏 Width: {window.innerWidth}px
