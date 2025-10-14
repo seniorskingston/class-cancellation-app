@@ -4,6 +4,7 @@ import logo from "./logo.png";
 import QRCode from 'qrcode';
 import Calendar from './Calendar';
 import locationData from './locations.json';
+import UserGuide from './UserGuide';
 
 type Cancellation = {
   sheet: string;
@@ -581,56 +582,6 @@ function App() {
   console.log('Current filtered results count:', cancellations.length);
   console.log('Sorted cancellations count:', sortedCancellations.length);
   console.log('Pinned cancellations in results:', sortedCancellations.filter(p => favorites.has(p.program_id)).length);
-
-  const handleExport = async (format: 'excel' | 'pdf') => {
-    try {
-      setLoading(true);
-      
-      // Build query parameters based on current filters
-      const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
-      });
-      if (filters.view_type === "cancellations") params.append("has_cancellation", "true");
-      
-      // Call export endpoint
-      const res = await fetch(`${API_URL}/export-${format}?${params.toString()}`);
-      
-      if (!res.ok) {
-        throw new Error(`Export failed: ${res.status}`);
-      }
-      
-      if (format === 'excel') {
-        // Handle Excel export
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `class_cancellations_${new Date().toISOString().split('T')[0]}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      } else {
-        // Handle PDF export
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `class_cancellations_${new Date().toISOString().split('T')[0]}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }
-      
-    } catch (error) {
-      console.error(`Error exporting to ${format}:`, error);
-      alert(`Export to ${format.toUpperCase()} failed. Please try again.`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
         // Calendar view
         if (currentView === 'calendar') {
@@ -1361,24 +1312,6 @@ function App() {
           {loading ? "Refreshing..." : "Refresh"}
         </button>
         <button 
-          onClick={() => handleExport('excel')} 
-          style={{ background: "#0072ce", color: "white" }}
-          disabled={cancellations.length === 0}
-          className="custom-tooltip"
-          data-tooltip="Export to Excel"
-        >
-          📊 Excel
-        </button>
-        <button 
-          onClick={() => handleExport('pdf')} 
-          style={{ background: "#0072ce", color: "white" }}
-          disabled={cancellations.length === 0}
-          className="custom-tooltip"
-          data-tooltip="Export to PDF"
-        >
-          📄 PDF
-        </button>
-        <button 
           onClick={() => setShowUserGuide(true)} 
           style={{ background: "#0072ce", color: "white" }}
           className="custom-tooltip"
@@ -1524,6 +1457,11 @@ function App() {
 
       {/* User Guide Modal */}
       {showUserGuide && (
+        <UserGuide onClose={() => setShowUserGuide(false)} />
+      )}
+
+      {/* Old guide content - REMOVE EVERYTHING FROM HERE TO "Program Details Modal" */}
+      {false && (
         <div className="modal-overlay" onClick={() => setShowUserGuide(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <header className="app-header">
@@ -1640,40 +1578,63 @@ function App() {
                 <li><strong>PWA Installation:</strong> Can be installed as a native app</li>
               </ul>
 
-              <h3>10. Exporting Data (Desktop Only)</h3>
+              <h3>10. Messaging Feature</h3>
               <ul>
-                <li><strong>Export to Excel</strong> – Download filtered results as an Excel file</li>
-                <li><strong>Export to PDF</strong> – Download filtered results as a PDF file</li>
-                <li>Both exports respect your current filters and include your favorites at the top</li>
+                <li><strong>Message Icon (✉️):</strong> Click the envelope icon next to any Program ID to send a message</li>
+                <li><strong>Available on:</strong> Both mobile and desktop views</li>
+                <li><strong>How to use:</strong> Click the icon → Enter your message → Click "Send Message"</li>
+                <li><strong>Tooltip:</strong> Hover over the message icon to see "Send a message regarding this program"</li>
+                <li><strong>Program info:</strong> Your message will include the program name, ID, and instructor information</li>
               </ul>
 
-              <h3>11. Refund Rules</h3>
+              <h3>11. Event Schedule & Calendar</h3>
+              <ul>
+                <li><strong>View Events:</strong> Click the "Event Schedule" banner in the header to see upcoming events</li>
+                <li><strong>Calendar View:</strong> Navigate through months to view scheduled events</li>
+                <li><strong>Event Details:</strong> Click on any event to see full information</li>
+                <li><strong>Return to Main:</strong> Click "Back to Main View" to return to the program list</li>
+              </ul>
+
+              <h3>12. QR Code Sharing</h3>
+              <ul>
+                <li><strong>Desktop:</strong> Click the floating QR code button (📱) on the right side of the screen</li>
+                <li><strong>Mobile:</strong> Tap the "👥 Share" button in the header</li>
+                <li><strong>Share the app:</strong> Others can scan the QR code to access the app instantly</li>
+                <li><strong>Close QR:</strong> Click outside the QR code or press ESC key to close</li>
+              </ul>
+
+              <h3>13. Refund Rules</h3>
               <ul>
                 <li><strong>Yes</strong> – Refund allowed if fewer than 3 classes are completed</li>
                 <li><strong>No</strong> – Refund not allowed if 3 or more classes are completed</li>
                 <li>The calculation considers start date, current date, and cancellations.</li>
               </ul>
 
-              <h3>12. Tips & Best Practices</h3>
+              <h3>14. Tips & Best Practices</h3>
               <ul>
-                <li><strong>Use favorites</strong> to keep important cancellations at the top</li>
+                <li><strong>Use favorites (⭐)</strong> to keep important programs at the top</li>
                 <li><strong>Install on mobile</strong> for quick access to class cancellations</li>
                 <li><strong>Automatic view switching</strong> - the app automatically chooses the best view for your device</li>
-                <li><strong>Export data</strong> to share or print schedules</li>
-                <li><strong>Refresh regularly</strong> to get the latest updates</li>
+                <li><strong>Use messaging</strong> to communicate about specific programs quickly</li>
+                <li><strong>Share QR code</strong> to help others access the app</li>
+                <li><strong>Refresh regularly</strong> to get the latest updates (auto-refreshes every 5 minutes)</li>
+                <li><strong>Check Event Schedule</strong> for upcoming special events and activities</li>
                 <li>All times are shown in Kingston, Ontario timezone</li>
               </ul>
 
-              <h3>13. Troubleshooting</h3>
+              <h3>15. Troubleshooting</h3>
               <ul>
                 <li><strong>Data not loading:</strong> Try refreshing the page or using the Refresh button (🔄) in the header</li>
-                <li><strong>Favorites disappeared:</strong> Check if you're on the same device/browser</li>
+                <li><strong>Favorites disappeared:</strong> Check if you're on the same device/browser (favorites are stored per device)</li>
                 <li><strong>Mobile view issues:</strong> Use the Desktop button (🖥️) in the mobile header to switch views</li>
-                <li><strong>Installation problems:</strong> Use the Save App button (📲) and follow the instructions</li>
+                <li><strong>Installation problems:</strong> Use the Save App button (📲) and follow the instructions for your device</li>
                 <li><strong>Search not working:</strong> Make sure you're searching by program name or ID only</li>
+                <li><strong>Message not sending:</strong> Check your internet connection and try again</li>
+                <li><strong>QR code not showing:</strong> Click the floating button (📱) on desktop or "👥 Share" on mobile</li>
+                <li><strong>Event calendar issues:</strong> Click "Back to Main View" and try again</li>
               </ul>
 
-              <h3>14. Support</h3>
+              <h3>16. Support</h3>
               <p>For technical issues or questions, please contact your system administrator.</p>
             </div>
             <div className="modal-actions">
