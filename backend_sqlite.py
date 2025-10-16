@@ -540,7 +540,7 @@ def scheduled_daily_report():
     """Send daily analytics report (called by scheduler)"""
     try:
         # Send to your email
-        recipient_email = "info@seniorskingston.ca"
+        recipient_email = "rebeccam@seniorskingston.ca"
         success = send_analytics_report_email(recipient_email, "daily")
         
         if success:
@@ -555,7 +555,7 @@ def scheduled_weekly_report():
     """Send weekly analytics report (called by scheduler)"""
     try:
         # Send to your email
-        recipient_email = "info@seniorskingston.ca"
+        recipient_email = "rebeccam@seniorskingston.ca"
         success = send_analytics_report_email(recipient_email, "weekly")
         
         if success:
@@ -1863,12 +1863,12 @@ def sync_web_interface():
 def test_send_report():
     """Test endpoint to manually send an analytics report"""
     try:
-        success = send_analytics_report_email("info@seniorskingston.ca", "test")
+        success = send_analytics_report_email("rebeccam@seniorskingston.ca", "test")
         
         if success:
             return {
                 "success": True,
-                "message": "Test analytics report sent successfully to info@seniorskingston.ca"
+                "message": "Test analytics report sent successfully to rebeccam@seniorskingston.ca"
             }
         else:
             return {
@@ -2547,7 +2547,7 @@ def admin_interface():
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        recipient_email: 'info@seniorskingston.ca',
+                        recipient_email: 'rebeccam@seniorskingston.ca',
                         report_type: reportType
                     })
                 })
@@ -2838,7 +2838,7 @@ def send_analytics_report_email(recipient_email: str, report_type: str = "daily"
                 
                 <div style="text-align: center; margin-top: 30px; color: #888; font-size: 14px;">
                     <p>This is an automated report from the Seniors Kingston App Analytics System.</p>
-                    <p>For questions or support, contact: info@seniorskingston.ca</p>
+                    <p>For questions or support, contact: rebeccam@seniorskingston.ca</p>
                 </div>
             </div>
         </body>
@@ -2856,7 +2856,7 @@ def send_analytics_report_email(recipient_email: str, report_type: str = "daily"
         return False
 
 @app.post("/api/analytics/send-report")
-def send_analytics_report(recipient_email: str = "info@seniorskingston.ca", report_type: str = "daily"):
+def send_analytics_report(recipient_email: str = "rebeccam@seniorskingston.ca", report_type: str = "daily"):
     """Manually send analytics report via email"""
     try:
         success = send_analytics_report_email(recipient_email, report_type)
@@ -3469,9 +3469,9 @@ This message was sent from the Class Cancellation App.
         
         # Try Brevo first, fallback to SMTP
         try:
-            send_email_via_brevo("info@seniorskingston.ca", email_subject, email_body)
+            send_email_via_brevo("rebeccam@seniorskingston.ca", email_subject, email_body)
             print(f"✅ EMAIL SENT VIA BREVO:")
-            print(f"To: info@seniorskingston.ca")
+            print(f"To: rebeccam@seniorskingston.ca")
             print(f"Subject: {email_subject}")
             print("=" * 50)
             
@@ -3520,7 +3520,7 @@ This message was sent from the Class Cancellation App.
         except Exception as email_error:
             print(f"❌ EMAIL FAILED: {str(email_error)}")
             print(f"📧 MESSAGE RECEIVED (FALLBACK LOGGING):")
-            print(f"To: info@seniorskingston.ca")
+            print(f"To: rebeccam@seniorskingston.ca")
             print(f"Subject: {email_subject}")
             print(f"Body: {email_body}")
             print("=" * 50)
