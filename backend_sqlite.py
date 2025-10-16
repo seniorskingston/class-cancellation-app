@@ -21,8 +21,8 @@ from dateutil import parser
 # Use environment variable for port, default to 8000 (Render uses PORT env var)
 PORT = int(os.environ.get("PORT", 8000))
 
-# Database file path
-DB_PATH = "class_cancellations.db"
+# Database file path - use persistent storage
+DB_PATH = "/tmp/class_cancellations.db" if os.getenv('RENDER') else "class_cancellations.db"
 
 # Set timezone to Kingston, Ontario
 KINGSTON_TZ = pytz.timezone('America/Toronto')
@@ -520,8 +520,22 @@ excel_last_modified = None
 def check_and_import_excel():
     """Check if Excel file has been modified and re-import if needed"""
     global excel_last_modified
-    EXCEL_PATH = "Class Cancellation App.xlsx"
     
+    # Define Excel file paths
+    EXCEL_PATH = "Class Cancellation App.xlsx"
+    BACKUP_EXCEL_PATH = "/tmp/Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
+    
+    # Check if we're in cloud environment and need to restore from backup
+    if os.getenv('RENDER') and not os.path.exists(EXCEL_PATH) and os.path.exists(BACKUP_EXCEL_PATH):
+        print("🔄 Restoring Excel file from backup...")
+        try:
+            import shutil
+            shutil.copy2(BACKUP_EXCEL_PATH, EXCEL_PATH)
+            print("✅ Excel file restored from backup")
+        except Exception as e:
+            print(f"❌ Error restoring Excel file: {e}")
+    
+    # Check if Excel file exists and import it
     if os.path.exists(EXCEL_PATH):
         current_modified = os.path.getmtime(EXCEL_PATH)
         
@@ -531,10 +545,36 @@ def check_and_import_excel():
                 import_excel_data(EXCEL_PATH)
                 excel_last_modified = current_modified
                 print("✅ Excel file auto-imported successfully")
+                
+                # Backup the Excel file to persistent storage
+                if os.getenv('RENDER'):
+                    try:
+                        import shutil
+                        shutil.copy2(EXCEL_PATH, BACKUP_EXCEL_PATH)
+                        print("✅ Excel file backed up to persistent storage")
+                    except Exception as e:
+                        print(f"⚠️ Could not backup Excel file: {e}")
+                        
             except Exception as e:
                 print(f"❌ Error auto-importing Excel file: {e}")
     else:
-        print("⚠️ Excel file not found")
+        print("⚠️ Excel file not found - will use existing database if available")
+        
+        # If no Excel file and we're in cloud, try to use existing database
+        if os.getenv('RENDER'):
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            try:
+                cursor.execute("SELECT COUNT(*) FROM programs")
+                count = cursor.fetchone()[0]
+                if count > 0:
+                    print(f"✅ Using existing database with {count} records")
+                else:
+                    print("⚠️ No data available - please upload Excel file")
+            except Exception:
+                print("⚠️ Database not initialized - please upload Excel file")
+            finally:
+                conn.close()
 
 def scheduled_daily_report():
     """Send daily analytics report (called by scheduler)"""
@@ -3013,6 +3053,60 @@ def test_connection():
         "database": "SQLite"
     }
 
+@app.get("/api/data-status")
+def get_data_status():
+    """Get detailed status of data persistence"""
+    try:
+        # Check database
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM programs")
+        db_count = cursor.fetchone()[0]
+        conn.close()
+        
+        # Check Excel file
+        EXCEL_PATH = "Class Cancellation App.xlsx"
+        BACKUP_EXCEL_PATH = "/tmp/Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
+        
+        excel_exists = os.path.exists(EXCEL_PATH)
+        backup_exists = os.path.exists(BACKUP_EXCEL_PATH)
+        
+        # Get Excel file size if it exists
+        excel_size = 0
+        if excel_exists:
+            excel_size = os.path.getsize(EXCEL_PATH)
+        
+        return {
+            "status": "success",
+            "database": {
+                "path": DB_PATH,
+                "record_count": db_count,
+                "persistent": True if os.getenv('RENDER') else False
+            },
+            "excel_file": {
+                "exists": excel_exists,
+                "size_bytes": excel_size,
+                "path": EXCEL_PATH
+            },
+            "backup": {
+                "exists": backup_exists,
+                "path": BACKUP_EXCEL_PATH
+            },
+            "environment": {
+                "is_cloud": bool(os.getenv('RENDER')),
+                "render_deployment": bool(os.getenv('RENDER'))
+            },
+            "recommendations": [
+                "Database is persistent" if os.getenv('RENDER') else "Database will reset on deployment",
+                "Excel file will persist across deployments" if backup_exists else "Upload Excel file to make it persistent"
+            ]
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
 @app.get("/api/cancellations")
 def get_cancellations(
     program: Optional[str] = Query(None),
@@ -3125,10 +3219,19 @@ async def import_excel(file: UploadFile = File(...)):
         
         # Save the Excel file to persistent storage
         EXCEL_PATH = "Class Cancellation App.xlsx"
+        BACKUP_EXCEL_PATH = "/tmp/Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
+        
         try:
             with open(EXCEL_PATH, 'wb') as f:
                 f.write(content)
             print(f"💾 Excel file saved to: {EXCEL_PATH}")
+            
+            # Also backup to persistent storage if in cloud
+            if os.getenv('RENDER'):
+                with open(BACKUP_EXCEL_PATH, 'wb') as f:
+                    f.write(content)
+                print(f"💾 Excel file backed up to: {BACKUP_EXCEL_PATH}")
+                
         except Exception as e:
             print(f"⚠️ Could not save Excel file: {e}")
         
