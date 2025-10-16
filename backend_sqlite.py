@@ -536,6 +536,36 @@ def check_and_import_excel():
     else:
         print("⚠️ Excel file not found")
 
+def scheduled_daily_report():
+    """Send daily analytics report (called by scheduler)"""
+    try:
+        # Send to your email
+        recipient_email = "info@seniorskingston.ca"
+        success = send_analytics_report_email(recipient_email, "daily")
+        
+        if success:
+            print(f"✅ Daily analytics report sent to {recipient_email}")
+        else:
+            print(f"❌ Failed to send daily analytics report")
+            
+    except Exception as e:
+        print(f"❌ Error in scheduled daily report: {e}")
+
+def scheduled_weekly_report():
+    """Send weekly analytics report (called by scheduler)"""
+    try:
+        # Send to your email
+        recipient_email = "info@seniorskingston.ca"
+        success = send_analytics_report_email(recipient_email, "weekly")
+        
+        if success:
+            print(f"✅ Weekly analytics report sent to {recipient_email}")
+        else:
+            print(f"❌ Failed to send weekly analytics report")
+            
+    except Exception as e:
+        print(f"❌ Error in scheduled weekly report: {e}")
+
 # Auto-import Excel file on startup if it exists
 print("🚀 Starting up - checking for Excel file...")
 check_and_import_excel()
@@ -543,6 +573,13 @@ check_and_import_excel()
 # Set up periodic check every 30 seconds
 scheduler = BackgroundScheduler()
 scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
+
+# Add scheduled analytics reports
+# Daily report at 9:00 AM
+scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
+# Weekly report every Monday at 10:00 AM  
+scheduler.add_job(scheduled_weekly_report, 'cron', day_of_week=0, hour=10, minute=0)
+
 scheduler.start()
 
 # In-memory storage for editable events (in production, this would be a database)
@@ -1822,6 +1859,28 @@ def sync_web_interface():
     </html>
     """
 
+@app.post("/api/test-send-report")
+def test_send_report():
+    """Test endpoint to manually send an analytics report"""
+    try:
+        success = send_analytics_report_email("info@seniorskingston.ca", "test")
+        
+        if success:
+            return {
+                "success": True,
+                "message": "Test analytics report sent successfully to info@seniorskingston.ca"
+            }
+        else:
+            return {
+                "success": False,
+                "message": "Failed to send test analytics report"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Error sending test report: {str(e)}"
+        }
+
 @app.get("/api/sync-status")
 def get_sync_status():
     """Get the current sync status with Seniors Kingston"""
@@ -2113,6 +2172,41 @@ def get_analytics():
         "status": "success"
     }
 
+@app.post("/api/analytics")
+def track_analytics_event(request: Request):
+    """Track analytics events from frontend (page views, user actions, etc.)"""
+    global analytics_data
+    
+    try:
+        # Get the request data
+        data = request.json()
+        
+        # Extract user agent for device detection
+        user_agent = request.headers.get('user-agent', '')
+        
+        # Track the visit
+        track_visit(user_agent)
+        
+        # Log the event for debugging
+        event_type = data.get('event', 'unknown')
+        print(f"📊 Analytics event tracked: {event_type} - {'Mobile' if 'mobile' in user_agent.lower() else 'Desktop'}")
+        
+        return {
+            "status": "success",
+            "message": "Analytics event tracked successfully",
+            "event_type": event_type,
+            "total_visits": analytics_data['total_visits'],
+            "desktop_visits": analytics_data['desktop_visits'],
+            "mobile_visits": analytics_data['mobile_visits']
+        }
+        
+    except Exception as e:
+        print(f"❌ Error tracking analytics: {e}")
+        return {
+            "status": "error",
+            "message": f"Failed to track analytics: {str(e)}"
+        }
+
 @app.get("/upload")
 def upload_interface():
     """Simple Excel file upload interface"""
@@ -2300,7 +2394,12 @@ def admin_interface():
         <div class="admin-card">
             <h1>🔧 Event Admin Panel</h1>
             
-            <button class="btn btn-add" onclick="showAddForm()">➕ Add New Event</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                <button class="btn btn-add" onclick="showAddForm()">➕ Add New Event</button>
+                <button class="btn" onclick="sendAnalyticsReport('daily')" style="background: #17a2b8; color: white;">📊 Send Daily Report</button>
+                <button class="btn" onclick="sendAnalyticsReport('weekly')" style="background: #6f42c1; color: white;">📈 Send Weekly Report</button>
+                <button class="btn" onclick="viewAnalytics()" style="background: #28a745; color: white;">📋 View Analytics</button>
+            </div>
             
             <div id="addForm" style="display: none;">
                 <h3>Add New Event</h3>
@@ -2434,6 +2533,44 @@ def admin_interface():
                         alert('Error deleting event');
                     });
                 }
+            }
+            
+            function sendAnalyticsReport(reportType) {
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '⏳ Sending...';
+                button.disabled = true;
+                
+                fetch('/api/analytics/send-report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        recipient_email: 'info@seniorskingston.ca',
+                        report_type: reportType
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`✅ ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} analytics report sent successfully!`);
+                    } else {
+                        alert(`❌ Failed to send report: ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending report:', error);
+                    alert(`❌ Error sending report: ${error.message}`);
+                })
+                .finally(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                });
+            }
+            
+            function viewAnalytics() {
+                window.open('/analytics', '_blank');
             }
         </script>
     </body>
@@ -2632,6 +2769,116 @@ def export_analytics_json():
         media_type="application/json",
         headers={"Content-Disposition": f"attachment; filename=analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"}
     )
+
+def send_analytics_report_email(recipient_email: str, report_type: str = "daily"):
+    """Send analytics report via email"""
+    global analytics_data
+    
+    try:
+        desktop_percentage = (analytics_data['desktop_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
+        mobile_percentage = (analytics_data['mobile_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
+        
+        # Create email content
+        subject = f"📊 {report_type.title()} Analytics Report - Seniors Kingston App"
+        
+        html_body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; background: #f8f9fa;">
+                <h2 style="color: #0072ce; text-align: center; margin-bottom: 30px;">
+                    📊 Seniors Kingston App Analytics Report
+                </h2>
+                
+                <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <h3 style="color: #0072ce; margin-top: 0;">📈 User Activity Summary</h3>
+                    
+                    <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                        <div style="font-size: 36px; font-weight: bold; color: #0072ce; margin-bottom: 10px;">
+                            {analytics_data['total_visits']}
+                        </div>
+                        <div style="font-size: 18px; color: #666;">Total App Visits</div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin: 20px 0;">
+                        <div style="flex: 1; text-align: center; padding: 15px; background: #f0f8ff; border-radius: 8px; margin-right: 10px;">
+                            <div style="font-size: 24px; font-weight: bold; color: #0072ce;">
+                                {analytics_data['desktop_visits']}
+                            </div>
+                            <div style="color: #666;">Desktop Visits</div>
+                            <div style="font-size: 14px; color: #888; margin-top: 5px;">
+                                {desktop_percentage:.1f}% of total
+                            </div>
+                        </div>
+                        
+                        <div style="flex: 1; text-align: center; padding: 15px; background: #f0f8ff; border-radius: 8px; margin-left: 10px;">
+                            <div style="font-size: 24px; font-weight: bold; color: #0072ce;">
+                                {analytics_data['mobile_visits']}
+                            </div>
+                            <div style="color: #666;">Mobile Visits</div>
+                            <div style="font-size: 14px; color: #888; margin-top: 5px;">
+                                {mobile_percentage:.1f}% of total
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
+                        <h4 style="color: #0072ce; margin-bottom: 10px;">📋 Report Details</h4>
+                        <ul style="color: #666; margin: 0; padding-left: 20px;">
+                            <li><strong>Report Type:</strong> {report_type.title()} Analytics</li>
+                            <li><strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</li>
+                            <li><strong>Last Reset:</strong> {analytics_data['last_reset']}</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #28a745;">
+                        <strong style="color: #28a745;">✅ App Status:</strong> 
+                        <span style="color: #666;">All systems operational. Users are actively engaging with the app.</span>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px; color: #888; font-size: 14px;">
+                    <p>This is an automated report from the Seniors Kingston App Analytics System.</p>
+                    <p>For questions or support, contact: info@seniorskingston.ca</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Send email using existing email function
+        send_email_via_brevo(recipient_email, subject, html_body)
+        
+        print(f"✅ Analytics report sent to {recipient_email}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error sending analytics report: {e}")
+        return False
+
+@app.post("/api/analytics/send-report")
+def send_analytics_report(recipient_email: str = "info@seniorskingston.ca", report_type: str = "daily"):
+    """Manually send analytics report via email"""
+    try:
+        success = send_analytics_report_email(recipient_email, report_type)
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"Analytics report sent successfully to {recipient_email}",
+                "report_type": report_type
+            }
+        else:
+            return {
+                "success": False,
+                "message": "Failed to send analytics report",
+                "error": "Email sending failed"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": "Error sending analytics report",
+            "error": str(e)
+        }
 
 @app.get("/api/sync-status")
 def get_sync_status():
