@@ -2173,13 +2173,13 @@ def get_analytics():
     }
 
 @app.post("/api/analytics")
-def track_analytics_event(request: Request):
+async def track_analytics_event(request: Request):
     """Track analytics events from frontend (page views, user actions, etc.)"""
     global analytics_data
     
     try:
         # Get the request data
-        data = request.json()
+        data = await request.json()
         
         # Extract user agent for device detection
         user_agent = request.headers.get('user-agent', '')
