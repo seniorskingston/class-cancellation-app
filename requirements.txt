@@ -11,4 +11,5 @@ beautifulsoup4
 lxml
 python-dateutil
 selenium
-webdriver-manager 
+webdriver-manager
+playwright 
