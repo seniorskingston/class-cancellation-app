@@ -915,7 +915,7 @@ from datetime import datetime, timedelta
 
 # Global variable to store last sync time
 last_sync_time = None
-sync_interval_hours = 24 * 7  # Sync every Monday (weekly)
+sync_interval_hours = 6  # Sync every 6 hours (4 times per day)
 
 def sync_with_seniors_kingston():
     """Sync events with Seniors Kingston website"""
@@ -923,50 +923,50 @@ def sync_with_seniors_kingston():
     
     try:
         print("🔄 Starting automatic sync with Seniors Kingston website...")
+        print(f"🕒 Last sync: {last_sync_time}")
         
         # Try to scrape real events
         real_events = scrape_seniors_kingston_events()
         if real_events and len(real_events) > 0:
             print(f"✅ Sync successful: Found {len(real_events)} real events")
-            # Store in a global variable or database for the API to use
-            # For now, we'll just log the success
+            print(f"📅 Sample events found:")
+            for i, event in enumerate(real_events[:3]):  # Show first 3 events
+                print(f"   {i+1}. {event.get('title', 'Unknown')} - {event.get('dateStr', 'TBA')}")
+            
+            # Update last sync time
             last_sync_time = datetime.now()
+            print(f"✅ Last sync updated to: {last_sync_time}")
             return True
         else:
             print("❌ Sync failed: No real events found")
+            print("🔍 This might be due to website changes or scraping issues")
             return False
             
     except Exception as e:
         print(f"❌ Sync error: {e}")
+        import traceback
+        print(f"📋 Full error traceback:")
+        traceback.print_exc()
         return False
 
-def start_auto_sync():
-    """Start the automatic sync process in a background thread"""
-    def sync_worker():
-        while True:
-            try:
-                current_time = datetime.now()
-                
-                # Check if it's time to sync
-                if (last_sync_time is None or 
-                    (current_time - last_sync_time).total_seconds() >= sync_interval_hours * 3600):
-                    
-                    sync_with_seniors_kingston()
-                
-                # Sleep for 1 hour before checking again
-                time.sleep(3600)
-                
-            except Exception as e:
-                print(f"❌ Auto sync worker error: {e}")
-                time.sleep(3600)  # Continue trying every hour
-    
-    # Start the sync worker in a background thread
-    sync_thread = threading.Thread(target=sync_worker, daemon=True)
-    sync_thread.start()
-    print("🔄 Automatic sync started - will sync every 6 hours")
+# Note: Event syncing is now handled by the main scheduler above
+# No need for separate thread - scheduler handles it more reliably
 
-# Start automatic syncing when the server starts
-start_auto_sync()
+# Add event sync jobs to the scheduler after function is defined
+# Sync every 6 hours
+scheduler.add_job(sync_with_seniors_kingston, 'interval', hours=6)
+# Also sync at specific times: 6 AM, 12 PM, 6 PM, 12 AM
+scheduler.add_job(sync_with_seniors_kingston, 'cron', hour=6, minute=0)
+scheduler.add_job(sync_with_seniors_kingston, 'cron', hour=12, minute=0)
+scheduler.add_job(sync_with_seniors_kingston, 'cron', hour=18, minute=0)
+scheduler.add_job(sync_with_seniors_kingston, 'cron', hour=0, minute=0)
+
+# Also sync events on startup to get latest data
+print("🔄 Starting up - syncing events from Seniors Kingston website...")
+try:
+    sync_with_seniors_kingston()
+except Exception as e:
+    print(f"⚠️ Startup sync failed: {e}")
 
 def extract_events_comprehensively(soup):
     """Extract events from Seniors Kingston website systematically"""
@@ -1961,10 +1961,20 @@ def force_sync():
     print("🔄 Manual sync requested...")
     try:
         success = sync_with_seniors_kingston()
+        
+        # Also try to get current events to show what was found
+        try:
+            real_events = scrape_seniors_kingston_events()
+            event_count = len(real_events) if real_events else 0
+        except:
+            event_count = 0
+        
         return {
             "success": success,
             "message": "Sync completed" if success else "Sync failed",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "events_found": event_count,
+            "last_sync_time": last_sync_time.isoformat() if last_sync_time else None
         }
     except Exception as e:
         return {
@@ -2933,28 +2943,32 @@ def get_sync_status():
             hours_since_sync = time_since_sync.total_seconds() / 3600
             days_since_sync = hours_since_sync / 24
             
-            next_sync_in_days = max(0, (sync_interval_hours / 24) - days_since_sync)
+            next_sync_in_hours = max(0, sync_interval_hours - hours_since_sync)
             
             return {
                 "success": True,
                 "last_sync": last_sync_time.isoformat(),
-                "days_since_sync": round(days_since_sync, 1),
-                "next_sync_in_days": round(next_sync_in_days, 1),
-                "sync_interval_days": sync_interval_hours / 24,
+                "hours_since_sync": round(hours_since_sync, 1),
+                "days_since_sync": round(days_since_sync, 2),
+                "next_sync_in_hours": round(next_sync_in_hours, 1),
+                "sync_interval_hours": sync_interval_hours,
                 "status": "active",
-                "sync_frequency": "Weekly (every Monday)",
-                "next_expected_update": "Every Monday"
+                "sync_frequency": f"Every {sync_interval_hours} hours (4 times per day)",
+                "next_expected_update": f"In {round(next_sync_in_hours, 1)} hours",
+                "scheduled_times": ["6:00 AM", "12:00 PM", "6:00 PM", "12:00 AM"]
             }
         else:
             return {
                 "success": True,
                 "last_sync": None,
+                "hours_since_sync": None,
                 "days_since_sync": None,
-                "next_sync_in_days": sync_interval_hours / 24,
-                "sync_interval_days": sync_interval_hours / 24,
+                "next_sync_in_hours": sync_interval_hours,
+                "sync_interval_hours": sync_interval_hours,
                 "status": "never_synced",
-                "sync_frequency": "Weekly (every Monday)",
-                "next_expected_update": "Every Monday"
+                "sync_frequency": f"Every {sync_interval_hours} hours (4 times per day)",
+                "next_expected_update": f"Next sync in {sync_interval_hours} hours",
+                "scheduled_times": ["6:00 AM", "12:00 PM", "6:00 PM", "12:00 AM"]
             }
     except Exception as e:
         return {
