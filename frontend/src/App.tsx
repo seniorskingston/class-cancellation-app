@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import Calendar from './Calendar';
 import locationData from './locations.json';
 import UserGuide from './UserGuide';
+import analytics from './analytics';
 
 type Cancellation = {
   sheet: string;
@@ -447,6 +448,8 @@ function App() {
       } else {
         newFavorites.add(programId);
         console.log('Added to favorites:', programId);
+        // Track when user favorites a program
+        analytics.trackProgramFavorited();
       }
       
       // Save to localStorage
@@ -494,6 +497,8 @@ function App() {
         setShowMessageModal(false);
         setMessageText("");
         setMessageProgram(null);
+        // Track successful message sent
+        analytics.trackMessageSent();
       } else {
         alert(`❌ Failed to send message: ${responseData.message || 'Unknown error'}`);
       }
@@ -613,7 +618,10 @@ function App() {
             data-tooltip="Visit Seniors Kingston Website"
             />
             <button 
-              onClick={() => setCurrentView('calendar')} 
+              onClick={() => {
+                setCurrentView('calendar');
+                analytics.trackEventCalendarViewed();
+              }} 
               className="mobile-events-schedule-image-button custom-tooltip"
               data-tooltip="View Event Schedule"
             >
@@ -657,6 +665,8 @@ function App() {
                 
                 console.log('Setting showQRCode to true');
                 setShowQRCode(true);
+                // Track QR code sharing
+                analytics.trackQRCodeShared();
               }} 
               className="mobile-share-button custom-tooltip"
               data-tooltip="Share App QR Code"
@@ -1224,7 +1234,10 @@ function App() {
         <div className="floating-qr-container">
           <button 
             className="floating-qr-button qr-code-button custom-tooltip"
-            onClick={() => setShowQRCode(true)}
+            onClick={() => {
+              setShowQRCode(true);
+              analytics.trackQRCodeShared();
+            }}
             data-tooltip="Open QR Code"
           >
             📱
@@ -1250,7 +1263,10 @@ function App() {
           data-tooltip="Visit Seniors Kingston Website"
           />
           <button 
-            onClick={() => setCurrentView('calendar')} 
+            onClick={() => {
+              setCurrentView('calendar');
+              analytics.trackEventCalendarViewed();
+            }} 
             className="events-schedule-image-button custom-tooltip"
             data-tooltip="View Event Schedule"
           >
