@@ -21,8 +21,8 @@ from dateutil import parser
 # Use environment variable for port, default to 8000 (Render uses PORT env var)
 PORT = int(os.environ.get("PORT", 8000))
 
-# Database file path - use persistent storage
-DB_PATH = "/tmp/class_cancellations.db" if os.getenv('RENDER') else "class_cancellations.db"
+# Database file path
+DB_PATH = "class_cancellations.db"
 
 # Set timezone to Kingston, Ontario
 KINGSTON_TZ = pytz.timezone('America/Toronto')
@@ -520,22 +520,8 @@ excel_last_modified = None
 def check_and_import_excel():
     """Check if Excel file has been modified and re-import if needed"""
     global excel_last_modified
-    
-    # Define Excel file paths
     EXCEL_PATH = "Class Cancellation App.xlsx"
-    BACKUP_EXCEL_PATH = "/tmp/Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
     
-    # Check if we're in cloud environment and need to restore from backup
-    if os.getenv('RENDER') and not os.path.exists(EXCEL_PATH) and os.path.exists(BACKUP_EXCEL_PATH):
-        print("🔄 Restoring Excel file from backup...")
-        try:
-            import shutil
-            shutil.copy2(BACKUP_EXCEL_PATH, EXCEL_PATH)
-            print("✅ Excel file restored from backup")
-        except Exception as e:
-            print(f"❌ Error restoring Excel file: {e}")
-    
-    # Check if Excel file exists and import it
     if os.path.exists(EXCEL_PATH):
         current_modified = os.path.getmtime(EXCEL_PATH)
         
@@ -545,42 +531,16 @@ def check_and_import_excel():
                 import_excel_data(EXCEL_PATH)
                 excel_last_modified = current_modified
                 print("✅ Excel file auto-imported successfully")
-                
-                # Backup the Excel file to persistent storage
-                if os.getenv('RENDER'):
-                    try:
-                        import shutil
-                        shutil.copy2(EXCEL_PATH, BACKUP_EXCEL_PATH)
-                        print("✅ Excel file backed up to persistent storage")
-                    except Exception as e:
-                        print(f"⚠️ Could not backup Excel file: {e}")
-                        
             except Exception as e:
                 print(f"❌ Error auto-importing Excel file: {e}")
     else:
-        print("⚠️ Excel file not found - will use existing database if available")
-        
-        # If no Excel file and we're in cloud, try to use existing database
-        if os.getenv('RENDER'):
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
-            try:
-                cursor.execute("SELECT COUNT(*) FROM programs")
-                count = cursor.fetchone()[0]
-                if count > 0:
-                    print(f"✅ Using existing database with {count} records")
-                else:
-                    print("⚠️ No data available - please upload Excel file")
-            except Exception:
-                print("⚠️ Database not initialized - please upload Excel file")
-            finally:
-                conn.close()
+        print("⚠️ Excel file not found")
 
 def scheduled_daily_report():
     """Send daily analytics report (called by scheduler)"""
     try:
         # Send to your email
-        recipient_email = "rebeccam@seniorskingston.ca"
+        recipient_email = "info@seniorskingston.ca"
         success = send_analytics_report_email(recipient_email, "daily")
         
         if success:
@@ -595,7 +555,7 @@ def scheduled_weekly_report():
     """Send weekly analytics report (called by scheduler)"""
     try:
         # Send to your email
-        recipient_email = "rebeccam@seniorskingston.ca"
+        recipient_email = "info@seniorskingston.ca"
         success = send_analytics_report_email(recipient_email, "weekly")
         
         if success:
@@ -626,96 +586,911 @@ scheduler.start()
 editable_events = {}
 
 def scrape_seniors_kingston_events():
-    """Scrape real events from Seniors Kingston website using headless browser for JavaScript content"""
+    """Scrape real events from Seniors Kingston website using multiple automated methods"""
     try:
-        # Check if we're in a cloud environment (no GUI available)
-        import os
-        if os.getenv('RENDER') or os.getenv('HEROKU'):
-            print("🌐 Running in cloud environment - using requests fallback")
-            return scrape_with_requests_fallback()
+        print("🌐 Starting comprehensive automated scraping...")
         
-        # Try to use Selenium for JavaScript-heavy sites
-        try:
-            from selenium import webdriver
-            from selenium.webdriver.chrome.options import Options
-            from selenium.webdriver.common.by import By
-            from selenium.webdriver.support.ui import WebDriverWait
-            from selenium.webdriver.support import expected_conditions as EC
-            from selenium.common.exceptions import TimeoutException, WebDriverException
-            from webdriver_manager.chrome import ChromeDriverManager
-            from selenium.webdriver.chrome.service import Service
-            import time
-            
-            print("🌐 Using Selenium to scrape JavaScript-loaded content...")
-            
-            # Set up Chrome options
-            chrome_options = Options()
-            chrome_options.add_argument('--headless')
-            chrome_options.add_argument('--no-sandbox')
-            chrome_options.add_argument('--disable-dev-shm-usage')
-            chrome_options.add_argument('--disable-gpu')
-            chrome_options.add_argument('--window-size=1920,1080')
-            chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
-            
-            # Try to create driver with webdriver-manager
-            try:
-                service = Service(ChromeDriverManager().install())
-                driver = webdriver.Chrome(service=service, options=chrome_options)
-            except Exception as e:
-                print(f"❌ Chrome driver setup failed: {e}")
-                return scrape_with_requests_fallback()
-            
-            url = "https://www.seniorskingston.ca/events"
-            print(f"🔍 Loading page: {url}")
-            
-            driver.get(url)
-            
-            # Wait for the page to load completely
-            print("⏳ Waiting for page to load...")
-            time.sleep(10)  # Give it time to load all JavaScript
-            
-            # Wait for any content to appear
-            try:
-                WebDriverWait(driver, 15).until(
-                    lambda driver: driver.execute_script("return document.readyState") == "complete"
-                )
-                print("✅ Page loaded completely")
-            except TimeoutException:
-                print("⏰ Page load timeout, continuing anyway...")
-            
-            # Wait a bit more for dynamic content
-            time.sleep(5)
-            
-            # Get the page source after JavaScript execution
-            page_source = driver.page_source
-            driver.quit()
-            
-            # Parse with BeautifulSoup
-            from bs4 import BeautifulSoup
-            soup = BeautifulSoup(page_source, 'html.parser')
-            
-            print("✅ Successfully loaded page with JavaScript")
-            
-            # Look for events in the loaded content
-            events = extract_events_from_loaded_content(soup)
-            
-            if events:
-                print(f"✅ Successfully scraped {len(events)} events from website")
-                return events
-            else:
-                print("📅 No events found in loaded content")
-                return None
-                
-        except ImportError:
-            print("❌ Selenium not available, using requests fallback")
-            return scrape_with_requests_fallback()
-        except Exception as e:
-            print(f"❌ Selenium error: {e}")
-            return scrape_with_requests_fallback()
+        # Method 1: Try Selenium for JavaScript content
+        selenium_events = try_selenium_scraping()
+        if selenium_events:
+            print(f"✅ Selenium scraping found {len(selenium_events)} events")
+            return selenium_events
+        
+        # Method 2: Try Playwright (more reliable than Selenium)
+        playwright_events = try_playwright_scraping()
+        if playwright_events:
+            print(f"✅ Playwright scraping found {len(playwright_events)} events")
+            return playwright_events
+        
+        # Method 3: Try enhanced requests with different approaches
+        requests_events = try_enhanced_requests_scraping()
+        if requests_events:
+            print(f"✅ Enhanced requests scraping found {len(requests_events)} events")
+            return requests_events
+        
+        # Method 4: Try API discovery
+        api_events = try_api_discovery()
+        if api_events:
+            print(f"✅ API discovery found {len(api_events)} events")
+            return api_events
+        
+        # Method 5: Try cloud-compatible scraping
+        cloud_events = try_cloud_compatible_scraping()
+        if cloud_events:
+            print(f"✅ Cloud-compatible scraping found {len(cloud_events)} events")
+            return cloud_events
+        
+        print("❌ All automated scraping methods failed")
+        return None
             
     except Exception as e:
-        print(f"❌ Error in scraping: {e}")
+        print(f"❌ Error in comprehensive scraping: {e}")
+        import traceback
+        traceback.print_exc()
         return None
+
+def try_selenium_scraping():
+    """Try Selenium scraping for JavaScript content"""
+    try:
+        # Check if we're in a cloud environment
+        import os
+        if os.getenv('RENDER') or os.getenv('HEROKU'):
+            print("🌐 Running in cloud environment - Selenium not available")
+            return None
+        
+        from selenium import webdriver
+        from selenium.webdriver.chrome.options import Options
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        from selenium.common.exceptions import TimeoutException, WebDriverException
+        import time
+        
+        print("🌐 Using Selenium to scrape JavaScript-loaded content...")
+        
+        # Set up Chrome options
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        chrome_options.add_argument('--disable-gpu')
+        chrome_options.add_argument('--window-size=1920,1080')
+        chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+        chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        chrome_options.add_experimental_option('useAutomationExtension', False)
+        
+        # Try to create driver
+        try:
+            driver = webdriver.Chrome(options=chrome_options)
+            driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        except Exception as e:
+            print(f"❌ Chrome driver setup failed: {e}")
+            return None
+        
+        url = "https://www.seniorskingston.ca/events"
+        print(f"🔍 Loading page with Selenium: {url}")
+        
+        driver.get(url)
+        
+        # Wait for the page to load completely
+        print("⏳ Waiting for page to load...")
+        time.sleep(10)
+        
+        # Wait for any content to appear
+        try:
+            WebDriverWait(driver, 20).until(
+                lambda driver: driver.execute_script("return document.readyState") == "complete"
+            )
+            print("✅ Page loaded completely")
+        except TimeoutException:
+            print("⏰ Page load timeout, continuing anyway...")
+        
+        # Wait for dynamic content
+        time.sleep(10)
+        
+        # Try to find event elements
+        events = []
+        try:
+            # Look for common event selectors
+            event_selectors = [
+                '.event', '.event-item', '.event-card', '.event-listing',
+                'article', '.post', '.entry', '[data-event]',
+                '.calendar-event', '.program-item'
+            ]
+            
+            for selector in event_selectors:
+                elements = driver.find_elements(By.CSS_SELECTOR, selector)
+                if elements:
+                    print(f"📦 Found {len(elements)} elements with selector: {selector}")
+                    for element in elements:
+                        try:
+                            event = extract_event_from_selenium_element(element)
+                            if event:
+                                events.append(event)
+                        except Exception as e:
+                            continue
+                    if events:
+                        break
+            
+            # If no specific selectors work, try to find any divs with images and text
+            if not events:
+                print("🔍 Trying to find any divs with images and text...")
+                all_divs = driver.find_elements(By.TAG_NAME, 'div')
+                for div in all_divs:
+                    try:
+                        # Check if div has image and text
+                        images = div.find_elements(By.TAG_NAME, 'img')
+                        text = div.text.strip()
+                        if images and len(text) > 20:
+                            event = extract_event_from_selenium_element(div)
+                            if event:
+                                events.append(event)
+                    except Exception:
+                        continue
+            
+        except Exception as e:
+            print(f"❌ Error finding events: {e}")
+        
+        # Get the page source after JavaScript execution
+        page_source = driver.page_source
+        driver.quit()
+        
+        # Also try parsing the page source with BeautifulSoup
+        if not events:
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(page_source, 'html.parser')
+            events = extract_events_from_list_view(soup)
+        
+        if events:
+            print(f"✅ Selenium found {len(events)} events")
+            return events
+        else:
+            print("📅 No events found with Selenium")
+            return None
+                
+    except ImportError:
+        print("❌ Selenium not available")
+        return None
+    except Exception as e:
+        print(f"❌ Selenium error: {e}")
+        return None
+
+def try_playwright_scraping():
+    """Try Playwright scraping (more reliable than Selenium)"""
+    try:
+        from playwright.sync_api import sync_playwright
+        import time
+        
+        print("🌐 Using Playwright to scrape JavaScript-loaded content...")
+        
+        with sync_playwright() as p:
+            # Launch browser
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            
+            # Set user agent
+            page.set_extra_http_headers({
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            })
+            
+            url = "https://www.seniorskingston.ca/events"
+            print(f"🔍 Loading page with Playwright: {url}")
+            
+            page.goto(url, wait_until='networkidle')
+            
+            # Wait for content to load
+            print("⏳ Waiting for content to load...")
+            time.sleep(10)
+            
+            # Try to find event elements
+            events = []
+            try:
+                # Look for common event selectors
+                event_selectors = [
+                    '.event', '.event-item', '.event-card', '.event-listing',
+                    'article', '.post', '.entry', '[data-event]',
+                    '.calendar-event', '.program-item'
+                ]
+                
+                for selector in event_selectors:
+                    elements = page.query_selector_all(selector)
+                    if elements:
+                        print(f"📦 Found {len(elements)} elements with selector: {selector}")
+                        for element in elements:
+                            try:
+                                event = extract_event_from_playwright_element(element)
+                                if event:
+                                    events.append(event)
+                            except Exception as e:
+                                continue
+                        if events:
+                            break
+                
+                # If no specific selectors work, try to find any divs with images and text
+                if not events:
+                    print("🔍 Trying to find any divs with images and text...")
+                    all_divs = page.query_selector_all('div')
+                    for div in all_divs:
+                        try:
+                            # Check if div has image and text
+                            images = div.query_selector_all('img')
+                            text = div.inner_text().strip()
+                            if images and len(text) > 20:
+                                event = extract_event_from_playwright_element(div)
+                                if event:
+                                    events.append(event)
+                        except Exception:
+                            continue
+                
+            except Exception as e:
+                print(f"❌ Error finding events: {e}")
+            
+            # Get the page content
+            page_content = page.content()
+            browser.close()
+            
+            # Also try parsing the page content with BeautifulSoup
+            if not events:
+                from bs4 import BeautifulSoup
+                soup = BeautifulSoup(page_content, 'html.parser')
+                events = extract_events_from_list_view(soup)
+            
+            if events:
+                print(f"✅ Playwright found {len(events)} events")
+                return events
+            else:
+                print("📅 No events found with Playwright")
+                return None
+                
+    except ImportError:
+        print("❌ Playwright not available")
+        return None
+    except Exception as e:
+        print(f"❌ Playwright error: {e}")
+        return None
+
+def try_enhanced_requests_scraping():
+    """Enhanced requests scraping with multiple approaches"""
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        import re
+        import json
+        
+        url = "https://www.seniorskingston.ca/events"
+        
+        # Try different headers and approaches
+        headers_list = [
+            {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+            },
+            {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': '*/*',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            },
+            {
+                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'identity',
+                'Connection': 'keep-alive'
+            }
+        ]
+        
+        for i, headers in enumerate(headers_list):
+            try:
+                print(f"🔍 Trying enhanced requests approach {i+1}...")
+                response = requests.get(url, headers=headers, timeout=15)
+                
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.content, 'html.parser')
+                    print("✅ Successfully fetched website content")
+                    
+                    # Look for JSON data in script tags
+                    script_tags = soup.find_all('script')
+                    for script in script_tags:
+                        if script.string and ('events' in script.string.lower() or 'calendar' in script.string.lower()):
+                            try:
+                                # Try to extract JSON data
+                                json_match = re.search(r'\{.*\}', script.string, re.DOTALL)
+                                if json_match:
+                                    data = json.loads(json_match.group())
+                                    events = parse_json_events(data)
+                                    if events:
+                                        print(f"✅ Found events in script tag: {len(events)} events")
+                                        return events
+                            except:
+                                continue
+                    
+                    # Try the main extraction method
+                    events = extract_events_from_list_view(soup)
+                    if events:
+                        print(f"✅ Enhanced requests found {len(events)} events")
+                        return events
+                    
+                    # Try alternative methods
+                    events = extract_events_alternative_methods(soup)
+                    if events:
+                        print(f"✅ Alternative methods found {len(events)} events")
+                        return events
+                        
+            except Exception as e:
+                print(f"❌ Enhanced requests approach {i+1} failed: {e}")
+                continue
+        
+        return None
+        
+    except Exception as e:
+        print(f"❌ Enhanced requests scraping error: {e}")
+        return None
+
+def try_api_discovery():
+    """Try to discover and use API endpoints"""
+    try:
+        import requests
+        import json
+        
+        # Common API endpoints that might exist
+        api_endpoints = [
+            "https://www.seniorskingston.ca/api/events",
+            "https://www.seniorskingston.ca/api/calendar",
+            "https://www.seniorskingston.ca/wp-json/wp/v2/events",
+            "https://www.seniorskingston.ca/wp-json/events/v1/events",
+            "https://www.seniorskingston.ca/events.json",
+            "https://www.seniorskingston.ca/events/api",
+            "https://www.seniorskingston.ca/api/v1/events",
+            "https://www.seniorskingston.ca/calendar/events",
+            "https://www.seniorskingston.ca/events/feed",
+            "https://www.seniorskingston.ca/events.rss"
+        ]
+        
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Referer': 'https://www.seniorskingston.ca/events'
+        }
+        
+        for endpoint in api_endpoints:
+            try:
+                print(f"🔍 Trying API endpoint: {endpoint}")
+                response = requests.get(endpoint, headers=headers, timeout=10)
+                if response.status_code == 200:
+                    try:
+                        data = response.json()
+                        if isinstance(data, list) and len(data) > 0:
+                            print(f"✅ Found API data at {endpoint}")
+                            return parse_api_events(data)
+                    except:
+                        # Try parsing as XML/RSS
+                        if 'rss' in endpoint or 'feed' in endpoint:
+                            events = parse_rss_feed(response.text)
+                            if events:
+                                print(f"✅ Found RSS/XML data at {endpoint}")
+                                return events
+            except:
+                continue
+        
+        return None
+        
+    except Exception as e:
+        print(f"❌ API discovery error: {e}")
+        return None
+
+def try_cloud_compatible_scraping():
+    """Try cloud-compatible scraping methods"""
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        import re
+        
+        # Try using a different approach that might work in cloud environments
+        url = "https://www.seniorskingston.ca/events"
+        
+        # Use a simple approach that might bypass some restrictions
+        headers = {
+            'User-Agent': 'curl/7.68.0',
+            'Accept': '*/*'
+        }
+        
+        print("🔍 Trying cloud-compatible scraping...")
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Look for any text that might contain events
+            text_content = soup.get_text()
+            events = extract_events_from_text_content(text_content)
+            
+            if events:
+                print(f"✅ Cloud-compatible scraping found {len(events)} events")
+                return events
+        
+        return None
+        
+    except Exception as e:
+        print(f"❌ Cloud-compatible scraping error: {e}")
+        return None
+
+def extract_events_from_list_view(soup):
+    """Extract events from list view using the specific structure described"""
+    events = []
+    
+    print("🔍 Looking for event boxes in list view...")
+    
+    # Look for event containers - try different possible selectors
+    event_containers = []
+    
+    # Try common event container patterns
+    selectors = [
+        '.event-box', '.event-item', '.event-card', '.event-listing',
+        'div[class*="event"]', 'li[class*="event"]', '.post', '.entry',
+        'article', 'div[class*="post"]', 'div[class*="entry"]', '.program',
+        '[data-event]', '[data-calendar]', '.calendar-event',
+        '.event', '.listing', '.item', '.box'
+    ]
+    
+    for selector in selectors:
+        elements = soup.select(selector)
+        if elements:
+            print(f"📦 Found {len(elements)} elements with selector: {selector}")
+            event_containers.extend(elements)
+    
+    # If no specific containers found, look for any div that might contain events
+    if not event_containers:
+        print("🔍 No specific event containers found, looking for any divs with images...")
+        all_divs = soup.find_all('div')
+        for div in all_divs:
+            # Check if this div has an image and some text content
+            if div.find('img') and len(div.get_text().strip()) > 20:
+                event_containers.append(div)
+    
+    print(f"📦 Total event containers found: {len(event_containers)}")
+    
+    for i, container in enumerate(event_containers):
+        try:
+            print(f"\n🔍 Processing container {i+1}...")
+            event = extract_event_from_specific_structure(container)
+            if event:
+                events.append(event)
+                print(f"✅ Extracted event: {event['title']}")
+            else:
+                print(f"❌ No event data found in container {i+1}")
+        except Exception as e:
+            print(f"❌ Error processing container {i+1}: {e}")
+            continue
+    
+    print(f"\n📅 Total events extracted: {len(events)}")
+    return events
+
+def extract_event_from_specific_structure(container):
+    """Extract event data from a container using the specific structure:
+    1. Banner image (picture)
+    2. Green text (event name) 
+    3. Blue text (date and time)
+    4. Description (under that)
+    """
+    try:
+        # 1. Look for banner image
+        banner_image = None
+        img_elem = container.find('img')
+        if img_elem:
+            banner_image = img_elem.get('src', '')
+            if banner_image and not banner_image.startswith('http'):
+                banner_image = 'https://www.seniorskingston.ca' + banner_image
+            print(f"   🖼️ Found banner image: {banner_image}")
+        
+        # 2. Look for green text (event name)
+        event_name = None
+        green_elements = container.find_all(['span', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'], 
+                                          style=lambda x: x and 'green' in x.lower() if x else False)
+        
+        # Also look for elements with green color in CSS classes
+        green_class_elements = container.find_all(['span', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+                                                class_=lambda x: x and any('green' in cls.lower() for cls in x) if x else False)
+        
+        # Combine both approaches
+        all_green_elements = green_elements + green_class_elements
+        
+        for elem in all_green_elements:
+            text = elem.get_text().strip()
+            if text and len(text) > 3 and len(text) < 100:  # Reasonable event name length
+                event_name = text
+                print(f"   🟢 Found green text (event name): {event_name}")
+                break
+        
+        # If no green text found, look for any heading or title-like text
+        if not event_name:
+            headings = container.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+            for heading in headings:
+                text = heading.get_text().strip()
+                if text and len(text) > 3 and len(text) < 100:
+                    event_name = text
+                    print(f"   📝 Found heading as event name: {event_name}")
+                    break
+        
+        # 3. Look for blue text (date and time)
+        date_time = None
+        blue_elements = container.find_all(['span', 'div', 'p'], 
+                                         style=lambda x: x and 'blue' in x.lower() if x else False)
+        
+        # Also look for elements with blue color in CSS classes
+        blue_class_elements = container.find_all(['span', 'div', 'p'],
+                                               class_=lambda x: x and any('blue' in cls.lower() for cls in x) if x else False)
+        
+        # Combine both approaches
+        all_blue_elements = blue_elements + blue_class_elements
+        
+        for elem in all_blue_elements:
+            text = elem.get_text().strip()
+            if text and ('am' in text.lower() or 'pm' in text.lower() or 
+                        any(month in text.lower() for month in ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
+                                                               'jul', 'aug', 'sep', 'oct', 'nov', 'dec'])):
+                date_time = text
+                print(f"   🔵 Found blue text (date/time): {date_time}")
+                break
+        
+        # 4. Look for description (text under the date/time)
+        description = ""
+        all_text_elements = container.find_all(['p', 'div', 'span'])
+        for elem in all_text_elements:
+            text = elem.get_text().strip()
+            # Skip if it's the event name or date/time
+            if (text != event_name and text != date_time and 
+                len(text) > 10 and len(text) < 500):  # Reasonable description length
+                description = text
+                print(f"   📝 Found description: {description[:50]}...")
+                break
+        
+        # If we found at least an event name, create the event
+        if event_name:
+            # Parse date and time from the blue text
+            parsed_date, parsed_time = parse_date_time_from_text(date_time or "")
+            
+            event = {
+                'title': event_name,
+                'startDate': datetime.now().isoformat() + 'Z',
+                'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
+                'description': description,
+                'location': 'Seniors Kingston Centre',
+                'dateStr': parsed_date,
+                'timeStr': parsed_time,
+                'image_url': banner_image or '/assets/event-schedule-banner.png'
+            }
+            
+            return event
+        
+        return None
+        
+    except Exception as e:
+        print(f"❌ Error extracting event from structure: {e}")
+        return None
+
+def parse_date_time_from_text(text):
+    """Parse date and time from text like 'November 15, 2025, 10:00 am'"""
+    try:
+        if not text:
+            return "TBA", "TBA"
+        
+        # Look for date patterns
+        date_patterns = [
+            r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,\s*\d{4})?',
+            r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}(?:,\s*\d{4})?',
+            r'\d{1,2}\s+(January|February|March|April|May|June|July|August|September|October|November|December)(?:\s+\d{4})?',
+            r'\d{1,2}/\d{1,2}(?:/\d{2,4})?'
+        ]
+        
+        date_str = None
+        for pattern in date_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                date_str = match.group(0)
+                break
+        
+        # Look for time patterns
+        time_patterns = [
+            r'(\d{1,2}:\d{2}\s*(?:am|pm|AM|PM)?)',
+            r'(\d{1,2}\s*(?:am|pm|AM|PM))'
+        ]
+        
+        time_str = 'TBA'
+        for pattern in time_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                time_str = match.group(1)
+                break
+        
+        return date_str or 'TBA', time_str
+        
+    except Exception as e:
+        return 'TBA', 'TBA'
+
+def extract_events_alternative_methods(soup):
+    """Try alternative methods to extract events if the main method fails"""
+    events = []
+    
+    print("🔍 Trying alternative extraction methods...")
+    
+    # Method 1: Look for any text that contains November events
+    text_content = soup.get_text()
+    events = extract_events_from_text_content(text_content)
+    
+    if events:
+        print(f"✅ Alternative method found {len(events)} events")
+    
+    return events
+
+def extract_events_from_text_content(text_content):
+    """Extract events from raw text content"""
+    events = []
+    lines = text_content.split('\n')
+    
+    current_event = None
+    for line in lines:
+        line = line.strip()
+        if not line or len(line) < 5:
+            continue
+        
+        # Look for November dates
+        if re.search(r'(November|Nov)\s+\d{1,2}', line, re.IGNORECASE):
+            if current_event:
+                events.append(current_event)
+            
+            current_event = {
+                'title': line,
+                'startDate': datetime.now().isoformat() + 'Z',
+                'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
+                'description': '',
+                'location': 'Seniors Kingston Centre',
+                'dateStr': 'TBA',
+                'timeStr': 'TBA',
+                'image_url': '/assets/event-schedule-banner.png'
+            }
+            
+            # Extract date from the line
+            date_match = re.search(r'(November|Nov)\s+\d{1,2}(?:,\s*\d{4})?', line, re.IGNORECASE)
+            if date_match:
+                current_event['dateStr'] = date_match.group(0)
+            
+            # Extract time from the line
+            time_match = re.search(r'(\d{1,2}:\d{2}\s*(?:am|pm|AM|PM)?|\d{1,2}\s*(?:am|pm|AM|PM))', line, re.IGNORECASE)
+            if time_match:
+                current_event['timeStr'] = time_match.group(1)
+        
+        elif current_event and len(line) > 5:
+            # Add to description
+            if not current_event['description']:
+                current_event['description'] = line
+            else:
+                current_event['description'] += f" {line}"
+    
+    # Add the last event
+    if current_event:
+        events.append(current_event)
+    
+    return events
+
+def extract_event_from_selenium_element(element):
+    """Extract event data from a Selenium WebElement"""
+    try:
+        # Get text content
+        text = element.text.strip()
+        if not text or len(text) < 10:
+            return None
+        
+        # Look for images
+        images = element.find_elements(By.TAG_NAME, 'img')
+        image_url = None
+        if images:
+            image_url = images[0].get_attribute('src')
+            if image_url and not image_url.startswith('http'):
+                image_url = 'https://www.seniorskingston.ca' + image_url
+        
+        # Parse the text for event information
+        lines = text.split('\n')
+        event_name = None
+        date_time = None
+        description = ""
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Look for event name (usually the first substantial line)
+            if not event_name and len(line) > 5 and len(line) < 100:
+                event_name = line
+            
+            # Look for date/time
+            if not date_time and ('am' in line.lower() or 'pm' in line.lower() or 
+                                any(month in line.lower() for month in ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
+                                                                       'jul', 'aug', 'sep', 'oct', 'nov', 'dec'])):
+                date_time = line
+            
+            # Collect description
+            if event_name and line != event_name and line != date_time and len(line) > 10:
+                if description:
+                    description += f" {line}"
+                else:
+                    description = line
+        
+        if event_name:
+            parsed_date, parsed_time = parse_date_time_from_text(date_time or "")
+            
+            return {
+                'title': event_name,
+                'startDate': datetime.now().isoformat() + 'Z',
+                'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
+                'description': description,
+                'location': 'Seniors Kingston Centre',
+                'dateStr': parsed_date,
+                'timeStr': parsed_time,
+                'image_url': image_url or '/assets/event-schedule-banner.png'
+            }
+        
+        return None
+        
+    except Exception as e:
+        print(f"❌ Error extracting event from Selenium element: {e}")
+        return None
+
+def extract_event_from_playwright_element(element):
+    """Extract event data from a Playwright element"""
+    try:
+        # Get text content
+        text = element.inner_text().strip()
+        if not text or len(text) < 10:
+            return None
+        
+        # Look for images
+        images = element.query_selector_all('img')
+        image_url = None
+        if images:
+            image_url = images[0].get_attribute('src')
+            if image_url and not image_url.startswith('http'):
+                image_url = 'https://www.seniorskingston.ca' + image_url
+        
+        # Parse the text for event information
+        lines = text.split('\n')
+        event_name = None
+        date_time = None
+        description = ""
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Look for event name (usually the first substantial line)
+            if not event_name and len(line) > 5 and len(line) < 100:
+                event_name = line
+            
+            # Look for date/time
+            if not date_time and ('am' in line.lower() or 'pm' in line.lower() or 
+                                any(month in line.lower() for month in ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
+                                                                       'jul', 'aug', 'sep', 'oct', 'nov', 'dec'])):
+                date_time = line
+            
+            # Collect description
+            if event_name and line != event_name and line != date_time and len(line) > 10:
+                if description:
+                    description += f" {line}"
+                else:
+                    description = line
+        
+        if event_name:
+            parsed_date, parsed_time = parse_date_time_from_text(date_time or "")
+            
+            return {
+                'title': event_name,
+                'startDate': datetime.now().isoformat() + 'Z',
+                'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
+                'description': description,
+                'location': 'Seniors Kingston Centre',
+                'dateStr': parsed_date,
+                'timeStr': parsed_time,
+                'image_url': image_url or '/assets/event-schedule-banner.png'
+            }
+        
+        return None
+        
+    except Exception as e:
+        print(f"❌ Error extracting event from Playwright element: {e}")
+        return None
+
+def parse_json_events(data):
+    """Parse events from JSON data found in script tags"""
+    try:
+        events = []
+        # This is a generic parser - might need adjustment based on actual data structure
+        if isinstance(data, dict):
+            if 'events' in data:
+                data = data['events']
+            elif 'data' in data:
+                data = data['data']
+        
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict):
+                    event = {
+                        'title': item.get('title', item.get('name', 'Unknown Event')),
+                        'startDate': item.get('startDate', item.get('start_date', datetime.now().isoformat() + 'Z')),
+                        'endDate': item.get('endDate', item.get('end_date', (datetime.now() + timedelta(hours=1)).isoformat() + 'Z')),
+                        'description': item.get('description', item.get('summary', '')),
+                        'location': item.get('location', item.get('venue', '')),
+                        'dateStr': item.get('dateStr', 'TBA'),
+                        'timeStr': item.get('timeStr', 'TBA'),
+                        'image_url': item.get('image_url', item.get('image', '/assets/event-schedule-banner.png'))
+                    }
+                    events.append(event)
+        return events
+    except Exception as e:
+        print(f"❌ Error parsing JSON events: {e}")
+        return []
+
+def parse_api_events(data):
+    """Parse events from API response"""
+    try:
+        events = []
+        for item in data:
+            event = {
+                'title': item.get('title', item.get('name', 'Unknown Event')),
+                'startDate': item.get('startDate', item.get('start_date', datetime.now().isoformat() + 'Z')),
+                'endDate': item.get('endDate', item.get('end_date', (datetime.now() + timedelta(hours=1)).isoformat() + 'Z')),
+                'description': item.get('description', item.get('summary', '')),
+                'location': item.get('location', item.get('venue', '')),
+                'dateStr': item.get('dateStr', 'TBA'),
+                'timeStr': item.get('timeStr', 'TBA'),
+                'image_url': item.get('image_url', item.get('image', '/assets/event-schedule-banner.png'))
+            }
+            events.append(event)
+        return events
+    except Exception as e:
+        print(f"❌ Error parsing API events: {e}")
+        return []
+
+def parse_rss_feed(content):
+    """Parse events from RSS/XML feed"""
+    try:
+        from bs4 import BeautifulSoup
+        import re
+        
+        soup = BeautifulSoup(content, 'xml')
+        events = []
+        
+        # Look for items in RSS feed
+        items = soup.find_all('item')
+        for item in items:
+            title = item.find('title')
+            description = item.find('description')
+            pub_date = item.find('pubDate')
+            
+            if title:
+                event = {
+                    'title': title.get_text().strip(),
+                    'startDate': datetime.now().isoformat() + 'Z',
+                    'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
+                    'description': description.get_text().strip() if description else '',
+                    'location': 'Seniors Kingston Centre',
+                    'dateStr': pub_date.get_text().strip() if pub_date else 'TBA',
+                    'timeStr': 'TBA',
+                    'image_url': '/assets/event-schedule-banner.png'
+                }
+                events.append(event)
+        
+        return events
+    except Exception as e:
+        print(f"❌ Error parsing RSS feed: {e}")
+        return []
 
 def scrape_with_requests_fallback():
     """Fallback scraping method using requests only"""
@@ -949,10 +1724,7 @@ def sync_with_seniors_kingston():
         traceback.print_exc()
         return False
 
-# Note: Event syncing is now handled by the main scheduler above
-# No need for separate thread - scheduler handles it more reliably
-
-# Add event sync jobs to the scheduler after function is defined
+# Add event sync jobs to the scheduler
 # Sync every 6 hours
 scheduler.add_job(sync_with_seniors_kingston, 'interval', hours=6)
 # Also sync at specific times: 6 AM, 12 PM, 6 PM, 12 AM
@@ -1903,12 +2675,12 @@ def sync_web_interface():
 def test_send_report():
     """Test endpoint to manually send an analytics report"""
     try:
-        success = send_analytics_report_email("rebeccam@seniorskingston.ca", "test")
+        success = send_analytics_report_email("info@seniorskingston.ca", "test")
         
         if success:
             return {
                 "success": True,
-                "message": "Test analytics report sent successfully to rebeccam@seniorskingston.ca"
+                "message": "Test analytics report sent successfully to info@seniorskingston.ca"
             }
         else:
             return {
@@ -1961,20 +2733,10 @@ def force_sync():
     print("🔄 Manual sync requested...")
     try:
         success = sync_with_seniors_kingston()
-        
-        # Also try to get current events to show what was found
-        try:
-            real_events = scrape_seniors_kingston_events()
-            event_count = len(real_events) if real_events else 0
-        except:
-            event_count = 0
-        
         return {
             "success": success,
             "message": "Sync completed" if success else "Sync failed",
-            "timestamp": datetime.now().isoformat(),
-            "events_found": event_count,
-            "last_sync_time": last_sync_time.isoformat() if last_sync_time else None
+            "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
         return {
@@ -2221,41 +2983,6 @@ def get_analytics():
         "last_reset": analytics_data['last_reset'],
         "status": "success"
     }
-
-@app.post("/api/analytics")
-async def track_analytics_event(request: Request):
-    """Track analytics events from frontend (page views, user actions, etc.)"""
-    global analytics_data
-    
-    try:
-        # Get the request data
-        data = await request.json()
-        
-        # Extract user agent for device detection
-        user_agent = request.headers.get('user-agent', '')
-        
-        # Track the visit
-        track_visit(user_agent)
-        
-        # Log the event for debugging
-        event_type = data.get('event', 'unknown')
-        print(f"📊 Analytics event tracked: {event_type} - {'Mobile' if 'mobile' in user_agent.lower() else 'Desktop'}")
-        
-        return {
-            "status": "success",
-            "message": "Analytics event tracked successfully",
-            "event_type": event_type,
-            "total_visits": analytics_data['total_visits'],
-            "desktop_visits": analytics_data['desktop_visits'],
-            "mobile_visits": analytics_data['mobile_visits']
-        }
-        
-    except Exception as e:
-        print(f"❌ Error tracking analytics: {e}")
-        return {
-            "status": "error",
-            "message": f"Failed to track analytics: {str(e)}"
-        }
 
 @app.get("/upload")
 def upload_interface():
@@ -2597,7 +3324,7 @@ def admin_interface():
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        recipient_email: 'rebeccam@seniorskingston.ca',
+                        recipient_email: 'info@seniorskingston.ca',
                         report_type: reportType
                     })
                 })
@@ -2888,7 +3615,7 @@ def send_analytics_report_email(recipient_email: str, report_type: str = "daily"
                 
                 <div style="text-align: center; margin-top: 30px; color: #888; font-size: 14px;">
                     <p>This is an automated report from the Seniors Kingston App Analytics System.</p>
-                    <p>For questions or support, contact: rebeccam@seniorskingston.ca</p>
+                    <p>For questions or support, contact: info@seniorskingston.ca</p>
                 </div>
             </div>
         </body>
@@ -2906,7 +3633,7 @@ def send_analytics_report_email(recipient_email: str, report_type: str = "daily"
         return False
 
 @app.post("/api/analytics/send-report")
-def send_analytics_report(recipient_email: str = "rebeccam@seniorskingston.ca", report_type: str = "daily"):
+def send_analytics_report(recipient_email: str = "info@seniorskingston.ca", report_type: str = "daily"):
     """Manually send analytics report via email"""
     try:
         success = send_analytics_report_email(recipient_email, report_type)
@@ -2943,32 +3670,28 @@ def get_sync_status():
             hours_since_sync = time_since_sync.total_seconds() / 3600
             days_since_sync = hours_since_sync / 24
             
-            next_sync_in_hours = max(0, sync_interval_hours - hours_since_sync)
+            next_sync_in_days = max(0, (sync_interval_hours / 24) - days_since_sync)
             
             return {
                 "success": True,
                 "last_sync": last_sync_time.isoformat(),
-                "hours_since_sync": round(hours_since_sync, 1),
-                "days_since_sync": round(days_since_sync, 2),
-                "next_sync_in_hours": round(next_sync_in_hours, 1),
-                "sync_interval_hours": sync_interval_hours,
+                "days_since_sync": round(days_since_sync, 1),
+                "next_sync_in_days": round(next_sync_in_days, 1),
+                "sync_interval_days": sync_interval_hours / 24,
                 "status": "active",
-                "sync_frequency": f"Every {sync_interval_hours} hours (4 times per day)",
-                "next_expected_update": f"In {round(next_sync_in_hours, 1)} hours",
-                "scheduled_times": ["6:00 AM", "12:00 PM", "6:00 PM", "12:00 AM"]
+                "sync_frequency": "Weekly (every Monday)",
+                "next_expected_update": "Every Monday"
             }
         else:
             return {
                 "success": True,
                 "last_sync": None,
-                "hours_since_sync": None,
                 "days_since_sync": None,
-                "next_sync_in_hours": sync_interval_hours,
-                "sync_interval_hours": sync_interval_hours,
+                "next_sync_in_days": sync_interval_hours / 24,
+                "sync_interval_days": sync_interval_hours / 24,
                 "status": "never_synced",
-                "sync_frequency": f"Every {sync_interval_hours} hours (4 times per day)",
-                "next_expected_update": f"Next sync in {sync_interval_hours} hours",
-                "scheduled_times": ["6:00 AM", "12:00 PM", "6:00 PM", "12:00 AM"]
+                "sync_frequency": "Weekly (every Monday)",
+                "next_expected_update": "Every Monday"
             }
     except Exception as e:
         return {
@@ -3066,60 +3789,6 @@ def test_connection():
         "data_count": count,
         "database": "SQLite"
     }
-
-@app.get("/api/data-status")
-def get_data_status():
-    """Get detailed status of data persistence"""
-    try:
-        # Check database
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM programs")
-        db_count = cursor.fetchone()[0]
-        conn.close()
-        
-        # Check Excel file
-        EXCEL_PATH = "Class Cancellation App.xlsx"
-        BACKUP_EXCEL_PATH = "/tmp/Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
-        
-        excel_exists = os.path.exists(EXCEL_PATH)
-        backup_exists = os.path.exists(BACKUP_EXCEL_PATH)
-        
-        # Get Excel file size if it exists
-        excel_size = 0
-        if excel_exists:
-            excel_size = os.path.getsize(EXCEL_PATH)
-        
-        return {
-            "status": "success",
-            "database": {
-                "path": DB_PATH,
-                "record_count": db_count,
-                "persistent": True if os.getenv('RENDER') else False
-            },
-            "excel_file": {
-                "exists": excel_exists,
-                "size_bytes": excel_size,
-                "path": EXCEL_PATH
-            },
-            "backup": {
-                "exists": backup_exists,
-                "path": BACKUP_EXCEL_PATH
-            },
-            "environment": {
-                "is_cloud": bool(os.getenv('RENDER')),
-                "render_deployment": bool(os.getenv('RENDER'))
-            },
-            "recommendations": [
-                "Database is persistent" if os.getenv('RENDER') else "Database will reset on deployment",
-                "Excel file will persist across deployments" if backup_exists else "Upload Excel file to make it persistent"
-            ]
-        }
-    except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e)
-        }
 
 @app.get("/api/cancellations")
 def get_cancellations(
@@ -3233,19 +3902,10 @@ async def import_excel(file: UploadFile = File(...)):
         
         # Save the Excel file to persistent storage
         EXCEL_PATH = "Class Cancellation App.xlsx"
-        BACKUP_EXCEL_PATH = "/tmp/Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
-        
         try:
             with open(EXCEL_PATH, 'wb') as f:
                 f.write(content)
             print(f"💾 Excel file saved to: {EXCEL_PATH}")
-            
-            # Also backup to persistent storage if in cloud
-            if os.getenv('RENDER'):
-                with open(BACKUP_EXCEL_PATH, 'wb') as f:
-                    f.write(content)
-                print(f"💾 Excel file backed up to: {BACKUP_EXCEL_PATH}")
-                
         except Exception as e:
             print(f"⚠️ Could not save Excel file: {e}")
         
@@ -3586,9 +4246,9 @@ This message was sent from the Class Cancellation App.
         
         # Try Brevo first, fallback to SMTP
         try:
-            send_email_via_brevo("rebeccam@seniorskingston.ca", email_subject, email_body)
+            send_email_via_brevo("info@seniorskingston.ca", email_subject, email_body)
             print(f"✅ EMAIL SENT VIA BREVO:")
-            print(f"To: rebeccam@seniorskingston.ca")
+            print(f"To: info@seniorskingston.ca")
             print(f"Subject: {email_subject}")
             print("=" * 50)
             
@@ -3637,7 +4297,7 @@ This message was sent from the Class Cancellation App.
         except Exception as email_error:
             print(f"❌ EMAIL FAILED: {str(email_error)}")
             print(f"📧 MESSAGE RECEIVED (FALLBACK LOGGING):")
-            print(f"To: rebeccam@seniorskingston.ca")
+            print(f"To: info@seniorskingston.ca")
             print(f"Subject: {email_subject}")
             print(f"Body: {email_body}")
             print("=" * 50)
