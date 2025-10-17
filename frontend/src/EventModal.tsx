@@ -8,6 +8,9 @@ interface Event {
   endDate: Date;
   description?: string;
   location?: string;
+  dateStr?: string;
+  timeStr?: string;
+  image_url?: string;
 }
 
 interface EventModalProps {
