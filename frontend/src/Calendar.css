@@ -439,53 +439,164 @@
   font-style: italic;
 }
 
-/* Mobile responsiveness */
-@media (max-width: 768px) {
+/* Mobile responsiveness - Force consistent styling across ALL devices */
+@media (max-width: 768px), (max-device-width: 768px) {
   .calendar-container {
-    padding: 10px;
+    padding: 10px !important;
   }
   
   .calendar-header h1 {
-    font-size: 2rem;
+    font-size: 2rem !important;
   }
   
   .month-year {
-    font-size: 1.5rem;
+    font-size: 1.5rem !important;
   }
   
   .calendar-controls {
-    gap: 10px;
+    gap: 10px !important;
   }
   
   .nav-button, .today-button {
-    padding: 8px 16px;
-    font-size: 0.9rem;
+    padding: 8px 16px !important;
+    font-size: 0.9rem !important;
   }
   
   .calendar-day {
-    min-height: 80px;
-    padding: 6px;
+    min-height: 80px !important;
+    padding: 6px !important;
   }
   
   .day-number {
-    font-size: 0.9rem;
+    font-size: 0.9rem !important;
   }
   
   .event-item {
-    padding: 3px 4px;
-    font-size: 0.7rem;
+    padding: 3px 4px !important;
+    font-size: 0.7rem !important;
   }
   
   .event-time {
-    font-size: 0.65rem;
+    font-size: 0.65rem !important;
   }
   
   .event-title {
-    font-size: 0.7rem;
+    font-size: 0.7rem !important;
   }
   
   .event-location {
-    font-size: 0.6rem;
+    font-size: 0.6rem !important;
+  }
+
+  /* Mobile List View Styles - FORCE on ALL mobile devices */
+  .mobile-list-view {
+    background: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+    overflow: hidden !important;
+    margin: 15px !important;
+    max-width: 100% !important;
+    width: calc(100% - 30px) !important;
+  }
+  
+  .mobile-list-day {
+    border-bottom: 1px solid #e9ecef !important;
+    background: white !important;
+  }
+  
+  .mobile-list-day:last-child {
+    border-bottom: none !important;
+  }
+  
+  .mobile-list-day.today {
+    background: #f0f8ff !important;
+  }
+  
+  .mobile-day-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 15px !important;
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #e9ecef !important;
+  }
+  
+  .mobile-day-name {
+    font-weight: 600 !important;
+    color: #495057 !important;
+    font-size: 1.1rem !important;
+  }
+  
+  .mobile-day-date {
+    color: #6c757d !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .mobile-day-events {
+    padding: 12px 15px !important;
+    background: white !important;
+  }
+  
+  .mobile-event-item {
+    background: #0072ce !important;
+    color: white !important;
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+    margin-bottom: 8px !important;
+    cursor: default !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .mobile-event-item:last-child {
+    margin-bottom: 0 !important;
+  }
+  
+  .mobile-event-item:hover {
+    background: #005a9e !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 4px rgba(0, 114, 206, 0.3) !important;
+  }
+  
+  /* Holiday events should ALWAYS be orange - highest priority */
+  .mobile-event-item.holiday-event,
+  .mobile-event-item.holiday-event:active,
+  .mobile-event-item.holiday-event:focus {
+    background: #ff8c00 !important;
+  }
+  
+  .mobile-event-item.holiday-event:hover {
+    background: #e07b00 !important;
+  }
+  
+  .mobile-event-time {
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    margin-bottom: 4px !important;
+    color: white !important;
+  }
+  
+  .mobile-event-title {
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    margin-bottom: 4px !important;
+    color: white !important;
+  }
+  
+  .mobile-event-location {
+    font-size: 0.85rem !important;
+    opacity: 0.9 !important;
+    color: white !important;
+  }
+  
+  .mobile-no-events {
+    text-align: center !important;
+    color: #6c757d !important;
+    font-style: italic !important;
+    padding: 20px !important;
   }
 }
 
@@ -535,132 +646,61 @@
   .calendar-day.day-day {
     min-height: 300px;
   }
-  
-  /* Mobile List View Styles - Apply to all mobile views */
-  .mobile-list-view {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    margin: 20px 0;
-    max-width: 100%;
-  }
-  
-  .mobile-list-day {
-    border-bottom: 1px solid #e9ecef;
-  }
-  
-  .mobile-list-day:last-child {
-    border-bottom: none;
-  }
-  
-  .mobile-list-day.today {
-    background: #f0f8ff;
-  }
-  
-  .mobile-day-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-  }
-  
-  .mobile-day-name {
-    font-weight: 600;
-    color: #495057;
-    font-size: 1.1rem;
-  }
-  
-  .mobile-day-date {
-    color: #6c757d;
-    font-size: 0.9rem;
-  }
-  
-  .mobile-day-events {
-    padding: 15px 20px;
-  }
-  
-.mobile-event-item {
-  background: #0072ce !important;
-  color: white !important;
-  padding: 12px 15px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  cursor: default; /* Changed from pointer to default since events are read-only */
-  transition: all 0.2s ease;
-}
-  
-  .mobile-event-item:last-child {
-    margin-bottom: 0;
-  }
-  
-  .mobile-event-item:hover {
-    background: #005a9e !important;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 114, 206, 0.3);
-  }
-  
-  .mobile-event-item.holiday-event {
-    background: #ff8c00 !important;
-  }
-  
-  .mobile-event-item.holiday-event:hover {
-    background: #e07b00 !important;
-  }
-  
-  .mobile-event-time {
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 4px;
-  }
-  
-  .mobile-event-title {
-    font-size: 1rem;
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
-  
-  .mobile-event-location {
-    font-size: 0.85rem;
-    opacity: 0.9;
-  }
-  
-  .mobile-no-events {
-    text-align: center;
-    color: #6c757d;
-    font-style: italic;
-    padding: 20px;
-  }
 }
 
-/* Ensure mobile view on computer looks exactly like mobile view on phone */
-@media (max-width: 768px) {
-  .mobile-list-view {
-    margin: 15px;
-    border-radius: 8px;
-  }
-  
-  .mobile-day-header {
-    padding: 12px 15px;
-  }
-  
-  .mobile-day-events {
-    padding: 12px 15px;
-  }
-  
-  .mobile-event-item {
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    background: #0072ce !important;
-    color: white !important;
-  }
+/* New event display elements for scraped events */
+.event-date {
+  font-size: 0.65rem;
+  opacity: 0.9;
+  margin-top: 1px;
+  font-style: italic;
 }
 
-/* Force mobile event styling for all mobile views */
-.mobile-event-item {
-  background: #0072ce !important;
-  color: white !important;
-  border: none !important;
+.mobile-event-date {
+  font-size: 0.7rem !important;
+  opacity: 0.9 !important;
+  margin-top: 2px !important;
+  font-style: italic !important;
+}
+
+.event-image, .mobile-event-image {
+  margin-top: 4px;
+}
+
+.event-banner-image {
+  width: 100%;
+  max-width: 120px;
+  height: auto;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mobile-event-image .event-banner-image {
+  max-width: 80px;
+  max-height: 60px;
+}
+
+/* Ensure images don't break the layout */
+.event-item .event-banner-image,
+.mobile-event-item .event-banner-image {
+  display: block;
+  margin: 2px auto 0 auto;
+}
+
+/* Event description styling */
+.event-description {
+  font-size: 0.6rem;
+  opacity: 0.8;
+  margin-top: 1px;
+  font-style: italic;
+  line-height: 1.1;
+}
+
+.mobile-event-description {
+  font-size: 0.65rem !important;
+  opacity: 0.8 !important;
+  margin-top: 2px !important;
+  font-style: italic !important;
+  line-height: 1.1 !important;
 }
