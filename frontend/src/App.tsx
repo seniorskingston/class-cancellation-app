@@ -5,7 +5,7 @@ import QRCode from 'qrcode';
 import Calendar from './Calendar';
 import locationData from './locations.json';
 import UserGuide from './UserGuide';
-import analytics from './analytics';
+import analytics from './analytics.js';
 
 type Cancellation = {
   sheet: string;
