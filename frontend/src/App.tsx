@@ -5,7 +5,102 @@ import QRCode from 'qrcode';
 import Calendar from './Calendar';
 import locationData from './locations.json';
 import UserGuide from './UserGuide';
-import analytics from './analytics.js';
+// Analytics functionality embedded directly to avoid import issues
+interface AnalyticsEvent {
+  event: string;
+  timestamp: number;
+  userAgent: string;
+  url: string;
+  referrer: string;
+}
+
+class SimpleAnalytics {
+  private apiUrl: string;
+  private sessionId: string;
+  private userId: string;
+
+  constructor() {
+    this.apiUrl = 'https://class-cancellation-backend.onrender.com';
+    this.sessionId = this.generateId();
+    
+    try {
+      this.userId = localStorage.getItem('analytics_user_id') || this.generateId();
+      localStorage.setItem('analytics_user_id', this.userId);
+    } catch (error) {
+      this.userId = this.generateId();
+    }
+    
+    this.trackPageView();
+  }
+
+  private generateId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  }
+
+  private async sendEvent(eventData: AnalyticsEvent) {
+    try {
+      const response = await fetch(`${this.apiUrl}/api/analytics`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...eventData,
+          sessionId: this.sessionId,
+          userId: this.userId,
+        }),
+      });
+      
+      if (!response.ok) {
+        console.log('Analytics request failed:', response.status);
+      }
+    } catch (error) {
+      console.log('Analytics error (non-critical):', error);
+    }
+  }
+
+  trackPageView() {
+    this.sendEvent({
+      event: 'page_view',
+      timestamp: Date.now(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      referrer: document.referrer,
+    });
+  }
+
+  trackEvent(eventName: string, data?: any) {
+    this.sendEvent({
+      event: eventName,
+      timestamp: Date.now(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      referrer: document.referrer,
+    });
+  }
+
+  trackMessageSent() {
+    this.trackEvent('message_sent');
+  }
+
+  trackProgramFavorited() {
+    this.trackEvent('program_favorited');
+  }
+
+  trackQRCodeShared() {
+    this.trackEvent('qr_code_shared');
+  }
+
+  trackAppInstalled() {
+    this.trackEvent('app_installed');
+  }
+
+  trackEventCalendarViewed() {
+    this.trackEvent('event_calendar_viewed');
+  }
+}
+
+const analytics = new SimpleAnalytics();
 
 type Cancellation = {
   sheet: string;
