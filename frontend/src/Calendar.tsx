@@ -149,15 +149,19 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
   // Fetch events from Seniors Kingston iCal feed
   const getApiUrl = () => {
-    return process.env.NODE_ENV === 'production' 
-      ? 'https://class-cancellation-backend.onrender.com/api'
-      : 'http://localhost:8000/api';
+    // Temporarily force local API for testing
+    return 'http://localhost:8000/api';
+    // return process.env.NODE_ENV === 'production' 
+    //   ? 'https://class-cancellation-backend.onrender.com/api'
+    //   : 'http://localhost:8000/api';
   };
 
   const fetchEvents = async () => {
     setLoading(true);
+    const apiUrl = getApiUrl();
+    console.log('🔍 Fetching events from:', apiUrl);
     try {
-      const response = await fetch(`${getApiUrl()}/events`, {
+      const response = await fetch(`${apiUrl}/events`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -169,6 +173,8 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         console.log('Backend response:', data);
         
         if (data.events && data.events.length > 0) {
+          console.log(`📅 Processing ${data.events.length} events from backend`);
+          
           // Convert backend events to frontend format
           const convertedEvents: Event[] = data.events.map((event: any) => ({
             id: event.id,
@@ -182,6 +188,18 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             timeStr: event.timeStr,
             image_url: event.image_url
           }));
+          
+          // Check for November events
+          const novEvents = convertedEvents.filter(event => 
+            event.dateStr && event.dateStr.includes('November')
+          );
+          console.log(`🍂 November events found: ${novEvents.length}`);
+          
+          // Check for banner images
+          const bannerEvents = convertedEvents.filter(event => 
+            event.image_url && event.image_url.includes('cms.seniorskingston.ca')
+          );
+          console.log(`🖼️ Events with banners: ${bannerEvents.length}`);
           
           console.log('Converted events:', convertedEvents);
           setEvents(convertedEvents);
