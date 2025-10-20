@@ -1157,10 +1157,13 @@ def extract_event_from_specific_structure(container):
             date_time_text = date_time or description or ""
             parsed_date, parsed_time = parse_date_time_from_text(date_time_text)
             
+            # Try to parse the actual date for startDate/endDate
+            event_date = parse_event_date(parsed_date, parsed_time)
+            
             event = {
                 'title': event_name,
-                'startDate': datetime.now().isoformat() + 'Z',
-                'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
+                'startDate': event_date.isoformat() + 'Z',
+                'endDate': (event_date + timedelta(hours=1)).isoformat() + 'Z',
                 'description': description,
                 'location': 'Seniors Kingston Centre',
                 'dateStr': parsed_date,
@@ -1214,6 +1217,59 @@ def parse_date_time_from_text(text):
         
     except Exception as e:
         return 'TBA', 'TBA'
+
+def parse_event_date(date_str, time_str):
+    """Parse actual Date object from date and time strings"""
+    try:
+        if not date_str or date_str == 'TBA':
+            return datetime.now()
+        
+        # Try different date formats
+        date_formats = [
+            '%B %d, %Y',      # November 15, 2025
+            '%B %d',          # November 15
+            '%b %d, %Y',      # Nov 15, 2025
+            '%b %d',          # Nov 15
+            '%d %B %Y',       # 15 November 2025
+            '%d %B',          # 15 November
+            '%m/%d/%Y',       # 11/15/2025
+            '%m/%d',          # 11/15
+        ]
+        
+        parsed_date = None
+        for fmt in date_formats:
+            try:
+                parsed_date = datetime.strptime(date_str, fmt)
+                # If no year specified, assume current year
+                if parsed_date.year == 1900:
+                    parsed_date = parsed_date.replace(year=datetime.now().year)
+                break
+            except ValueError:
+                continue
+        
+        if not parsed_date:
+            return datetime.now()
+        
+        # Parse time if available
+        if time_str and time_str != 'TBA':
+            try:
+                # Try different time formats
+                time_formats = ['%I:%M %p', '%I %p', '%H:%M']
+                for fmt in time_formats:
+                    try:
+                        time_obj = datetime.strptime(time_str, fmt).time()
+                        parsed_date = parsed_date.replace(hour=time_obj.hour, minute=time_obj.minute)
+                        break
+                    except ValueError:
+                        continue
+            except:
+                pass
+        
+        return parsed_date
+        
+    except Exception as e:
+        print(f"❌ Error parsing date '{date_str}': {e}")
+        return datetime.now()
 
 def extract_events_alternative_methods(soup):
     """Try alternative methods to extract events if the main method fails"""
@@ -2119,12 +2175,35 @@ def get_events(request: Request):
     user_agent = request.headers.get('user-agent', '')
     track_visit(user_agent)
     
-    # Try to get real events from Seniors Kingston website first
-    print("🔍 Attempting to fetch real events from Seniors Kingston website...")
+    # Get events from database first
+    print("🔍 Fetching events from database...")
     try:
-        real_events = scrape_seniors_kingston_events()
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT title, start_date, end_date, description, location, date_str, time_str, image_url
+            FROM events
+            ORDER BY start_date
+        """)
+        db_events = cursor.fetchall()
+        conn.close()
+        
+        # Convert database events to the expected format
+        real_events = []
+        for event in db_events:
+            real_events.append({
+                'title': event[0],
+                'startDate': event[1],
+                'endDate': event[2],
+                'description': event[3] or '',
+                'location': event[4] or 'Seniors Kingston Centre',
+                'dateStr': event[5] or '',
+                'timeStr': event[6] or '',
+                'image_url': event[7] or '/assets/event-schedule-banner.png'
+            })
+        
         if real_events and len(real_events) > 0:
-            print(f"✅ Successfully fetched {len(real_events)} real events from website")
+            print(f"✅ Successfully fetched {len(real_events)} events from database")
             # Combine real events with Canadian holidays and editable events
             all_events = real_events + globals()['known_events'] + list(editable_events.values())
             return {
