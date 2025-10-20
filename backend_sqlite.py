@@ -21,8 +21,11 @@ from dateutil import parser
 # Use environment variable for port, default to 8000 (Render uses PORT env var)
 PORT = int(os.environ.get("PORT", 8000))
 
-# Database file path
-DB_PATH = "class_cancellations.db"
+# Database file path - use persistent storage on Render
+DB_PATH = os.environ.get("DB_PATH", "class_cancellations.db")
+if os.environ.get("RENDER"):
+    # On Render, use /tmp for persistence
+    DB_PATH = "/tmp/class_cancellations.db"
 
 # Set timezone to Kingston, Ontario
 KINGSTON_TZ = pytz.timezone('America/Toronto')
@@ -520,7 +523,11 @@ excel_last_modified = None
 def check_and_import_excel():
     """Check if Excel file has been modified and re-import if needed"""
     global excel_last_modified
+    
+    # Use persistent storage on Render
     EXCEL_PATH = "Class Cancellation App.xlsx"
+    if os.environ.get("RENDER"):
+        EXCEL_PATH = "/tmp/Class Cancellation App.xlsx"
     
     if os.path.exists(EXCEL_PATH):
         current_modified = os.path.getmtime(EXCEL_PATH)
@@ -568,6 +575,21 @@ def scheduled_weekly_report():
 
 # Auto-import Excel file on startup if it exists
 print("🚀 Starting up - checking for Excel file...")
+
+# On Render, try to restore Excel file from backup if main file is missing
+if os.environ.get("RENDER"):
+    main_excel = "/tmp/Class Cancellation App.xlsx"
+    backup_excel = "Class Cancellation App.xlsx"
+    
+    if not os.path.exists(main_excel) and os.path.exists(backup_excel):
+        print("🔄 Restoring Excel file from backup...")
+        try:
+            import shutil
+            shutil.copy2(backup_excel, main_excel)
+            print(f"✅ Excel file restored from backup to {main_excel}")
+        except Exception as e:
+            print(f"⚠️ Could not restore Excel file: {e}")
+
 check_and_import_excel()
 
 # Set up periodic check every 30 seconds
@@ -1224,6 +1246,8 @@ def parse_event_date(date_str, time_str):
         if not date_str or date_str == 'TBA':
             return datetime.now()
         
+        print(f"🔍 Parsing date: '{date_str}' with time: '{time_str}'")
+        
         # Try different date formats
         date_formats = [
             '%B %d, %Y',      # November 15, 2025
@@ -1243,11 +1267,13 @@ def parse_event_date(date_str, time_str):
                 # If no year specified, assume current year
                 if parsed_date.year == 1900:
                     parsed_date = parsed_date.replace(year=datetime.now().year)
+                print(f"✅ Successfully parsed date: {parsed_date}")
                 break
             except ValueError:
                 continue
         
         if not parsed_date:
+            print(f"❌ Could not parse date: '{date_str}'")
             return datetime.now()
         
         # Parse time if available
@@ -1259,12 +1285,14 @@ def parse_event_date(date_str, time_str):
                     try:
                         time_obj = datetime.strptime(time_str, fmt).time()
                         parsed_date = parsed_date.replace(hour=time_obj.hour, minute=time_obj.minute)
+                        print(f"✅ Successfully parsed time: {time_obj}")
                         break
                     except ValueError:
                         continue
-            except:
-                pass
+            except Exception as e:
+                print(f"⚠️ Error parsing time '{time_str}': {e}")
         
+        print(f"🎯 Final parsed datetime: {parsed_date}")
         return parsed_date
         
     except Exception as e:
@@ -3896,6 +3924,44 @@ def test_connection():
         "database": "SQLite"
     }
 
+@app.get("/api/data-status")
+def get_data_status():
+    """Get data persistence status"""
+    try:
+        # Check database
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM programs")
+        db_count = cursor.fetchone()[0]
+        conn.close()
+        
+        # Check Excel file
+        excel_path = "Class Cancellation App.xlsx"
+        if os.environ.get("RENDER"):
+            excel_path = "/tmp/Class Cancellation App.xlsx"
+        
+        excel_exists = os.path.exists(excel_path)
+        excel_size = 0
+        if excel_exists:
+            excel_size = os.path.getsize(excel_path)
+        
+        return {
+            "status": "success",
+            "database_path": DB_PATH,
+            "database_count": db_count,
+            "excel_path": excel_path,
+            "excel_exists": excel_exists,
+            "excel_size_bytes": excel_size,
+            "is_render": bool(os.environ.get("RENDER")),
+            "timestamp": datetime.now(KINGSTON_TZ).isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e),
+            "timestamp": datetime.now(KINGSTON_TZ).isoformat()
+        }
+
 @app.get("/api/cancellations")
 def get_cancellations(
     program: Optional[str] = Query(None),
@@ -4008,10 +4074,21 @@ async def import_excel(file: UploadFile = File(...)):
         
         # Save the Excel file to persistent storage
         EXCEL_PATH = "Class Cancellation App.xlsx"
+        if os.environ.get("RENDER"):
+            EXCEL_PATH = "/tmp/Class Cancellation App.xlsx"
+        
         try:
             with open(EXCEL_PATH, 'wb') as f:
                 f.write(content)
             print(f"💾 Excel file saved to: {EXCEL_PATH}")
+            
+            # Also save a backup copy in the root directory for local development
+            if os.environ.get("RENDER"):
+                backup_path = "Class Cancellation App.xlsx"
+                with open(backup_path, 'wb') as f:
+                    f.write(content)
+                print(f"💾 Excel file backup saved to: {backup_path}")
+                
         except Exception as e:
             print(f"⚠️ Could not save Excel file: {e}")
         
