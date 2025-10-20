@@ -548,11 +548,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                             {event.description.substring(0, 50)}...
                           </div>
                         )}
-                        {event.image_url && event.image_url !== '/assets/event-schedule-banner.png' && (
-                          <div className="mobile-event-image">
-                            <img src={event.image_url} alt={event.title} className="event-banner-image" />
-                          </div>
-                        )}
+                        {/* Banner images removed from event list - only show in modal */}
                       </div>
                     ))
                   ) : (
@@ -627,11 +623,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                             {event.description.substring(0, 30)}...
                           </div>
                         )}
-                        {event.image_url && event.image_url !== '/assets/event-schedule-banner.png' && (
-                          <div className="event-image">
-                            <img src={event.image_url} alt={event.title} className="event-banner-image" />
-                          </div>
-                        )}
+                        {/* Banner images removed from event list - only show in modal */}
                       </div>
                     ))}
                   </div>
