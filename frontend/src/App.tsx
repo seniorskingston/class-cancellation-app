@@ -294,11 +294,21 @@ function App() {
       return () => document.removeEventListener('keydown', handleEscape);
     }
   }, [showQRCode]);
-  const [isMobileView, setIsMobileView] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInStandaloneMode, setIsInStandaloneMode] = useState(false);
   const [showIOSBanner, setShowIOSBanner] = useState(false);
+
+  // Handle window resize for mobile view detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Update date and time every second
   useEffect(() => {
