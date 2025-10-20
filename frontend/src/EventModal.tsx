@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './Calendar.css';
-import logo from './logo.png';
-import homeIcon from './assets/home-icon.png';
-import EventModal from './EventModal';
+import './EventModal.css';
 
 interface Event {
   id?: string;
@@ -16,625 +13,299 @@ interface Event {
   image_url?: string;
 }
 
-type ViewMode = 'month' | 'week' | 'day';
-
-interface CalendarProps {
-  onBackToMain?: () => void;
-  isMobileView?: boolean;
+interface EventModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (event: Event) => void;
+  onDelete?: (eventId: string) => void;
+  event?: Event | null;
+  selectedDate?: Date;
+  isReadOnly?: boolean; // New prop for read-only mode (for events)
 }
 
-const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState<'real' | 'sample' | 'none'>('none');
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  
-  // Debug: Log view mode changes
+const EventModal: React.FC<EventModalProps> = ({
+  isOpen,
+  onClose,
+  onSave,
+  onDelete,
+  event,
+  selectedDate,
+  isReadOnly = false
+}) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    location: '',
+    startDate: '',
+    startTime: '',
+    endDate: '',
+    endTime: ''
+  });
+
+  const [errors, setErrors] = useState<string[]>([]);
+
   useEffect(() => {
-    console.log('🔍 View mode changed to:', viewMode);
-    console.log('📱 Is mobile:', isMobile);
-  }, [viewMode, isMobile]);
-  
-  // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-
-  // Handle event click
-  const handleEventClick = (event: Event) => {
-    setSelectedEvent(event);
-    setIsModalOpen(true);
-  };
-
-  // Close modal
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedEvent(null);
-  };
-
-  // Generate calendar days based on view mode
-  const generateCalendarDays = (): Date[] => {
-    console.log('🔄 Generating calendar days for view mode:', viewMode);
-    
-    if (viewMode === 'day') {
-      const day = [new Date(currentDate)];
-      console.log('📅 Day view: 1 day generated');
-      return day;
-    } else if (viewMode === 'week') {
-      const startOfWeek = new Date(currentDate);
-      startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
-      const days = [];
-      for (let i = 0; i < 7; i++) {
-        const day = new Date(startOfWeek);
-        day.setDate(startOfWeek.getDate() + i);
-        days.push(day);
-      }
-      console.log('📅 Week view: 7 days generated:', days.map(d => d.toDateString()));
-      return days;
-    } else {
-      // Month view
-      const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-      
-      // Get the first day of the calendar grid (might be from previous month)
-      const firstDayOfCalendar = new Date(firstDayOfMonth);
-      firstDayOfCalendar.setDate(firstDayOfCalendar.getDate() - firstDayOfMonth.getDay());
-      
-      // Get the last day of the calendar grid (might be from next month)
-      const lastDayOfCalendar = new Date(lastDayOfMonth);
-      lastDayOfCalendar.setDate(lastDayOfCalendar.getDate() + (6 - lastDayOfMonth.getDay()));
-
-      const calendarDays = [];
-      const currentDay = new Date(firstDayOfCalendar);
-      
-      while (currentDay <= lastDayOfCalendar) {
-        calendarDays.push(new Date(currentDay));
-        currentDay.setDate(currentDay.getDate() + 1);
-      }
-      return calendarDays;
-    }
-  };
-
-  const calendarDays = generateCalendarDays();
-
-  // Debug: Log calendar days count after generation
-  useEffect(() => {
-    console.log('📅 Calendar days count:', calendarDays.length);
-  }, [calendarDays.length]);
-
-  // Get events for a specific date
-  const getEventsForDate = (date: Date): Event[] => {
-    return events.filter(event => {
-      const eventDate = new Date(event.startDate);
-      return eventDate.toDateString() === date.toDateString();
-    });
-  };
-
-
-
-  // Parse iCal date format (YYYYMMDDTHHMMSSZ or YYYYMMDDTHHMMSS or YYYYMMDD)
-  const parseICalDate = (dateStr: string): Date => {
-    try {
-      // Remove timezone info if present
-      const cleanDateStr = dateStr.replace(/Z$/, '').replace(/[+-]\d{4}$/, '');
-      
-      // Handle different formats
-      if (cleanDateStr.length === 8) {
-        // Format: YYYYMMDD (date only)
-        const year = parseInt(cleanDateStr.substring(0, 4));
-        const month = parseInt(cleanDateStr.substring(4, 6)) - 1; // Month is 0-indexed
-        const day = parseInt(cleanDateStr.substring(6, 8));
-        return new Date(year, month, day);
-      } else if (cleanDateStr.length >= 15 && cleanDateStr.includes('T')) {
-        // Format: YYYYMMDDTHHMMSS
-        const year = parseInt(cleanDateStr.substring(0, 4));
-        const month = parseInt(cleanDateStr.substring(4, 6)) - 1; // Month is 0-indexed
-        const day = parseInt(cleanDateStr.substring(6, 8));
-        const hour = parseInt(cleanDateStr.substring(9, 11)) || 0;
-        const minute = parseInt(cleanDateStr.substring(11, 13)) || 0;
-        const second = parseInt(cleanDateStr.substring(13, 15)) || 0;
-        
-        return new Date(year, month, day, hour, minute, second);
-      } else {
-        // Fallback: try to parse as regular date string
-        return new Date(cleanDateStr);
-      }
-    } catch (error) {
-      console.warn('Error parsing iCal date:', dateStr, error);
-      return new Date(); // Fallback to current date
-    }
-  };
-
-  // Fetch events from Seniors Kingston iCal feed
-  const getApiUrl = () => {
-    return process.env.NODE_ENV === 'production' 
-      ? 'https://class-cancellation-backend.onrender.com/api'
-      : 'http://localhost:8000/api';
-  };
-
-  const fetchEvents = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${getApiUrl()}/events`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Backend response:', data);
-        
-        if (data.events && data.events.length > 0) {
-          // Convert backend events to frontend format
-          const convertedEvents: Event[] = data.events.map((event: any) => ({
-            id: event.id,
-            title: event.title,
-            startDate: new Date(event.startDate),
-            endDate: new Date(event.endDate),
-            description: event.description || '',
-            location: event.location || '',
-            // Preserve additional fields from scraped events
-            dateStr: event.dateStr,
-            timeStr: event.timeStr,
-            image_url: event.image_url
-          }));
-          
-          console.log('Converted events:', convertedEvents);
-          setEvents(convertedEvents);
-          setDataSource('real');
-          return;
-        }
-      }
-      
-      console.log('Backend fetch failed or no events');
-      setDataSource('none');
-      
-    } catch (error) {
-      console.error('Error fetching events:', error);
-      setDataSource('none');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const saveEvent = async (event: Event) => {
-    try {
-      const eventData = {
-        title: event.title,
-        description: event.description || '',
-        location: event.location || '',
-        startDate: event.startDate.toISOString(),
-        endDate: event.endDate.toISOString()
-      };
-
-      let response;
-      if (event.id) {
-        // Update existing event
-        response = await fetch(`${getApiUrl()}/events/${event.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(eventData)
+    if (isOpen) {
+      if (event) {
+        // Editing existing event
+        setFormData({
+          title: event.title,
+          description: event.description || '',
+          location: event.location || '',
+          startDate: event.startDate.toISOString().split('T')[0],
+          startTime: event.startDate.toTimeString().slice(0, 5),
+          endDate: event.endDate.toISOString().split('T')[0],
+          endTime: event.endDate.toTimeString().slice(0, 5)
         });
-      } else {
-        // Create new event
-        response = await fetch(`${getApiUrl()}/events`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(eventData)
+      } else if (selectedDate) {
+        // Creating new event
+        const dateStr = selectedDate.toISOString().split('T')[0];
+        setFormData({
+          title: '',
+          description: '',
+          location: '',
+          startDate: dateStr,
+          startTime: '09:00',
+          endDate: dateStr,
+          endTime: '10:00'
         });
       }
-
-      if (response.ok) {
-        console.log('Event saved successfully');
-        fetchEvents(); // Refresh events list
-        setIsModalOpen(false);
-        setSelectedEvent(null);
-        setSelectedDate(undefined);
-      } else {
-        console.error('Failed to save event');
-      }
-    } catch (error) {
-      console.error('Error saving event:', error);
+      setErrors([]);
     }
-  };
+  }, [isOpen, event, selectedDate]);
 
-  const deleteEvent = async (eventId: string) => {
-    try {
-      const response = await fetch(`${getApiUrl()}/events/${eventId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        console.log('Event deleted successfully');
-        fetchEvents(); // Refresh events list
-        setIsModalOpen(false);
-        setSelectedEvent(null);
-      } else {
-        console.error('Failed to delete event');
-      }
-    } catch (error) {
-      console.error('Error deleting event:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchEvents();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     
-    // Set initial view mode based on screen size and mobile view setting
-    const handleResize = () => {
-      const mobile = window.innerWidth <= 768;
-      // Always use the isMobileView prop if provided, otherwise use screen size
-      const useMobileView = isMobileView !== undefined ? isMobileView : mobile;
-      setIsMobile(useMobileView);
-      
-      // Auto-set view mode for mobile only
-      if (useMobileView && viewMode === 'month') {
-        setViewMode('week');
-      }
-      // Removed automatic month override for desktop - let user choose
+    const newErrors: string[] = [];
+    
+    if (!formData.title.trim()) {
+      newErrors.push('Title is required');
+    }
+    if (!formData.startDate) {
+      newErrors.push('Start date is required');
+    }
+    if (!formData.endDate) {
+      newErrors.push('End date is required');
+    }
+    if (!formData.startTime) {
+      newErrors.push('Start time is required');
+    }
+    if (!formData.endTime) {
+      newErrors.push('End time is required');
+    }
+
+    if (newErrors.length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    const startDateTime = new Date(`${formData.startDate}T${formData.startTime}:00`);
+    const endDateTime = new Date(`${formData.endDate}T${formData.endTime}:00`);
+
+    if (endDateTime <= startDateTime) {
+      setErrors(['End time must be after start time']);
+      return;
+    }
+
+    const eventData: Event = {
+      id: event?.id,
+      title: formData.title.trim(),
+      description: formData.description.trim(),
+      location: formData.location.trim(),
+      startDate: startDateTime,
+      endDate: endDateTime
     };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Respond to isMobileView prop changes
-  useEffect(() => {
-    if (isMobileView !== undefined) {
-      setIsMobile(isMobileView);
-      
-      // Auto-set view mode for mobile only
-      if (isMobileView && viewMode === 'month') {
-        setViewMode('week');
-      }
-      // Removed automatic month override for desktop - let user choose
-    }
-  }, [isMobileView, viewMode]);
-
-  const handleDayClick = (day: number) => {
-    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    setSelectedDate(clickedDate);
-    setSelectedEvent(null);
-    setIsModalOpen(true);
+    onSave(eventData);
   };
 
-
-
-  const isHoliday = (eventTitle: string): boolean => {
-    const holidays = [
-      // 2025 Holidays
-      'New Year\'s Day',
-      'Good Friday',
-      'Easter Monday',
-      'Victoria Day',
-      'Saint-Jean-Baptiste Day',
-      'Canada Day',
-      'Civic Holiday',
-      'Labour Day',
-      'National Day for Truth and Reconciliation',
-      'Thanksgiving Day',
-      'Christmas Day',
-      'Boxing Day',
-      // 2026 Holidays
-      'Family Day'
-    ];
-    return holidays.some(holiday => eventTitle.includes(holiday));
-  };
-
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-  // Navigation functions
-  const navigateDate = (direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate);
-    
-    if (viewMode === 'day') {
-      newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
-    } else if (viewMode === 'week') {
-      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
-    } else {
-      // Month view
-      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
-    }
-    
-    setCurrentDate(newDate);
-  };
-
-  const goToPreviousMonth = () => navigateDate('prev');
-  const goToNextMonth = () => navigateDate('next');
-  
-  const goToToday = () => setCurrentDate(new Date());
-
-  // Get title for current view
-  const getViewTitle = () => {
-    if (viewMode === 'day') {
-      return `${monthNames[currentDate.getMonth()]} ${currentDate.getDate()}, ${currentDate.getFullYear()}`;
-    } else if (viewMode === 'week') {
-      const startOfWeek = new Date(currentDate);
-      startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      
-      if (startOfWeek.getMonth() === endOfWeek.getMonth()) {
-        return `${monthNames[startOfWeek.getMonth()]} ${startOfWeek.getDate()}-${endOfWeek.getDate()}, ${startOfWeek.getFullYear()}`;
-      } else {
-        return `${startOfWeek.getDate()} ${monthNames[startOfWeek.getMonth()]} - ${endOfWeek.getDate()} ${monthNames[endOfWeek.getMonth()]}, ${startOfWeek.getFullYear()}`;
-      }
-    } else {
-      return `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+  const handleDelete = () => {
+    if (event?.id && onDelete) {
+      onDelete(event.id);
     }
   };
 
-  return (
-    <div className="calendar-container">
-      <header className="app-header">
-        <div className="header-left">
-          <img 
-            src={logo} 
-            alt="Company Logo" 
-            className="app-logo clickable-logo custom-tooltip"
-            onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
-            data-tooltip="Visit Seniors Kingston Website"
-          />
-          <button 
-            onClick={() => onBackToMain ? onBackToMain() : window.history.back()} 
-            className="back-to-home-button custom-tooltip"
-            data-tooltip="Back to Program Schedule Update"
-          >
-            <img src={homeIcon} alt="Home" className="home-icon" />
-          </button>
-        </div>
-        <h1>Event Schedule Update</h1>
-        <div className="datetime-display">
-          {new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {new Date().toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
-        </div>
-      </header>
-      
-      <div className="calendar-header">
-        <div className="calendar-controls">
-          <button onClick={goToPreviousMonth} className="nav-button custom-tooltip" data-tooltip="Previous Month/Week/Day">‹</button>
-          <button onClick={goToToday} className="today-button custom-tooltip" data-tooltip="Go to Today">Today</button>
-          <button onClick={goToNextMonth} className="nav-button custom-tooltip" data-tooltip="Next Month/Week/Day">›</button>
-          
-          {/* View Mode Controls - moved next to Today button */}
-          {!isMobile && (
-            <>
-              <button 
-                className={`view-button custom-tooltip ${viewMode === 'month' ? 'active' : ''}`}
-                onClick={() => {
-                  console.log('🔘 Month button clicked!');
-                  setViewMode('month');
-                }}
-                data-tooltip="Month View"
-              >
-                Month
-              </button>
-              <button 
-                className={`view-button custom-tooltip ${viewMode === 'week' ? 'active' : ''}`}
-                onClick={() => {
-                  console.log('🔘 Week button clicked!');
-                  setViewMode('week');
-                }}
-                data-tooltip="Week View"
-              >
-                Week
-              </button>
-              <button 
-                className={`view-button custom-tooltip ${viewMode === 'day' ? 'active' : ''}`}
-                onClick={() => {
-                  console.log('🔘 Day button clicked!');
-                  setViewMode('day');
-                }}
-                data-tooltip="Day View"
-              >
-                Day
-              </button>
-            </>
-          )}
-          {isMobile && (
-            <>
-              <button 
-                className={`view-button custom-tooltip ${viewMode === 'week' ? 'active' : ''}`}
-                onClick={() => setViewMode('week')}
-                data-tooltip="Week View"
-              >
-                Week
-              </button>
-              <button 
-                className={`view-button custom-tooltip ${viewMode === 'day' ? 'active' : ''}`}
-                onClick={() => setViewMode('day')}
-                data-tooltip="Day View"
-              >
-                Day
-              </button>
-            </>
-          )}
-          
-        </div>
-        
-        
-        <h2 className="month-year">
-          {getViewTitle()}
-        </h2>
-        <div className="data-source-indicator">
-          {dataSource === 'real' ? (
-            <span className="real-data">✅ Live from Seniors Association Kingston Website ({events.length} events)</span>
-          ) : dataSource === 'sample' ? (
-            <span className="sample-data">📅 Seniors Kingston events (based on real events from their website)</span>
-          ) : (
-            <span className="no-data">❌ No events loaded</span>
-          )}
-        </div>
-      </div>
+  if (!isOpen) return null;
 
-      {loading && (
-        <div className="loading-message">
-          Loading events...
-        </div>
-      )}
+  // Read-only mode for events (showing banner and description)
+  if (isReadOnly && event) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content event-view-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>{event.title}</h2>
+            <button className="close-button" onClick={onClose}>×</button>
+          </div>
 
-      {/* Mobile List View - Show when mobile view is active */}
-      {isMobile ? (
-        <div className="mobile-list-view">
-          {calendarDays.map((day, index) => {
-            const isCurrentMonth = day.getMonth() === currentDate.getMonth();
-            const isToday = day.toDateString() === new Date().toDateString();
-            const dayEvents = getEventsForDate(day);
+          <div className="event-view-content">
+            {/* Event Banner Image */}
+            {event.image_url && event.image_url !== '/assets/event-schedule-banner.png' && (
+              <div className="event-banner-container">
+                <img 
+                  src={event.image_url} 
+                  alt={event.title} 
+                  className="event-banner-image-large"
+                />
+              </div>
+            )}
 
-            return (
-              <div key={index} className={`mobile-list-day ${isToday ? 'today' : ''}`}>
-                <div className="mobile-day-header">
-                  <div className="mobile-day-name">{dayNames[day.getDay()]}</div>
-                  <div className="mobile-day-date">
-                    {day.getDate()} {monthNames[day.getMonth()].substring(0, 3)}
-                  </div>
+            {/* Event Details */}
+            <div className="event-details">
+              <div className="event-detail-row">
+                <span className="event-detail-label">📅 Date:</span>
+                <span className="event-detail-value">{event.dateStr || 'TBA'}</span>
+              </div>
+              
+              <div className="event-detail-row">
+                <span className="event-detail-label">🕐 Time:</span>
+                <span className="event-detail-value">{event.timeStr || 'TBA'}</span>
+              </div>
+              
+              {event.location && (
+                <div className="event-detail-row">
+                  <span className="event-detail-label">📍 Location:</span>
+                  <span className="event-detail-value">{event.location}</span>
                 </div>
-                <div className="mobile-day-events">
-                  {dayEvents.length > 0 ? (
-                    dayEvents.map((event, eventIndex) => (
-                      <div 
-                        key={eventIndex} 
-                        className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                        onClick={() => handleEventClick(event)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div className="mobile-event-time">
-                          {event.timeStr || event.startDate.toLocaleTimeString('en-US', { 
-                            hour: 'numeric', 
-                            minute: '2-digit',
-                            hour12: true 
-                          })}
-                        </div>
-                        <div className="mobile-event-title">{event.title}</div>
-                        {event.dateStr && (
-                          <div className="mobile-event-date">📅 {event.dateStr}</div>
-                        )}
-                        {event.location && (
-                          <div className="mobile-event-location">📍 {event.location}</div>
-                        )}
-                        {event.description && event.description.length > 50 && (
-                          <div className="mobile-event-description" title={event.description}>
-                            {event.description.substring(0, 50)}...
-                          </div>
-                        )}
-                        {event.image_url && event.image_url !== '/assets/event-schedule-banner.png' && (
-                          <div className="mobile-event-image">
-                            <img src={event.image_url} alt={event.title} className="event-banner-image" />
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="mobile-no-events">No events</div>
-                  )}
+              )}
+            </div>
+
+            {/* Event Description */}
+            {event.description && (
+              <div className="event-description-container">
+                <h3>Description</h3>
+                <div className="event-description-text">
+                  {event.description}
                 </div>
               </div>
-            );
-          })}
+            )}
+
+            <div className="modal-actions">
+              <button type="button" onClick={onClose} className="close-button">
+                Close
+              </button>
+            </div>
+          </div>
         </div>
-      ) : (
-        /* Desktop Grid View */
-        <div className={`calendar-grid ${viewMode}-view`} data-view-mode={viewMode}>
-          {/* Day headers */}
-          {viewMode !== 'day' && (
-            <div className="calendar-weekdays">
-              {dayNames.map(day => (
-                <div key={day} className="weekday-header">{day}</div>
+      </div>
+    );
+  }
+
+  // Edit mode for programs
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{event ? 'Edit Event' : 'Add New Event'}</h2>
+          <button className="close-button" onClick={onClose}>×</button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="title">Event Title *</label>
+            <input
+              type="text"
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              placeholder="Enter event title"
+              required
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="startDate">Start Date *</label>
+              <input
+                type="date"
+                id="startDate"
+                value={formData.startDate}
+                onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="startTime">Start Time *</label>
+              <input
+                type="time"
+                id="startTime"
+                value={formData.startTime}
+                onChange={(e) => setFormData({...formData, startTime: e.target.value})}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="endDate">End Date *</label>
+              <input
+                type="date"
+                id="endDate"
+                value={formData.endDate}
+                onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="endTime">End Time *</label>
+              <input
+                type="time"
+                id="endTime"
+                value={formData.endTime}
+                onChange={(e) => setFormData({...formData, endTime: e.target.value})}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="location">Location</label>
+            <input
+              type="text"
+              id="location"
+              value={formData.location}
+              onChange={(e) => setFormData({...formData, location: e.target.value})}
+              placeholder="Enter location"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              placeholder="Enter event description"
+              rows={3}
+            />
+          </div>
+
+          {errors.length > 0 && (
+            <div className="error-messages">
+              {errors.map((error, index) => (
+                <div key={index} className="error-message">{error}</div>
               ))}
             </div>
           )}
 
-          {/* Calendar days */}
-          <div className={`calendar-days ${viewMode}-days`}>
-            {calendarDays.map((day, index) => {
-              const isCurrentMonth = day.getMonth() === currentDate.getMonth();
-              const isToday = day.toDateString() === new Date().toDateString();
-              const dayEvents = getEventsForDate(day);
-
-              return (
-                <div
-                  key={index}
-                  className={`calendar-day ${viewMode}-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`}
-                  // onClick={() => {
-                  //   if (viewMode === 'day') {
-                  //     setSelectedDate(day);
-                  //     setSelectedEvent(null);
-                  //     setIsModalOpen(true);
-                  //   } else {
-                  //     handleDayClick(day.getDate());
-                  //   }
-                  // }} // Disabled - calendar is read-only
-                >
-                  <div className="day-number">{day.getDate()}</div>
-                  <div className="day-events">
-                    {dayEvents.map((event, eventIndex) => (
-                      <div
-                        key={eventIndex}
-                        className={`event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEventClick(event);
-                        }}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div className="event-time">
-                          {event.timeStr || event.startDate.toLocaleTimeString('en-US', { 
-                            hour: 'numeric', 
-                            minute: '2-digit',
-                            hour12: true 
-                          })}
-                        </div>
-                        <div className="event-title">{event.title}</div>
-                        {event.dateStr && (
-                          <div className="event-date">📅 {event.dateStr}</div>
-                        )}
-                        {event.location && (
-                          <div className="event-location">📍 {event.location}</div>
-                        )}
-                        {event.description && event.description.length > 30 && (
-                          <div className="event-description" title={event.description}>
-                            {event.description.substring(0, 30)}...
-                          </div>
-                        )}
-                        {event.image_url && event.image_url !== '/assets/event-schedule-banner.png' && (
-                          <div className="event-image">
-                            <img src={event.image_url} alt={event.title} className="event-banner-image" />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="modal-actions">
+            <button type="button" onClick={onClose} className="cancel-button">
+              Cancel
+            </button>
+            {event && onDelete && (
+              <button type="button" onClick={handleDelete} className="delete-button">
+                Delete
+              </button>
+            )}
+            <button type="submit" className="save-button">
+              {event ? 'Update Event' : 'Add Event'}
+            </button>
           </div>
-        </div>
-      )}
-
-      <EventModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onSave={saveEvent}
-        onDelete={selectedEvent?.id ? deleteEvent : undefined}
-        event={selectedEvent}
-        selectedDate={selectedDate}
-        isReadOnly={true}
-      />
+        </form>
+      </div>
     </div>
   );
 };
 
-export default Calendar;
+export default EventModal;
