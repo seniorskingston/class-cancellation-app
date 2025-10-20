@@ -1153,8 +1153,9 @@ def extract_event_from_specific_structure(container):
         
         # If we found at least an event name, create the event
         if event_name:
-            # Parse date and time from the blue text
-            parsed_date, parsed_time = parse_date_time_from_text(date_time or "")
+            # Parse date and time from the blue text, or fall back to description
+            date_time_text = date_time or description or ""
+            parsed_date, parsed_time = parse_date_time_from_text(date_time_text)
             
             event = {
                 'title': event_name,
@@ -1707,6 +1708,32 @@ def sync_with_seniors_kingston():
             print(f"📅 Sample events found:")
             for i, event in enumerate(real_events[:3]):  # Show first 3 events
                 print(f"   {i+1}. {event.get('title', 'Unknown')} - {event.get('dateStr', 'TBA')}")
+            
+            # Store events in database
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            # Clear existing events first
+            cursor.execute("DELETE FROM events")
+            
+            for event in real_events:
+                cursor.execute("""
+                    INSERT INTO events (title, start_date, end_date, description, location, date_str, time_str, image_url)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    event['title'],
+                    event['startDate'],
+                    event['endDate'],
+                    event['description'],
+                    event['location'],
+                    event['dateStr'],
+                    event['timeStr'],
+                    event['image_url']
+                ))
+            
+            conn.commit()
+            conn.close()
+            print(f"✅ Stored {len(real_events)} events in database")
             
             # Update last sync time
             last_sync_time = datetime.now()
