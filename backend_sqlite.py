@@ -304,9 +304,29 @@ def init_database():
         )
     ''')
     
+    # Create events table for storing scraped events
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            start_date TEXT NOT NULL,
+            end_date TEXT NOT NULL,
+            description TEXT,
+            location TEXT,
+            date_str TEXT,
+            time_str TEXT,
+            image_url TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Create index on start_date for better performance
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_events_start_date ON events(start_date)")
+    
     conn.commit()
     conn.close()
-    print("✅ Database recreated with new schema (including description and fee columns)")
+    print("✅ Database recreated with new schema (including description, fee columns, and events table)")
 
 def import_excel_data(file_path_or_content):
     """Import data from Excel file into SQLite database"""
