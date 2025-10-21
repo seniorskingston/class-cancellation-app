@@ -628,47 +628,171 @@ scheduler.start()
 editable_events = {}
 
 def scrape_seniors_kingston_events():
-    """Scrape real events from Seniors Kingston website using multiple automated methods"""
+    """Scrape real events from Seniors Kingston website using cloud-compatible methods"""
     try:
-        print("🌐 Starting comprehensive automated scraping...")
+        print("🌐 Starting cloud-compatible scraping...")
         
-        # Method 1: Try Selenium for JavaScript content
-        selenium_events = try_selenium_scraping()
-        if selenium_events:
-            print(f"✅ Selenium scraping found {len(selenium_events)} events")
-            return selenium_events
+        # Method 1: Try simple requests scraping (most reliable for cloud)
+        simple_events = try_simple_requests_scraping()
+        if simple_events:
+            print(f"✅ Simple requests scraping found {len(simple_events)} events")
+            return simple_events
         
-        # Method 2: Try Playwright (more reliable than Selenium)
-        playwright_events = try_playwright_scraping()
-        if playwright_events:
-            print(f"✅ Playwright scraping found {len(playwright_events)} events")
-            return playwright_events
-        
-        # Method 3: Try enhanced requests with different approaches
+        # Method 2: Try enhanced requests with different approaches
         requests_events = try_enhanced_requests_scraping()
         if requests_events:
             print(f"✅ Enhanced requests scraping found {len(requests_events)} events")
             return requests_events
         
-        # Method 4: Try API discovery
-        api_events = try_api_discovery()
-        if api_events:
-            print(f"✅ API discovery found {len(api_events)} events")
-            return api_events
-        
-        # Method 5: Try cloud-compatible scraping
+        # Method 3: Try cloud-compatible scraping
         cloud_events = try_cloud_compatible_scraping()
         if cloud_events:
             print(f"✅ Cloud-compatible scraping found {len(cloud_events)} events")
             return cloud_events
         
-        print("❌ All automated scraping methods failed")
+        # Method 4: Try Selenium for JavaScript content (only if not in cloud)
+        if not os.getenv('RENDER') and not os.getenv('HEROKU'):
+            selenium_events = try_selenium_scraping()
+            if selenium_events:
+                print(f"✅ Selenium scraping found {len(selenium_events)} events")
+                return selenium_events
+        
+        print("❌ All scraping methods failed")
         return None
             
     except Exception as e:
-        print(f"❌ Error in comprehensive scraping: {e}")
+        print(f"❌ Error in scraping: {e}")
         import traceback
         traceback.print_exc()
+        return None
+
+def try_simple_requests_scraping():
+    """Try simple requests scraping that works well in cloud environments"""
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        import re
+        
+        url = "https://www.seniorskingston.ca/events"
+        
+        # Use a simple, reliable approach
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+        }
+        
+        print(f"🔍 Trying simple requests scraping from: {url}")
+        response = requests.get(url, headers=headers, timeout=30)
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            print("✅ Successfully fetched website content")
+            
+            # Look for November 2025 events specifically
+            events = extract_november_events_from_html(soup)
+            
+            if events:
+                print(f"✅ Simple requests found {len(events)} November events")
+                return events
+            else:
+                print("📅 No November events found with simple requests")
+                return None
+        else:
+            print(f"❌ Failed to fetch website: HTTP {response.status_code}")
+            return None
+            
+    except Exception as e:
+        print(f"❌ Error in simple requests scraping: {e}")
+        return None
+
+def extract_november_events_from_html(soup):
+    """Extract November 2025 events from HTML content"""
+    events = []
+    
+    try:
+        # Get all text content
+        text_content = soup.get_text()
+        
+        # Look for November events patterns
+        november_patterns = [
+            r'(November|Nov)\s+\d{1,2}[,\s]*2025[,\s]*[^.]*',
+            r'(November|Nov)\s+\d{1,2}[,\s]*[^.]*',
+        ]
+        
+        for pattern in november_patterns:
+            matches = re.findall(pattern, text_content, re.IGNORECASE)
+            for match in matches:
+                if len(match.strip()) > 10:  # Filter out very short matches
+                    # Try to extract event details
+                    event_data = parse_november_event_text(match)
+                    if event_data:
+                        events.append(event_data)
+        
+        # Remove duplicates
+        unique_events = []
+        seen_titles = set()
+        for event in events:
+            if event['title'] not in seen_titles:
+                unique_events.append(event)
+                seen_titles.add(event['title'])
+        
+        return unique_events[:20]  # Limit to 20 events
+        
+    except Exception as e:
+        print(f"❌ Error extracting November events: {e}")
+        return []
+
+def parse_november_event_text(text):
+    """Parse event data from text containing November event information"""
+    try:
+        # Look for date patterns
+        date_match = re.search(r'(November|Nov)\s+(\d{1,2})', text, re.IGNORECASE)
+        if not date_match:
+            return None
+        
+        month = date_match.group(1)
+        day = date_match.group(2)
+        
+        # Look for time patterns
+        time_match = re.search(r'(\d{1,2}:\d{2}\s*(?:am|pm|AM|PM)?|\d{1,2}\s*(?:am|pm|AM|PM))', text, re.IGNORECASE)
+        time_str = time_match.group(1) if time_match else 'TBA'
+        
+        # Extract event title (everything before the date)
+        title_match = re.search(r'^([^,]*?)(?:\s*,\s*)?(?:November|Nov)', text, re.IGNORECASE)
+        title = title_match.group(1).strip() if title_match else 'November Event'
+        
+        # Clean up title
+        title = re.sub(r'[^\w\s\-&]', '', title).strip()
+        if len(title) < 3:
+            title = f"November {day} Event"
+        
+        # Create event date
+        try:
+            event_date = datetime(2025, 11, int(day))
+            if time_str != 'TBA':
+                # Try to parse time
+                time_obj = datetime.strptime(time_str, '%I:%M %p').time()
+                event_date = event_date.replace(hour=time_obj.hour, minute=time_obj.minute)
+        except:
+            event_date = datetime(2025, 11, int(day), 10, 0)  # Default to 10 AM
+        
+        return {
+            'title': title,
+            'startDate': event_date.isoformat() + 'Z',
+            'endDate': (event_date + timedelta(hours=1)).isoformat() + 'Z',
+            'description': f"Event on {month} {day}, 2025",
+            'location': 'Seniors Kingston Centre',
+            'dateStr': f"{month} {day}, 2025, {time_str}",
+            'timeStr': time_str,
+            'image_url': '/assets/event-schedule-banner.png'
+        }
+        
+    except Exception as e:
+        print(f"❌ Error parsing event text: {e}")
         return None
 
 def try_selenium_scraping():
