@@ -2232,8 +2232,8 @@ def get_events(request: Request):
         
         if real_events and len(real_events) > 0:
             print(f"✅ Successfully fetched {len(real_events)} events from database")
-            # Combine real events with Canadian holidays and editable events
-            all_events = real_events + globals()['known_events'] + list(editable_events.values())
+            # Use only real events from website (no hardcoded events)
+            all_events = real_events + list(editable_events.values())
             return {
                 "events": all_events,
                 "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
@@ -2591,8 +2591,8 @@ def get_events(request: Request):
         }
     ]
     
-    # Combine known events with Canadian holidays and editable events
-    all_events = known_events + globals()['known_events'] + list(editable_events.values())
+    # Use only the fallback known events (no hardcoded events)
+    all_events = known_events + list(editable_events.values())
     
     return {
         "events": all_events,
