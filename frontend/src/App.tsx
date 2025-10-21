@@ -20,7 +20,9 @@ class SimpleAnalytics {
   private userId: string;
 
   constructor() {
-    this.apiUrl = 'https://class-cancellation-backend.onrender.com';
+    this.apiUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://class-cancellation-backend.onrender.com'
+      : 'http://192.168.1.160:8000';
     this.sessionId = this.generateId();
     
     try {
