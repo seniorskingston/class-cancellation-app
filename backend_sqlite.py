@@ -1836,6 +1836,39 @@ async def update_all_events(request: Request):
             }
             editable_events[event_id] = event
         
+        # Store events in database
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            # Clear existing events from database
+            cursor.execute("DELETE FROM events")
+            print("🗑️ Cleared existing events from database")
+            
+            # Insert new events into database
+            for event_data in events_data:
+                cursor.execute(
+                    "INSERT INTO events (title, start_date, end_date, description, location, date_str, time_str, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        event_data.get('title', ''),
+                        event_data.get('startDate', ''),
+                        event_data.get('endDate', ''),
+                        event_data.get('description', ''),
+                        event_data.get('location', ''),
+                        event_data.get('dateStr', ''),
+                        event_data.get('timeStr', ''),
+                        event_data.get('image_url', '/assets/event-schedule-banner.png')
+                    )
+                )
+            
+            conn.commit()
+            conn.close()
+            print(f"✅ Stored {len(events_data)} events in database")
+            
+        except Exception as e:
+            print(f"❌ Error storing events in database: {e}")
+        
+        
         print(f"✅ Successfully updated {len(editable_events)} editable events")
         return {
             "success": True, 
