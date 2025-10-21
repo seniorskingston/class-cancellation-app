@@ -2696,6 +2696,47 @@ def delete_event(event_id: str):
         print(f"❌ Error deleting event: {e}")
         return {"success": False, "error": str(e)}
 
+@app.post("/api/events/update")
+async def update_all_events(request: Request):
+    """Bulk update all events (for admin editor)"""
+    print(f"🌐 Bulk update events API call received")
+    
+    try:
+        data = await request.json()
+        events_data = data.get('events', [])
+        
+        print(f"📝 Received {len(events_data)} events for bulk update")
+        
+        # Clear existing editable events
+        editable_events.clear()
+        
+        # Add all events as editable events
+        for event_data in events_data:
+            event_id = str(uuid.uuid4())
+            event = {
+                'id': event_id,
+                'title': event_data.get('title', ''),
+                'startDate': event_data.get('startDate', datetime.now().isoformat()),
+                'endDate': event_data.get('endDate', datetime.now().isoformat()),
+                'description': event_data.get('description', ''),
+                'location': event_data.get('location', ''),
+                'dateStr': event_data.get('dateStr', ''),
+                'timeStr': event_data.get('timeStr', ''),
+                'image_url': event_data.get('image_url', '')
+            }
+            editable_events[event_id] = event
+        
+        print(f"✅ Successfully updated {len(editable_events)} editable events")
+        return {
+            "success": True, 
+            "message": f"Successfully updated {len(editable_events)} events",
+            "count": len(editable_events)
+        }
+        
+    except Exception as e:
+        print(f"❌ Error bulk updating events: {e}")
+        return {"success": False, "error": str(e)}
+
 @app.get("/api/october-events")
 def get_october_events():
     """Get known October events manually"""
