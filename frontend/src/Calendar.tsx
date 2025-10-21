@@ -159,6 +159,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   };
 
   const fetchEvents = async () => {
+    console.log('🚀 fetchEvents called - starting to fetch events');
     setLoading(true);
     const apiUrl = getApiUrl();
     console.log('🔍 Fetching events from:', apiUrl);
@@ -206,15 +207,20 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           console.log('Converted events:', convertedEvents);
           setEvents(convertedEvents);
           setDataSource('real');
+          console.log('📊 Final events count set to state:', convertedEvents.length);
           return;
         }
       }
       
-      console.log('Backend fetch failed or no events');
+      console.log('❌ Backend fetch failed or no events');
+      console.log('📊 Setting events to empty array');
+      setEvents([]);
       setDataSource('none');
       
     } catch (error) {
-      console.error('Error fetching events:', error);
+      console.error('❌ Error fetching events:', error);
+      console.log('📊 Setting events to empty array due to error');
+      setEvents([]);
       setDataSource('none');
     } finally {
       setLoading(false);
