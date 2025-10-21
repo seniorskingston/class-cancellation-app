@@ -151,8 +151,8 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
   // Fetch events from Seniors Kingston iCal feed
   const getApiUrl = () => {
-    // Temporarily force local API for testing
-    return 'http://localhost:8000/api';
+    // Use computer's IP address so mobile phones can access the backend
+    return 'http://192.168.1.160:8000/api';
     // return process.env.NODE_ENV === 'production' 
     //   ? 'https://class-cancellation-backend.onrender.com/api'
     //   : 'http://localhost:8000/api';
