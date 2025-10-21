@@ -35,7 +35,9 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   useEffect(() => {
     console.log('🔍 View mode changed to:', viewMode);
     console.log('📱 Is mobile:', isMobile);
-  }, [viewMode, isMobile]);
+    console.log('📱 Window width:', window.innerWidth);
+    console.log('📱 isMobileView prop:', isMobileView);
+  }, [viewMode, isMobile, isMobileView]);
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -303,10 +305,11 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isMobileView]); // Add isMobileView to dependencies
 
   // Respond to isMobileView prop changes
   useEffect(() => {
+    console.log('📱 isMobileView prop changed:', isMobileView);
     if (isMobileView !== undefined) {
       setIsMobile(isMobileView);
       
@@ -507,6 +510,10 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       {/* Mobile List View - Show when mobile view is active */}
       {isMobile ? (
         <div className="mobile-list-view">
+          {console.log('📱 RENDERING MOBILE VIEW - Total events:', events.length)}
+          <div style={{background: 'yellow', padding: '10px', margin: '10px'}}>
+            DEBUG: Mobile view active, events: {events.length}
+          </div>
           {calendarDays.map((day, index) => {
             const isCurrentMonth = day.getMonth() === currentDate.getMonth();
             const isToday = day.toDateString() === new Date().toDateString();
@@ -562,6 +569,10 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       ) : (
         /* Desktop Grid View */
         <div className={`calendar-grid ${viewMode}-view`} data-view-mode={viewMode}>
+          {console.log('🖥️ RENDERING DESKTOP VIEW - Total events:', events.length)}
+          <div style={{background: 'lightblue', padding: '10px', margin: '10px'}}>
+            DEBUG: Desktop view active, events: {events.length}
+          </div>
           {/* Day headers */}
           {viewMode !== 'day' && (
             <div className="calendar-weekdays">
