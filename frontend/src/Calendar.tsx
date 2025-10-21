@@ -151,18 +151,15 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
   // Fetch events from Seniors Kingston iCal feed
   const getApiUrl = () => {
-    // Use computer's IP address so mobile phones can access the backend
-    return 'http://192.168.1.160:8000/api';
-    // return process.env.NODE_ENV === 'production' 
-    //   ? 'https://class-cancellation-backend.onrender.com/api'
-    //   : 'http://localhost:8000/api';
+    // Use production backend for deployed version, local for development
+    return process.env.NODE_ENV === 'production' 
+      ? 'https://class-cancellation-backend.onrender.com/api'
+      : 'http://192.168.1.160:8000/api';
   };
 
   const fetchEvents = async () => {
-    console.log('🚀 fetchEvents called - starting to fetch events');
     setLoading(true);
     const apiUrl = getApiUrl();
-    console.log('🔍 Fetching events from:', apiUrl);
     try {
       const response = await fetch(`${apiUrl}/events`, {
         method: 'GET',
@@ -173,10 +170,8 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Backend response:', data);
         
         if (data.events && data.events.length > 0) {
-          console.log(`📅 Processing ${data.events.length} events from backend`);
           
           // Convert backend events to frontend format
           const convertedEvents: Event[] = data.events.map((event: any) => ({
@@ -192,34 +187,17 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             image_url: event.image_url
           }));
           
-          // Check for November events
-          const novEvents = convertedEvents.filter(event => 
-            event.dateStr && event.dateStr.includes('November')
-          );
-          console.log(`🍂 November events found: ${novEvents.length}`);
-          
-          // Check for banner images
-          const bannerEvents = convertedEvents.filter(event => 
-            event.image_url && event.image_url.includes('cms.seniorskingston.ca')
-          );
-          console.log(`🖼️ Events with banners: ${bannerEvents.length}`);
-          
-          console.log('Converted events:', convertedEvents);
           setEvents(convertedEvents);
           setDataSource('real');
-          console.log('📊 Final events count set to state:', convertedEvents.length);
           return;
         }
       }
       
-      console.log('❌ Backend fetch failed or no events');
-      console.log('📊 Setting events to empty array');
       setEvents([]);
       setDataSource('none');
       
     } catch (error) {
-      console.error('❌ Error fetching events:', error);
-      console.log('📊 Setting events to empty array due to error');
+      console.error('Error fetching events:', error);
       setEvents([]);
       setDataSource('none');
     } finally {
@@ -515,9 +493,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       {/* Mobile List View - Show when mobile view is active */}
       {isMobile ? (
         <div className="mobile-list-view">
-          <div style={{background: 'yellow', padding: '10px', margin: '10px'}}>
-            DEBUG: Mobile view active, events: {events.length}
-          </div>
           {calendarDays.map((day, index) => {
             const isCurrentMonth = day.getMonth() === currentDate.getMonth();
             const isToday = day.toDateString() === new Date().toDateString();
@@ -573,9 +548,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       ) : (
         /* Desktop Grid View */
         <div className={`calendar-grid ${viewMode}-view`} data-view-mode={viewMode}>
-          <div style={{background: 'lightblue', padding: '10px', margin: '10px'}}>
-            DEBUG: Desktop view active, events: {events.length}
-          </div>
           {/* Day headers */}
           {viewMode !== 'day' && (
             <div className="calendar-weekdays">
