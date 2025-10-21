@@ -309,7 +309,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
   // Respond to isMobileView prop changes
   useEffect(() => {
-    console.log('📱 isMobileView prop changed:', isMobileView);
     if (isMobileView !== undefined) {
       setIsMobile(isMobileView);
       
@@ -510,7 +509,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       {/* Mobile List View - Show when mobile view is active */}
       {isMobile ? (
         <div className="mobile-list-view">
-          {console.log('📱 RENDERING MOBILE VIEW - Total events:', events.length)}
           <div style={{background: 'yellow', padding: '10px', margin: '10px'}}>
             DEBUG: Mobile view active, events: {events.length}
           </div>
@@ -569,7 +567,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       ) : (
         /* Desktop Grid View */
         <div className={`calendar-grid ${viewMode}-view`} data-view-mode={viewMode}>
-          {console.log('🖥️ RENDERING DESKTOP VIEW - Total events:', events.length)}
           <div style={{background: 'lightblue', padding: '10px', margin: '10px'}}>
             DEBUG: Desktop view active, events: {events.length}
           </div>
