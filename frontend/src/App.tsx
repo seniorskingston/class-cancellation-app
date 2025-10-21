@@ -473,15 +473,15 @@ function App() {
       
     const data = await res.json();
       console.log("Received data:", data);
-      console.log("Data count:", data.data ? data.data.length : 0);
+      console.log("Data count:", Array.isArray(data) ? data.length : 0);
       console.log("Is mobile view:", isMobileView);
       console.log("API URL:", url);
       
-    setCancellations(data.data);
-    setLastLoaded(data.last_loaded);
+    setCancellations(data);
+    setLastLoaded(new Date().toISOString());
       
       // Extract unique locations for filter dropdown
-      const uniqueLocations = Array.from(new Set(data.data.map((item: any) => item.location).filter((loc: any) => loc && loc !== ''))).sort() as string[];
+      const uniqueLocations = Array.from(new Set(data.map((item: any) => item.location).filter((loc: any) => loc && loc !== ''))).sort() as string[];
       setLocations(uniqueLocations);
     } catch (error) {
       console.error("Error fetching cancellations:", error);
