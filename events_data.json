@@ -1,0 +1,510 @@
+{
+  "metadata": {
+    "scraped_at": "2025-10-21T14:30:56.639760",
+    "total_events": 50,
+    "source": "local_scraping",
+    "description": "Events scraped from Seniors Kingston website"
+  },
+  "events": [
+    {
+      "title": "Tuesday at Tom’s",
+      "startDate": "2025-10-21T15:00:00Z",
+      "endDate": "2025-10-21T16:00:00Z",
+      "description": "Tuesday at Tom’s October 21, 3:00 pm New to town or looking to make new friends? Come and enjoy a relaxing conversation and beverage with other members.\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "October 21",
+      "timeStr": "3:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/c01d910e-fd8d-4135-9963-5b9a5126d1cb/Tuesdays at Tom's.jpg"
+    },
+    {
+      "title": "Sound Bath",
+      "startDate": "2025-10-21T17:30:00Z",
+      "endDate": "2025-10-21T18:30:00Z",
+      "description": "Sound Bath October 21, 5:30 pm Learn how to become calmer and more centred through the use of sound therapy. Drift off into a dream-like state and experience healing and balance through shifts in your mental, physical and spiritual body. Bring a cozy mat, thick blanket, pillow, eye shades, a journal and pen, and water.\nInstructor: Shannon Brown\nREGISTER Call 613 548 7810\nMembers only",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "October 21",
+      "timeStr": "5:30 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/5e815490-28b8-4751-bd6b-9aca1328f887/Learn & Play.jpg"
+    },
+    {
+      "title": "Board Meeting",
+      "startDate": "2025-10-22T16:00:00Z",
+      "endDate": "2025-10-22T17:00:00Z",
+      "description": "Board Meeting October 22, 4:00 pm The next scheduled Board meeting is October 22, 4:00pm, at The Seniors Centre. Members and the public are welcome to attend. Board minutes are posted on the website and at The Seniors Centre following their approval.",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "October 22",
+      "timeStr": "4:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/03969dc2-152c-4124-9dd9-f0764c3e0252/Board Meeting.jpg"
+    },
+    {
+      "title": "Paint with Gouache",
+      "startDate": "2025-10-23T10:00:00Z",
+      "endDate": "2025-10-23T11:00:00Z",
+      "description": "Paint with Gouache October 23, 10:00 am After learning the properties and techniques of this unique watercolour, students will use their knowledgeto complete work of their choosing. All materials included.\nInstructor: Christina MacLachlan\nMembers Only\nREGISTER Call 613 548 7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "October 23",
+      "timeStr": "10:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/5f9c11ff-1260-4aa4-8cb3-19936ecbdc4e/Learn & Play.jpg"
+    },
+    {
+      "title": "Achieve Your Best Health",
+      "startDate": "2025-10-23T13:00:00Z",
+      "endDate": "2025-10-23T14:00:00Z",
+      "description": "Achieve Your Best Health  October 23, 1:00 pm Learn about the Frontenac Lennox & Addington Ontario Health Team, working to provide connected, team-based care that supports overall wellness and improves home care services for adults in our community.\nSpeaker: Marie Bartlett, fl&a Ontario Health Team\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "October 23",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured Speaker.jpg"
+    },
+    {
+      "title": "Sound Escapes: Kenny & Dolly",
+      "startDate": "2025-10-24T13:30:00Z",
+      "endDate": "2025-10-24T14:30:00Z",
+      "description": "Sound Escapes: Kenny & Dolly  October 24, 1:30 pm Celebrate timeless hits in this unforgettable tribute concert. Relive legendary duets\nand solo classics, blending heart, humor, and harmony in a performance of pure country magic.\n \nSponsored by James Reid Funeral Home. Supported by YourTV\n \n$12/person (advance tickets only)\n \nREGISTER Online or call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "October 24",
+      "timeStr": "1:30 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/bd103f00-5824-449d-9a8d-74dd98f450c3/Sound Escapes 2.jpg"
+    },
+    {
+      "title": "Wearable Tech",
+      "startDate": "2025-10-27T12:00:00Z",
+      "endDate": "2025-10-27T13:00:00Z",
+      "description": "Wearable Tech  October 27, 12:00 pm Smartwatches and fitness trackers have become increasing popular. Learn how wearable technology can support your health, fitness and everyday activities.\nInstructor: Sam Kalb\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "October 27",
+      "timeStr": "12:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/9ac584b0-0bc5-4803-a59b-dd48f5589df7/Tech Bytes.jpg"
+    },
+    {
+      "title": "Legal Advice",
+      "startDate": "2025-10-27T13:00:00Z",
+      "endDate": "2025-10-27T14:00:00Z",
+      "description": "Legal Advice October 27, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "October 27",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/ff281879-79a3-45e3-ab4c-b54f69a2e371/Legal Advice.JPG"
+    },
+    {
+      "title": "Fresh Food Market",
+      "startDate": "2025-10-28T10:00:00Z",
+      "endDate": "2025-10-28T11:00:00Z",
+      "description": "Fresh Food Market October 28, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet. \nBrought to you by Lionhearts INC and the Ontario Trillium Foundation",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "October 28",
+      "timeStr": "10:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh Food Market.jpg"
+    },
+    {
+      "title": "18th Century Astronomy",
+      "startDate": "2025-10-30T13:00:00Z",
+      "endDate": "2025-10-30T14:00:00Z",
+      "description": "18th Century Astronomy  October 30, 1:00 pm The 1700s changed our view of the universe. Hear about the first “X” prize, the solar system, deep skyobjects, the distance to the stars and the remarkable men and women involved.\nSpeaker: Doug Angle, Royal Astronomical Society of Canada\nREGISTER Call 613 548 7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "October 30",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured Speaker.jpg"
+    },
+    {
+      "title": "Caroles Dance Party",
+      "startDate": "2025-10-30T13:00:00Z",
+      "endDate": "2025-10-30T14:00:00Z",
+      "description": "Caroles Dance Party  October 30, 1:00 pm Let’s Dance! Join Carole for spooky tunes and groovy moves. Supportive footwear is mandatory.\nInstructor: Carole Gibson services\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "October 30",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/5f877585-1735-45c2-b513-2bbe20e82f88/Caroles Dance Party.jpg"
+    },
+    {
+      "title": "Daylight Savings Ends",
+      "startDate": "2025-11-02T08:00:00Z",
+      "endDate": "2025-11-02T09:00:00Z",
+      "description": "Daylight Savings Ends  November 2, 8:00 am",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 2",
+      "timeStr": "8:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/d2758d2b-f79b-49db-9f4e-f55928b48126/Daylight Savings Time.jpg"
+    },
+    {
+      "title": "Online Registration Begins",
+      "startDate": "2025-11-03T08:00:00Z",
+      "endDate": "2025-11-03T09:00:00Z",
+      "description": "Online Registration Begins  November 3, 8:00 am Online Program Registration Starts Today",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 3",
+      "timeStr": "8:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/4d931fd1-40ac-4785-bcae-81d0647e6cf7/Registration Online.jpg"
+    },
+    {
+      "title": "Assistive Listening Solutions",
+      "startDate": "2025-11-03T12:00:00Z",
+      "endDate": "2025-11-03T13:00:00Z",
+      "description": "Assistive Listening Solutions  November 3, 12:00 pm Removing communication barriers leads to engagement within the community. Learn about how assistive listening solutions can help hard-of-hearing members remove background noise and hear what they are intended to. This session will provide an overview of the solutions available today and how they can benefit those who struggle to hear in public spaces. \nInstructor: Stephanie Brown, Hearing Assistive Technology Solutions Group",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 3",
+      "timeStr": "12:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/94872db8-dee1-41c2-9fcb-1a8315487c24/Tech Bytes.jpg"
+    },
+    {
+      "title": "In-Person Registration for Session 2 Begins",
+      "startDate": "2025-11-04T08:30:00Z",
+      "endDate": "2025-11-04T09:30:00Z",
+      "description": "In-Person Registration for Session 2 Begins November 4, 8:30 am In-person and mail registration begins Monday November 3 at 8:30am. Session 2 begins November 27.\nCLICK HERE for program information.",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 4",
+      "timeStr": "8:30 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/db8c6611-9f72-43f4-8fae-7025e3e82534/Registration In-person.jpg"
+    },
+    {
+      "title": "Fresh Food Market",
+      "startDate": "2025-11-04T10:00:00Z",
+      "endDate": "2025-11-04T11:00:00Z",
+      "description": "Fresh Food Market November 4, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet. \nBrought to you by Lionhearts INC and the Ontario Trillium Foundation",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 4",
+      "timeStr": "10:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh Food Market.jpg"
+    },
+    {
+      "title": "Fraud Awareness",
+      "startDate": "2025-11-05T13:00:00Z",
+      "endDate": "2025-11-05T14:00:00Z",
+      "description": "Fraud Awareness November 5, 1:00 pm Protect your money and identity from phone, internet, and in-person fraudsters. Learn how to spot and avoid scams. \nFacilitator: Paul Van Nest, Kingston Rotary Club \nREGISTER Call 613.548.7810 x 238",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 5",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/cb66e913-8ddb-4252-a74c-4302cec7540f/PFH Wednesday PM.jpg"
+    },
+    {
+      "title": "Cut. Fold. Glue. Stars.",
+      "startDate": "2025-11-06T11:30:00Z",
+      "endDate": "2025-11-06T12:30:00Z",
+      "description": "Cut. Fold. Glue. Stars.  November 6, 11:30 am Join Carole and learn to make charming loo roll snowflakes to bring whimsy to your winter decor.\nInstructor: Carole Gibson\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 6",
+      "timeStr": "11:30 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/a538b972-f854-424b-b155-a1a48515fd6a/Learn & Play.jpg"
+    },
+    {
+      "title": "Learn about Tarot",
+      "startDate": "2025-11-06T13:00:00Z",
+      "endDate": "2025-11-06T14:00:00Z",
+      "description": "Learn about Tarot  November 6, 1:00 pm Tarocchini is a card game where trumps take tricks. Created in 1400 in Italy, it has evolved into games like Bridge. Is Tarot a game of fortune telling, tricks, or a psychological study? Come play and decide.\nSpeaker: Marilyn Shannon\nREGISTER Call 613 548 7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 6",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured Speaker.jpg"
+    },
+    {
+      "title": "Hearing Clinic",
+      "startDate": "2025-11-07T09:00:00Z",
+      "endDate": "2025-11-07T10:00:00Z",
+      "description": "Hearing Clinic November 7, 9:00 am Holly Brooks, Hearing Instrument Specialist, from Hear Right Canada provides hearing tests and hearing aid cleaning. Batteries also available for a fee. Appointments required. \nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 7",
+      "timeStr": "9:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/4b3c4ee7-17b6-4401-9f6f-27303d9ab94f/Hearing Clinic.jpg"
+    },
+    {
+      "title": "Coffee with a Cop",
+      "startDate": "2025-11-07T10:00:00Z",
+      "endDate": "2025-11-07T11:00:00Z",
+      "description": "Coffee with a Cop  November 7, 10:00 am Join Constable Anthony Colangeli for coffee and conversation. Ask questions and voice concerns. Walk-in. All are welcome.",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 7",
+      "timeStr": "10:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/7c4a9916-5533-45e6-9a5a-45e7a6a9d252/Coffee with a cop FIXED.jpg"
+    },
+    {
+      "title": "Cut. Fold. Glue. Trees",
+      "startDate": "2025-11-10T10:45:00Z",
+      "endDate": "2025-11-10T11:45:00Z",
+      "description": "Cut. Fold. Glue. Trees November 10, 10:45 am Join Carole and learn to make fanciful paper trees for your holiday tablescapes.\nInstructor: Carole Gibson\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 10",
+      "timeStr": "10:45 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/a538b972-f854-424b-b155-a1a48515fd6a/Learn & Play.jpg"
+    },
+    {
+      "title": "Shopping & Buying Online",
+      "startDate": "2025-11-10T12:00:00Z",
+      "endDate": "2025-11-10T13:00:00Z",
+      "description": "Shopping & Buying Online  November 10, 12:00 pm Dip your toes into online shopping. Learn how to get the most out of online stores, how to comparison shop and making informed purchases and how to choose streaming services for movies and TV programs.\nInstructor: Sam Kalb\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 10",
+      "timeStr": "12:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/94872db8-dee1-41c2-9fcb-1a8315487c24/Tech Bytes.jpg"
+    },
+    {
+      "title": "Legal Advice",
+      "startDate": "2025-11-10T13:00:00Z",
+      "endDate": "2025-11-10T14:00:00Z",
+      "description": "Legal Advice November 10, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 10",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/ff281879-79a3-45e3-ab4c-b54f69a2e371/Legal Advice.JPG"
+    },
+    {
+      "title": "Fresh Food Market",
+      "startDate": "2025-11-11T10:00:00Z",
+      "endDate": "2025-11-11T11:00:00Z",
+      "description": "Fresh Food Market November 11, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet. \nBrought to you by Lionhearts INC and the Ontario Trillium Foundation",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 11",
+      "timeStr": "10:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh Food Market.jpg"
+    },
+    {
+      "title": "Service Canada Clinic",
+      "startDate": "2025-11-12T09:00:00Z",
+      "endDate": "2025-11-12T10:00:00Z",
+      "description": "Service Canada Clinic November 12, 9:00 am Service Canada representatives come to The Seniors Centre to help you with Canadian Pension Plan (CPP), Old Age Security (OAS), Guaranteed Income Supplement (GIS), Social Insurance Number (SIN), or Canadian Dental Care Plan. \nDrop-in! Open to everyone.",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 12",
+      "timeStr": "9:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/84ef521d-3400-4aae-9953-e4811b92001c/Service Canada Clinic.jpg"
+    },
+    {
+      "title": "Coast to Coast: A Canoe Odyssey",
+      "startDate": "2025-11-13T13:00:00Z",
+      "endDate": "2025-11-13T14:00:00Z",
+      "description": "Coast to Coast: A Canoe Odyssey November 13, 1:00 pm Two paddlers, one canoe, and 8,500 km from Vancouver to Sydney – through cities, towns, and wild terrain. Hear about this epic adventure of resilience, connection, and discovery across Canada’s diverse landscapes and waterways.\nSpeaker: Carol van Den Engel & Glenn Green\nREGISTER Call 613 548 7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 13",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured Speaker.jpg"
+    },
+    {
+      "title": "Birthday Lunch",
+      "startDate": "2025-11-14T12:00:00Z",
+      "endDate": "2025-11-14T13:00:00Z",
+      "description": "Birthday Lunch November 14, 12:00 pm Members celebrate their birthday month for free!\nMixed Green Salad, Baked Ham with Scalloped Potatoes, followed by a Birthday Dessert. \nSponsored by St. Lawrence Place \nno charge/member birthday month\n$16/member | $18/non-member\n(advance tickets; dine in only)\nREGISTER Online HERE or call 613.548.7810Space is limited. Be prepared to share your table with others. No table reservations.",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 14",
+      "timeStr": "12:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/e09e616f-444c-4f2d-989a-32fa84b34083/Birthday.jpg"
+    },
+    {
+      "title": "Sound Escapes: Georgette Fry",
+      "startDate": "2025-11-14T13:30:00Z",
+      "endDate": "2025-11-14T14:30:00Z",
+      "description": "Sound Escapes: Georgette Fry November 14, 1:30 pm Experience the award-winning Georgette Fry's soulful blend of blues, jazz, and pop. Her electrifying style will have you up and dancing all afternoon long!\nSponsored by James Reid Funeral Home. Supported by YourTV\n$12/person (advance tickets only)\nREGISTER Online or call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 14",
+      "timeStr": "1:30 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/bd103f00-5824-449d-9a8d-74dd98f450c3/Sound Escapes 2.jpg"
+    },
+    {
+      "title": "Program Break Week",
+      "startDate": "2025-11-17T08:30:00Z",
+      "endDate": "2025-11-17T09:30:00Z",
+      "description": "Program Break Week November 17, 8:30 am No programs are scheduled at any Seniors Association locations.",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 17",
+      "timeStr": "8:30 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/569fd7a5-9905-4e34-b0f2-770421fc7e6d/Program Break.jpg"
+    },
+    {
+      "title": "Speed Friending",
+      "startDate": "2025-11-17T13:00:00Z",
+      "endDate": "2025-11-17T14:00:00Z",
+      "description": "Speed Friending  November 17, 1:00 pm Meet new people quickly in a fun, structured setting with speed friending, a platonic twist on speed dating. Rotate through brief conversations, connect with others, and potentially form lasting friendships in just minutes.\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 17",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/29174fb0-87d2-4f16-9d7e-a773dca5ff2a/Speed Friending.jpg"
+    },
+    {
+      "title": "Advanced Care Planning",
+      "startDate": "2025-11-17T16:30:00Z",
+      "endDate": "2025-11-17T17:30:00Z",
+      "description": "Advanced Care Planning November 17, 4:30 pm The process of thinking about, writing down, and sharing your wishes/instructions with loved ones for future health care treatment if you become incapable of deciding for yourself. Learn, listen, and ask questions to help you improve your plan.\nSpeaker: Compassionate Communities Kingston\nREGISTER Call 613 548 7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 17",
+      "timeStr": "4:30 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/0b47a5d9-7476-44c7-ad1f-fac13a579936/Advance Care Planning.jpg"
+    },
+    {
+      "title": "Fresh Food Market",
+      "startDate": "2025-11-18T10:00:00Z",
+      "endDate": "2025-11-18T11:00:00Z",
+      "description": "Fresh Food Market November 18, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet. \nBrought to you by Lionhearts INC and the Ontario Trillium Foundation",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 18",
+      "timeStr": "10:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh Food Market.jpg"
+    },
+    {
+      "title": "Expressive Mark Making",
+      "startDate": "2025-11-18T13:00:00Z",
+      "endDate": "2025-11-18T14:00:00Z",
+      "description": "Expressive Mark Making  November 18, 1:00 pm Rekindle your passion for abstract art through expressive mark-making. This liberating workshop uses skill-building exercises and soul-nurturing prompts to unlock your subconscious, inspire creativity, and help you rediscover your unique, lyrical style.\nInstructor: Sharlena Wood\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 18",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/a538b972-f854-424b-b155-a1a48515fd6a/Learn & Play.jpg"
+    },
+    {
+      "title": "Cafe Franglish",
+      "startDate": "2025-11-18T14:30:00Z",
+      "endDate": "2025-11-18T15:30:00Z",
+      "description": "Cafe Franglish November 18, 2:30 pm Join a monthly bilingual meetup where Francophones and Anglophones connect chat, and build confidence in both languages through lively, judgement-free conversations on a variety of engaging topics.",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 18",
+      "timeStr": "2:30 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/5476e070-622a-45a3-972b-3e61bdc511f8/Cafe Franglish.jpg"
+    },
+    {
+      "title": "Tuesday at Tom’s",
+      "startDate": "2025-11-18T15:00:00Z",
+      "endDate": "2025-11-18T16:00:00Z",
+      "description": "Tuesday at Tom’s November 18, 3:00 pm New to town or looking to make new friends? Come and enjoy a relaxing conversation and beverage with other members.\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 18",
+      "timeStr": "3:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/c01d910e-fd8d-4135-9963-5b9a5126d1cb/Tuesdays at Tom's.jpg"
+    },
+    {
+      "title": "Learn Resilience",
+      "startDate": "2025-11-19T09:30:00Z",
+      "endDate": "2025-11-19T10:30:00Z",
+      "description": "Learn Resilience  November 19, 9:30 am Experience the award-winning documentary Resilience, then join Teach Resilience trainers from Kingston Community Health Centres for an engaging panel discussion of the film, speaking about trauma and its impact.\nInstructors: Zoe McDonald & Kara Fry\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 19",
+      "timeStr": "9:30 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/a538b972-f854-424b-b155-a1a48515fd6a/Learn & Play.jpg"
+    },
+    {
+      "title": "Vision Workshop",
+      "startDate": "2025-11-19T10:30:00Z",
+      "endDate": "2025-11-19T11:30:00Z",
+      "description": "Vision Workshop November 19, 10:30 am Rediscover purpose, passion, and joy in retirement. Learn simple tools to dream again, break free from “too late” thinking, and design a vibrant next chapter – filled with meaning, connection, and confidence.\nInstructor: Victoria Hirst\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 19",
+      "timeStr": "10:30 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/a538b972-f854-424b-b155-a1a48515fd6a/Learn & Play.jpg"
+    },
+    {
+      "title": "New Member Mixer",
+      "startDate": "2025-11-19T14:00:00Z",
+      "endDate": "2025-11-19T15:00:00Z",
+      "description": "New Member Mixer\t November 19, 2:00 pm Are you a new member and want to learn more about what we offer? Have a friend you’d like to join? Or do you just want to know more about the Seniors Association? Meet with staff and other members for a brief orientation, introduction to our database, light refreshments, and socializing. \nSponsored by Trillium Community & Retirement Living.\nREGISTER In Advance Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 19",
+      "timeStr": "2:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/5fcfa81b-02bf-4985-9b86-8ec565c0bb00/New Member Mixer.jpg"
+    },
+    {
+      "title": "Time for Tea",
+      "startDate": "2025-11-20T13:00:00Z",
+      "endDate": "2025-11-20T14:00:00Z",
+      "description": "Time for Tea November 20, 1:00 pm Explore the fine art of tea and food pairing with a certified tea sommelier. Discover how nuanced flavors enhance cuisine through expertly selected teas and culinary harmony over the Holiday season.\nSpeaker: Kaoru, Cha Cha Tea\nREGISTER Call 613 548 7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 20",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured Speaker.jpg"
+    },
+    {
+      "title": "Book & Puzzle EXCHANGE",
+      "startDate": "2025-11-21T10:00:00Z",
+      "endDate": "2025-11-21T11:00:00Z",
+      "description": "Book & Puzzle EXCHANGE November 21, 10:00 am Bring up to 10 paperback books or puzzles to the Rendezvous Café to exchange for any in our library. Additional books or puzzles can be purchased for $2.",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 21",
+      "timeStr": "10:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/7948f41c-bcf4-42d1-97aa-5c7eb4245861/Book & Puzzle.jpg"
+    },
+    {
+      "title": "Annual General Meeting",
+      "startDate": "2025-11-21T11:00:00Z",
+      "endDate": "2025-11-21T12:00:00Z",
+      "description": "November 21, 11:00 am",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 21",
+      "timeStr": "11:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/ef8b1073-4e16-42fe-a4b3-3a420c056c19/Annual General Meeting.jpg"
+    },
+    {
+      "title": "December Vista Available for Pickup",
+      "startDate": "2025-11-21T12:00:00Z",
+      "endDate": "2025-11-21T13:00:00Z",
+      "description": "December Vista Available for Pickup November 21, 12:00 pm Volunteer Deliverers pick up their bundles to hand deliver and members can pick up their individual copy.",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 21",
+      "timeStr": "12:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/8c8f92ce-34ef-442e-bab9-a06836704f9d/Vista.jpg"
+    },
+    {
+      "title": "Holiday Artisan Fair",
+      "startDate": "2025-11-22T10:00:00Z",
+      "endDate": "2025-11-22T11:00:00Z",
+      "description": "Holiday Artisan Fair November 22, 10:00 am Something for everyone! \nJoin us at our second ever Holiday Artisan Fair where you'll find\n\nOver 50 Vendors\nPictures with Santa\nSilent Auction\nLive Music\nHot Apple Cider\nBreakfast in our restaurant\nBoxed Christmas Cookies\nCreme de la Closet Boutique (women's used clothing and accessories)",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 22",
+      "timeStr": "10:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/a278053e-4f35-40af-a2f6-610cfd893930/Holiday Artisan Fair.jpg"
+    },
+    {
+      "title": "Simplify Your Digital Life",
+      "startDate": "2025-11-24T12:00:00Z",
+      "endDate": "2025-11-24T13:00:00Z",
+      "description": "Simplify Your Digital Life  November 24, 12:00 pm Feeling overwhelmed by your online accounts, passwords, and subscriptions? This presentation offers practical strategies to simplify your digital life. Learn to organize accounts, manage passwords, use cloud storage effectively, and understand your subscriptions. We’ll also explore options for closing services you no longer need – empowering you to take control of your digital world.\nInstructor: Jarda Zborovsy\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 24",
+      "timeStr": "12:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/9ac584b0-0bc5-4803-a59b-dd48f5589df7/Tech Bytes.jpg"
+    },
+    {
+      "title": "Legal Advice",
+      "startDate": "2025-11-24T13:00:00Z",
+      "endDate": "2025-11-24T14:00:00Z",
+      "description": "Legal Advice November 24, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).\nREGISTER Call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 24",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/ff281879-79a3-45e3-ab4c-b54f69a2e371/Legal Advice.JPG"
+    },
+    {
+      "title": "Fresh Food Market",
+      "startDate": "2025-11-25T10:00:00Z",
+      "endDate": "2025-11-25T11:00:00Z",
+      "description": "Fresh Food Market November 25, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet. \nBrought to you by Lionhearts INC and the Ontario Trillium Foundation",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 25",
+      "timeStr": "10:00 am",
+      "image_url": "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh Food Market.jpg"
+    },
+    {
+      "title": "Holiday Lunch",
+      "startDate": "2025-11-25T12:00:00Z",
+      "endDate": "2025-11-25T13:00:00Z",
+      "description": "Holiday Lunch November 25, 12:00 pm Tomato Basil Soup, Roast Turkey, dressing, mashed potatoes, vegetables, cranberry sauce, and dessert!\n$25/person (advance tickets only)\nREGISTER Online or call 613.548.7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 25",
+      "timeStr": "12:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/6d777997-6766-44ca-902a-b0c336e7b32d/Holiday Lunches.jpg"
+    },
+    {
+      "title": "Domino Theatre Dress Rehearsal: Miss Bennet: Christmas at Pemberley",
+      "startDate": "2025-11-26T19:30:00Z",
+      "endDate": "2025-11-26T20:30:00Z",
+      "description": "Domino Theatre Dress Rehearsal: Miss Bennet: Christmas at Pemberley November 26, 7:30 pm Celebrate the holidays with a witty sequel to Pride and Prejudice, where overlooked Mary Bennet discovers romance at Pemberley. Full of heart, humour, and Regency charm, this play delights.\nREGISTER by calling 613.548.7810. or online HERE",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 26",
+      "timeStr": "7:30 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/365bab44-7685-4223-8319-d8dea27b3484/Domino Dress Rehearsal.jpg"
+    },
+    {
+      "title": "Anxiety Unlocked",
+      "startDate": "2025-11-27T13:00:00Z",
+      "endDate": "2025-11-27T14:00:00Z",
+      "description": "Anxiety Unlocked  November 27, 1:00 pm Discover fun, easy-to-use tools that bring quick relief from anxiety. Learn simple, effective techniques you may not know, designed to calm your mind, ease stress, and restore balance anytime, anywhere.\nSpeaker: Dorothy J. Cook\nREGISTER Call 613 548 7810",
+      "location": "Seniors Kingston Centre",
+      "dateStr": "November 27",
+      "timeStr": "1:00 pm",
+      "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured Speaker.jpg"
+    }
+  ]
+}
