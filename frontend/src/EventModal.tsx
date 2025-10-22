@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import './EventModal.css';
+import React from 'react';
+import './EventViewModal.css';
 
 interface Event {
   id?: string;
@@ -8,235 +8,119 @@ interface Event {
   endDate: Date;
   description?: string;
   location?: string;
+  banner?: string;
+  image_url?: string;
+  dateStr?: string;
+  timeStr?: string;
 }
 
-interface EventModalProps {
+interface EventViewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (event: Event) => void;
-  onDelete?: (eventId: string) => void;
-  event?: Event | null;
-  selectedDate?: Date;
+  event: Event | null;
 }
 
-const EventModal: React.FC<EventModalProps> = ({
+const EventViewModal: React.FC<EventViewModalProps> = ({
   isOpen,
   onClose,
-  onSave,
-  onDelete,
-  event,
-  selectedDate
+  event
 }) => {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    location: '',
-    startDate: '',
-    startTime: '',
-    endDate: '',
-    endTime: ''
-  });
+  if (!isOpen || !event) return null;
 
-  const [errors, setErrors] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (isOpen) {
-      if (event) {
-        // Editing existing event
-        setFormData({
-          title: event.title,
-          description: event.description || '',
-          location: event.location || '',
-          startDate: event.startDate.toISOString().split('T')[0],
-          startTime: event.startDate.toTimeString().slice(0, 5),
-          endDate: event.endDate.toISOString().split('T')[0],
-          endTime: event.endDate.toTimeString().slice(0, 5)
-        });
-      } else if (selectedDate) {
-        // Creating new event
-        const dateStr = selectedDate.toISOString().split('T')[0];
-        setFormData({
-          title: '',
-          description: '',
-          location: '',
-          startDate: dateStr,
-          startTime: '09:00',
-          endDate: dateStr,
-          endTime: '10:00'
-        });
-      }
-      setErrors([]);
-    }
-  }, [isOpen, event, selectedDate]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const newErrors: string[] = [];
-    
-    if (!formData.title.trim()) {
-      newErrors.push('Title is required');
-    }
-    if (!formData.startDate) {
-      newErrors.push('Start date is required');
-    }
-    if (!formData.endDate) {
-      newErrors.push('End date is required');
-    }
-    if (!formData.startTime) {
-      newErrors.push('Start time is required');
-    }
-    if (!formData.endTime) {
-      newErrors.push('End time is required');
-    }
-
-    if (newErrors.length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    const startDateTime = new Date(`${formData.startDate}T${formData.startTime}:00`);
-    const endDateTime = new Date(`${formData.endDate}T${formData.endTime}:00`);
-
-    if (endDateTime <= startDateTime) {
-      setErrors(['End time must be after start time']);
-      return;
-    }
-
-    const eventData: Event = {
-      id: event?.id,
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      location: formData.location.trim(),
-      startDate: startDateTime,
-      endDate: endDateTime
-    };
-
-    onSave(eventData);
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
-  const handleDelete = () => {
-    if (event?.id && onDelete) {
-      onDelete(event.id);
-    }
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
-  if (!isOpen) return null;
+  const getEventImage = () => {
+    // Try different image sources
+    if (event.banner) return event.banner;
+    if (event.image_url) return event.image_url;
+    
+    // Default event banner
+    return '/assets/event-schedule-banner.png';
+  };
+
+  const getEventDescription = () => {
+    if (event.description) return event.description;
+    return 'No description available for this event.';
+  };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{event ? 'Edit Event' : 'Add New Event'}</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+    <div className="event-view-modal-overlay" onClick={onClose}>
+      <div className="event-view-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="event-view-modal-header">
+          <h2 className="event-view-title">{event.title}</h2>
+          <button className="event-view-close-button" onClick={onClose}>×</button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="title">Event Title *</label>
-            <input
-              type="text"
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
-              placeholder="Enter event title"
-              required
+        <div className="event-view-modal-body">
+          {/* Event Banner/Image */}
+          <div className="event-view-banner">
+            <img 
+              src={getEventImage()} 
+              alt={event.title}
+              className="event-banner-image"
+              onError={(e) => {
+                // Fallback to default banner if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.src = '/assets/event-schedule-banner.png';
+              }}
             />
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="startDate">Start Date *</label>
-              <input
-                type="date"
-                id="startDate"
-                value={formData.startDate}
-                onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                required
-              />
+          {/* Event Details */}
+          <div className="event-view-details">
+            <div className="event-detail-row">
+              <div className="event-detail-label">📅 Date:</div>
+              <div className="event-detail-value">
+                {event.dateStr || formatDate(event.startDate)}
+              </div>
             </div>
-            <div className="form-group">
-              <label htmlFor="startTime">Start Time *</label>
-              <input
-                type="time"
-                id="startTime"
-                value={formData.startTime}
-                onChange={(e) => setFormData({...formData, startTime: e.target.value})}
-                required
-              />
+
+            <div className="event-detail-row">
+              <div className="event-detail-label">🕐 Time:</div>
+              <div className="event-detail-value">
+                {event.timeStr || `${formatTime(event.startDate)} - ${formatTime(event.endDate)}`}
+              </div>
             </div>
-          </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="endDate">End Date *</label>
-              <input
-                type="date"
-                id="endDate"
-                value={formData.endDate}
-                onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="endTime">End Time *</label>
-              <input
-                type="time"
-                id="endTime"
-                value={formData.endTime}
-                onChange={(e) => setFormData({...formData, endTime: e.target.value})}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="location">Location</label>
-            <input
-              type="text"
-              id="location"
-              value={formData.location}
-              onChange={(e) => setFormData({...formData, location: e.target.value})}
-              placeholder="Enter location"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              placeholder="Enter event description"
-              rows={3}
-            />
-          </div>
-
-          {errors.length > 0 && (
-            <div className="error-messages">
-              {errors.map((error, index) => (
-                <div key={index} className="error-message">{error}</div>
-              ))}
-            </div>
-          )}
-
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="cancel-button">
-              Cancel
-            </button>
-            {event && onDelete && (
-              <button type="button" onClick={handleDelete} className="delete-button">
-                Delete
-              </button>
+            {event.location && (
+              <div className="event-detail-row">
+                <div className="event-detail-label">📍 Location:</div>
+                <div className="event-detail-value">{event.location}</div>
+              </div>
             )}
-            <button type="submit" className="save-button">
-              {event ? 'Update Event' : 'Add Event'}
-            </button>
+
+            <div className="event-detail-row">
+              <div className="event-detail-label">📝 Description:</div>
+              <div className="event-detail-description">
+                {getEventDescription()}
+              </div>
+            </div>
           </div>
-        </form>
+        </div>
+
+        <div className="event-view-modal-footer">
+          <button className="event-view-close-btn" onClick={onClose}>
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-export default EventModal;
+export default EventViewModal;
