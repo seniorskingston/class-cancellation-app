@@ -1,208 +1,242 @@
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+import React, { useState, useEffect } from 'react';
+import './EventModal.css';
+
+interface Event {
+  id?: string;
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  description?: string;
+  location?: string;
 }
 
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  max-width: 500px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  animation: modalSlideIn 0.3s ease-out;
+interface EventModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (event: Event) => void;
+  onDelete?: (eventId: string) => void;
+  event?: Event | null;
+  selectedDate?: Date;
 }
 
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
+const EventModal: React.FC<EventModalProps> = ({
+  isOpen,
+  onClose,
+  onSave,
+  onDelete,
+  event,
+  selectedDate
+}) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    location: '',
+    startDate: '',
+    startTime: '',
+    endDate: '',
+    endTime: ''
+  });
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid #e5e7eb;
-}
+  const [errors, setErrors] = useState<string[]>([]);
 
-.modal-header h2 {
-  margin: 0;
-  color: #0072ce;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
+  useEffect(() => {
+    if (isOpen) {
+      if (event) {
+        // Editing existing event
+        setFormData({
+          title: event.title,
+          description: event.description || '',
+          location: event.location || '',
+          startDate: event.startDate.toISOString().split('T')[0],
+          startTime: event.startDate.toTimeString().slice(0, 5),
+          endDate: event.endDate.toISOString().split('T')[0],
+          endTime: event.endDate.toTimeString().slice(0, 5)
+        });
+      } else if (selectedDate) {
+        // Creating new event
+        const dateStr = selectedDate.toISOString().split('T')[0];
+        setFormData({
+          title: '',
+          description: '',
+          location: '',
+          startDate: dateStr,
+          startTime: '09:00',
+          endDate: dateStr,
+          endTime: '10:00'
+        });
+      }
+      setErrors([]);
+    }
+  }, [isOpen, event, selectedDate]);
 
-.close-button {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #6b7280;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const newErrors: string[] = [];
+    
+    if (!formData.title.trim()) {
+      newErrors.push('Title is required');
+    }
+    if (!formData.startDate) {
+      newErrors.push('Start date is required');
+    }
+    if (!formData.endDate) {
+      newErrors.push('End date is required');
+    }
+    if (!formData.startTime) {
+      newErrors.push('Start time is required');
+    }
+    if (!formData.endTime) {
+      newErrors.push('End time is required');
+    }
 
-.close-button:hover {
-  background-color: #f3f4f6;
-  color: #374151;
-}
+    if (newErrors.length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
-form {
-  padding: 24px;
-}
+    const startDateTime = new Date(`${formData.startDate}T${formData.startTime}:00`);
+    const endDateTime = new Date(`${formData.endDate}T${formData.endTime}:00`);
 
-.form-group {
-  margin-bottom: 20px;
-}
+    if (endDateTime <= startDateTime) {
+      setErrors(['End time must be after start time']);
+      return;
+    }
 
-.form-row {
-  display: flex;
-  gap: 16px;
-}
+    const eventData: Event = {
+      id: event?.id,
+      title: formData.title.trim(),
+      description: formData.description.trim(),
+      location: formData.location.trim(),
+      startDate: startDateTime,
+      endDate: endDateTime
+    };
 
-.form-row .form-group {
-  flex: 1;
-  margin-bottom: 20px;
-}
+    onSave(eventData);
+  };
 
-label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 500;
-  color: #374151;
-  font-size: 14px;
-}
+  const handleDelete = () => {
+    if (event?.id && onDelete) {
+      onDelete(event.id);
+    }
+  };
 
-input[type="text"],
-input[type="date"],
-input[type="time"],
-textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 2px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: border-color 0.2s ease;
-  box-sizing: border-box;
-}
+  if (!isOpen) return null;
 
-input[type="text"]:focus,
-input[type="date"]:focus,
-input[type="time"]:focus,
-textarea:focus {
-  outline: none;
-  border-color: #0072ce;
-  box-shadow: 0 0 0 3px rgba(0, 114, 206, 0.1);
-}
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{event ? 'Edit Event' : 'Add New Event'}</h2>
+          <button className="close-button" onClick={onClose}>×</button>
+        </div>
 
-textarea {
-  resize: vertical;
-  min-height: 80px;
-  font-family: inherit;
-}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="title">Event Title *</label>
+            <input
+              type="text"
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              placeholder="Enter event title"
+              required
+            />
+          </div>
 
-.error-messages {
-  margin-bottom: 20px;
-}
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="startDate">Start Date *</label>
+              <input
+                type="date"
+                id="startDate"
+                value={formData.startDate}
+                onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="startTime">Start Time *</label>
+              <input
+                type="time"
+                id="startTime"
+                value={formData.startTime}
+                onChange={(e) => setFormData({...formData, startTime: e.target.value})}
+                required
+              />
+            </div>
+          </div>
 
-.error-message {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="endDate">End Date *</label>
+              <input
+                type="date"
+                id="endDate"
+                value={formData.endDate}
+                onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="endTime">End Time *</label>
+              <input
+                type="time"
+                id="endTime"
+                value={formData.endTime}
+                onChange={(e) => setFormData({...formData, endTime: e.target.value})}
+                required
+              />
+            </div>
+          </div>
 
-.modal-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  padding-top: 16px;
-  border-top: 1px solid #e5e7eb;
-}
+          <div className="form-group">
+            <label htmlFor="location">Location</label>
+            <input
+              type="text"
+              id="location"
+              value={formData.location}
+              onChange={(e) => setFormData({...formData, location: e.target.value})}
+              placeholder="Enter location"
+            />
+          </div>
 
-.cancel-button,
-.delete-button,
-.save-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
+          <div className="form-group">
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              placeholder="Enter event description"
+              rows={3}
+            />
+          </div>
 
-.cancel-button {
-  background-color: #f3f4f6;
-  color: #374151;
-}
+          {errors.length > 0 && (
+            <div className="error-messages">
+              {errors.map((error, index) => (
+                <div key={index} className="error-message">{error}</div>
+              ))}
+            </div>
+          )}
 
-.cancel-button:hover {
-  background-color: #e5e7eb;
-}
+          <div className="modal-actions">
+            <button type="button" onClick={onClose} className="cancel-button">
+              Cancel
+            </button>
+            {event && onDelete && (
+              <button type="button" onClick={handleDelete} className="delete-button">
+                Delete
+              </button>
+            )}
+            <button type="submit" className="save-button">
+              {event ? 'Update Event' : 'Add Event'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
-.delete-button {
-  background-color: #dc2626;
-  color: white;
-}
-
-.delete-button:hover {
-  background-color: #b91c1c;
-}
-
-.save-button {
-  background: linear-gradient(135deg, #00b388, #008a6b);
-  color: white;
-}
-
-.save-button:hover {
-  background: linear-gradient(135deg, #008a6b, #006b52);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 179, 136, 0.3);
-}
-
-/* Mobile responsiveness */
-@media (max-width: 640px) {
-  .modal-content {
-    width: 95%;
-    margin: 20px;
-  }
-  
-  .form-row {
-    flex-direction: column;
-    gap: 0;
-  }
-  
-  .modal-actions {
-    flex-direction: column;
-  }
-  
-  .modal-actions button {
-    width: 100%;
-  }
-}
+export default EventModal;
