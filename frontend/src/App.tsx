@@ -3,106 +3,6 @@ import "./App.css";
 import logo from "./logo.png";
 import QRCode from 'qrcode';
 import Calendar from './Calendar';
-import locationData from './locations.json';
-import UserGuide from './UserGuide';
-// Analytics functionality embedded directly to avoid import issues
-interface AnalyticsEvent {
-  event: string;
-  timestamp: number;
-  userAgent: string;
-  url: string;
-  referrer: string;
-}
-
-class SimpleAnalytics {
-  private apiUrl: string;
-  private sessionId: string;
-  private userId: string;
-
-  constructor() {
-    this.apiUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://class-cancellation-backend.onrender.com'
-      : 'http://192.168.1.160:8000';
-    this.sessionId = this.generateId();
-    
-    try {
-      this.userId = localStorage.getItem('analytics_user_id') || this.generateId();
-      localStorage.setItem('analytics_user_id', this.userId);
-    } catch (error) {
-      this.userId = this.generateId();
-    }
-    
-    this.trackPageView();
-  }
-
-  private generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2);
-  }
-
-  private async sendEvent(eventData: AnalyticsEvent) {
-    try {
-      const response = await fetch(`${this.apiUrl}/api/analytics`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...eventData,
-          sessionId: this.sessionId,
-          userId: this.userId,
-        }),
-      });
-      
-      if (!response.ok) {
-        console.log('Analytics request failed:', response.status);
-      }
-    } catch (error) {
-      console.log('Analytics error (non-critical):', error);
-    }
-  }
-
-  trackPageView() {
-    this.sendEvent({
-      event: 'page_view',
-      timestamp: Date.now(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-      referrer: document.referrer,
-    });
-  }
-
-  trackEvent(eventName: string, data?: any) {
-    this.sendEvent({
-      event: eventName,
-      timestamp: Date.now(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-      referrer: document.referrer,
-    });
-  }
-
-  trackMessageSent() {
-    this.trackEvent('message_sent');
-  }
-
-  trackProgramFavorited() {
-    this.trackEvent('program_favorited');
-  }
-
-  trackQRCodeShared() {
-    this.trackEvent('qr_code_shared');
-  }
-
-  trackAppInstalled() {
-    this.trackEvent('app_installed');
-  }
-
-  trackEventCalendarViewed() {
-    this.trackEvent('event_calendar_viewed');
-  }
-}
-
-const analytics = new SimpleAnalytics();
 
 type Cancellation = {
   sheet: string;
@@ -111,15 +11,13 @@ type Cancellation = {
   date_range: string;
   time: string;
   location: string;
-  class_room: string;  // Class Room from Facility
-  instructor: string;  // Instructor
+  class_room: string;  // New: Class Room from Facility
+  instructor: string;  // New: Instructor
   program_status: string;
   class_cancellation: string;
   note: string;
   withdrawal: string;
-  description: string;  // Description column
-  fee: string;         // Fee column
-  is_favorite?: boolean;  // Favorite status
+  is_favorite?: boolean;  // New: Favorite status
 };
 
 type Filters = {
@@ -131,65 +29,7 @@ type Filters = {
   view_type: string;
 };
 
-      const API_URL = "https://class-cancellation-backend.onrender.com";
-
-// Helper function to get full address from location
-const getFullAddress = (locationCode: string): string => {
-  if (!locationCode || !locationData) {
-    return "Address not available";
-  }
-  
-  
-  // Clean the location code
-  const cleanLocationCode = locationCode.trim();
-  
-  // Direct mapping for the specific cases you mentioned
-  const directMappings: { [key: string]: string } = {
-    "SCE – Seniors Centre East": "SCE - Seniors Center East",
-    "SCE - Seniors Centre East": "SCE - Seniors Center East", 
-    "SCW – Seniors Centre West": "SCW - Seniors Centre West",
-    "SCW - Seniors Centre West": "SCW - Seniors Centre West",
-    "SCG - Seniors Centre Saint George's": "SCG - Seniors Centre Saint George's",
-    "SCL - Seniors Centre Loyalist Amherstview": "SCLA - Seniors Centre Loyalist Amherstview",
-    "SCN – Seniors Centre North": "SCN - Seniors Center North",
-    "SCN - Seniors Centre North": "SCN - Seniors Center North"
-  };
-  
-  // Try direct mapping first
-  if (directMappings[cleanLocationCode]) {
-    const mappedKey = directMappings[cleanLocationCode];
-    const address = (locationData as any)[mappedKey];
-    if (address) {
-      return address;
-    }
-  }
-  
-  // Try exact match
-  if ((locationData as any)[cleanLocationCode]) {
-    return (locationData as any)[cleanLocationCode];
-  }
-  
-  // Try case-insensitive exact match
-  const lowerLocationCode = cleanLocationCode.toLowerCase();
-  for (const [key, value] of Object.entries(locationData)) {
-    if (key.toLowerCase() === lowerLocationCode) {
-      return value;
-    }
-  }
-  
-  // Try to match by first part (before dash)
-  const firstPart = cleanLocationCode.split(/[–-]/)[0].trim();
-  
-  for (const [key, value] of Object.entries(locationData)) {
-    const keyFirstPart = key.split(' - ')[0].trim();
-    
-    if (firstPart === keyFirstPart) {
-      return value;
-    }
-  }
-  
-  return "Address not available";
-};
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 function App() {
   console.log("API_URL:", API_URL);
@@ -200,31 +40,12 @@ function App() {
     day: "",
     location: "",
     program_status: "",
-    view_type: "all", // New: "cancellations" or "all"
+    view_type: "cancellations", // New: "cancellations" or "all"
   });
   const [lastLoaded, setLastLoaded] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const [selectedProgram, setSelectedProgram] = useState<Cancellation | null>(null);
-  const [showMessageModal, setShowMessageModal] = useState(false);
-  const [messageProgram, setMessageProgram] = useState<Cancellation | null>(null);
-  const [messageText, setMessageText] = useState("");
-
-  // Debug: Log modal state changes
-  useEffect(() => {
-    console.log('📱 Modal state changed:', { 
-      showMessageModal, 
-      messageProgram: messageProgram?.program,
-      isMobile: window.innerWidth < 768 
-    });
-    if (showMessageModal && messageProgram) {
-      console.log('✅ MODAL SHOULD BE VISIBLE NOW!');
-    }
-  }, [showMessageModal, messageProgram]);
-
-
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [mobileSearch, setMobileSearch] = useState<string>("");
@@ -232,7 +53,6 @@ function App() {
   const [showFloatingQR, setShowFloatingQR] = useState(true);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
   const [currentView, setCurrentView] = useState<'main' | 'calendar'>('main');
-
 
   // Generate QR code for the current URL
   const generateQRCode = async () => {
@@ -296,21 +116,11 @@ function App() {
       return () => document.removeEventListener('keydown', handleEscape);
     }
   }, [showQRCode]);
-  const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
+  const [isMobileView, setIsMobileView] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInStandaloneMode, setIsInStandaloneMode] = useState(false);
   const [showIOSBanner, setShowIOSBanner] = useState(false);
-
-  // Handle window resize for mobile view detection
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobileView(window.innerWidth <= 768);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Update date and time every second
   useEffect(() => {
@@ -428,22 +238,18 @@ function App() {
       setDeferredPrompt(null);
       setShowInstallPrompt(false);
     } else {
-      // Detect device type
+      // iOS Safari - show instructions
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isChrome = /Chrome/.test(navigator.userAgent);
-      const isSafari = /Safari/.test(navigator.userAgent) && !isChrome;
-      
       if (isIOS) {
         if (isInStandaloneMode) {
-          // We're already in PWA mode
+          // We're already in PWA mode, so we can't add to home screen again
           alert('📱 This app is already installed!\n\nYou\'re currently using the installed version.\n\nTo reinstall or update:\n1. Delete the current app from your home screen\n2. Open Safari and visit this website\n3. Use the Share button to add it again\n\n✨ The app is working as intended!');
         } else {
-          // iPhone/iPad - Show both Safari and Chrome instructions
-          alert('📱 iPhone/iPad:\n\n📍 Safari:\n1. Tap the Share button (□↑) at the bottom of Safari\n2. Select "Add to Home Screen"\n\n📍 Chrome:\n1. Tap the Share button in the top address bar\n2. Select "Add to Home Screen"\n\n✨ The app will then work like a native app!');
+          // We're in Safari, show normal instructions
+          alert('📱 To save this app:\n\n1. Look for the Share button at the BOTTOM of Safari\n   (Square with arrow up: [share icon])\n2. Tap the Share button\n3. Scroll down and tap "Add to Home Screen"\n4. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
         }
       } else {
-        // Android (Chrome)
-        alert('📱 Android (Chrome):\n\n1. Tap the three dots on the right top corner\n2. Select "Add to Home Screen"\n3. Tap "Add" to confirm\n\n✨ The app will then work like a native app!');
+        alert('📱 To save this app:\n\n1. Look for the install icon in your browser\n2. Or use your browser\'s menu to "Add to Home Screen"\n3. Follow the prompts to install\n\n✨ The app will then work like a native app!');
       }
     }
   };
@@ -460,7 +266,7 @@ function App() {
     });
       if (filtersToUse.view_type === "cancellations") params.append("has_cancellation", "true");
       
-      const url = `${API_URL}/api/cancellations?${params.toString()}`;
+      const url = `${API_URL}/cancellations?${params.toString()}`;
       console.log("Fetching from:", url);
       console.log("Filters being used:", filtersToUse);
       console.log("URL parameters:", params.toString());
@@ -473,15 +279,14 @@ function App() {
       
     const data = await res.json();
       console.log("Received data:", data);
-      console.log("Data count:", Array.isArray(data) ? data.length : 0);
+      console.log("Data count:", data.data ? data.data.length : 0);
       console.log("Is mobile view:", isMobileView);
       console.log("API URL:", url);
-      
-    setCancellations(data);
-    setLastLoaded(new Date().toISOString());
+    setCancellations(data.data);
+    setLastLoaded(data.last_loaded);
       
       // Extract unique locations for filter dropdown
-      const uniqueLocations = Array.from(new Set(data.map((item: any) => item.location).filter((loc: any) => loc && loc !== ''))).sort() as string[];
+      const uniqueLocations = Array.from(new Set(data.data.map((item: any) => item.location).filter((loc: any) => loc && loc !== ''))).sort() as string[];
       setLocations(uniqueLocations);
     } catch (error) {
       console.error("Error fetching cancellations:", error);
@@ -493,7 +298,7 @@ function App() {
 
   useEffect(() => {
     fetchCancellations();
-    fetchAllcancellations(); // Also fetch all cancellations for pinned items
+    fetchAllPrograms(); // Also fetch all programs for pinned items
     const interval = setInterval(() => fetchCancellations(), 5 * 60 * 1000); // 5 min
     return () => clearInterval(interval);
     // eslint-disable-next-line
@@ -508,7 +313,7 @@ function App() {
         ...filters, 
         program: value, 
         program_id: value,
-        view_type: "all" // Always search all cancellations to show pinned classes
+        view_type: "all" // Always search all programs to show pinned classes
       };
       setFilters(newFilters);
       
@@ -522,26 +327,26 @@ function App() {
   const handleRefresh = async () => {
     setLoading(true);
     try {
-      console.log('🔄 REFRESH: Starting data refresh...');
-      // Force fresh data fetch with timestamp to prevent caching
+      // Force refresh by adding timestamp to prevent caching
       const timestamp = new Date().getTime();
-      await fetch(`${API_URL}/api/cancellations?t=${timestamp}`, {
-        method: 'GET',
+      const res = await fetch(`${API_URL}/refresh?t=${timestamp}`, { 
+        method: "POST",
         cache: 'no-cache',
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
         }
-      }).then(res => res.json()).then(data => {
-        console.log('🔄 REFRESH: Data refreshed successfully');
-        setCancellations(data.data);
-        setLastLoaded(data.last_loaded);
       });
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      // Force fresh data fetch
+      await fetchCancellations();
     } catch (error) {
-      console.error("🔄 REFRESH ERROR:", error);
+      console.error("Error refreshing:", error);
       alert("Refresh failed. Please try refreshing the browser page instead.");
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
 
@@ -555,8 +360,6 @@ function App() {
       } else {
         newFavorites.add(programId);
         console.log('Added to favorites:', programId);
-        // Track when user favorites a program
-        analytics.trackProgramFavorited();
       }
       
       // Save to localStorage
@@ -568,57 +371,6 @@ function App() {
     });
   };
 
-  const handleSendMessage = async (program: Cancellation, message: string) => {
-    console.log('🚀 Sending message:', { program: program.program, message });
-    
-    try {
-      const subject = `${program.program} (ID: ${program.program_id.split('.')[0]}) - ${program.instructor}`;
-      
-      console.log('📧 API URL:', API_URL);
-      console.log('📧 Subject:', subject);
-      
-      const response = await fetch(`${API_URL}/api/send-message`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          subject: subject,
-          message: message,
-          program_name: program.program,
-          program_id: program.program_id.split('.')[0],
-          instructor: program.instructor
-        })
-      });
-
-      console.log('📧 Response status:', response.status);
-      const responseData = await response.json();
-      console.log('📧 Response data:', responseData);
-
-      if (response.ok) {
-        if (responseData.status === 'warning') {
-          alert(`⚠️ ${responseData.message}\n\nYour message has been logged on the server. Please check with the administrator.`);
-        } else {
-          alert('✅ Message sent successfully!');
-        }
-        setShowMessageModal(false);
-        setMessageText("");
-        setMessageProgram(null);
-        // Track successful message sent
-        analytics.trackMessageSent();
-      } else {
-        alert(`❌ Failed to send message: ${responseData.message || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('❌ Error sending message:', error);
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        alert('❌ Cannot connect to server. Backend might be down. Please try again later.');
-      } else {
-        alert(`❌ Error sending message: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
-    }
-  };
-
   // Normalize program ID by stripping leading zeros
   const normalizeProgramId = (id: string): string => {
     return id.replace(/^0+/, '') || '0';
@@ -628,12 +380,12 @@ function App() {
   const handleMobileSearch = async () => {
     const searchTerm = mobileSearch.trim();
     
-    // Always search all cancellations to show pinned classes
+    // Always search all programs to show pinned classes
     const newFilters = { 
       ...filters, 
       program: searchTerm, 
       program_id: searchTerm, // Use original search term for ID search
-      view_type: "all" // Always search all cancellations to show pinned classes
+      view_type: "all" // Always search all programs to show pinned classes
     };
     setFilters(newFilters);
     
@@ -641,44 +393,44 @@ function App() {
     await fetchCancellations(newFilters);
   };
 
-  // Get all cancellations (for pinned cancellations that might not be in filtered results)
-  const [allcancellations, setAllcancellations] = useState<Cancellation[]>([]);
+  // Get all programs (for pinned programs that might not be in filtered results)
+  const [allPrograms, setAllPrograms] = useState<Cancellation[]>([]);
 
-  // Fetch all cancellations (without filters) to ensure pinned cancellations are always available
-  const fetchAllcancellations = async () => {
+  // Fetch all programs (without filters) to ensure pinned programs are always available
+  const fetchAllPrograms = async () => {
     try {
-      const url = `${API_URL}/api/cancellations`;
+      const url = `${API_URL}/cancellations`;
       const res = await fetch(url);
       
       if (res.ok) {
         const data = await res.json();
-        setAllcancellations(data.data || []);
+        setAllPrograms(data.data || []);
       }
     } catch (error) {
-      console.error("Failed to fetch all cancellations:", error);
+      console.error("Failed to fetch all programs:", error);
     }
   };
 
-  // Fetch all cancellations when favorites change (to ensure pinned cancellations are available)
+  // Fetch all programs when favorites change (to ensure pinned programs are available)
   useEffect(() => {
     if (favorites.size > 0) {
-      fetchAllcancellations();
+      fetchAllPrograms();
     }
   }, [favorites]);
 
-  // Combine pinned cancellations with current filtered results
+  // Combine pinned programs with current filtered results
   const sortedCancellations = (() => {
     const currentResults = [...cancellations];
-    const allcancellationsList = [...allcancellations];
+    const allProgramsList = [...allPrograms];
     
-    // Get pinned cancellations from all cancellations
-    const pinnedResults = allcancellationsList.filter(p => favorites.has(p.program_id));
+    // Get pinned programs from all programs
+    const pinnedResults = allProgramsList.filter(p => favorites.has(p.program_id));
     
-    // Remove duplicates (pinned cancellations that are already in current results)
+    // Remove duplicates (pinned programs that are already in current results)
     const currentIds = new Set(currentResults.map(p => p.program_id));
     const uniquePinned = pinnedResults.filter(p => !currentIds.has(p.program_id));
     
-    // Combine: unique pinned cancellations first, then current results
+    // Combine: unique pinned programs first, then current results
     const combined = [...uniquePinned, ...currentResults];
     
     // Sort within each group (pinned first, then regular)
@@ -694,22 +446,69 @@ function App() {
 
   // Debug logging
   console.log('Favorites state:', Array.from(favorites));
-  console.log('All cancellations count:', allcancellations.length);
+  console.log('All programs count:', allPrograms.length);
   console.log('Current filtered results count:', cancellations.length);
   console.log('Sorted cancellations count:', sortedCancellations.length);
-  console.log('Pinned cancellations in results:', sortedCancellations.filter(p => favorites.has(p.program_id)).length);
+  console.log('Pinned programs in results:', sortedCancellations.filter(p => favorites.has(p.program_id)).length);
 
-        // Calendar view
-        if (currentView === 'calendar') {
-          return (
-            <div className="App">
-              <Calendar 
-                onBackToMain={() => setCurrentView('main')} 
-                isMobileView={isMobileView}
-              />
-            </div>
-          );
-        }
+  const handleExport = async (format: 'excel' | 'pdf') => {
+    try {
+      setLoading(true);
+      
+      // Build query parameters based on current filters
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+      if (filters.view_type === "cancellations") params.append("has_cancellation", "true");
+      
+      // Call export endpoint
+      const res = await fetch(`${API_URL}/export-${format}?${params.toString()}`);
+      
+      if (!res.ok) {
+        throw new Error(`Export failed: ${res.status}`);
+      }
+      
+      if (format === 'excel') {
+        // Handle Excel export
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `class_cancellations_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } else {
+        // Handle PDF export
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `class_cancellations_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }
+      
+    } catch (error) {
+      console.error(`Error exporting to ${format}:`, error);
+      alert(`Export to ${format.toUpperCase()} failed. Please try again.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Calendar view
+  if (currentView === 'calendar') {
+    return (
+      <div className="App">
+        <Calendar onBackToMain={() => setCurrentView('main')} />
+      </div>
+    );
+  }
 
   // Mobile view
   if (isMobileView) {
@@ -718,19 +517,16 @@ function App() {
         <header className="mobile-header">
           <div className="mobile-header-left">
             <img 
-            src={logo} 
-            alt="Company Logo" 
-            className="mobile-logo clickable-logo custom-tooltip"
-            onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
-            data-tooltip="Visit Seniors Kingston Website"
+              src={logo} 
+              alt="Company Logo" 
+              className="mobile-logo clickable-logo"
+              onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
+              title="Visit Seniors Kingston Website"
             />
             <button 
-              onClick={() => {
-                setCurrentView('calendar');
-                analytics.trackEventCalendarViewed();
-              }} 
-              className="mobile-events-schedule-image-button custom-tooltip"
-              data-tooltip="View Event Schedule"
+              onClick={() => setCurrentView('calendar')} 
+              className="mobile-events-schedule-image-button"
+              title="View Event Schedule"
             >
               <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="mobile-events-schedule-image" />
             </button>
@@ -742,27 +538,17 @@ function App() {
           <div className="mobile-header-buttons">
             <button 
               onClick={() => setIsMobileView(false)} 
-              className="mobile-to-desktop-button custom-tooltip"
-              data-tooltip="Switch to Desktop View"
+              className="mobile-to-desktop-button"
+              title="Switch to Desktop View"
             >
               🖥️ Desktop
             </button>
-            
-            <button 
-              onClick={() => {
-                console.log('🔄 MOBILE REFRESH clicked');
-                handleRefresh();
-              }} 
-              className="refresh-button custom-tooltip"
-              data-tooltip="Refresh Data"
-            >
+            <button onClick={handleRefresh} className="refresh-button">
               🔄 Refresh
             </button>
             <button 
               onClick={() => {
-                console.log('📱 MOBILE QR CODE clicked');
-                console.log('Current showQRCode state:', showQRCode);
-                console.log('Current qrCodeDataURL:', qrCodeDataURL ? 'Generated' : 'Not generated');
+                console.log('Share App button clicked, setting showQRCode to true');
                 
                 // Generate QR code if not already generated
                 if (!qrCodeDataURL) {
@@ -770,23 +556,18 @@ function App() {
                   generateQRCode();
                 }
                 
-                console.log('Setting showQRCode to true');
                 setShowQRCode(true);
-                // Track QR code sharing
-                analytics.trackQRCodeShared();
               }} 
-              className="mobile-share-button custom-tooltip"
-              data-tooltip="Share App QR Code"
+              className="mobile-share-button"
+              title="Share App QR Code"
             >
               <img src="/users-icon-white.svg" alt="Share" style={{ height: '1.2em', verticalAlign: 'middle', marginRight: '5px' }} />
               Share
             </button>
-            {!isInStandaloneMode && (
-              <button 
-                onClick={handleInstallClick} 
-                className="install-button custom-tooltip"
-                data-tooltip="Install App on Device"
-              >
+            {isInStandaloneMode ? (
+              <div className="installed-status">✅ App Installed</div>
+            ) : (
+              <button onClick={handleInstallClick} className="install-button">
                 📲 Save
               </button>
             )}
@@ -805,8 +586,7 @@ function App() {
             />
             <button 
               onClick={handleMobileSearch}
-              className="mobile-search-button custom-tooltip"
-              data-tooltip="Search cancellations"
+              className="mobile-search-button"
             >
               🔍
             </button>
@@ -822,6 +602,120 @@ function App() {
           </div>
         )}
 
+        {/* Mobile QR Code Modal */}
+        {showQRCode && (
+          <div style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            zIndex: 9999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '20px',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              position: 'relative',
+              border: '4px solid #0072ce',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+              textAlign: 'center'
+            }}>
+              <div style={{ marginBottom: '20px' }}>
+                <h2 style={{ margin: '0 0 10px 0', color: '#0072ce' }}>Scan with your phone to open the app</h2>
+                <button 
+                  onClick={() => setShowQRCode(false)}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    color: '#666'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                {qrCodeDataURL ? (
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <img 
+                      src={qrCodeDataURL} 
+                      alt="QR Code for app" 
+                      style={{ 
+                        width: '300px', 
+                        height: '300px', 
+                        border: '2px solid #ddd',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      background: 'white',
+                      padding: '8px',
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+                    }}>
+                      <img 
+                        src={logo} 
+                        alt="Company Logo" 
+                        style={{ width: '30px', height: '30px', objectFit: 'contain' }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '40px', color: '#666' }}>
+                    <p>Generating QR code...</p>
+                    <button 
+                      onClick={generateQRCode}
+                      style={{
+                        background: '#0072ce',
+                        color: 'white',
+                        border: 'none',
+                        padding: '10px 20px',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              <div style={{ marginTop: '20px' }}>
+                <button 
+                  onClick={() => setShowQRCode(false)} 
+                  style={{ 
+                    background: "#0072ce", 
+                    color: "white",
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* iOS Installation Banner */}
         {showIOSBanner && (
@@ -840,12 +734,7 @@ function App() {
 
         {/* Debug info for mobile */}
         <div className="mobile-debug" style={{ fontSize: '12px', color: '#666', padding: '5px', textAlign: 'center' }}>
-          Mobile View: {isMobileView ? 'Yes' : 'No'} | Data: {sortedCancellations.length} Programs
-          {selectedLocation && (
-            <div style={{ background: 'yellow', color: 'black', padding: '5px', margin: '5px' }}>
-              🚨 MODAL SHOULD BE VISIBLE! selectedLocation: {selectedLocation}
-            </div>
-          )}
+          Mobile View: {isMobileView ? 'Yes' : 'No'} | Data: {sortedCancellations.length} programs
         </div>
 
         <div className="mobile-data">
@@ -866,34 +755,8 @@ function App() {
                       {isFavorite ? '★' : '☆'}
                     </span>
                     <div className="mobile-program-info">
-                      <div 
-                        className="mobile-program-name"
-                        onClick={() => setSelectedProgram(c)}
-                        data-tooltip="More information about this program"
-                        style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
-                      >
-                        {c.program}
-                      </div>
-                      <div className="mobile-program-id" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 'bold' }}>ID: {c.program_id.split('.')[0]}</span>
-                        <img 
-                          src="/message-icon.svg"
-                          alt="Send message"
-                          className="message-icon custom-tooltip"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMessageProgram(c);
-                            setShowMessageModal(true);
-                          }}
-                          data-tooltip="Send a message regarding this program"
-                          style={{
-                            cursor: 'pointer',
-                            width: '20px',
-                            height: '20px',
-                            transition: 'transform 0.2s ease'
-                          }}
-                        />
-                      </div>
+                      <div className="mobile-program-name">{c.program}</div>
+                      <div className="mobile-program-id">ID: {c.program_id}</div>
                     </div>
                   </div>
                   
@@ -907,20 +770,8 @@ function App() {
                       <span className="mobile-value">{c.time}</span>
                     </div>
                     <div className="mobile-detail-row">
-                      <span className="mobile-label">Date Range:</span>
-                      <span className="mobile-value">{c.date_range}</span>
-                    </div>
-                    <div className="mobile-detail-row">
-                    <span className="mobile-label">Location:</span>
-                    <span 
-                      className="mobile-value"
-                      onClick={() => {
-                        setSelectedLocation(c.location);
-                      }}
-                      style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
-                    >
-                      {c.location}
-                    </span>
+                      <span className="mobile-label">Location:</span>
+                      <span className="mobile-value">{c.location}</span>
                     </div>
                     <div className="mobile-detail-row">
                       <span className="mobile-label">Room:</span>
@@ -980,355 +831,6 @@ function App() {
             })
           )}
         </div>
-        
-        
-        {/* PROGRAM DETAILS MODAL - Mobile */}
-        {selectedProgram && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 9999999999,
-            padding: '20px'
-          }}
-          onClick={() => {
-            setSelectedProgram(null);
-          }}
-          >
-            <div style={{
-              background: 'white',
-              padding: '30px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-              maxWidth: '90vw',
-              maxHeight: '80vh',
-              border: '3px solid #0072ce',
-              textAlign: 'center',
-              position: 'relative',
-              overflow: 'auto'
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            >
-              <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedProgram.program}</h3>
-              
-              
-              {/* Always show Description section */}
-              <div style={{ marginBottom: '20px' }}>
-                <h4 style={{ color: '#333', marginBottom: '10px' }}>Description:</h4>
-                <p style={{ fontSize: '1rem', lineHeight: '1.6', textAlign: 'left' }}>
-                  {selectedProgram.description && selectedProgram.description.trim() !== '' 
-                    ? selectedProgram.description 
-                    : 'No description available'}
-                </p>
-              </div>
-              
-              {/* Always show Fee section */}
-              <div style={{ marginBottom: '30px' }}>
-                <h4 style={{ color: '#333', marginBottom: '10px' }}>Fee:</h4>
-                <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#0072ce' }}>
-                  {selectedProgram.fee && selectedProgram.fee.trim() !== '' 
-                    ? selectedProgram.fee 
-                    : 'No fee information available'}
-                </p>
-              </div>
-              
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedProgram(null);
-                }}
-                style={{
-                  background: '#0072ce',
-                  color: 'white',
-                  border: 'none',
-                  padding: '12px 30px',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: 'bold'
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* LOCATION MODAL - MOVED HERE TO MATCH WORKING MODAL */}
-        {selectedLocation && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 9999999999,
-            padding: '20px'
-          }}
-          onClick={() => {
-            setSelectedLocation(null);
-          }}
-          >
-            <div style={{
-              background: 'white',
-              padding: '30px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-              maxWidth: '90vw',
-              maxHeight: '80vh',
-              border: '3px solid #0072ce',
-              textAlign: 'center',
-              position: 'relative',
-              overflow: 'auto'
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            >
-              <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedLocation}</h3>
-              <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
-                {getFullAddress(selectedLocation)}
-              </p>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedLocation(null);
-                }}
-                style={{
-                  background: '#0072ce',
-                  color: 'white',
-                  border: 'none',
-                  padding: '12px 30px',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: 'bold'
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* QR Code Modal - Mobile */}
-        {showQRCode && (
-          <div style={{
-            position: 'fixed',
-            top: '0',
-            left: '0',
-            width: '100vw',
-            height: '100vh',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            zIndex: 9999999999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px'
-          }}>
-            <div style={{
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              padding: '20px',
-              maxWidth: '90vw',
-              maxHeight: '90vh',
-              overflow: 'auto',
-              position: 'relative',
-              border: '4px solid #0072ce',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
-              textAlign: 'center'
-            }}>
-              <div style={{ marginBottom: '20px' }}>
-                <h2 style={{ margin: '0 0 10px 0', color: '#0072ce' }}>Scan with your phone to open the app</h2>
-                <button 
-                  onClick={() => setShowQRCode(false)}
-                  style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '24px',
-                    cursor: 'pointer',
-                    color: '#666'
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-              
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                {qrCodeDataURL ? (
-                  <div style={{ position: 'relative', display: 'inline-block' }}>
-                    <img 
-                      src={qrCodeDataURL} 
-                      alt="QR Code for app" 
-                      style={{ 
-                        width: '250px', 
-                        height: '250px', 
-                        border: '2px solid #ddd',
-                        borderRadius: '8px'
-                      }}
-                    />
-                    <div style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      background: 'white',
-                      padding: '6px',
-                      borderRadius: '6px',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
-                    }}>
-                      <img 
-                        src={logo} 
-                        alt="Company Logo" 
-                        style={{ width: '25px', height: '25px', objectFit: 'contain' }}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ padding: '40px', color: '#666' }}>
-                    <p>Generating QR code...</p>
-                    <button 
-                      onClick={generateQRCode}
-                      style={{
-                        background: '#0072ce',
-                        color: 'white',
-                        border: 'none',
-                        padding: '10px 20px',
-                        borderRadius: '6px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Retry
-                    </button>
-                  </div>
-                )}
-              </div>
-              
-              <div style={{ marginTop: '20px' }}>
-                <button 
-                  onClick={() => setShowQRCode(false)} 
-                  style={{ 
-                    background: '#0072ce', 
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '6px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Message Modal - Global for mobile */}
-        {showMessageModal && messageProgram && (
-          <div style={{
-            position: 'fixed',
-            top: '0',
-            left: '0',
-            width: '100vw',
-            height: '100vh',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            zIndex: 9999999999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px'
-          }}
-          onClick={() => setShowMessageModal(false)}
-          >
-            <div style={{
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              padding: '20px',
-              maxWidth: '90vw',
-              maxHeight: '90vh',
-              overflow: 'auto',
-              position: 'relative',
-              border: '4px solid #0072ce',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
-              textAlign: 'center'
-            }}
-            onClick={e => e.stopPropagation()}
-            >
-              <h3 style={{ color: '#0072ce', marginTop: 0 }}>Send Message</h3>
-              <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
-                <strong>Program:</strong> {messageProgram.program}<br/>
-                <strong>ID:</strong> {messageProgram.program_id.split('.')[0]}<br/>
-                <strong>Instructor:</strong> {messageProgram.instructor}
-              </div>
-              <textarea
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                placeholder="Type your message here..."
-                style={{
-                  width: '100%',
-                  height: '100px',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  marginBottom: '15px',
-                  resize: 'vertical'
-                }}
-              />
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                <button
-                  onClick={() => {
-                    console.log('🖱️ Cancel button clicked!');
-                    setShowMessageModal(false);
-                    setMessageText("");
-                    setMessageProgram(null);
-                  }}
-                  style={{
-                    background: '#6c757d',
-                    color: 'white',
-                    padding: '10px 20px',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '14px'
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleSendMessage(messageProgram, messageText)}
-                  disabled={!messageText.trim()}
-                  style={{
-                    background: messageText.trim() ? '#0072ce' : '#ccc',
-                    color: 'white',
-                    padding: '10px 20px',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: messageText.trim() ? 'pointer' : 'not-allowed',
-                    fontSize: '14px'
-                  }}
-                >
-                  Send Message
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
@@ -1340,19 +842,16 @@ function App() {
       {!isMobileView && showFloatingQR && (
         <div className="floating-qr-container">
           <button 
-            className="floating-qr-button qr-code-button custom-tooltip"
-            onClick={() => {
-              setShowQRCode(true);
-              analytics.trackQRCodeShared();
-            }}
-            data-tooltip="Open QR Code"
+            className="floating-qr-button"
+            onClick={() => setShowQRCode(true)}
+            title="Open QR Code"
           >
             📱
           </button>
           <button 
-            className="floating-qr-close custom-tooltip"
+            className="floating-qr-close"
             onClick={() => setShowFloatingQR(false)}
-            data-tooltip="Close QR Code"
+            title="Close QR Code"
           >
             ×
           </button>
@@ -1363,19 +862,16 @@ function App() {
       <header className="app-header">
         <div className="header-left">
           <img 
-          src={logo} 
-          alt="Company Logo" 
-          className="app-logo clickable-logo custom-tooltip"
-          onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
-          data-tooltip="Visit Seniors Kingston Website"
+            src={logo} 
+            alt="Company Logo" 
+            className="app-logo clickable-logo"
+            onClick={() => window.open('https://www.seniorskingston.ca/', '_blank')}
+            title="Visit Seniors Kingston Website"
           />
           <button 
-            onClick={() => {
-              setCurrentView('calendar');
-              analytics.trackEventCalendarViewed();
-            }} 
-            className="events-schedule-image-button custom-tooltip"
-            data-tooltip="View Event Schedule"
+            onClick={() => setCurrentView('calendar')} 
+            className="events-schedule-image-button"
+            title="View Event Schedule"
           >
             <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="events-schedule-image" />
           </button>
@@ -1384,15 +880,11 @@ function App() {
         <div className="datetime-display">
             {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {currentDateTime.toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
         </div>
-        
       </header>
-      </div>
       <div className="filters">
         <button 
           onClick={() => setIsMobileView(true)} 
           style={{ background: "#00b388", color: "white", fontSize: "0.75rem", padding: "0.3rem 0.6rem" }}
-          className="custom-tooltip"
-          data-tooltip="Switch to Mobile View"
         >
           📱 Mobile
         </button>
@@ -1435,27 +927,39 @@ function App() {
             <option value="cancellations">Show Class Cancellations</option>
             <option value="all">Show All Programs</option>
         </select>
-        <button onClick={handleRefresh} disabled={loading} className="custom-tooltip" data-tooltip="Refresh Data">
+        <button onClick={handleRefresh} disabled={loading}>
           {loading ? "Refreshing..." : "Refresh"}
         </button>
         <button 
+          onClick={() => handleExport('excel')} 
+          style={{ background: "#0072ce", color: "white" }}
+          disabled={cancellations.length === 0}
+        >
+          📊 Excel
+        </button>
+        <button 
+          onClick={() => handleExport('pdf')} 
+          style={{ background: "#0072ce", color: "white" }}
+          disabled={cancellations.length === 0}
+        >
+          📄 PDF
+          </button>
+        <button 
           onClick={() => setShowUserGuide(true)} 
           style={{ background: "#0072ce", color: "white" }}
-          className="custom-tooltip"
-          data-tooltip="View Help Guide"
         >
           📖 Help
-        </button>
+          </button>
       </div>
-      
       <div className="last-loaded">
-        Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}
+          Last updated: {lastLoaded ? new Date(lastLoaded).toLocaleString('en-CA', { timeZone: 'America/Toronto' }) : "Never"}
+        </div>
       </div>
       {loading && (
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Loading program data...</p>
-        </div>
+      </div>
       )}
 
       <div className="table-container">
@@ -1474,14 +978,14 @@ function App() {
               <th>Program Status</th>
               <th>Class Cancellation</th>
               <th>Additional Information</th>
-              <th>Refund</th>
+              <th>Withdrawal</th>
             </tr>
           </thead>
           <tbody>
             {sortedCancellations.length === 0 && (
               <tr>
                 <td colSpan={13} style={{ textAlign: "center" }}>
-                  No cancellations found.
+                  No programs found.
                 </td>
               </tr>
             )}
@@ -1491,52 +995,19 @@ function App() {
                 <tr key={i} className={isFavorite ? 'favorite-row' : ''}>
                   <td>
                     <span 
-                      className={`favorite-star custom-tooltip ${isFavorite ? 'favorited' : ''}`}
+                      className={`favorite-star ${isFavorite ? 'favorited' : ''}`}
                       onClick={() => toggleFavorite(c.program_id)}
-                      data-tooltip={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                     >
                       {isFavorite ? '★' : '☆'}
                     </span>
                   </td>
                 <td>{c.sheet}</td>
-                <td
-                  onClick={() => setSelectedProgram(c)}
-                  data-tooltip="More information about this program"
-                  style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
-                >
-                  {c.program}
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: 'bold' }}>{c.program_id.split('.')[0]}</span>
-                    <img 
-                      src="/message-icon.svg"
-                      alt="Send message"
-                      className="message-icon custom-tooltip"
-                      onClick={() => {
-                        setMessageProgram(c);
-                        setShowMessageModal(true);
-                      }}
-                      data-tooltip="Send a message regarding this program"
-                      style={{
-                        cursor: 'pointer',
-                        width: '20px',
-                        height: '20px',
-                        transition: 'transform 0.2s ease'
-                      }}
-                    />
-                  </div>
-                </td>
+                <td>{c.program}</td>
+                <td>{c.program_id}</td>
                 <td>{c.date_range}</td>
                 <td>{c.time}</td>
-                <td 
-                  onClick={() => {
-                    setSelectedLocation(c.location);
-                  }}
-                  style={{ cursor: 'pointer', color: '#0072ce', textDecoration: 'underline' }}
-                >
-                  {c.location}
-                </td>
+                <td>{c.location}</td>
                   <td>{c.class_room}</td>
                   <td>{c.instructor}</td>
                 <td>{c.program_status}</td>
@@ -1576,7 +1047,7 @@ function App() {
                   <td>{c.note && c.note !== '' ? c.note : ''}</td>
                 <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
               </tr>
-            );
+              );
             })}
           </tbody>
         </table>
@@ -1584,11 +1055,6 @@ function App() {
 
       {/* User Guide Modal */}
       {showUserGuide && (
-        <UserGuide onClose={() => setShowUserGuide(false)} />
-      )}
-
-      {/* Old guide content - REMOVE EVERYTHING FROM HERE TO "Program Details Modal" */}
-      {false && (
         <div className="modal-overlay" onClick={() => setShowUserGuide(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <header className="app-header">
@@ -1635,16 +1101,16 @@ function App() {
               </ul>
 
               <h3>4. Understanding Program Statuses</h3>
-              <p>cancellations may appear with one of these statuses:</p>
+              <p>Programs may appear with one of these statuses:</p>
               <ul>
                 <li><strong>Active</strong> – The program is currently running (default view).</li>
                 <li><strong>Cancelled</strong> – The program has been fully cancelled.</li>
-                <li><strong>Additions</strong> – New cancellations added after the session started (displayed as Active).</li>
+                <li><strong>Additions</strong> – New programs added after the session started (displayed as Active).</li>
               </ul>
-              <p>💡 <strong>Tip:</strong> Use the Active filter to see all current cancellations.</p>
+              <p>💡 <strong>Tip:</strong> Use the Active filter to see all current programs.</p>
 
               <h3>5. Using the View Filter (Dropdown)</h3>
-              <p>The app uses a dropdown filter to select which cancellations to display:</p>
+              <p>The app uses a dropdown filter to select which programs to display:</p>
               <ul>
                 <li><strong>Show Class Cancellations</strong> – Displays only classes that have individual cancellations.</li>
                 <li><strong>Show All Programs</strong> – Displays all scheduled programs, including Active, Cancelled, and Additions.</li>
@@ -1663,7 +1129,7 @@ function App() {
               <h3>7. Favorites Feature (Star Pinning)</h3>
               <ul>
                 <li><strong>Click the star (★/☆)</strong> in the leftmost column to pin a program to the top</li>
-                <li><strong>Favorites persist</strong> – Your starred cancellations stay at the top even after closing and reopening the app</li>
+                <li><strong>Favorites persist</strong> – Your starred programs stay at the top even after closing and reopening the app</li>
                 <li><strong>Per-device storage</strong> – Each device remembers its own favorites</li>
                 <li><strong>Visual indicator</strong> – Filled star (★) = favorited, empty star (☆) = not favorited</li>
                 <li><strong>Works everywhere</strong> – Both desktop and mobile views support favorites</li>
@@ -1690,14 +1156,14 @@ function App() {
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Program Status</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Active / Cancelled / Additions</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Class Cancellation</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Specific cancelled dates</td></tr>
                   <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Additional Information</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Notes or details</td></tr>
-                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Refund</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Allowed (Yes/No, based on classes completed)</td></tr>
+                  <tr><td style={{ border: '1px solid #ddd', padding: '8px' }}>Withdrawal</td><td style={{ border: '1px solid #ddd', padding: '8px' }}>Allowed (Yes/No, based on classes completed)</td></tr>
                 </tbody>
               </table>
 
               <h3>9. Mobile View Features</h3>
               <ul>
-                <li><strong>Card Layout:</strong> cancellations displayed as easy-to-read cards</li>
-                <li><strong>Favorites Support:</strong> Star cancellations to pin them to the top</li>
+                <li><strong>Card Layout:</strong> Programs displayed as easy-to-read cards</li>
+                <li><strong>Favorites Support:</strong> Star programs to pin them to the top</li>
                 <li><strong>Class Cancellations Only:</strong> Mobile view focuses on cancelled classes</li>
                 <li><strong>Touch-Friendly:</strong> Large buttons and easy navigation</li>
                 <li><strong>Header Buttons:</strong> Desktop switch (🖥️), Refresh (🔄), and Save App (📲) buttons in header</li>
@@ -1705,72 +1171,44 @@ function App() {
                 <li><strong>PWA Installation:</strong> Can be installed as a native app</li>
               </ul>
 
-              <h3>10. Messaging Feature</h3>
+              <h3>10. Exporting Data (Desktop Only)</h3>
               <ul>
-                <li><strong>Message Icon (✉️):</strong> Click the envelope icon next to any Program ID to send a message</li>
-                <li><strong>Available on:</strong> Both mobile and desktop views</li>
-                <li><strong>How to use:</strong> Click the icon → Enter your message → Click "Send Message"</li>
-                <li><strong>Tooltip:</strong> Hover over the message icon to see "Send a message regarding this program"</li>
-                <li><strong>Program info:</strong> Your message will include the program name, ID, and instructor information</li>
+                <li><strong>Export to Excel</strong> – Download filtered results as an Excel file</li>
+                <li><strong>Export to PDF</strong> – Download filtered results as a PDF file</li>
+                <li>Both exports respect your current filters and include your favorites at the top</li>
               </ul>
 
-              <h3>11. Event Schedule & Calendar</h3>
+              <h3>11. Withdrawal Rules</h3>
               <ul>
-                <li><strong>View Events:</strong> Click the "Event Schedule" banner in the header to see upcoming events</li>
-                <li><strong>Calendar View:</strong> Navigate through months to view scheduled events</li>
-                <li><strong>Event Details:</strong> Click on any event to see full information</li>
-                <li><strong>Return to Main:</strong> Click "Back to Main View" to return to the program list</li>
-              </ul>
-
-              <h3>12. QR Code Sharing</h3>
-              <ul>
-                <li><strong>Desktop:</strong> Click the floating QR code button (📱) on the right side of the screen</li>
-                <li><strong>Mobile:</strong> Tap the "👥 Share" button in the header</li>
-                <li><strong>Share the app:</strong> Others can scan the QR code to access the app instantly</li>
-                <li><strong>Close QR:</strong> Click outside the QR code or press ESC key to close</li>
-              </ul>
-
-              <h3>13. Refund Rules</h3>
-              <ul>
-                <li><strong>Yes</strong> – Refund allowed if fewer than 3 classes are completed</li>
-                <li><strong>No</strong> – Refund not allowed if 3 or more classes are completed</li>
+                <li><strong>Yes</strong> – Withdrawal allowed if fewer than 3 classes are completed</li>
+                <li><strong>No</strong> – Withdrawal not allowed if 3 or more classes are completed</li>
                 <li>The calculation considers start date, current date, and cancellations.</li>
               </ul>
 
-              <h3>14. Tips & Best Practices</h3>
+              <h3>12. Tips & Best Practices</h3>
               <ul>
-                <li><strong>Use favorites (⭐)</strong> to keep important programs at the top</li>
+                <li><strong>Use favorites</strong> to keep important programs at the top</li>
                 <li><strong>Install on mobile</strong> for quick access to class cancellations</li>
                 <li><strong>Automatic view switching</strong> - the app automatically chooses the best view for your device</li>
-                <li><strong>Use messaging</strong> to communicate about specific programs quickly</li>
-                <li><strong>Share QR code</strong> to help others access the app</li>
-                <li><strong>Refresh regularly</strong> to get the latest updates (auto-refreshes every 5 minutes)</li>
-                <li><strong>Check Event Schedule</strong> for upcoming special events and activities</li>
+                <li><strong>Export data</strong> to share or print schedules</li>
+                <li><strong>Refresh regularly</strong> to get the latest updates</li>
                 <li>All times are shown in Kingston, Ontario timezone</li>
               </ul>
 
-              <h3>15. Troubleshooting</h3>
+              <h3>13. Troubleshooting</h3>
               <ul>
                 <li><strong>Data not loading:</strong> Try refreshing the page or using the Refresh button (🔄) in the header</li>
-                <li><strong>Favorites disappeared:</strong> Check if you're on the same device/browser (favorites are stored per device)</li>
+                <li><strong>Favorites disappeared:</strong> Check if you're on the same device/browser</li>
                 <li><strong>Mobile view issues:</strong> Use the Desktop button (🖥️) in the mobile header to switch views</li>
-                <li><strong>Installation problems:</strong> Use the Save App button (📲) and follow the instructions for your device</li>
+                <li><strong>Installation problems:</strong> Use the Save App button (📲) and follow the instructions</li>
                 <li><strong>Search not working:</strong> Make sure you're searching by program name or ID only</li>
-                <li><strong>Message not sending:</strong> Check your internet connection and try again</li>
-                <li><strong>QR code not showing:</strong> Click the floating button (📱) on desktop or "👥 Share" on mobile</li>
-                <li><strong>Event calendar issues:</strong> Click "Back to Main View" and try again</li>
               </ul>
 
-              <h3>16. Support</h3>
+              <h3>14. Support</h3>
               <p>For technical issues or questions, please contact your system administrator.</p>
             </div>
             <div className="modal-actions">
-              <button 
-                onClick={() => setShowUserGuide(false)} 
-                style={{ background: "#0072ce", color: "white" }}
-                className="custom-tooltip"
-                data-tooltip="Close Help Guide"
-              >
+              <button onClick={() => setShowUserGuide(false)} style={{ background: "#0072ce", color: "white" }}>
                 Close
               </button>
             </div>
@@ -1778,154 +1216,49 @@ function App() {
         </div>
       )}
 
-
-
-
-
-
-
-      {/* Program Details Modal - Desktop */}
-      {selectedProgram && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 9999999999,
-          padding: '20px'
-        }}
-        onClick={() => {
-          setSelectedProgram(null);
-        }}
+      {/* Super Simple Test Modal */}
+      {showQRCode && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'yellow',
+            zIndex: 9999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            fontSize: '24px',
+            fontWeight: 'bold'
+          }}
         >
-          <div style={{
-            background: 'white',
-            padding: '30px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-            maxWidth: '90vw',
-            maxHeight: '80vh',
-            border: '3px solid #0072ce',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'auto'
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-          >
-            <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedProgram.program}</h3>
-            
-            
-            {/* Always show Description section */}
-            <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ color: '#333', marginBottom: '10px' }}>Description:</h4>
-              <p style={{ fontSize: '1rem', lineHeight: '1.6', textAlign: 'left' }}>
-                {selectedProgram.description && selectedProgram.description.trim() !== '' 
-                  ? selectedProgram.description 
-                  : 'No description available'}
-              </p>
-            </div>
-            
-            {/* Always show Fee section */}
-            <div style={{ marginBottom: '30px' }}>
-              <h4 style={{ color: '#333', marginBottom: '10px' }}>Fee:</h4>
-              <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#0072ce' }}>
-                {selectedProgram.fee && selectedProgram.fee.trim() !== '' 
-                  ? selectedProgram.fee 
-                  : 'No fee information available'}
-              </p>
-            </div>
-            
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedProgram(null);
-              }}
-              style={{
-                background: '#0072ce',
-                color: 'white',
-                border: 'none',
-                padding: '12px 30px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: 'bold'
-              }}
-            >
-              Close
-            </button>
+          <div style={{ color: 'red', marginBottom: '20px' }}>
+            🚨 MODAL IS WORKING! 🚨
           </div>
+          <div style={{ color: 'blue', marginBottom: '20px' }}>
+            QR Code: {qrCodeDataURL ? 'Generated' : 'Not Generated'}
+          </div>
+          <button 
+            onClick={() => setShowQRCode(false)}
+            style={{ 
+              padding: '15px 30px', 
+              fontSize: '18px',
+              backgroundColor: 'red',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px'
+            }}
+          >
+            Close Modal
+          </button>
         </div>
       )}
 
-      {/* Location Address Modal - Desktop */}
-      {selectedLocation && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 9999999999,
-          padding: '20px'
-        }}
-        onClick={() => {
-          setSelectedLocation(null);
-        }}
-        >
-          <div style={{
-            background: 'white',
-            padding: '30px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-            maxWidth: '90vw',
-            maxHeight: '80vh',
-            border: '3px solid #0072ce',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'auto'
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-          >
-            <h3 style={{ marginBottom: '20px', color: '#0072ce' }}>{selectedLocation}</h3>
-            <p style={{ fontSize: '1.1rem', marginBottom: '30px', lineHeight: '1.6' }}>
-              {getFullAddress(selectedLocation)}
-            </p>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedLocation(null);
-              }}
-              style={{
-                background: '#0072ce',
-                color: 'white',
-                border: 'none',
-                padding: '12px 30px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: 'bold'
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
-      {/* QR Code Modal - Global for both mobile and desktop */}
+      {/* Desktop QR Code Modal */}
       {showQRCode && (
         <div style={{
           position: 'fixed',
@@ -1934,7 +1267,7 @@ function App() {
           width: '100vw',
           height: '100vh',
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          zIndex: 9999999999,
+          zIndex: 9999999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -2025,8 +1358,8 @@ function App() {
               <button 
                 onClick={() => setShowQRCode(false)} 
                 style={{ 
-                  background: '#0072ce', 
-                  color: 'white',
+                  background: "#0072ce", 
+                  color: "white",
                   border: 'none',
                   padding: '10px 20px',
                   borderRadius: '6px',
@@ -2040,223 +1373,102 @@ function App() {
         </div>
       )}
 
-      {/* Message Modal */}
-      {showMessageModal && messageProgram && (
+
+      {/* QR Code Modal */}
+      {showQRCode && (
         <div 
-          className="message-modal-overlay" 
-          onClick={() => setShowMessageModal(false)}
+          className="modal-overlay" 
+          onClick={() => setShowQRCode(false)}
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            top: '0',
+            left: '0',
+            right: '0',
+            bottom: '0',
+            zIndex: 999999,
+            background: 'rgba(255, 0, 0, 0.9)',
             display: 'flex',
-            justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 9999999999,
+            justifyContent: 'center',
+            padding: '20px',
             width: '100vw',
             height: '100vh',
-            padding: '20px',
-            boxSizing: 'border-box',
-            overflow: 'hidden'
+            minWidth: '100vw',
+            minHeight: '100vh'
           }}
-          onLoad={() => console.log('📱 Modal overlay loaded!')}
         >
           <div 
-            className="message-modal-content" 
-            onClick={e => e.stopPropagation()}
+            className="modal-content qr-modal" 
+            onClick={(e) => e.stopPropagation()}
             style={{
-              backgroundColor: 'white',
+              background: 'white',
               borderRadius: '12px',
               padding: '20px',
-              width: '100%',
-              maxWidth: '500px',
-              maxHeight: '80vh',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
               overflow: 'auto',
               position: 'relative',
-              border: '3px solid #0072ce',
+              zIndex: 1000000,
+              border: '10px solid #00ff00',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
-              margin: '0'
+              minWidth: '300px',
+              minHeight: '200px',
+              width: '80vw',
+              height: '60vh'
             }}
           >
-            <h3 style={{ color: '#0072ce', marginTop: 0 }}>Send Message</h3>
-            <div style={{ fontSize: '14px', color: '#333', marginBottom: '10px', backgroundColor: '#e7f3ff', padding: '12px', borderRadius: '6px', border: '2px solid #0072ce' }}>
-              <div style={{ fontWeight: 'bold', color: '#0072ce', marginBottom: '8px' }}>
-                ✅ MESSAGE MODAL IS WORKING! ✉️
-              </div>
-              <div style={{ fontSize: '12px', color: '#666' }}>
-                📱 Mobile: {window.innerWidth < 768 ? 'YES' : 'NO'} | 📏 Width: {window.innerWidth}px
-                <br/>
-                🔧 Modal State: {showMessageModal ? 'OPEN' : 'CLOSED'}
-                <br/>
-                📱 Touch Device: {('ontouchstart' in window) ? 'YES' : 'NO'}
-                <br/>
-                🖱️ Click Type: {navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'}
-                <br/>
-                ⏰ Time: {new Date().toLocaleTimeString()}
-              </div>
-            </div>
-            <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
-              <strong>Program:</strong> {messageProgram.program}<br/>
-              <strong>ID:</strong> {messageProgram.program_id.split('.')[0]}<br/>
-              <strong>Instructor:</strong> {messageProgram.instructor}
-            </div>
-            <textarea
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              placeholder="Enter your message here..."
-              rows={6}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px',
-                resize: 'vertical',
-                marginBottom: '15px'
-              }}
-            />
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => {
-                  console.log('🖱️ Cancel button clicked!');
-                  setShowMessageModal(false);
-                  setMessageText("");
-                  setMessageProgram(null);
-                }}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 'bold'
-                }}
+            <div className="modal-header">
+              <h2>Scan with your phone to open the app</h2>
+              <button 
+                className="modal-close" 
+                onClick={() => setShowQRCode(false)}
+                aria-label="Close QR Code"
               >
-                Cancel
-              </button>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('🖱️ Send Message button clicked!');
-                  console.log('📝 Message text:', messageText);
-                  console.log('📋 Program:', messageProgram);
-                  if (messageText.trim()) {
-                    handleSendMessage(messageProgram, messageText);
-                  } else {
-                    alert('Please enter a message first!');
-                  }
-                }}
-                disabled={!messageText.trim()}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: messageText.trim() ? '#0072ce' : '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: messageText.trim() ? 'pointer' : 'not-allowed',
-                  fontSize: '14px',
-                  fontWeight: 'bold'
-                }}
-              >
-                Send Message
+                ×
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Message Modal - Global for both mobile and desktop */}
-      {showMessageModal && messageProgram && (
-        <div style={{
-          position: 'fixed',
-          top: '0',
-          left: '0',
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          zIndex: 9999999999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}
-        onClick={() => setShowMessageModal(false)}
-        >
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '20px',
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            position: 'relative',
-            border: '4px solid #0072ce',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
-            textAlign: 'center'
-          }}
-          onClick={e => e.stopPropagation()}
-          >
-            <h3 style={{ color: '#0072ce', marginTop: 0 }}>Send Message</h3>
-            <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
-              <strong>Program:</strong> {messageProgram.program}<br/>
-              <strong>ID:</strong> {messageProgram.program_id.split('.')[0]}<br/>
-              <strong>Instructor:</strong> {messageProgram.instructor}
+            <div style={{ background: 'red', color: 'white', padding: '20px', margin: '10px 0', fontSize: '18px', fontWeight: 'bold' }}>
+              🚨 MODAL IS VISIBLE! 🚨
+              <br />
+              If you can see this red box, the modal is working!
+              <br />
+              QR Code Data: {qrCodeDataURL ? 'Generated' : 'Not Generated'}
+              <br />
+              Current URL: {window.location.href}
             </div>
-            <textarea
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              placeholder="Type your message here..."
-              style={{
-                width: '100%',
-                height: '100px',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px',
-                marginBottom: '15px',
-                resize: 'vertical'
-              }}
-            />
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button
-                onClick={() => {
-                  console.log('🖱️ Cancel button clicked in global modal!');
-                  setShowMessageModal(false);
-                  setMessageText("");
-                  setMessageProgram(null);
-                }}
-                style={{
-                  background: '#6c757d',
-                  color: 'white',
-                  padding: '10px 20px',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
+            <div className="qr-code-container">
+              {qrCodeDataURL ? (
+                <div className="qr-code-wrapper">
+                  <img 
+                    src={qrCodeDataURL} 
+                    alt="QR Code for app" 
+                    className="qr-code-image"
+                    style={{ width: '200px', height: '200px', border: '2px solid #000' }}
+                  />
+                  <div className="qr-code-logo-overlay">
+                    <img 
+                      src={logo} 
+                      alt="Company Logo" 
+                      className="qr-code-logo"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="qr-code-loading">
+                  <p>Generating QR code...</p>
+                  <button onClick={generateQRCode}>Retry</button>
+                  <div style={{ background: 'yellow', padding: '10px', margin: '10px 0' }}>
+                    <strong>DEBUG:</strong> QR Code not generated yet. Click Retry or wait for generation.
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="modal-actions">
+              <button 
+                onClick={() => setShowQRCode(false)} 
+                style={{ background: "#0072ce", color: "white" }}
               >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleSendMessage(messageProgram, messageText)}
-                disabled={!messageText.trim()}
-                style={{
-                  background: messageText.trim() ? '#0072ce' : '#ccc',
-                  color: 'white',
-                  padding: '10px 20px',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: messageText.trim() ? 'pointer' : 'not-allowed',
-                  fontSize: '14px'
-                }}
-              >
-                Send Message
+                Close
               </button>
             </div>
           </div>
