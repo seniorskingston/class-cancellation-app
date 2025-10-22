@@ -3,6 +3,7 @@ import './Calendar.css';
 import logo from './logo.png';
 import homeIcon from './assets/home-icon.png';
 import EventModal from './EventModal';
+import EventViewModal from './EventViewModal';
 
 interface Event {
   id?: string;
@@ -11,6 +12,10 @@ interface Event {
   endDate: Date;
   description?: string;
   location?: string;
+  banner?: string;
+  image_url?: string;
+  dateStr?: string;
+  timeStr?: string;
 }
 
 type ViewMode = 'month' | 'week' | 'day';
@@ -36,6 +41,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
@@ -291,13 +297,18 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
     setSelectedDate(undefined);
-    setIsModalOpen(true);
+    setIsViewModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedEvent(null);
     setSelectedDate(undefined);
+  };
+
+  const closeViewModal = () => {
+    setIsViewModalOpen(false);
+    setSelectedEvent(null);
   };
 
   const isHoliday = (eventTitle: string): boolean => {
@@ -499,7 +510,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                       <div 
                         key={eventIndex} 
                         className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                        // onClick={() => handleEventClick(event)} // Disabled - events are read-only
+                        onClick={() => handleEventClick(event)}
                       >
                         <div className="mobile-event-time">
                           {event.startDate.toLocaleTimeString('en-US', { 
@@ -561,10 +572,10 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                       <div
                         key={eventIndex}
                         className={`event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                        // onClick={(e) => {
-                        //   e.stopPropagation();
-                        //   handleEventClick(event);
-                        // }} // Disabled - events are read-only
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEventClick(event);
+                        }}
                       >
                         <div className="event-time">
                           {event.startDate.toLocaleTimeString('en-US', { 
@@ -594,6 +605,12 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         onDelete={selectedEvent?.id ? deleteEvent : undefined}
         event={selectedEvent}
         selectedDate={selectedDate}
+      />
+
+      <EventViewModal
+        isOpen={isViewModalOpen}
+        onClose={closeViewModal}
+        event={selectedEvent}
       />
     </div>
   );
