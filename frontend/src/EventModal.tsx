@@ -8,9 +8,6 @@ interface Event {
   endDate: Date;
   description?: string;
   location?: string;
-  dateStr?: string;
-  timeStr?: string;
-  image_url?: string;
 }
 
 interface EventModalProps {
@@ -20,7 +17,6 @@ interface EventModalProps {
   onDelete?: (eventId: string) => void;
   event?: Event | null;
   selectedDate?: Date;
-  isReadOnly?: boolean; // New prop for read-only mode (for events)
 }
 
 const EventModal: React.FC<EventModalProps> = ({
@@ -29,8 +25,7 @@ const EventModal: React.FC<EventModalProps> = ({
   onSave,
   onDelete,
   event,
-  selectedDate,
-  isReadOnly = false
+  selectedDate
 }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -128,70 +123,6 @@ const EventModal: React.FC<EventModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Read-only mode for events (showing banner and description)
-  if (isReadOnly && event) {
-    return (
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content event-view-modal" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2>{event.title}</h2>
-            <button className="close-button" onClick={onClose}>×</button>
-          </div>
-
-          <div className="event-view-content">
-            {/* Event Banner Image */}
-            {event.image_url && event.image_url !== '/assets/event-schedule-banner.png' && (
-              <div className="event-banner-container">
-                <img 
-                  src={event.image_url} 
-                  alt={event.title} 
-                  className="event-banner-image-large"
-                />
-              </div>
-            )}
-
-            {/* Event Details */}
-            <div className="event-details">
-              <div className="event-detail-row">
-                <span className="event-detail-label">📅 Date:</span>
-                <span className="event-detail-value">{event.dateStr || 'TBA'}</span>
-              </div>
-              
-              <div className="event-detail-row">
-                <span className="event-detail-label">🕐 Time:</span>
-                <span className="event-detail-value">{event.timeStr || 'TBA'}</span>
-              </div>
-              
-              {event.location && (
-                <div className="event-detail-row">
-                  <span className="event-detail-label">📍 Location:</span>
-                  <span className="event-detail-value">{event.location}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Event Description */}
-            {event.description && (
-              <div className="event-description-container">
-                <h3>Description</h3>
-                <div className="event-description-text">
-                  {event.description}
-                </div>
-              </div>
-            )}
-
-            <div className="modal-actions">
-              <button type="button" onClick={onClose} className="close-button">
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Edit mode for programs
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
