@@ -240,4 +240,3 @@ const EventModal: React.FC<EventModalProps> = ({
 };
 
 export default EventModal;
-
