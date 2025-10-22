@@ -7,9 +7,11 @@ interface EventViewModalProps {
   event: any;
 }
 
-const EventViewModal: React.FC<EventViewModalProps> = () => {
+const EventViewModalPlaceholder: React.FC<EventViewModalProps> = () => {
   return null;
 };
 
-export default EventViewModal;
+export default EventViewModalPlaceholder;
+
+
 
