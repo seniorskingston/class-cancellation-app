@@ -5,7 +5,7 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn backend_sqlite:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn backend:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: EXCEL_PATH
         value: ./Class Cancellation App.xlsx
