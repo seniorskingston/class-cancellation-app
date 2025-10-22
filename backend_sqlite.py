@@ -1,10 +1,8 @@
 import os
 import sqlite3
 import uuid
-from fastapi import FastAPI, Query, UploadFile, File, Request
+from fastapi import FastAPI, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
-import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from typing import Optional
 from datetime import datetime, timedelta
@@ -22,7 +20,6 @@ DB_PATH = "class_cancellations.db"
 
 # Set timezone to Kingston, Ontario
 KINGSTON_TZ = pytz.timezone('America/Toronto')
-utc = pytz.UTC
 
 app = FastAPI(title="Program Schedule Update API")
 
@@ -722,7 +719,7 @@ def parse_event_from_text(text):
             'startDate': event_date.isoformat() + 'Z',
             'endDate': (event_date + timedelta(hours=1)).isoformat() + 'Z',
             'description': '',
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': date_str or 'TBA',
             'timeStr': time_str or 'TBA'
         }
@@ -734,12 +731,11 @@ def parse_event_from_text(text):
 # Automatic syncing with Seniors Kingston website
 import threading
 import time
-import re
 from datetime import datetime, timedelta
 
 # Global variable to store last sync time
 last_sync_time = None
-sync_interval_hours = 24 * 7  # Sync every Monday (weekly)
+sync_interval_hours = 24 * 15  # Sync every 15 days (approximately monthly)
 
 def sync_with_seniors_kingston():
     """Sync events with Seniors Kingston website"""
@@ -890,7 +886,7 @@ def extract_events_comprehensively(soup):
                     'startDate': (event_date or datetime.now()).isoformat() + 'Z',
                     'endDate': ((event_date or datetime.now()) + timedelta(hours=1)).isoformat() + 'Z',
                     'description': event.get('description', ''),
-                    'location': '',
+                    'location': 'Seniors Kingston',
                     'dateStr': event_date.strftime('%B %d, %Y') if event_date else 'TBA',
                     'timeStr': event_time
                 }
@@ -1079,7 +1075,7 @@ def extract_events_from_text(soup):
                         'startDate': datetime.now().isoformat() + 'Z',
                         'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
                         'description': '',
-                        'location': '',
+                        'location': 'Seniors Kingston',
                         'dateStr': 'TBA',
                         'timeStr': 'TBA'
                     })
@@ -1101,7 +1097,7 @@ def extract_events_from_text(soup):
                     'startDate': datetime.now().isoformat() + 'Z',
                     'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
                     'description': '',
-                    'location': '',
+                    'location': 'Seniors Kingston',
                     'dateStr': 'TBA',
                     'timeStr': 'TBA'
                 })
@@ -1136,13 +1132,9 @@ def parse_event_date_time(date_str):
         return start.isoformat() + 'Z', end.isoformat() + 'Z'
 
 @app.get("/api/events")
-def get_events(request: Request):
+def get_events():
     """Get all events (real + editable events) from Seniors Kingston"""
     print(f"🌐 Events API call received")
-    
-    # Track the visit
-    user_agent = request.headers.get('user-agent', '')
-    track_visit(user_agent)
     
     # Try to get real events from Seniors Kingston website first
     print("🔍 Attempting to fetch real events from Seniors Kingston website...")
@@ -1150,8 +1142,8 @@ def get_events(request: Request):
         real_events = scrape_seniors_kingston_events()
         if real_events and len(real_events) > 0:
             print(f"✅ Successfully fetched {len(real_events)} real events from website")
-            # Combine real events with Canadian holidays and editable events
-            all_events = real_events + globals()['known_events'] + list(editable_events.values())
+            # Combine real events with editable events only
+            all_events = real_events + list(editable_events.values())
             return {
                 "events": all_events,
                 "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
@@ -1177,7 +1169,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 9, 24, 20, 0).isoformat() + 'Z',  # 4:00 pm EDT
             'endDate': datetime(2025, 9, 24, 21, 0).isoformat() + 'Z',
             'description': "The next scheduled Board meeting is September 24, 4:00pm",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'September 24, 2025, 4:00 pm',
             'timeStr': '4:00 pm'
         },
@@ -1186,7 +1178,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 9, 25, 17, 0).isoformat() + 'Z',  # 1:00 pm EDT
             'endDate': datetime(2025, 9, 25, 18, 0).isoformat() + 'Z',
             'description': "Educational program about medical myths and facts",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'September 25, 2025, 1:00 pm',
             'timeStr': '1:00 pm'
         },
@@ -1195,7 +1187,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 9, 25, 22, 0).isoformat() + 'Z',  # 6:00 pm EDT
             'endDate': datetime(2025, 9, 25, 23, 0).isoformat() + 'Z',
             'description': "Sample and learn about different whiskies",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'September 25, 2025, 6:00 pm',
             'timeStr': '6:00 pm'
         },
@@ -1204,7 +1196,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 9, 26, 17, 30).isoformat() + 'Z',  # 1:30 pm EDT
             'endDate': datetime(2025, 9, 26, 18, 30).isoformat() + 'Z',
             'description': "Musical program featuring classic friendship songs",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'September 26, 2025, 1:30 pm',
             'timeStr': '1:30 pm'
         },
@@ -1213,7 +1205,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 9, 29, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 9, 29, 17, 0).isoformat() + 'Z',
             'description': "Workshop on choosing the right smartphone for seniors",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'September 29, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
@@ -1222,7 +1214,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 9, 30, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 9, 30, 23, 0).isoformat() + 'Z',
             'description': "National Day of Truth and Reconciliation",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'September 30, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
@@ -1233,7 +1225,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 1, 12, 30).isoformat() + 'Z',  # 8:30 am EDT
             'endDate': datetime(2025, 10, 1, 13, 30).isoformat() + 'Z',
             'description': "Motorcycle enthusiasts gathering",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 1, 2025, 8:30 am',
             'timeStr': '8:30 am'
         },
@@ -1242,7 +1234,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 1, 14, 0).isoformat() + 'Z',  # 10:00 am EDT
             'endDate': datetime(2025, 10, 1, 15, 0).isoformat() + 'Z',
             'description': "Stories and experiences from Kingston taxi drivers",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 1, 2025, 10:00 am',
             'timeStr': '10:00 am'
         },
@@ -1251,7 +1243,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 2, 17, 0).isoformat() + 'Z',  # 1:00 pm EDT
             'endDate': datetime(2025, 10, 2, 18, 0).isoformat() + 'Z',
             'description': "Educational program for senior women",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 2, 2025, 1:00 pm',
             'timeStr': '1:00 pm'
         },
@@ -1260,7 +1252,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 3, 13, 0).isoformat() + 'Z',  # 9:00 am EDT
             'endDate': datetime(2025, 10, 3, 14, 0).isoformat() + 'Z',
             'description': "Free hearing assessment clinic",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 3, 2025, 9:00 am',
             'timeStr': '9:00 am'
         },
@@ -1269,7 +1261,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 6, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 6, 17, 0).isoformat() + 'Z',
             'description': "Learn about useful free Google applications",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 6, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
@@ -1278,7 +1270,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 7, 14, 0).isoformat() + 'Z',  # 10:00 am EDT
             'endDate': datetime(2025, 10, 7, 15, 0).isoformat() + 'Z',
             'description': "Local fresh produce and goods market",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 7, 2025, 10:00 am',
             'timeStr': '10:00 am'
         },
@@ -1287,7 +1279,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 8, 13, 0).isoformat() + 'Z',  # 9:00 am EDT
             'endDate': datetime(2025, 10, 8, 14, 0).isoformat() + 'Z',
             'description': "Fire safety education and prevention for seniors",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 8, 2025, 9:00 am',
             'timeStr': '9:00 am'
         },
@@ -1296,7 +1288,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 9, 14, 0).isoformat() + 'Z',  # 10:00 am EDT
             'endDate': datetime(2025, 10, 9, 15, 0).isoformat() + 'Z',
             'description': "Create beautiful autumn floral arrangements",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 9, 2025, 10:00 am',
             'timeStr': '10:00 am'
         },
@@ -1305,7 +1297,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 9, 17, 0).isoformat() + 'Z',  # 1:00 pm EDT
             'endDate': datetime(2025, 10, 9, 18, 0).isoformat() + 'Z',
             'description': "Learn how to protect yourself from fraud and scams",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 9, 2025, 1:00 pm',
             'timeStr': '1:00 pm'
         },
@@ -1314,7 +1306,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 10, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 10, 17, 0).isoformat() + 'Z',
             'description': "Monthly birthday celebration lunch",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 10, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
@@ -1323,7 +1315,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 14, 14, 0).isoformat() + 'Z',  # 10:00 am EDT
             'endDate': datetime(2025, 10, 14, 15, 0).isoformat() + 'Z',
             'description': "Local fresh produce and goods market",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 14, 2025, 10:00 am',
             'timeStr': '10:00 am'
         },
@@ -1332,7 +1324,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 14, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 14, 17, 0).isoformat() + 'Z',
             'description': "Community Thanksgiving celebration with traditional meal",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 14, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
@@ -1341,7 +1333,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 14, 18, 30).isoformat() + 'Z',  # 2:30 pm EDT
             'endDate': datetime(2025, 10, 14, 19, 30).isoformat() + 'Z',
             'description': "French-English conversation cafe",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 14, 2025, 2:30 pm',
             'timeStr': '2:30 pm'
         },
@@ -1359,7 +1351,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 16, 13, 0).isoformat() + 'Z',  # 9:00 am EDT
             'endDate': datetime(2025, 10, 16, 14, 0).isoformat() + 'Z',
             'description': "Get help with Service Canada programs and benefits",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 16, 2025, 9:00 am',
             'timeStr': '9:00 am'
         },
@@ -1368,7 +1360,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 16, 17, 0).isoformat() + 'Z',  # 1:00 pm EDT
             'endDate': datetime(2025, 10, 16, 18, 0).isoformat() + 'Z',
             'description': "Educational workshop on being an effective ally",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 16, 2025, 1:00 pm',
             'timeStr': '1:00 pm'
         },
@@ -1377,7 +1369,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 17, 14, 0).isoformat() + 'Z',  # 10:00 am EDT
             'endDate': datetime(2025, 10, 17, 15, 0).isoformat() + 'Z',
             'description': "Educational program for continued learning",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 17, 2025, 10:00 am',
             'timeStr': '10:00 am'
         },
@@ -1386,7 +1378,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 17, 14, 0).isoformat() + 'Z',  # 10:00 am EDT
             'endDate': datetime(2025, 10, 17, 15, 0).isoformat() + 'Z',
             'description': "Bring books and puzzles to exchange with others",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 17, 2025, 10:00 am',
             'timeStr': '10:00 am'
         },
@@ -1395,7 +1387,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 20, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 20, 17, 0).isoformat() + 'Z',
             'description': "Learn about digital library resources",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 20, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
@@ -1404,7 +1396,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 21, 14, 0).isoformat() + 'Z',  # 10:00 am EDT
             'endDate': datetime(2025, 10, 21, 15, 0).isoformat() + 'Z',
             'description': "Local fresh produce and goods market",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 21, 2025, 10:00 am',
             'timeStr': '10:00 am'
         },
@@ -1422,7 +1414,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 21, 21, 30).isoformat() + 'Z',  # 5:30 pm EDT
             'endDate': datetime(2025, 10, 21, 22, 30).isoformat() + 'Z',
             'description': "Relaxing sound therapy session",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 21, 2025, 5:30 pm',
             'timeStr': '5:30 pm'
         },
@@ -1431,7 +1423,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 22, 20, 0).isoformat() + 'Z',  # 4:00 pm EDT
             'endDate': datetime(2025, 10, 22, 21, 0).isoformat() + 'Z',
             'description': "Seniors Kingston board meeting",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 22, 2025, 4:00 pm',
             'timeStr': '4:00 pm'
         },
@@ -1440,7 +1432,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 23, 14, 0).isoformat() + 'Z',  # 10:00 am EDT
             'endDate': datetime(2025, 10, 23, 15, 0).isoformat() + 'Z',
             'description': "Art workshop using gouache painting techniques",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 23, 2025, 10:00 am',
             'timeStr': '10:00 am'
         },
@@ -1449,7 +1441,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 23, 17, 0).isoformat() + 'Z',  # 1:00 pm EDT
             'endDate': datetime(2025, 10, 23, 18, 0).isoformat() + 'Z',
             'description': "Health and wellness workshop for seniors",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 23, 2025, 1:00 pm',
             'timeStr': '1:00 pm'
         },
@@ -1458,7 +1450,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 24, 17, 30).isoformat() + 'Z',  # 1:30 pm EDT
             'endDate': datetime(2025, 10, 24, 18, 30).isoformat() + 'Z',
             'description': "Musical program featuring Kenny Rogers and Dolly Parton songs",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 24, 2025, 1:30 pm',
             'timeStr': '1:30 pm'
         },
@@ -1467,7 +1459,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 27, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2025, 10, 27, 17, 0).isoformat() + 'Z',
             'description': "Learn about wearable technology for seniors",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 27, 2025, 12:00 pm',
             'timeStr': '12:00 pm'
         },
@@ -1476,7 +1468,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 27, 17, 0).isoformat() + 'Z',  # 1:00 pm EDT
             'endDate': datetime(2025, 10, 27, 18, 0).isoformat() + 'Z',
             'description': "Free legal advice session",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 27, 2025, 1:00 pm',
             'timeStr': '1:00 pm'
         },
@@ -1485,7 +1477,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 28, 14, 0).isoformat() + 'Z',  # 10:00 am EDT
             'endDate': datetime(2025, 10, 28, 15, 0).isoformat() + 'Z',
             'description': "Local fresh produce and goods market",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 28, 2025, 10:00 am',
             'timeStr': '10:00 am'
         },
@@ -1494,7 +1486,7 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 30, 17, 0).isoformat() + 'Z',  # 1:00 pm EDT
             'endDate': datetime(2025, 10, 30, 18, 0).isoformat() + 'Z',
             'description': "Educational program about 18th century astronomy",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 30, 2025, 1:00 pm',
             'timeStr': '1:00 pm'
         },
@@ -1503,14 +1495,14 @@ def get_events(request: Request):
             'startDate': datetime(2025, 10, 30, 17, 0).isoformat() + 'Z',  # 1:00 pm EDT
             'endDate': datetime(2025, 10, 30, 18, 0).isoformat() + 'Z',
             'description': "Dance party hosted by Carole",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 30, 2025, 1:00 pm',
             'timeStr': '1:00 pm'
         }
     ]
     
-    # Combine known events with Canadian holidays and editable events
-    all_events = known_events + globals()['known_events'] + list(editable_events.values())
+    # Combine known events with editable events
+    all_events = known_events + list(editable_events.values())
     
     return {
         "events": all_events,
@@ -1605,7 +1597,7 @@ def get_october_events():
             'startDate': datetime(2024, 10, 1, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2024, 10, 1, 17, 0).isoformat() + 'Z',
             'description': "Educational program for senior women",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 1, 12:00 pm',
             'timeStr': '12:00 pm'
         },
@@ -1614,7 +1606,7 @@ def get_october_events():
             'startDate': datetime(2024, 10, 3, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2024, 10, 3, 17, 0).isoformat() + 'Z',
             'description': "Free hearing assessment clinic",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 3, 12:00 pm',
             'timeStr': '12:00 pm'
         },
@@ -1623,7 +1615,7 @@ def get_october_events():
             'startDate': datetime(2024, 10, 6, 16, 0).isoformat() + 'Z',  # 12:00 pm EDT
             'endDate': datetime(2024, 10, 6, 17, 0).isoformat() + 'Z',
             'description': "Learn about useful free Google applications",
-            'location': '',
+            'location': 'Seniors Kingston',
             'dateStr': 'October 6, 12:00 pm',
             'timeStr': '12:00 pm'
         }
@@ -1637,91 +1629,7 @@ def get_october_events():
         "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
         "count": len(all_events),
         "source": "manual_october"
-        }
-
-@app.get("/sync")
-def sync_web_interface():
-    """Web interface for manual sync operations"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Seniors Kingston Calendar Sync</title>
-        <style>
-            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
-            .button { background: #0072ce; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px; }
-            .button:hover { background: #0056a3; }
-            .status { margin: 20px 0; padding: 10px; border-radius: 5px; }
-            .success { background: #d4edda; color: #155724; }
-            .error { background: #f8d7da; color: #721c24; }
-        </style>
-    </head>
-    <body>
-        <h1>🔄 Seniors Kingston Calendar Sync</h1>
-        <p>Use these buttons to manually sync events from the Seniors Kingston website:</p>
-        
-        <button class="button" onclick="syncEvents('force')">🔄 Force Sync Now</button>
-        <button class="button" onclick="syncEvents('monthly')">📅 Monthly Sync</button>
-        <button class="button" onclick="checkStatus()">📊 Check Status</button>
-        
-        <div id="status"></div>
-        
-        <script>
-            async function syncEvents(type) {
-                const statusDiv = document.getElementById('status');
-                statusDiv.innerHTML = '<div class="status">Syncing... Please wait.</div>';
-                
-                try {
-                    const response = await fetch(`/api/${type}-sync`, { method: 'POST' });
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        statusDiv.innerHTML = `<div class="status success">
-                            ✅ <strong>Success!</strong><br>
-                            ${data.message}<br>
-                            Events: ${data.events_count || 'N/A'}<br>
-                            Time: ${new Date(data.timestamp).toLocaleString()}
-                        </div>`;
-                    } else {
-                        statusDiv.innerHTML = `<div class="status error">
-                            ❌ <strong>Error:</strong><br>
-                            ${data.message || data.error}
-                        </div>`;
-                    }
-                } catch (error) {
-                    statusDiv.innerHTML = `<div class="status error">
-                        ❌ <strong>Network Error:</strong><br>
-                        ${error.message}
-                    </div>`;
-                }
-            }
-            
-            async function checkStatus() {
-                const statusDiv = document.getElementById('status');
-                statusDiv.innerHTML = '<div class="status">Checking status... Please wait.</div>';
-                
-                try {
-                    const response = await fetch('/api/sync-status');
-                    const data = await response.json();
-                    
-                    statusDiv.innerHTML = `<div class="status success">
-                        📊 <strong>Sync Status:</strong><br>
-                        Last Sync: ${data.last_sync_time || 'Never'}<br>
-                        Next Sync: ${data.next_sync_time || 'Unknown'}<br>
-                        Frequency: ${data.sync_frequency}<br>
-                        Status: ${data.status}
-                    </div>`;
-                } catch (error) {
-                    statusDiv.innerHTML = `<div class="status error">
-                        ❌ <strong>Error:</strong><br>
-                        ${error.message}
-                    </div>`;
-                }
-            }
-        </script>
-    </body>
-    </html>
-    """
+    }
 
 @app.get("/api/sync-status")
 def get_sync_status():
@@ -1811,645 +1719,6 @@ def monthly_sync():
             "sync_type": "error"
         }
 
-# Initialize known_events at module level
-known_events = [
-    # 2025 Canadian Holidays
-    {
-        'title': 'New Year\'s Day',
-        'startDate': datetime(2025, 1, 1, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 1, 1, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'New Year\'s Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Good Friday',
-        'startDate': datetime(2025, 4, 18, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 4, 18, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Good Friday - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Easter Monday',
-        'startDate': datetime(2025, 4, 21, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 4, 21, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Easter Monday - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Victoria Day',
-        'startDate': datetime(2025, 5, 19, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 5, 19, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Victoria Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Saint-Jean-Baptiste Day',
-        'startDate': datetime(2025, 6, 24, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 6, 24, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Saint-Jean-Baptiste Day - Quebec holiday',
-        'location': 'Quebec'
-    },
-    {
-        'title': 'Canada Day',
-        'startDate': datetime(2025, 7, 1, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 7, 1, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Canada Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Civic Holiday',
-        'startDate': datetime(2025, 8, 4, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 8, 4, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Civic Holiday - Provincial holiday (excluding Quebec)',
-        'location': 'Canada (excluding Quebec)'
-    },
-    {
-        'title': 'Labour Day',
-        'startDate': datetime(2025, 9, 1, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 9, 1, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Labour Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'National Day for Truth and Reconciliation',
-        'startDate': datetime(2025, 9, 30, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 9, 30, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'National Day for Truth and Reconciliation - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Thanksgiving Day',
-        'startDate': datetime(2025, 10, 13, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 10, 13, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Thanksgiving Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Christmas Day',
-        'startDate': datetime(2025, 12, 25, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 12, 25, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Christmas Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Boxing Day',
-        'startDate': datetime(2025, 12, 26, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2025, 12, 26, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Boxing Day - Federal holiday',
-        'location': 'Canada'
-    },
-    
-    # 2026 Canadian Holidays
-    {
-        'title': 'New Year\'s Day',
-        'startDate': datetime(2026, 1, 1, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2026, 1, 1, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'New Year\'s Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Family Day',
-        'startDate': datetime(2026, 2, 16, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2026, 2, 16, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Family Day - Provincial holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Good Friday',
-        'startDate': datetime(2026, 4, 3, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2026, 4, 3, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Good Friday - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Victoria Day',
-        'startDate': datetime(2026, 5, 18, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2026, 5, 18, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Victoria Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Canada Day',
-        'startDate': datetime(2026, 7, 1, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2026, 7, 1, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Canada Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Civic Holiday',
-        'startDate': datetime(2026, 8, 3, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2026, 8, 3, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Civic Holiday - Provincial holiday (Optional)',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Labour Day',
-        'startDate': datetime(2026, 9, 7, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2026, 9, 7, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Labour Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Thanksgiving Day',
-        'startDate': datetime(2026, 10, 12, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2026, 10, 12, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Thanksgiving Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Christmas Day',
-        'startDate': datetime(2026, 12, 25, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2026, 12, 25, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Christmas Day - Federal holiday',
-        'location': 'Canada'
-    },
-    {
-        'title': 'Boxing Day',
-        'startDate': datetime(2026, 12, 26, 9, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'endDate': datetime(2026, 12, 26, 17, 0, tzinfo=KINGSTON_TZ).astimezone(utc),
-        'description': 'Boxing Day - Federal holiday',
-        'location': 'Canada'
-    }
-]
-
-# Analytics tracking
-analytics_data = {
-    'desktop_visits': 25,  # Sample data to show how reports look
-    'mobile_visits': 18,   # Sample data to show how reports look
-    'total_visits': 43,    # Sample data to show how reports look
-    'last_reset': datetime.now().isoformat()
-}
-
-def track_visit(user_agent: str):
-    """Track a visit and determine if it's desktop or mobile"""
-    global analytics_data
-    
-    # Simple mobile detection based on user agent
-    mobile_keywords = ['mobile', 'android', 'iphone', 'ipad', 'tablet', 'blackberry', 'windows phone']
-    is_mobile = any(keyword in user_agent.lower() for keyword in mobile_keywords)
-    
-    analytics_data['total_visits'] += 1
-    if is_mobile:
-        analytics_data['mobile_visits'] += 1
-    else:
-        analytics_data['desktop_visits'] += 1
-    
-    print(f"📊 Visit tracked: {'Mobile' if is_mobile else 'Desktop'} - Total: {analytics_data['total_visits']}")
-
-@app.get("/api/analytics")
-def get_analytics():
-    """Get usage analytics - desktop vs mobile visits"""
-    global analytics_data
-    
-    desktop_percentage = (analytics_data['desktop_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
-    mobile_percentage = (analytics_data['mobile_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
-    
-    return {
-        "desktop_visits": analytics_data['desktop_visits'],
-        "mobile_visits": analytics_data['mobile_visits'],
-        "total_visits": analytics_data['total_visits'],
-        "desktop_percentage": round(desktop_percentage, 1),
-        "mobile_percentage": round(mobile_percentage, 1),
-        "last_reset": analytics_data['last_reset'],
-        "status": "success"
-    }
-
-@app.get("/admin")
-def admin_interface():
-    """Admin interface for editing events"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Event Admin Panel</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                max-width: 1000px;
-                margin: 0 auto;
-                padding: 20px;
-                background: #f8f9fa;
-            }
-            .admin-card {
-                background: white;
-                padding: 30px;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-                margin-bottom: 20px;
-            }
-            h1 {
-                color: #0072ce;
-                text-align: center;
-                margin-bottom: 30px;
-            }
-            .event-list {
-                max-height: 400px;
-                overflow-y: auto;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                padding: 15px;
-            }
-            .event-item {
-                background: #f8f9fa;
-                padding: 15px;
-                margin-bottom: 10px;
-                border-radius: 8px;
-                border-left: 4px solid #0072ce;
-            }
-            .event-title {
-                font-weight: bold;
-                color: #0072ce;
-                margin-bottom: 5px;
-            }
-            .event-details {
-                font-size: 0.9em;
-                color: #666;
-                margin-bottom: 10px;
-            }
-            .event-actions {
-                display: flex;
-                gap: 10px;
-            }
-            .btn {
-                padding: 8px 16px;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 0.9em;
-                text-decoration: none;
-                display: inline-block;
-            }
-            .btn-edit {
-                background: #28a745;
-                color: white;
-            }
-            .btn-delete {
-                background: #dc3545;
-                color: white;
-            }
-            .btn-add {
-                background: #0072ce;
-                color: white;
-                margin-bottom: 20px;
-            }
-            .form-group {
-                margin-bottom: 15px;
-            }
-            .form-group label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: bold;
-            }
-            .form-group input, .form-group textarea {
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                box-sizing: border-box;
-            }
-            .form-group textarea {
-                height: 80px;
-                resize: vertical;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="admin-card">
-            <h1>🔧 Event Admin Panel</h1>
-            
-            <button class="btn btn-add" onclick="showAddForm()">➕ Add New Event</button>
-            
-            <div id="addForm" style="display: none;">
-                <h3>Add New Event</h3>
-                <form id="addEventForm">
-                    <div class="form-group">
-                        <label>Event Title:</label>
-                        <input type="text" id="addTitle" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Start Date & Time:</label>
-                        <input type="datetime-local" id="addStartDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>End Date & Time:</label>
-                        <input type="datetime-local" id="addEndDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Description:</label>
-                        <textarea id="addDescription"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Location:</label>
-                        <input type="text" id="addLocation">
-                    </div>
-                    <button type="submit" class="btn btn-add">Save Event</button>
-                    <button type="button" class="btn" onclick="hideAddForm()" style="background: #6c757d; color: white;">Cancel</button>
-                </form>
-            </div>
-            
-            <h3>Current Events</h3>
-            <div id="eventList" class="event-list">
-                Loading events...
-            </div>
-        </div>
-        
-        <script>
-            // Load events on page load
-            loadEvents();
-            
-            function loadEvents() {
-                fetch('/api/events')
-                    .then(response => response.json())
-                    .then(data => {
-                        displayEvents(data.events || []);
-                    })
-                    .catch(error => {
-                        console.error('Error loading events:', error);
-                        document.getElementById('eventList').innerHTML = 'Error loading events';
-                    });
-            }
-            
-            function displayEvents(events) {
-                const eventList = document.getElementById('eventList');
-                if (events.length === 0) {
-                    eventList.innerHTML = 'No events found';
-                    return;
-                }
-                
-                eventList.innerHTML = events.map(event => `
-                    <div class="event-item">
-                        <div class="event-title">${event.title}</div>
-                        <div class="event-details">
-                            <strong>Date:</strong> ${new Date(event.startDate).toLocaleString()}<br>
-                            <strong>Location:</strong> ${event.location || 'Not specified'}<br>
-                            <strong>Description:</strong> ${event.description || 'None'}
-                        </div>
-                        <div class="event-actions">
-                            <button class="btn btn-edit" onclick="editEvent('${event.id}')">✏️ Edit</button>
-                            <button class="btn btn-delete" onclick="deleteEvent('${event.id}')">🗑️ Delete</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            function showAddForm() {
-                document.getElementById('addForm').style.display = 'block';
-            }
-            
-            function hideAddForm() {
-                document.getElementById('addForm').style.display = 'none';
-                document.getElementById('addEventForm').reset();
-            }
-            
-            document.getElementById('addEventForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const eventData = {
-                    title: document.getElementById('addTitle').value,
-                    startDate: document.getElementById('addStartDate').value,
-                    endDate: document.getElementById('addEndDate').value,
-                    description: document.getElementById('addDescription').value,
-                    location: document.getElementById('addLocation').value
-                };
-                
-                fetch('/api/events', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(eventData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert('Event added successfully!');
-                    hideAddForm();
-                    loadEvents();
-                })
-                .catch(error => {
-                    console.error('Error adding event:', error);
-                    alert('Error adding event');
-                });
-            });
-            
-            function editEvent(eventId) {
-                // For now, just show an alert - you can implement a full edit form
-                alert('Edit functionality coming soon! Event ID: ' + eventId);
-            }
-            
-            function deleteEvent(eventId) {
-                if (confirm('Are you sure you want to delete this event?')) {
-                    fetch(`/api/events/${eventId}`, {
-                        method: 'DELETE'
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert('Event deleted successfully!');
-                        loadEvents();
-                    })
-                    .catch(error => {
-                        console.error('Error deleting event:', error);
-                        alert('Error deleting event');
-                    });
-                }
-            }
-        </script>
-    </body>
-    </html>
-    """
-
-@app.get("/analytics")
-def analytics_web_interface():
-    """Simple analytics report showing just the visit numbers"""
-    global analytics_data
-    
-    desktop_percentage = (analytics_data['desktop_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
-    mobile_percentage = (analytics_data['mobile_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
-    
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>App Visit Report</title>
-        <style>
-            body {{
-                font-family: 'Segoe UI', Arial, sans-serif;
-                max-width: 600px;
-                margin: 50px auto;
-                padding: 40px;
-                background: #f8f9fa;
-                color: #333;
-            }}
-            .report-card {{
-                background: white;
-                padding: 40px;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-                text-align: center;
-            }}
-            h1 {{
-                color: #0072ce;
-                margin-bottom: 30px;
-                font-size: 2.2rem;
-                font-weight: 600;
-            }}
-            .visit-number {{
-                font-size: 4.5rem;
-                font-weight: bold;
-                color: #0072ce;
-                margin: 20px 0;
-                text-shadow: 2px 2px 4px rgba(0, 114, 206, 0.1);
-                line-height: 1;
-            }}
-            .visit-label {{
-                font-size: 1.5rem;
-                color: #333;
-                margin-bottom: 30px;
-                font-weight: 600;
-            }}
-            .breakdown {{
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-                margin: 30px 0;
-            }}
-            .breakdown-item {{
-                background: #f8f9fa;
-                padding: 20px;
-                border-radius: 8px;
-                border-left: 4px solid #0072ce;
-            }}
-            .breakdown-number {{
-                font-size: 2.5rem;
-                font-weight: bold;
-                color: #0072ce;
-                line-height: 1;
-            }}
-            .breakdown-label {{
-                font-size: 1.1rem;
-                color: #333;
-                margin-top: 8px;
-                font-weight: 500;
-            }}
-            .date-info {{
-                color: #888;
-                font-size: 0.9rem;
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #eee;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="report-card">
-            <h1>📊 App Visit Report</h1>
-            
-            <div class="visit-number">{analytics_data['total_visits']}</div>
-            <div class="visit-label">Total App Visits</div>
-            
-            <div class="breakdown">
-                <div class="breakdown-item">
-                    <div class="breakdown-number">{analytics_data['desktop_visits']}</div>
-                    <div class="breakdown-label">Desktop Users</div>
-                </div>
-                <div class="breakdown-item">
-                    <div class="breakdown-number">{analytics_data['mobile_visits']}</div>
-                    <div class="breakdown-label">Mobile Users</div>
-                </div>
-            </div>
-            
-            <div class="date-info">
-                Report generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-
-@app.post("/api/analytics/reset")
-def reset_analytics():
-    """Reset analytics data (admin only)"""
-    global analytics_data
-    
-    analytics_data = {
-        'desktop_visits': 0,
-        'mobile_visits': 0,
-        'total_visits': 0,
-        'last_reset': datetime.now().isoformat()
-    }
-    
-    return {
-        "message": "Analytics data reset successfully",
-        "status": "success"
-    }
-
-@app.post("/api/analytics/test-data")
-def add_test_data():
-    """Add test data to analytics"""
-    global analytics_data
-    
-    # Add random test visits
-    import random
-    desktop_add = random.randint(1, 5)
-    mobile_add = random.randint(1, 3)
-    
-    analytics_data['desktop_visits'] += desktop_add
-    analytics_data['mobile_visits'] += mobile_add
-    analytics_data['total_visits'] += desktop_add + mobile_add
-    
-    return {
-        "message": f"Added {desktop_add} desktop and {mobile_add} mobile test visits",
-        "status": "success",
-        "added": {
-            "desktop": desktop_add,
-            "mobile": mobile_add,
-            "total": desktop_add + mobile_add
-        }
-    }
-
-@app.get("/api/analytics/export/csv")
-def export_analytics_csv():
-    """Export analytics data as CSV"""
-    global analytics_data
-    
-    desktop_percentage = (analytics_data['desktop_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
-    mobile_percentage = (analytics_data['mobile_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
-    
-    csv_content = f"""Date,Total Visits,Desktop Visits,Mobile Visits,Desktop %,Mobile %,Last Reset
-{datetime.now().strftime('%Y-%m-%d %H:%M:%S')},{analytics_data['total_visits']},{analytics_data['desktop_visits']},{analytics_data['mobile_visits']},{round(desktop_percentage, 1)},{round(mobile_percentage, 1)},{analytics_data['last_reset']}
-"""
-    
-    return Response(
-        content=csv_content,
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
-    )
-
-@app.get("/api/analytics/export/json")
-def export_analytics_json():
-    """Export analytics data as JSON"""
-    global analytics_data
-    
-    desktop_percentage = (analytics_data['desktop_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
-    mobile_percentage = (analytics_data['mobile_visits'] / analytics_data['total_visits'] * 100) if analytics_data['total_visits'] > 0 else 0
-    
-    export_data = {
-        "export_date": datetime.now().isoformat(),
-        "analytics": {
-            "total_visits": analytics_data['total_visits'],
-            "desktop_visits": analytics_data['desktop_visits'],
-            "mobile_visits": analytics_data['mobile_visits'],
-            "desktop_percentage": round(desktop_percentage, 1),
-            "mobile_percentage": round(mobile_percentage, 1),
-            "last_reset": analytics_data['last_reset']
-        }
-    }
-    
-    return Response(
-        content=json.dumps(export_data, indent=2),
-        media_type="application/json",
-        headers={"Content-Disposition": f"attachment; filename=analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"}
-    )
-
 @app.get("/api/sync-status")
 def get_sync_status():
     """Get detailed sync status and next sync information"""
@@ -2472,8 +1741,8 @@ def get_sync_status():
                 "next_sync_in_days": round(next_sync_in_days, 1),
                 "sync_interval_days": sync_interval_hours / 24,
                 "status": "active",
-                "sync_frequency": "Weekly (every Monday)",
-                "next_expected_update": "Every Monday"
+                "sync_frequency": "Monthly (every 15 days)",
+                "next_expected_update": "Around 3rd Friday of each month"
             }
         else:
             return {
@@ -2483,8 +1752,8 @@ def get_sync_status():
                 "next_sync_in_days": sync_interval_hours / 24,
                 "sync_interval_days": sync_interval_hours / 24,
                 "status": "never_synced",
-                "sync_frequency": "Weekly (every Monday)",
-                "next_expected_update": "Every Monday"
+                "sync_frequency": "Monthly (every 15 days)",
+                "next_expected_update": "Around 3rd Friday of each month"
             }
     except Exception as e:
         return {
@@ -2844,36 +2113,6 @@ def export_pdf(
     except Exception as e:
         print(f"❌ Error creating PDF: {e}")
         return {"error": "Failed to create PDF"}
-
-@app.post("/api/send-message")
-async def send_message(request: Request):
-    """Send message about a program"""
-    try:
-        data = await request.json()
-        subject = data.get('subject', '')
-        message = data.get('message', '')
-        program_name = data.get('program_name', '')
-        program_id = data.get('program_id', '')
-        instructor = data.get('instructor', '')
-        
-        print(f"📧 Message received:")
-        print(f"   Subject: {subject}")
-        print(f"   Program: {program_name} (ID: {program_id})")
-        print(f"   Instructor: {instructor}")
-        print(f"   Message: {message}")
-        
-        # For now, just log the message (you can implement email sending later)
-        return {
-            "status": "success",
-            "message": "Message received and logged successfully"
-        }
-        
-    except Exception as e:
-        print(f"❌ Error processing message: {e}")
-        return {
-            "status": "error", 
-            "message": f"Failed to process message: {str(e)}"
-        }
 
 if __name__ == "__main__":
     import uvicorn
