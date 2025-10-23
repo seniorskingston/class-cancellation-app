@@ -212,7 +212,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                   fontWeight: 'bold'
                 }}
               >
-                📥 Load Scraped Events (151 events)
+                📥 Load November Events (35 events)
               </button>
               <button 
                 onClick={() => setShowEventEditor(true)}
@@ -309,7 +309,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                     </button>
                     <button 
                       onClick={() => {
-                        setUploadMessage('📊 Statistics: 151 total events, 35 November events, 12 December events, 104 other events');
+                        setUploadMessage('📊 Statistics: 35 November events loaded, 0 December events, 0 other events');
                       }}
                       style={{
                         background: '#20c997',

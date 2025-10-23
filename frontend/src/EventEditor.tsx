@@ -38,6 +38,13 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     image_url: '/assets/event-schedule-banner.png'
   });
 
+  // Auto-load November events when editor opens and user is authenticated
+  useEffect(() => {
+    if (isOpen && isAuthenticated && events.length === 0) {
+      loadScrapedEvents();
+    }
+  }, [isOpen, isAuthenticated]);
+
   // Check if user is authenticated (simple password check)
   const checkAuthentication = () => {
     const correctPassword = 'rebecca2025'; // Change this to your preferred password
@@ -491,7 +498,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
   const saveEvents = async () => {
     setSaving(true);
     try {
-      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/update', {
+      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/bulk-update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -502,17 +509,18 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          setMessage(`Successfully saved ${events.length} events`);
+          setMessage(`✅ Successfully saved ${events.length} events to backend! November events are now available in the calendar.`);
           setMessageType('success');
         } else {
           throw new Error(result.error || 'Save failed');
         }
       } else {
-        throw new Error('Save failed');
+        const errorText = await response.text();
+        throw new Error(`Save failed: ${response.status} - ${errorText}`);
       }
     } catch (error) {
       console.error('Error saving events:', error);
-      setMessage('Failed to save events');
+      setMessage(`❌ Failed to save events: ${error}`);
       setMessageType('error');
     } finally {
       setSaving(false);
@@ -673,7 +681,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             disabled={loading}
             className="event-editor-button event-editor-button-success"
           >
-            {loading ? 'Loading...' : '📥 Load Scraped Events (151)'}
+            {loading ? 'Loading...' : '📥 Load November Events (35)'}
           </button>
           <button 
             onClick={saveEvents} 
