@@ -38,7 +38,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     location: '',
     dateStr: '',
     timeStr: '',
-    image_url: '/assets/event-schedule-banner.png',
+    image_url: '/event-schedule-banner.png',
     price: '',
     instructor: '',
     registration: ''
@@ -101,10 +101,20 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           const data = await response.json();
           const scrapedEvents = data.events || [];
           if (scrapedEvents.length > 0) {
-            setEvents(scrapedEvents);
-            setMessage(`✅ Loaded ${scrapedEvents.length} scraped events from file!`);
-            setMessageType('success');
-            return;
+            // Check if the scraped events have proper details (not just TBA)
+            const hasProperDetails = scrapedEvents.some(event => 
+              event.timeStr && event.timeStr !== 'TBA' && 
+              event.description && event.description.trim() !== ''
+            );
+            
+            if (hasProperDetails) {
+              setEvents(scrapedEvents);
+              setMessage(`✅ Loaded ${scrapedEvents.length} scraped events from file!`);
+              setMessageType('success');
+              return;
+            } else {
+              console.log('Scraped events have incomplete details, using fallback events');
+            }
           }
         }
       } catch (error) {
@@ -121,7 +131,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Everywhere",
           dateStr: "November 2",
           timeStr: "8:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Online Registration Begins",
@@ -131,7 +141,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Online",
           dateStr: "November 3",
           timeStr: "8:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Assistive Listening Solutions",
@@ -141,7 +151,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 3",
           timeStr: "12:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "In-Person Registration for Session 2 Begins",
@@ -151,7 +161,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 4",
           timeStr: "8:30 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Fresh Food Market",
@@ -161,7 +171,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 4",
           timeStr: "10:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Fraud Awareness",
@@ -171,7 +181,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 5",
           timeStr: "1:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Cut. Fold. Glue. Stars.",
@@ -181,7 +191,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 6",
           timeStr: "11:30 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Learn about Tarot",
@@ -191,7 +201,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 6",
           timeStr: "1:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Hearing Clinic",
@@ -201,7 +211,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 7",
           timeStr: "9:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Coffee with a Cop",
@@ -211,7 +221,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 7",
           timeStr: "10:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Cut. Fold. Glue. Trees",
@@ -221,7 +231,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 10",
           timeStr: "10:45 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Shopping & Buying Online",
@@ -231,7 +241,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 10",
           timeStr: "12:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Legal Advice",
@@ -241,7 +251,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 10",
           timeStr: "1:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Fresh Food Market",
@@ -251,7 +261,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 11",
           timeStr: "10:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Service Canada Clinic",
@@ -261,7 +271,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 12",
           timeStr: "9:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Coast to Coast: A Canoe Odyssey",
@@ -271,7 +281,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 13",
           timeStr: "1:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Birthday Lunch",
@@ -281,7 +291,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 14",
           timeStr: "12:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Sound Escapes: Georgette Fry",
@@ -291,7 +301,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 14",
           timeStr: "1:30 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Program Break Week",
@@ -301,7 +311,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "All Locations",
           dateStr: "November 17",
           timeStr: "8:30 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Speed Friending",
@@ -311,7 +321,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 17",
           timeStr: "1:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Advanced Care Planning",
@@ -321,7 +331,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 17",
           timeStr: "4:30 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Fresh Food Market",
@@ -331,7 +341,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 18",
           timeStr: "10:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Expressive Mark Making",
@@ -341,7 +351,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 18",
           timeStr: "1:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Cafe Franglish",
@@ -351,7 +361,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 18",
           timeStr: "2:30 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Tuesday at Tom's",
@@ -361,7 +371,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 18",
           timeStr: "3:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Learn Resilience",
@@ -371,7 +381,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 19",
           timeStr: "9:30 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Vision Workshop",
@@ -381,7 +391,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 19",
           timeStr: "10:30 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "New Member Mixer",
@@ -391,7 +401,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 19",
           timeStr: "2:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Time for Tea",
@@ -401,7 +411,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 20",
           timeStr: "1:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Book & Puzzle EXCHANGE",
@@ -411,7 +421,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 21",
           timeStr: "10:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Annual General Meeting",
@@ -421,7 +431,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 21",
           timeStr: "11:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "December Vista Available for Pickup",
@@ -431,7 +441,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 21",
           timeStr: "12:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Holiday Artisan Fair",
@@ -441,7 +451,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 22",
           timeStr: "10:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Simplify Your Digital Life",
@@ -451,7 +461,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 24",
           timeStr: "12:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Legal Advice",
@@ -461,7 +471,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 24",
           timeStr: "1:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Fresh Food Market",
@@ -471,7 +481,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 25",
           timeStr: "10:00 AM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Holiday Lunch",
@@ -481,7 +491,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 25",
           timeStr: "12:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Domino Theatre Dress Rehearsal: Miss Bennet: Christmas at Pemberley",
@@ -491,7 +501,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Domino Theatre",
           dateStr: "November 26",
           timeStr: "7:30 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         },
         {
           title: "Anxiety Unlocked",
@@ -501,7 +511,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           location: "Seniors Kingston Centre",
           dateStr: "November 27",
           timeStr: "1:00 PM",
-          image_url: "/assets/event-schedule-banner.png"
+          image_url: "/event-schedule-banner.png"
         }
       ];
       
@@ -572,7 +582,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
       location: '',
       dateStr: '',
       timeStr: '',
-      image_url: '/assets/event-schedule-banner.png',
+      image_url: '/event-schedule-banner.png',
       price: '',
       instructor: '',
       registration: ''
@@ -607,7 +617,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
       location: '',
       dateStr: '',
       timeStr: '',
-      image_url: '/assets/event-schedule-banner.png',
+      image_url: '/event-schedule-banner.png',
       price: '',
       instructor: '',
       registration: ''
@@ -637,7 +647,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
       location: '',
       dateStr: '',
       timeStr: '',
-      image_url: '/assets/event-schedule-banner.png',
+      image_url: '/event-schedule-banner.png',
       price: '',
       instructor: '',
       registration: ''
@@ -713,7 +723,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             disabled={loading}
             className="event-editor-button event-editor-button-success"
           >
-            {loading ? 'Loading...' : '📥 Load All Scraped Events'}
+            {loading ? 'Loading...' : '📥 Load New Events'}
           </button>
           <button 
             onClick={saveEvents} 
@@ -730,6 +740,15 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           
           <div className="event-editor-form-row">
             <div className="event-editor-form-group">
+              <label>Event ID</label>
+              <input
+                type="text"
+                value={newEvent.id || ''}
+                onChange={(e) => setNewEvent({ ...newEvent, id: e.target.value })}
+                placeholder="Event ID (optional)"
+              />
+            </div>
+            <div className="event-editor-form-group">
               <label>Title *</label>
               <input
                 type="text"
@@ -738,6 +757,9 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
                 placeholder="Event title"
               />
             </div>
+          </div>
+
+          <div className="event-editor-form-row">
             <div className="event-editor-form-group">
               <label>Location</label>
               <input
@@ -745,6 +767,15 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
                 value={newEvent.location || ''}
                 onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
                 placeholder="Event location"
+              />
+            </div>
+            <div className="event-editor-form-group">
+              <label>Image URL</label>
+              <input
+                type="text"
+                value={newEvent.image_url || ''}
+                onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
+                placeholder="Image URL or path"
               />
             </div>
           </div>

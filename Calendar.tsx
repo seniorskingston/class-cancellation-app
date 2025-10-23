@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './Calendar.css';
 import logo from './logo.png';
 import homeIcon from './assets/home-icon.png';
-import EventModal from './EventModal';
 import EventViewModal from './EventViewModal';
 
 interface Event {
@@ -196,69 +195,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
     }
   };
 
-  const saveEvent = async (event: Event) => {
-    try {
-      const eventData = {
-        title: event.title,
-        description: event.description || '',
-        location: event.location || '',
-        startDate: event.startDate.toISOString(),
-        endDate: event.endDate.toISOString()
-      };
-
-      let response;
-      if (event.id) {
-        // Update existing event
-        response = await fetch(`${getApiUrl()}/events/${event.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(eventData)
-        });
-      } else {
-        // Create new event
-        response = await fetch(`${getApiUrl()}/events`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(eventData)
-        });
-      }
-
-      if (response.ok) {
-        console.log('Event saved successfully');
-        fetchEvents(); // Refresh events list
-        setIsModalOpen(false);
-        setSelectedEvent(null);
-        setSelectedDate(undefined);
-      } else {
-        console.error('Failed to save event');
-      }
-    } catch (error) {
-      console.error('Error saving event:', error);
-    }
-  };
-
-  const deleteEvent = async (eventId: string) => {
-    try {
-      const response = await fetch(`${getApiUrl()}/events/${eventId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        console.log('Event deleted successfully');
-        fetchEvents(); // Refresh events list
-        setIsModalOpen(false);
-        setSelectedEvent(null);
-      } else {
-        console.error('Failed to delete event');
-      }
-    } catch (error) {
-      console.error('Error deleting event:', error);
-    }
-  };
 
   useEffect(() => {
     fetchEvents();
@@ -599,15 +535,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           </div>
         </div>
       )}
-
-      <EventModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onSave={saveEvent}
-        onDelete={selectedEvent?.id ? deleteEvent : undefined}
-        event={selectedEvent}
-        selectedDate={selectedDate}
-      />
 
       <EventViewModal
         isOpen={isModalOpen && selectedEvent !== null}

@@ -48,11 +48,6 @@ const EventViewModal: React.FC<EventViewModalProps> = ({
     });
   };
 
-  const formatDuration = (startDate: Date, endDate: Date): string => {
-    const startTime = formatTime(startDate);
-    const endTime = formatTime(endDate);
-    return `${startTime} - ${endTime}`;
-  };
 
   return (
     <div className="event-view-modal-overlay" onClick={onClose}>
