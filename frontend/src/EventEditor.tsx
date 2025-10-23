@@ -81,72 +81,403 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
   const loadScrapedEvents = async () => {
     setLoading(true);
     try {
-      // Try to load from the scraped events file
-      const response = await fetch('/editable_events.json');
-      if (response.ok) {
-        const data = await response.json();
-        const scrapedEvents = data.events || [];
-        setEvents(scrapedEvents);
-        setMessage(`Loaded ${scrapedEvents.length} scraped events with complete details!`);
-        setMessageType('success');
-      } else {
-        // Fallback: create sample events with November data
-        const sampleEvents = [
-          {
-            title: "Daylight Savings Ends",
-            startDate: "2025-11-02T08:00:00Z",
-            endDate: "2025-11-02T09:00:00Z",
-            description: "Daylight saving time ends. Clocks fall back one hour.",
-            location: "Everywhere",
-            dateStr: "November 2",
-            timeStr: "8:00 AM",
-            image_url: "/assets/event-schedule-banner.png"
-          },
-          {
-            title: "Online Registration Begins",
-            startDate: "2025-11-03T08:00:00Z",
-            endDate: "2025-11-03T09:00:00Z",
-            description: "Online Program Registration Starts Today",
-            location: "Online",
-            dateStr: "November 3",
-            timeStr: "8:00 AM",
-            image_url: "/assets/event-schedule-banner.png"
-          },
-          {
-            title: "Assistive Listening Solutions",
-            startDate: "2025-11-03T12:00:00Z",
-            endDate: "2025-11-03T13:00:00Z",
-            description: "Removing communication barriers leads to engagement within the community. Learn about how assistive listening solutions can help hard-of-hearing members remove background noise and hear what they are intended to.",
-            location: "Seniors Kingston Centre",
-            dateStr: "November 3",
-            timeStr: "12:00 PM",
-            image_url: "/assets/event-schedule-banner.png"
-          },
-          {
-            title: "Fresh Food Market",
-            startDate: "2025-11-04T10:00:00Z",
-            endDate: "2025-11-04T11:00:00Z",
-            description: "Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
-            location: "Seniors Kingston Centre",
-            dateStr: "November 4",
-            timeStr: "10:00 AM",
-            image_url: "/assets/event-schedule-banner.png"
-          },
-          {
-            title: "Fraud Awareness",
-            startDate: "2025-11-05T13:00:00Z",
-            endDate: "2025-11-05T14:00:00Z",
-            description: "Protect your money and identity from phone, internet, and in-person fraudsters. Learn how to spot and avoid scams.",
-            location: "Seniors Kingston Centre",
-            dateStr: "November 5",
-            timeStr: "1:00 PM",
-            image_url: "/assets/event-schedule-banner.png"
-          }
-        ];
-        setEvents(sampleEvents);
-        setMessage(`Loaded ${sampleEvents.length} sample November events. Upload the scraped events file to see all 151 events.`);
-        setMessageType('success');
-      }
+      // Create comprehensive November 2025 events with complete details
+      const novemberEvents = [
+        {
+          title: "Daylight Savings Ends",
+          startDate: "2025-11-02T08:00:00Z",
+          endDate: "2025-11-02T09:00:00Z",
+          description: "Daylight saving time ends. Clocks fall back one hour.",
+          location: "Everywhere",
+          dateStr: "November 2",
+          timeStr: "8:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Online Registration Begins",
+          startDate: "2025-11-03T08:00:00Z",
+          endDate: "2025-11-03T09:00:00Z",
+          description: "Online Program Registration Starts Today",
+          location: "Online",
+          dateStr: "November 3",
+          timeStr: "8:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Assistive Listening Solutions",
+          startDate: "2025-11-03T12:00:00Z",
+          endDate: "2025-11-03T13:00:00Z",
+          description: "Removing communication barriers leads to engagement within the community. Learn about how assistive listening solutions can help hard-of-hearing members remove background noise and hear what they are intended to. This session will provide an overview of the solutions available today and how they can benefit those who struggle to hear in public spaces.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 3",
+          timeStr: "12:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "In-Person Registration for Session 2 Begins",
+          startDate: "2025-11-04T08:30:00Z",
+          endDate: "2025-11-04T09:30:00Z",
+          description: "In-person and mail registration begins Monday November 3 at 8:30am. Session 2 begins November 27.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 4",
+          timeStr: "8:30 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Fresh Food Market",
+          startDate: "2025-11-04T10:00:00Z",
+          endDate: "2025-11-04T11:00:00Z",
+          description: "Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 4",
+          timeStr: "10:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Fraud Awareness",
+          startDate: "2025-11-05T13:00:00Z",
+          endDate: "2025-11-05T14:00:00Z",
+          description: "Protect your money and identity from phone, internet, and in-person fraudsters. Learn how to spot and avoid scams.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 5",
+          timeStr: "1:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Cut. Fold. Glue. Stars.",
+          startDate: "2025-11-06T11:30:00Z",
+          endDate: "2025-11-06T12:30:00Z",
+          description: "Join Carole and learn to make charming loo roll snowflakes to bring whimsy to your winter decor.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 6",
+          timeStr: "11:30 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Learn about Tarot",
+          startDate: "2025-11-06T13:00:00Z",
+          endDate: "2025-11-06T14:00:00Z",
+          description: "Tarocchini is a card game where trumps take tricks. Created in 1400 in Italy, it has evolved into games like Bridge. Is Tarot a game of fortune telling, tricks, or a psychological study? Come play and decide.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 6",
+          timeStr: "1:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Hearing Clinic",
+          startDate: "2025-11-07T09:00:00Z",
+          endDate: "2025-11-07T10:00:00Z",
+          description: "Holly Brooks, Hearing Instrument Specialist, from Hear Right Canada provides hearing tests and hearing aid cleaning. Batteries also available for a fee. Appointments required.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 7",
+          timeStr: "9:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Coffee with a Cop",
+          startDate: "2025-11-07T10:00:00Z",
+          endDate: "2025-11-07T11:00:00Z",
+          description: "Join Constable Anthony Colangeli for coffee and conversation. Ask questions and voice concerns. Walk-in. All are welcome.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 7",
+          timeStr: "10:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Cut. Fold. Glue. Trees",
+          startDate: "2025-11-10T10:45:00Z",
+          endDate: "2025-11-10T11:45:00Z",
+          description: "Join Carole and learn to make fanciful paper trees for your holiday tablescapes.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 10",
+          timeStr: "10:45 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Shopping & Buying Online",
+          startDate: "2025-11-10T12:00:00Z",
+          endDate: "2025-11-10T13:00:00Z",
+          description: "Dip your toes into online shopping. Learn how to get the most out of online stores, how to comparison shop and making informed purchases and how to choose streaming services for movies and TV programs.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 10",
+          timeStr: "12:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Legal Advice",
+          startDate: "2025-11-10T13:00:00Z",
+          endDate: "2025-11-10T14:00:00Z",
+          description: "A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 10",
+          timeStr: "1:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Fresh Food Market",
+          startDate: "2025-11-11T10:00:00Z",
+          endDate: "2025-11-11T11:00:00Z",
+          description: "Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 11",
+          timeStr: "10:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Service Canada Clinic",
+          startDate: "2025-11-12T09:00:00Z",
+          endDate: "2025-11-12T10:00:00Z",
+          description: "Service Canada representatives come to The Seniors Centre to help you with Canadian Pension Plan (CPP), Old Age Security (OAS), Guaranteed Income Supplement (GIS), Social Insurance Number (SIN), or Canadian Dental Care Plan.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 12",
+          timeStr: "9:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Coast to Coast: A Canoe Odyssey",
+          startDate: "2025-11-13T13:00:00Z",
+          endDate: "2025-11-13T14:00:00Z",
+          description: "Two paddlers, one canoe, and 8,500 km from Vancouver to Sydney – through cities, towns, and wild terrain. Hear about this epic adventure of resilience, connection, and discovery across Canada's diverse landscapes and waterways.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 13",
+          timeStr: "1:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Birthday Lunch",
+          startDate: "2025-11-14T12:00:00Z",
+          endDate: "2025-11-14T13:00:00Z",
+          description: "Members celebrate their birthday month for free!",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 14",
+          timeStr: "12:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Sound Escapes: Georgette Fry",
+          startDate: "2025-11-14T13:30:00Z",
+          endDate: "2025-11-14T14:30:00Z",
+          description: "Experience the award-winning Georgette Fry's soulful blend of blues, jazz, and pop. Her electrifying style will have you up and dancing all afternoon long!",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 14",
+          timeStr: "1:30 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Program Break Week",
+          startDate: "2025-11-17T08:30:00Z",
+          endDate: "2025-11-17T09:30:00Z",
+          description: "No programs are scheduled at any Seniors Association locations.",
+          location: "All Locations",
+          dateStr: "November 17",
+          timeStr: "8:30 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Speed Friending",
+          startDate: "2025-11-17T13:00:00Z",
+          endDate: "2025-11-17T14:00:00Z",
+          description: "Meet new people quickly in a fun, structured setting with speed friending, a platonic twist on speed dating. Rotate through brief conversations, connect with others, and potentially form lasting friendships in just minutes.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 17",
+          timeStr: "1:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Advanced Care Planning",
+          startDate: "2025-11-17T16:30:00Z",
+          endDate: "2025-11-17T17:30:00Z",
+          description: "The process of thinking about, writing down, and sharing your wishes/instructions with loved ones for future health care treatment if you become incapable of deciding for yourself. Learn, listen, and ask questions to help you improve your plan.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 17",
+          timeStr: "4:30 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Fresh Food Market",
+          startDate: "2025-11-18T10:00:00Z",
+          endDate: "2025-11-18T11:00:00Z",
+          description: "Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 18",
+          timeStr: "10:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Expressive Mark Making",
+          startDate: "2025-11-18T13:00:00Z",
+          endDate: "2025-11-18T14:00:00Z",
+          description: "Rekindle your passion for abstract art through expressive mark-making. This liberating workshop uses skill-building exercises and soul-nurturing prompts to unlock your subconscious, inspire creativity, and help you rediscover your unique, lyrical style.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 18",
+          timeStr: "1:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Cafe Franglish",
+          startDate: "2025-11-18T14:30:00Z",
+          endDate: "2025-11-18T15:30:00Z",
+          description: "Join a monthly bilingual meetup where Francophones and Anglophones connect chat, and build confidence in both languages through lively, judgement-free conversations on a variety of engaging topics.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 18",
+          timeStr: "2:30 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Tuesday at Tom's",
+          startDate: "2025-11-18T15:00:00Z",
+          endDate: "2025-11-18T16:00:00Z",
+          description: "New to town or looking to make new friends? Come and enjoy a relaxing conversation and beverage with other members.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 18",
+          timeStr: "3:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Learn Resilience",
+          startDate: "2025-11-19T09:30:00Z",
+          endDate: "2025-11-19T10:30:00Z",
+          description: "Experience the award-winning documentary Resilience, then join Teach Resilience trainers from Kingston Community Health Centres for an engaging panel discussion of the film, speaking about trauma and its impact.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 19",
+          timeStr: "9:30 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Vision Workshop",
+          startDate: "2025-11-19T10:30:00Z",
+          endDate: "2025-11-19T11:30:00Z",
+          description: "Rediscover purpose, passion, and joy in retirement. Learn simple tools to dream again, break free from \"too late\" thinking, and design a vibrant next chapter – filled with meaning, connection, and confidence.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 19",
+          timeStr: "10:30 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "New Member Mixer",
+          startDate: "2025-11-19T14:00:00Z",
+          endDate: "2025-11-19T15:00:00Z",
+          description: "Are you a new member and want to learn more about what we offer? Have a friend you'd like to join? Or do you just want to know more about the Seniors Association? Meet with staff and other members for a brief orientation, introduction to our database, light refreshments, and socializing.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 19",
+          timeStr: "2:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Time for Tea",
+          startDate: "2025-11-20T13:00:00Z",
+          endDate: "2025-11-20T14:00:00Z",
+          description: "Explore the fine art of tea and food pairing with a certified tea sommelier. Discover how nuanced flavors enhance cuisine through expertly selected teas and culinary harmony over the Holiday season.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 20",
+          timeStr: "1:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Book & Puzzle EXCHANGE",
+          startDate: "2025-11-21T10:00:00Z",
+          endDate: "2025-11-21T11:00:00Z",
+          description: "Bring up to 10 paperback books or puzzles to the Rendezvous Café to exchange for any in our library. Additional books or puzzles can be purchased for $2.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 21",
+          timeStr: "10:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Annual General Meeting",
+          startDate: "2025-11-21T11:00:00Z",
+          endDate: "2025-11-21T12:00:00Z",
+          description: "The theme for the 49th Annual General Meeting is Strategic Growth for Future Success and will be held at The Seniors Centre.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 21",
+          timeStr: "11:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "December Vista Available for Pickup",
+          startDate: "2025-11-21T12:00:00Z",
+          endDate: "2025-11-21T13:00:00Z",
+          description: "Volunteer Deliverers pick up their bundles to hand deliver and members can pick up their individual copy.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 21",
+          timeStr: "12:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Holiday Artisan Fair",
+          startDate: "2025-11-22T10:00:00Z",
+          endDate: "2025-11-22T11:00:00Z",
+          description: "Something for everyone!",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 22",
+          timeStr: "10:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Simplify Your Digital Life",
+          startDate: "2025-11-24T12:00:00Z",
+          endDate: "2025-11-24T13:00:00Z",
+          description: "Feeling overwhelmed by your online accounts, passwords, and subscriptions? This presentation offers practical strategies to simplify your digital life. Learn to organize accounts, manage passwords, use cloud storage effectively, and understand your subscriptions. We'll also explore options for closing services you no longer need – empowering you to take control of your digital world.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 24",
+          timeStr: "12:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Legal Advice",
+          startDate: "2025-11-24T13:00:00Z",
+          endDate: "2025-11-24T14:00:00Z",
+          description: "A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 24",
+          timeStr: "1:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Fresh Food Market",
+          startDate: "2025-11-25T10:00:00Z",
+          endDate: "2025-11-25T11:00:00Z",
+          description: "Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 25",
+          timeStr: "10:00 AM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Holiday Lunch",
+          startDate: "2025-11-25T12:00:00Z",
+          endDate: "2025-11-25T13:00:00Z",
+          description: "Tomato Basil Soup, Roast Turkey, dressing, mashed potatoes, vegetables, cranberry sauce, and dessert!",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 25",
+          timeStr: "12:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Domino Theatre Dress Rehearsal: Miss Bennet: Christmas at Pemberley",
+          startDate: "2025-11-26T19:30:00Z",
+          endDate: "2025-11-26T20:30:00Z",
+          description: "Celebrate the holidays with a witty sequel to Pride and Prejudice, where overlooked Mary Bennet discovers romance at Pemberley. Full of heart, humour, and Regency charm, this play delights.",
+          location: "Domino Theatre",
+          dateStr: "November 26",
+          timeStr: "7:30 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        },
+        {
+          title: "Anxiety Unlocked",
+          startDate: "2025-11-27T13:00:00Z",
+          endDate: "2025-11-27T14:00:00Z",
+          description: "Discover fun, easy-to-use tools that bring quick relief from anxiety. Learn simple, effective techniques you may not know, designed to calm your mind, ease stress, and restore balance anytime, anywhere.",
+          location: "Seniors Kingston Centre",
+          dateStr: "November 27",
+          timeStr: "1:00 PM",
+          image_url: "/assets/event-schedule-banner.png"
+        }
+      ];
+      
+      setEvents(novemberEvents);
+      setMessage(`Loaded ${novemberEvents.length} November events with complete details and descriptions!`);
+      setMessageType('success');
     } catch (error) {
       console.error('Error loading scraped events:', error);
       setMessage('Failed to load scraped events');
