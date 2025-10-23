@@ -28,6 +28,9 @@ DB_PATH = "/tmp/class_cancellations.db" if os.getenv('RENDER') else "class_cance
 KINGSTON_TZ = pytz.timezone('America/Toronto')
 utc = pytz.UTC
 
+# Global variable to store uploaded events
+stored_events = []
+
 app = FastAPI(title="Program Schedule Update API")
 
 # Allow CORS for frontend - specifically allow Render domains
@@ -1326,8 +1329,8 @@ def get_events(request: Request):
         real_events = scrape_seniors_kingston_events()
         if real_events and len(real_events) > 0:
             print(f"✅ Successfully fetched {len(real_events)} real events from website")
-            # Combine real events with Canadian holidays and editable events
-            all_events = real_events + globals()['known_events'] + list(editable_events.values())
+            # Combine real events with Canadian holidays, editable events, and stored events
+            all_events = real_events + globals()['known_events'] + list(editable_events.values()) + stored_events
             return {
                 "events": all_events,
                 "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
@@ -1685,8 +1688,8 @@ def get_events(request: Request):
         }
     ]
     
-    # Combine known events with Canadian holidays and editable events
-    all_events = known_events + globals()['known_events'] + list(editable_events.values())
+    # Combine known events with Canadian holidays, editable events, and stored events
+    all_events = known_events + globals()['known_events'] + list(editable_events.values()) + stored_events
     
     return {
         "events": all_events,
@@ -1768,6 +1771,32 @@ def delete_event(event_id: str):
         
     except Exception as e:
         print(f"❌ Error deleting event: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/events/bulk-update")
+def bulk_update_events(request: Request):
+    """Bulk update events - replace all events with new ones"""
+    try:
+        data = request.json()
+        events = data.get('events', [])
+        
+        print(f"🔄 Bulk update received: {len(events)} events")
+        
+        # Clear existing events and add new ones
+        # For now, we'll store them in memory (you can modify this to use a database)
+        global stored_events
+        stored_events = events
+        
+        print(f"✅ Successfully stored {len(events)} events")
+        
+        return {
+            "success": True,
+            "message": f"Successfully updated {len(events)} events",
+            "count": len(events)
+        }
+        
+    except Exception as e:
+        print(f"❌ Error in bulk update: {e}")
         return {"success": False, "error": str(e)}
 
 @app.get("/api/october-events")
