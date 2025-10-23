@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Calendar.css';
 import logo from './logo.png';
 import homeIcon from './assets/home-icon.png';
+import eventBanner from './assets/event-schedule-banner.png';
 import EventViewModal from './EventViewModal';
 
 interface Event {
@@ -177,7 +178,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             location: event.location || '',
             dateStr: event.dateStr || '',
             timeStr: event.timeStr || '',
-            image_url: event.image_url || '/event-schedule-banner.png',
+            image_url: event.image_url || eventBanner,
             price: event.price || '',
             instructor: event.instructor || '',
             registration: event.registration || ''
