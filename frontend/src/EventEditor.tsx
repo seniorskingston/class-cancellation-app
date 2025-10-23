@@ -108,14 +108,14 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           const scrapedEvents = data.events || [];
           if (scrapedEvents.length > 0) {
             // Check if the scraped events have proper details (not just TBA)
-            const hasProperDetails = scrapedEvents.some(event => 
+            const hasProperDetails = scrapedEvents.some((event: any) => 
               event.timeStr && event.timeStr !== 'TBA' && 
               event.description && event.description.trim() !== ''
             );
             
             if (hasProperDetails) {
               // Ensure all events have image URLs
-              const eventsWithImages = scrapedEvents.map(event => ({
+              const eventsWithImages = scrapedEvents.map((event: any) => ({
                 ...event,
                 image_url: event.image_url || '/event-schedule-banner.png'
               }));
