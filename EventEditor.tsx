@@ -73,14 +73,20 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     setLoading(true);
     try {
       const response = await fetch('https://class-cancellation-backend.onrender.com/api/events');
-      if (response.ok) {
-        const data = await response.json();
-        setEvents(data.events || []);
-        setMessage(`Loaded ${data.events?.length || 0} events from backend`);
-        setMessageType('success');
-      } else {
-        throw new Error('Failed to load events');
-      }
+              if (response.ok) {
+                const data = await response.json();
+                const events = data.events || [];
+                // Ensure all events have image URLs
+                const eventsWithImages = events.map((event: any) => ({
+                  ...event,
+                  image_url: event.image_url || '/event-schedule-banner.png'
+                }));
+                setEvents(eventsWithImages);
+                setMessage(`Loaded ${events.length} events from backend`);
+                setMessageType('success');
+              } else {
+                throw new Error('Failed to load events');
+              }
     } catch (error) {
       console.error('Error loading events:', error);
       setMessage('Failed to load events');
@@ -108,7 +114,12 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             );
             
             if (hasProperDetails) {
-              setEvents(scrapedEvents);
+              // Ensure all events have image URLs
+              const eventsWithImages = scrapedEvents.map(event => ({
+                ...event,
+                image_url: event.image_url || '/event-schedule-banner.png'
+              }));
+              setEvents(eventsWithImages);
               setMessage(`✅ Loaded ${scrapedEvents.length} scraped events from file!`);
               setMessageType('success');
               return;
