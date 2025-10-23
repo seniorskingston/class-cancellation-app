@@ -3,6 +3,8 @@ import './Calendar.css';
 import logo from './logo.png';
 import homeIcon from './assets/home-icon.png';
 import EventModal from './EventModal';
+import EventViewModal from './EventViewModal';
+import EventEditor from './EventEditor';
 
 interface Event {
   id?: string;
@@ -38,6 +40,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isEventEditorOpen, setIsEventEditorOpen] = useState(false);
 
   // Generate calendar days based on view mode
   const generateCalendarDays = (): Date[] => {
@@ -95,6 +98,13 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       const eventDate = new Date(event.startDate);
       return eventDate.toDateString() === date.toDateString();
     });
+  };
+
+  // Handle event click
+  const handleEventClick = (event: Event) => {
+    console.log('🎯 Event clicked:', event.title);
+    setSelectedEvent(event);
+    setIsModalOpen(true);
   };
 
 
@@ -288,11 +298,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
     setIsModalOpen(true);
   };
 
-  const handleEventClick = (event: Event) => {
-    setSelectedEvent(event);
-    setSelectedDate(undefined);
-    setIsModalOpen(true);
-  };
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -454,6 +459,16 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             </>
           )}
           
+          {/* Edit Events Button */}
+          <button 
+            onClick={() => setIsEventEditorOpen(true)}
+            className="view-button custom-tooltip"
+            data-tooltip="Edit Events"
+            style={{ background: '#28a745', color: 'white' }}
+          >
+            ✏️ Edit Events
+          </button>
+          
         </div>
         
         
@@ -499,7 +514,8 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                       <div 
                         key={eventIndex} 
                         className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                        // onClick={() => handleEventClick(event)} // Disabled - events are read-only
+                        onClick={() => handleEventClick(event)}
+                        style={{ cursor: 'pointer' }}
                       >
                         <div className="mobile-event-time">
                           {event.startDate.toLocaleTimeString('en-US', { 
@@ -561,10 +577,11 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                       <div
                         key={eventIndex}
                         className={`event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                        // onClick={(e) => {
-                        //   e.stopPropagation();
-                        //   handleEventClick(event);
-                        // }} // Disabled - events are read-only
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEventClick(event);
+                        }}
+                        style={{ cursor: 'pointer' }}
                       >
                         <div className="event-time">
                           {event.startDate.toLocaleTimeString('en-US', { 
@@ -594,6 +611,17 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         onDelete={selectedEvent?.id ? deleteEvent : undefined}
         event={selectedEvent}
         selectedDate={selectedDate}
+      />
+
+      <EventViewModal
+        isOpen={isModalOpen && selectedEvent !== null}
+        onClose={closeModal}
+        event={selectedEvent}
+      />
+
+      <EventEditor
+        isOpen={isEventEditorOpen}
+        onClose={() => setIsEventEditorOpen(false)}
       />
     </div>
   );

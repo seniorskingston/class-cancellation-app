@@ -1,0 +1,378 @@
+/* Event Editor Styles */
+.event-editor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.event-editor-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 1000px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  border: 3px solid #0072ce;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Header */
+.event-editor-header {
+  background: linear-gradient(135deg, #0072ce 0%, #00b388 100%);
+  color: white;
+  padding: 20px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.event-editor-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.event-editor-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.event-editor-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Message */
+.event-editor-message {
+  padding: 12px 20px;
+  margin: 0;
+  font-weight: 600;
+  text-align: center;
+}
+
+.event-editor-message.success {
+  background: #d4edda;
+  color: #155724;
+  border-bottom: 1px solid #c3e6cb;
+}
+
+.event-editor-message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border-bottom: 1px solid #f5c6cb;
+}
+
+/* Controls */
+.event-editor-controls {
+  padding: 20px 25px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+/* Buttons */
+.event-editor-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.event-editor-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.event-editor-button-primary {
+  background: #0072ce;
+  color: white;
+}
+
+.event-editor-button-primary:hover:not(:disabled) {
+  background: #0056a3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 114, 206, 0.3);
+}
+
+.event-editor-button-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.event-editor-button-secondary:hover:not(:disabled) {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.event-editor-button-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.event-editor-button-danger:hover:not(:disabled) {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+.event-editor-button-small {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  min-width: 80px;
+}
+
+/* Form */
+.event-editor-form {
+  padding: 25px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.event-editor-form h3 {
+  color: #0072ce;
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.event-editor-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.event-editor-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.event-editor-form-group label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.event-editor-form-group input,
+.event-editor-form-group textarea {
+  padding: 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.event-editor-form-group input:focus,
+.event-editor-form-group textarea:focus {
+  outline: none;
+  border-color: #0072ce;
+  box-shadow: 0 0 0 3px rgba(0, 114, 206, 0.1);
+}
+
+.event-editor-form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.event-editor-form-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* Events List */
+.event-editor-list {
+  padding: 25px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.event-editor-list h3 {
+  color: #0072ce;
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.event-editor-empty {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 40px;
+}
+
+.event-editor-events {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.event-editor-event {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  transition: all 0.2s ease;
+}
+
+.event-editor-event:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.event-editor-event-info {
+  flex: 1;
+}
+
+.event-editor-event-info h4 {
+  color: #0072ce;
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.event-editor-event-info p {
+  margin: 5px 0;
+  color: #495057;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.event-editor-event-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .event-editor-overlay {
+    padding: 10px;
+  }
+  
+  .event-editor-content {
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: 12px;
+  }
+  
+  .event-editor-header {
+    padding: 15px 20px;
+  }
+  
+  .event-editor-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .event-editor-close {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
+  
+  .event-editor-controls {
+    padding: 15px 20px;
+    flex-direction: column;
+  }
+  
+  .event-editor-form {
+    padding: 20px;
+  }
+  
+  .event-editor-form-row {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .event-editor-form-actions {
+    flex-direction: column;
+  }
+  
+  .event-editor-list {
+    padding: 20px;
+  }
+  
+  .event-editor-event {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .event-editor-event-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .event-editor-overlay {
+    padding: 5px;
+  }
+  
+  .event-editor-header {
+    padding: 12px 15px;
+  }
+  
+  .event-editor-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .event-editor-controls {
+    padding: 12px 15px;
+  }
+  
+  .event-editor-form {
+    padding: 15px;
+  }
+  
+  .event-editor-list {
+    padding: 15px;
+  }
+  
+  .event-editor-event {
+    padding: 15px;
+  }
+}

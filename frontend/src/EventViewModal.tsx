@@ -1,17 +1,139 @@
-// Empty placeholder file - not used
 import React from 'react';
+import './EventViewModal.css';
+
+interface Event {
+  id?: string;
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  description?: string;
+  location?: string;
+  dateStr?: string;
+  timeStr?: string;
+  image_url?: string;
+}
 
 interface EventViewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave?: (event: any) => Promise<void>;
-  onDelete?: (eventId: string) => Promise<void>;
-  event: any;
-  selectedDate?: Date;
+  event: Event | null;
 }
 
-const EventViewModal: React.FC<EventViewModalProps> = () => {
-  return null;
+const EventViewModal: React.FC<EventViewModalProps> = ({
+  isOpen,
+  onClose,
+  event
+}) => {
+  if (!isOpen || !event) {
+    return null;
+  }
+
+  const formatDate = (date: Date): string => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (date: Date): string => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const formatDuration = (startDate: Date, endDate: Date): string => {
+    const startTime = formatTime(startDate);
+    const endTime = formatTime(endDate);
+    return `${startTime} - ${endTime}`;
+  };
+
+  return (
+    <div className="event-view-modal-overlay" onClick={onClose}>
+      <div className="event-view-modal-content" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="event-view-modal-header">
+          <h2 className="event-view-modal-title">{event.title}</h2>
+          <button 
+            className="event-view-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Event Image */}
+        {event.image_url && (
+          <div className="event-view-modal-image">
+            <img 
+              src={event.image_url} 
+              alt={event.title}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
+        {/* Event Details */}
+        <div className="event-view-modal-body">
+          {/* Date and Time */}
+          <div className="event-detail-section">
+            <div className="event-detail-item">
+              <span className="event-detail-label">📅 Date:</span>
+              <span className="event-detail-value">{formatDate(event.startDate)}</span>
+            </div>
+            <div className="event-detail-item">
+              <span className="event-detail-label">🕐 Time:</span>
+              <span className="event-detail-value">{formatDuration(event.startDate, event.endDate)}</span>
+            </div>
+            {event.location && (
+              <div className="event-detail-item">
+                <span className="event-detail-label">📍 Location:</span>
+                <span className="event-detail-value">{event.location}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          {event.description && (
+            <div className="event-detail-section">
+              <h3 className="event-detail-section-title">About this event</h3>
+              <p className="event-description">{event.description}</p>
+            </div>
+          )}
+
+          {/* Additional Info */}
+          <div className="event-detail-section">
+            <div className="event-detail-item">
+              <span className="event-detail-label">🆔 Event ID:</span>
+              <span className="event-detail-value">{event.id || 'N/A'}</span>
+            </div>
+            <div className="event-detail-item">
+              <span className="event-detail-label">📊 Duration:</span>
+              <span className="event-detail-value">
+                {Math.round((event.endDate.getTime() - event.startDate.getTime()) / (1000 * 60 * 60 * 100) * 10) / 10} hours
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="event-view-modal-footer">
+          <button 
+            className="event-view-modal-button event-view-modal-button-primary"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default EventViewModal;
