@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './EventEditor.css';
-import eventBanner from '../assets/event-schedule-banner.png';
+import eventBanner from './assets/event-schedule-banner.png';
 
 interface Event {
   id?: string;
