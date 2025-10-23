@@ -4,7 +4,6 @@ import logo from './logo.png';
 import homeIcon from './assets/home-icon.png';
 import EventModal from './EventModal';
 import EventViewModal from './EventViewModal';
-import EventEditor from './EventEditor';
 
 interface Event {
   id?: string;
@@ -40,7 +39,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [isEventEditorOpen, setIsEventEditorOpen] = useState(false);
 
   // Generate calendar days based on view mode
   const generateCalendarDays = (): Date[] => {
@@ -460,14 +458,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           )}
           
           {/* Edit Events Button */}
-          <button 
-            onClick={() => setIsEventEditorOpen(true)}
-            className="view-button custom-tooltip"
-            data-tooltip="Edit Events"
-            style={{ background: '#28a745', color: 'white' }}
-          >
-            ✏️ Edit Events
-          </button>
           
         </div>
         
@@ -619,10 +609,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         event={selectedEvent}
       />
 
-      <EventEditor
-        isOpen={isEventEditorOpen}
-        onClose={() => setIsEventEditorOpen(false)}
-      />
     </div>
   );
 };

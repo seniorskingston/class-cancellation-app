@@ -25,6 +25,8 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
   const [newEvent, setNewEvent] = useState<Event>({
     title: '',
     startDate: '',
@@ -35,6 +37,23 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     timeStr: '',
     image_url: '/assets/event-schedule-banner.png'
   });
+
+  // Check if user is authenticated (simple password check)
+  const checkAuthentication = () => {
+    const correctPassword = 'rebecca2025'; // Change this to your preferred password
+    return password === correctPassword;
+  };
+
+  const handleLogin = () => {
+    if (checkAuthentication()) {
+      setIsAuthenticated(true);
+      setMessage('Access granted! You can now edit events.');
+      setMessageType('success');
+    } else {
+      setMessage('Incorrect password. Only authorized users can edit events.');
+      setMessageType('error');
+    }
+  };
 
   // Load events from backend
   const loadEvents = async () => {
@@ -204,12 +223,31 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           <button className="event-editor-close" onClick={onClose}>×</button>
         </div>
 
-        {/* Message */}
-        {message && (
-          <div className={`event-editor-message ${messageType}`}>
-            {message}
+        {/* Authentication */}
+        {!isAuthenticated ? (
+          <div className="event-editor-auth">
+            <h3>🔒 Admin Access Required</h3>
+            <p>Enter password to edit events:</p>
+            <div className="auth-form">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              />
+              <button onClick={handleLogin}>Login</button>
+            </div>
+            <p className="auth-note">Only authorized users can edit events</p>
           </div>
-        )}
+        ) : (
+          <>
+            {/* Message */}
+            {message && (
+              <div className={`event-editor-message ${messageType}`}>
+                {message}
+              </div>
+            )}
 
         {/* Controls */}
         <div className="event-editor-controls">
@@ -357,6 +395,8 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             </div>
           )}
         </div>
+          </>
+        )}
       </div>
     </div>
   );

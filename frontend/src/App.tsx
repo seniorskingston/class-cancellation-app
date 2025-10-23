@@ -3,6 +3,7 @@ import "./App.css";
 import logo from "./logo.png";
 import QRCode from 'qrcode';
 import Calendar from './Calendar';
+import AdminPanel from './AdminPanel';
 import locationData from './locations.json';
 import UserGuide from './UserGuide';
 import analytics from './analytics';
@@ -134,8 +135,16 @@ function App() {
   const [showQRCode, setShowQRCode] = useState(false);
   const [showFloatingQR, setShowFloatingQR] = useState(true);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
-  const [currentView, setCurrentView] = useState<'main' | 'calendar'>('main');
+  const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'admin'>('main');
 
+  // Check for admin access via URL parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const adminKey = urlParams.get('admin');
+    if (adminKey === 'rebecca2025') {
+      setCurrentView('admin');
+    }
+  }, []);
 
   // Generate QR code for the current URL
   const generateQRCode = async () => {
@@ -602,6 +611,11 @@ function App() {
               />
             </div>
           );
+        }
+
+        // Admin view
+        if (currentView === 'admin') {
+          return <AdminPanel onBackToMain={() => setCurrentView('main')} />;
         }
 
   // Mobile view
