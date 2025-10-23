@@ -1,1370 +1,596 @@
 {
   "metadata": {
-    "scraped_at": "2025-10-23T09:43:36.863794",
-    "total_events": 151,
-    "source": "manual_scraping",
-    "description": "Events scraped for manual editing and upload",
-    "instructions": "Edit the events below, then use upload_events_to_backend.py to upload them"
+    "scraped_at": "2025-10-23T14:29:56.047216",
+    "total_events": 45,
+    "source": "improved_scraping",
+    "description": "Events scraped with complete details including descriptions, locations, prices, instructors, and registration info",
+    "instructions": "Events have been scraped with complete details. Review and edit as needed, then upload to backend."
   },
   "events": [
     {
-      "title": "Paint with Gouache",
-      "startDate": "2025-10-23T09:43:36.430661Z",
-      "endDate": "2025-10-23T10:43:36.430661Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Achieve Your Best Health",
-      "startDate": "2025-10-23T09:43:36.434206Z",
-      "endDate": "2025-10-23T10:43:36.434206Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Sound Escapes: Kenny & Dolly",
-      "startDate": "2025-10-23T09:43:36.434447Z",
-      "endDate": "2025-10-23T10:43:36.434447Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Wearable Tech",
-      "startDate": "2025-10-23T09:43:36.434634Z",
-      "endDate": "2025-10-23T10:43:36.434634Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Legal Advice",
-      "startDate": "2025-10-23T09:43:36.434781Z",
-      "endDate": "2025-10-23T10:43:36.434781Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Fresh Food Market",
-      "startDate": "2025-10-23T09:43:36.434989Z",
-      "endDate": "2025-10-23T10:43:36.434989Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "18th Century Astronomy",
-      "startDate": "2025-10-23T09:43:36.435228Z",
-      "endDate": "2025-10-23T10:43:36.435228Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Caroles Dance Party",
-      "startDate": "2025-10-23T09:43:36.436235Z",
-      "endDate": "2025-10-23T10:43:36.436235Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Daylight Savings Ends",
-      "startDate": "2025-10-23T09:43:36.438349Z",
-      "endDate": "2025-10-23T10:43:36.438349Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Online Registration Begins",
-      "startDate": "2025-10-23T09:43:36.438588Z",
-      "endDate": "2025-10-23T10:43:36.438588Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Assistive Listening Solutions",
-      "startDate": "2025-10-23T09:43:36.438749Z",
-      "endDate": "2025-10-23T10:43:36.438749Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "In-Person Registration for Session 2 Begins",
-      "startDate": "2025-10-23T09:43:36.438930Z",
-      "endDate": "2025-10-23T10:43:36.438930Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Fraud Awareness",
-      "startDate": "2025-10-23T09:43:36.439172Z",
-      "endDate": "2025-10-23T10:43:36.439172Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Cut. Fold. Glue. Stars.",
-      "startDate": "2025-10-23T09:43:36.439372Z",
-      "endDate": "2025-10-23T10:43:36.439372Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Learn about Tarot",
-      "startDate": "2025-10-23T09:43:36.439525Z",
-      "endDate": "2025-10-23T10:43:36.439525Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Hearing Clinic",
-      "startDate": "2025-10-23T09:43:36.439674Z",
-      "endDate": "2025-10-23T10:43:36.439674Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Coffee with a Cop",
-      "startDate": "2025-10-23T09:43:36.439850Z",
-      "endDate": "2025-10-23T10:43:36.439850Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Cut. Fold. Glue. Trees",
-      "startDate": "2025-10-23T09:43:36.440006Z",
-      "endDate": "2025-10-23T10:43:36.440006Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Shopping & Buying Online",
-      "startDate": "2025-10-23T09:43:36.440134Z",
-      "endDate": "2025-10-23T10:43:36.440134Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Service Canada Clinic",
-      "startDate": "2025-10-23T09:43:36.440647Z",
-      "endDate": "2025-10-23T10:43:36.440647Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Coast to Coast: A Canoe Odyssey",
-      "startDate": "2025-10-23T09:43:36.440812Z",
-      "endDate": "2025-10-23T10:43:36.440812Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Birthday Lunch",
-      "startDate": "2025-10-23T09:43:36.441039Z",
-      "endDate": "2025-10-23T10:43:36.441039Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Sound Escapes: Georgette Fry",
-      "startDate": "2025-10-23T09:43:36.441231Z",
-      "endDate": "2025-10-23T10:43:36.441231Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Program Break Week",
-      "startDate": "2025-10-23T09:43:36.441383Z",
-      "endDate": "2025-10-23T10:43:36.441383Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Speed Friending",
-      "startDate": "2025-10-23T09:43:36.441531Z",
-      "endDate": "2025-10-23T10:43:36.441531Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Advanced Care Planning",
-      "startDate": "2025-10-23T09:43:36.441717Z",
-      "endDate": "2025-10-23T10:43:36.441717Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Expressive Mark Making",
-      "startDate": "2025-10-23T09:43:36.441947Z",
-      "endDate": "2025-10-23T10:43:36.441947Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Cafe Franglish",
-      "startDate": "2025-10-23T09:43:36.442097Z",
-      "endDate": "2025-10-23T10:43:36.442097Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Tuesday at Tom’s",
-      "startDate": "2025-10-23T09:43:36.442235Z",
-      "endDate": "2025-10-23T10:43:36.442235Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Learn Resilience",
-      "startDate": "2025-10-23T09:43:36.442433Z",
-      "endDate": "2025-10-23T10:43:36.442433Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Vision Workshop",
-      "startDate": "2025-10-23T09:43:36.442590Z",
-      "endDate": "2025-10-23T10:43:36.442590Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "New Member Mixer",
-      "startDate": "2025-10-23T09:43:36.442749Z",
-      "endDate": "2025-10-23T10:43:36.442749Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Time for Tea",
-      "startDate": "2025-10-23T09:43:36.442903Z",
-      "endDate": "2025-10-23T10:43:36.442903Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Book & Puzzle EXCHANGE",
-      "startDate": "2025-10-23T09:43:36.443052Z",
-      "endDate": "2025-10-23T10:43:36.443052Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Annual General Meeting",
-      "startDate": "2025-10-23T09:43:36.443212Z",
-      "endDate": "2025-10-23T10:43:36.443212Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "December Vista Available for Pickup",
-      "startDate": "2025-10-23T09:43:36.443373Z",
-      "endDate": "2025-10-23T10:43:36.443373Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Holiday Artisan Fair",
-      "startDate": "2025-10-23T09:43:36.443540Z",
-      "endDate": "2025-10-23T10:43:36.443540Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Simplify Your Digital Life",
-      "startDate": "2025-10-23T09:43:36.445675Z",
-      "endDate": "2025-10-23T10:43:36.445675Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Holiday Lunch",
-      "startDate": "2025-10-23T09:43:36.446245Z",
-      "endDate": "2025-10-23T10:43:36.446245Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Domino Theatre Dress Rehearsal: Miss Bennet: Christmas at Pemberley",
-      "startDate": "2025-10-23T09:43:36.446424Z",
-      "endDate": "2025-10-23T10:43:36.446424Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Anxiety Unlocked",
-      "startDate": "2025-10-23T09:43:36.446652Z",
-      "endDate": "2025-10-23T10:43:36.446652Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Paint with Gouache October 23, 10:00 am After learning the properties and techniques of this unique watercolour, students will use their knowledgeto complete work of their choosing. All materials included.",
-      "startDate": "2025-10-23T00:00:00Z",
-      "endDate": "2025-10-23T01:00:00Z",
-      "description": "",
-      "location": "",
-      "dateStr": "October 23",
-      "timeStr": "10:00 am"
-    },
-    {
-      "title": "Achieve Your Best Health  October 23, 1:00 pm Learn about the Frontenac Lennox & Addington Ontario Health Team, working to provide connected, team-based care that supports overall wellness and improves home care services for adults in our community.",
-      "startDate": "2025-10-23T00:00:00Z",
-      "endDate": "2025-10-23T01:00:00Z",
-      "description": "",
-      "location": "",
-      "dateStr": "October 23",
-      "timeStr": "1:00 pm"
-    },
-    {
       "title": "Sound Escapes: Kenny & Dolly  October 24, 1:30 pm Celebrate timeless hits in this unforgettable tribute concert. Relive legendary duets",
-      "startDate": "2025-10-24T00:00:00Z",
-      "endDate": "2025-10-24T01:00:00Z",
-      "description": "",
-      "location": "",
+      "startDate": "2025-10-24T13:30:00Z",
+      "endDate": "2025-10-24T14:30:00Z",
+      "description": "Sound Escapes: Kenny & Dolly  October 24, 1:30 pm Celebrate timeless hits in this unforgettable tribute concert. Relive legendary duets",
+      "location": "Online",
       "dateStr": "October 24",
-      "timeStr": "1:30 pm"
+      "timeStr": "1:30 pm",
+      "price": "$12",
+      "instructor": "",
+      "registration": "call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Wearable Tech  October 27, 12:00 pm Smartwatches and fitness trackers have become increasing popular. Learn how wearable technology can support your health, fitness and everyday activities.",
-      "startDate": "2025-10-27T00:00:00Z",
-      "endDate": "2025-10-27T01:00:00Z",
-      "description": "",
+      "startDate": "2025-10-27T12:00:00Z",
+      "endDate": "2025-10-27T13:00:00Z",
+      "description": "Wearable Tech  October 27, 12:00 pm Smartwatches and fitness trackers have become increasing popular. Learn how wearable technology can support your health, fitness and everyday activities.",
       "location": "",
       "dateStr": "October 27",
-      "timeStr": "12:00 pm"
+      "timeStr": "12:00 pm",
+      "price": "",
+      "instructor": "Sam Kalb",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Legal Advice October 27, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
-      "startDate": "2025-10-27T00:00:00Z",
-      "endDate": "2025-10-27T01:00:00Z",
-      "description": "",
+      "startDate": "2025-10-27T13:00:00Z",
+      "endDate": "2025-10-27T14:00:00Z",
+      "description": "Legal Advice October 27, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
       "location": "",
       "dateStr": "October 27",
-      "timeStr": "1:00 pm"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Fresh Food Market October 28, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
-      "startDate": "2025-10-28T00:00:00Z",
-      "endDate": "2025-10-28T01:00:00Z",
-      "description": "",
+      "startDate": "2025-10-28T10:00:00Z",
+      "endDate": "2025-10-28T11:00:00Z",
+      "description": "Fresh Food Market October 28, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
       "location": "",
       "dateStr": "October 28",
-      "timeStr": "10:00 am"
+      "timeStr": "10:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "18th Century Astronomy  October 30, 1:00 pm The 1700s changed our view of the universe. Hear about the first “X” prize, the solar system, deep skyobjects, the distance to the stars and the remarkable men and women involved.",
-      "startDate": "2025-10-30T00:00:00Z",
-      "endDate": "2025-10-30T01:00:00Z",
-      "description": "",
+      "startDate": "2025-10-30T13:00:00Z",
+      "endDate": "2025-10-30T14:00:00Z",
+      "description": "18th Century Astronomy  October 30, 1:00 pm The 1700s changed our view of the universe. Hear about the first “X” prize, the solar system, deep skyobjects, the distance to the stars and the remarkable men and women involved.",
       "location": "",
       "dateStr": "October 30",
-      "timeStr": "1:00 pm"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Caroles Dance Party  October 30, 1:00 pm Let’s Dance! Join Carole for spooky tunes and groovy moves. Supportive footwear is mandatory.",
-      "startDate": "2025-10-30T00:00:00Z",
-      "endDate": "2025-10-30T01:00:00Z",
-      "description": "",
+      "startDate": "2025-10-30T13:00:00Z",
+      "endDate": "2025-10-30T14:00:00Z",
+      "description": "Caroles Dance Party  October 30, 1:00 pm Let’s Dance! Join Carole for spooky tunes and groovy moves. Supportive footwear is mandatory.",
       "location": "",
       "dateStr": "October 30",
-      "timeStr": "1:00 pm"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "Carole Gibson services",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Daylight Savings Ends  November 2, 8:00 am",
-      "startDate": "2025-11-02T00:00:00Z",
-      "endDate": "2025-11-02T01:00:00Z",
+      "startDate": "2025-11-02T08:00:00Z",
+      "endDate": "2025-11-02T09:00:00Z",
       "description": "",
       "location": "",
       "dateStr": "November 2",
-      "timeStr": "8:00 am"
+      "timeStr": "8:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Online Registration Begins  November 3, 8:00 am Online Program Registration Starts Today",
-      "startDate": "2025-11-03T00:00:00Z",
-      "endDate": "2025-11-03T01:00:00Z",
-      "description": "",
-      "location": "",
+      "startDate": "2025-11-03T08:00:00Z",
+      "endDate": "2025-11-03T09:00:00Z",
+      "description": "Online Registration Begins  November 3, 8:00 am Online Program Registration Starts Today",
+      "location": "Online",
       "dateStr": "November 3",
-      "timeStr": "8:00 am"
+      "timeStr": "8:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Assistive Listening Solutions  November 3, 12:00 pm Removing communication barriers leads to engagement within the community. Learn about how assistive listening solutions can help hard-of-hearing members remove background noise and hear what they are intended to. This session will provide an overview of the solutions available today and how they can benefit those who struggle to hear in public spaces.",
-      "startDate": "2025-11-03T00:00:00Z",
-      "endDate": "2025-11-03T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-03T12:00:00Z",
+      "endDate": "2025-11-03T13:00:00Z",
+      "description": "Assistive Listening Solutions  November 3, 12:00 pm Removing communication barriers leads to engagement within the community. Learn about how assistive listening solutions can help hard-of-hearing members remove background noise and hear what they are intended to. This session will provide an overview of the solutions available today and how they can benefit those who struggle to hear in public spaces.",
       "location": "",
       "dateStr": "November 3",
-      "timeStr": "12:00 pm"
+      "timeStr": "12:00 pm",
+      "price": "",
+      "instructor": "Stephanie Brown, Hearing Assistive Technology Solutions Group",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "In-Person Registration for Session 2 Begins November 4, 8:30 am In-person and mail registration begins Monday November 3 at 8:30am. Session 2 begins November 27.",
-      "startDate": "2025-11-04T00:00:00Z",
-      "endDate": "2025-11-04T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-04T08:30:00Z",
+      "endDate": "2025-11-04T09:30:00Z",
+      "description": "In-Person Registration for Session 2 Begins November 4, 8:30 am In-person and mail registration begins Monday November 3 at 8:30am. Session 2 begins November 27.",
       "location": "",
       "dateStr": "November 4",
-      "timeStr": "8:30 am"
+      "timeStr": "8:30 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Fresh Food Market November 4, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
-      "startDate": "2025-11-04T00:00:00Z",
-      "endDate": "2025-11-04T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-04T10:00:00Z",
+      "endDate": "2025-11-04T11:00:00Z",
+      "description": "Fresh Food Market November 4, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
       "location": "",
       "dateStr": "November 4",
-      "timeStr": "10:00 am"
+      "timeStr": "10:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Fraud Awareness November 5, 1:00 pm Protect your money and identity from phone, internet, and in-person fraudsters. Learn how to spot and avoid scams.",
-      "startDate": "2025-11-05T00:00:00Z",
-      "endDate": "2025-11-05T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-05T13:00:00Z",
+      "endDate": "2025-11-05T14:00:00Z",
+      "description": "Fraud Awareness November 5, 1:00 pm Protect your money and identity from phone, internet, and in-person fraudsters. Learn how to spot and avoid scams.",
       "location": "",
       "dateStr": "November 5",
-      "timeStr": "1:00 pm"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "Paul Van Nest, Kingston Rotary Club",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Cut. Fold. Glue. Stars.  November 6, 11:30 am Join Carole and learn to make charming loo roll snowflakes to bring whimsy to your winter decor.",
-      "startDate": "2025-11-06T00:00:00Z",
-      "endDate": "2025-11-06T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-06T11:30:00Z",
+      "endDate": "2025-11-06T12:30:00Z",
+      "description": "Cut. Fold. Glue. Stars.  November 6, 11:30 am Join Carole and learn to make charming loo roll snowflakes to bring whimsy to your winter decor.",
       "location": "",
       "dateStr": "November 6",
-      "timeStr": "11:30 am"
+      "timeStr": "11:30 am",
+      "price": "",
+      "instructor": "Carole Gibson",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Learn about Tarot  November 6, 1:00 pm Tarocchini is a card game where trumps take tricks. Created in 1400 in Italy, it has evolved into games like Bridge. Is Tarot a game of fortune telling, tricks, or a psychological study? Come play and decide.",
-      "startDate": "2025-11-06T00:00:00Z",
-      "endDate": "2025-11-06T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-06T13:00:00Z",
+      "endDate": "2025-11-06T14:00:00Z",
+      "description": "Learn about Tarot  November 6, 1:00 pm Tarocchini is a card game where trumps take tricks. Created in 1400 in Italy, it has evolved into games like Bridge. Is Tarot a game of fortune telling, tricks, or a psychological study? Come play and decide.",
       "location": "",
       "dateStr": "November 6",
-      "timeStr": "1:00 pm"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Hearing Clinic November 7, 9:00 am Holly Brooks, Hearing Instrument Specialist, from Hear Right Canada provides hearing tests and hearing aid cleaning. Batteries also available for a fee. Appointments required.",
-      "startDate": "2025-11-07T00:00:00Z",
-      "endDate": "2025-11-07T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-07T09:00:00Z",
+      "endDate": "2025-11-07T10:00:00Z",
+      "description": "Hearing Clinic November 7, 9:00 am Holly Brooks, Hearing Instrument Specialist, from Hear Right Canada provides hearing tests and hearing aid cleaning. Batteries also available for a fee. Appointments required.",
       "location": "",
       "dateStr": "November 7",
-      "timeStr": "9:00 am"
+      "timeStr": "9:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Coffee with a Cop  November 7, 10:00 am Join Constable Anthony Colangeli for coffee and conversation. Ask questions and voice concerns. Walk-in. All are welcome.",
-      "startDate": "2025-11-07T00:00:00Z",
-      "endDate": "2025-11-07T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-07T10:00:00Z",
+      "endDate": "2025-11-07T11:00:00Z",
+      "description": "Coffee with a Cop  November 7, 10:00 am Join Constable Anthony Colangeli for coffee and conversation. Ask questions and voice concerns. Walk-in. All are welcome.",
       "location": "",
       "dateStr": "November 7",
-      "timeStr": "10:00 am"
+      "timeStr": "10:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Cut. Fold. Glue. Trees November 10, 10:45 am Join Carole and learn to make fanciful paper trees for your holiday tablescapes.",
-      "startDate": "2025-11-10T00:00:00Z",
-      "endDate": "2025-11-10T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-10T10:45:00Z",
+      "endDate": "2025-11-10T11:45:00Z",
+      "description": "Cut. Fold. Glue. Trees November 10, 10:45 am Join Carole and learn to make fanciful paper trees for your holiday tablescapes.",
       "location": "",
       "dateStr": "November 10",
-      "timeStr": "10:45 am"
+      "timeStr": "10:45 am",
+      "price": "",
+      "instructor": "Carole Gibson",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Shopping & Buying Online  November 10, 12:00 pm Dip your toes into online shopping. Learn how to get the most out of online stores, how to comparison shop and making informed purchases and how to choose streaming services for movies and TV programs.",
-      "startDate": "2025-11-10T00:00:00Z",
-      "endDate": "2025-11-10T01:00:00Z",
-      "description": "",
-      "location": "",
+      "startDate": "2025-11-10T12:00:00Z",
+      "endDate": "2025-11-10T13:00:00Z",
+      "description": "Shopping & Buying Online  November 10, 12:00 pm Dip your toes into online shopping. Learn how to get the most out of online stores, how to comparison shop and making informed purchases and how to choose streaming services for movies and TV programs.",
+      "location": "Online",
       "dateStr": "November 10",
-      "timeStr": "12:00 pm"
+      "timeStr": "12:00 pm",
+      "price": "",
+      "instructor": "Sam Kalb",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Legal Advice November 10, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
-      "startDate": "2025-11-10T00:00:00Z",
-      "endDate": "2025-11-10T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-10T13:00:00Z",
+      "endDate": "2025-11-10T14:00:00Z",
+      "description": "Legal Advice November 10, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
       "location": "",
       "dateStr": "November 10",
-      "timeStr": "1:00 pm"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Fresh Food Market November 11, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
-      "startDate": "2025-11-11T00:00:00Z",
-      "endDate": "2025-11-11T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-11T10:00:00Z",
+      "endDate": "2025-11-11T11:00:00Z",
+      "description": "Fresh Food Market November 11, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
       "location": "",
       "dateStr": "November 11",
-      "timeStr": "10:00 am"
+      "timeStr": "10:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Service Canada Clinic November 12, 9:00 am Service Canada representatives come to The Seniors Centre to help you with Canadian Pension Plan (CPP), Old Age Security (OAS), Guaranteed Income Supplement (GIS), Social Insurance Number (SIN), or Canadian Dental Care Plan.",
-      "startDate": "2025-11-12T00:00:00Z",
-      "endDate": "2025-11-12T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-12T09:00:00Z",
+      "endDate": "2025-11-12T10:00:00Z",
+      "description": "Service Canada Clinic November 12, 9:00 am Service Canada representatives come to The Seniors Centre to help you with Canadian Pension Plan (CPP), Old Age Security (OAS), Guaranteed Income Supplement (GIS), Social Insurance Number (SIN), or Canadian Dental Care Plan.",
       "location": "",
       "dateStr": "November 12",
-      "timeStr": "9:00 am"
+      "timeStr": "9:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Coast to Coast: A Canoe Odyssey November 13, 1:00 pm Two paddlers, one canoe, and 8,500 km from Vancouver to Sydney – through cities, towns, and wild terrain. Hear about this epic adventure of resilience, connection, and discovery across Canada’s diverse landscapes and waterways.",
-      "startDate": "2025-11-13T00:00:00Z",
-      "endDate": "2025-11-13T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-13T13:00:00Z",
+      "endDate": "2025-11-13T14:00:00Z",
+      "description": "Coast to Coast: A Canoe Odyssey November 13, 1:00 pm Two paddlers, one canoe, and 8,500 km from Vancouver to Sydney – through cities, towns, and wild terrain. Hear about this epic adventure of resilience, connection, and discovery across Canada’s diverse landscapes and waterways.",
       "location": "",
       "dateStr": "November 13",
-      "timeStr": "1:00 pm"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Birthday Lunch November 14, 12:00 pm Members celebrate their birthday month for free!",
-      "startDate": "2025-11-14T00:00:00Z",
-      "endDate": "2025-11-14T01:00:00Z",
-      "description": "",
-      "location": "",
+      "startDate": "2025-11-14T12:00:00Z",
+      "endDate": "2025-11-14T13:00:00Z",
+      "description": "Birthday Lunch November 14, 12:00 pm Members celebrate their birthday month for free!",
+      "location": "Online",
       "dateStr": "November 14",
-      "timeStr": "12:00 pm"
+      "timeStr": "12:00 pm",
+      "price": "$16",
+      "instructor": "",
+      "registration": "call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Sound Escapes: Georgette Fry November 14, 1:30 pm Experience the award-winning Georgette Fry's soulful blend of blues, jazz, and pop. Her electrifying style will have you up and dancing all afternoon long!",
-      "startDate": "2025-11-14T00:00:00Z",
-      "endDate": "2025-11-14T01:00:00Z",
-      "description": "",
-      "location": "",
+      "startDate": "2025-11-14T13:30:00Z",
+      "endDate": "2025-11-14T14:30:00Z",
+      "description": "Sound Escapes: Georgette Fry November 14, 1:30 pm Experience the award-winning Georgette Fry's soulful blend of blues, jazz, and pop. Her electrifying style will have you up and dancing all afternoon long!",
+      "location": "Online",
       "dateStr": "November 14",
-      "timeStr": "1:30 pm"
+      "timeStr": "1:30 pm",
+      "price": "$12",
+      "instructor": "",
+      "registration": "call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Program Break Week November 17, 8:30 am No programs are scheduled at any Seniors Association locations.",
-      "startDate": "2025-11-17T00:00:00Z",
-      "endDate": "2025-11-17T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-17T08:30:00Z",
+      "endDate": "2025-11-17T09:30:00Z",
+      "description": "Program Break Week November 17, 8:30 am No programs are scheduled at any Seniors Association locations.",
       "location": "",
       "dateStr": "November 17",
-      "timeStr": "8:30 am"
+      "timeStr": "8:30 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Speed Friending  November 17, 1:00 pm Meet new people quickly in a fun, structured setting with speed friending, a platonic twist on speed dating. Rotate through brief conversations, connect with others, and potentially form lasting friendships in just minutes.",
-      "startDate": "2025-11-17T00:00:00Z",
-      "endDate": "2025-11-17T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-17T13:00:00Z",
+      "endDate": "2025-11-17T14:00:00Z",
+      "description": "Speed Friending  November 17, 1:00 pm Meet new people quickly in a fun, structured setting with speed friending, a platonic twist on speed dating. Rotate through brief conversations, connect with others, and potentially form lasting friendships in just minutes.",
       "location": "",
       "dateStr": "November 17",
-      "timeStr": "1:00 pm"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Advanced Care Planning November 17, 4:30 pm The process of thinking about, writing down, and sharing your wishes/instructions with loved ones for future health care treatment if you become incapable of deciding for yourself. Learn, listen, and ask questions to help you improve your plan.",
-      "startDate": "2025-11-17T00:00:00Z",
-      "endDate": "2025-11-17T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-17T16:30:00Z",
+      "endDate": "2025-11-17T17:30:00Z",
+      "description": "Advanced Care Planning November 17, 4:30 pm The process of thinking about, writing down, and sharing your wishes/instructions with loved ones for future health care treatment if you become incapable of deciding for yourself. Learn, listen, and ask questions to help you improve your plan.",
       "location": "",
       "dateStr": "November 17",
-      "timeStr": "4:30 pm"
+      "timeStr": "4:30 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Fresh Food Market November 18, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
-      "startDate": "2025-11-18T00:00:00Z",
-      "endDate": "2025-11-18T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-18T10:00:00Z",
+      "endDate": "2025-11-18T11:00:00Z",
+      "description": "Fresh Food Market November 18, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
       "location": "",
       "dateStr": "November 18",
-      "timeStr": "10:00 am"
+      "timeStr": "10:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Expressive Mark Making  November 18, 1:00 pm Rekindle your passion for abstract art through expressive mark-making. This liberating workshop uses skill-building exercises and soul-nurturing prompts to unlock your subconscious, inspire creativity, and help you rediscover your unique, lyrical style.",
-      "startDate": "2025-11-18T00:00:00Z",
-      "endDate": "2025-11-18T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-18T13:00:00Z",
+      "endDate": "2025-11-18T14:00:00Z",
+      "description": "Expressive Mark Making  November 18, 1:00 pm Rekindle your passion for abstract art through expressive mark-making. This liberating workshop uses skill-building exercises and soul-nurturing prompts to unlock your subconscious, inspire creativity, and help you rediscover your unique, lyrical style.",
       "location": "",
       "dateStr": "November 18",
-      "timeStr": "1:00 pm"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "Sharlena Wood",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Cafe Franglish November 18, 2:30 pm Join a monthly bilingual meetup where Francophones and Anglophones connect chat, and build confidence in both languages through lively, judgement-free conversations on a variety of engaging topics.",
-      "startDate": "2025-11-18T00:00:00Z",
-      "endDate": "2025-11-18T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-18T14:30:00Z",
+      "endDate": "2025-11-18T15:30:00Z",
+      "description": "Cafe Franglish November 18, 2:30 pm Join a monthly bilingual meetup where Francophones and Anglophones connect chat, and build confidence in both languages through lively, judgement-free conversations on a variety of engaging topics.",
       "location": "",
       "dateStr": "November 18",
-      "timeStr": "2:30 pm"
+      "timeStr": "2:30 pm",
+      "price": "free",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Tuesday at Tom’s November 18, 3:00 pm New to town or looking to make new friends? Come and enjoy a relaxing conversation and beverage with other members.",
-      "startDate": "2025-11-18T00:00:00Z",
-      "endDate": "2025-11-18T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-18T15:00:00Z",
+      "endDate": "2025-11-18T16:00:00Z",
+      "description": "Tuesday at Tom’s November 18, 3:00 pm New to town or looking to make new friends? Come and enjoy a relaxing conversation and beverage with other members.",
       "location": "",
       "dateStr": "November 18",
-      "timeStr": "3:00 pm"
+      "timeStr": "3:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Learn Resilience  November 19, 9:30 am Experience the award-winning documentary Resilience, then join Teach Resilience trainers from Kingston Community Health Centres for an engaging panel discussion of the film, speaking about trauma and its impact.",
-      "startDate": "2025-11-19T00:00:00Z",
-      "endDate": "2025-11-19T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-19T09:30:00Z",
+      "endDate": "2025-11-19T10:30:00Z",
+      "description": "Learn Resilience  November 19, 9:30 am Experience the award-winning documentary Resilience, then join Teach Resilience trainers from Kingston Community Health Centres for an engaging panel discussion of the film, speaking about trauma and its impact.",
       "location": "",
       "dateStr": "November 19",
-      "timeStr": "9:30 am"
+      "timeStr": "9:30 am",
+      "price": "",
+      "instructor": "",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Vision Workshop November 19, 10:30 am Rediscover purpose, passion, and joy in retirement. Learn simple tools to dream again, break free from “too late” thinking, and design a vibrant next chapter – filled with meaning, connection, and confidence.",
-      "startDate": "2025-11-19T00:00:00Z",
-      "endDate": "2025-11-19T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-19T10:30:00Z",
+      "endDate": "2025-11-19T11:30:00Z",
+      "description": "Vision Workshop November 19, 10:30 am Rediscover purpose, passion, and joy in retirement. Learn simple tools to dream again, break free from “too late” thinking, and design a vibrant next chapter – filled with meaning, connection, and confidence.",
       "location": "",
       "dateStr": "November 19",
-      "timeStr": "10:30 am"
+      "timeStr": "10:30 am",
+      "price": "free",
+      "instructor": "Victoria Hirst",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "New Member Mixer\t November 19, 2:00 pm Are you a new member and want to learn more about what we offer? Have a friend you’d like to join? Or do you just want to know more about the Seniors Association? Meet with staff and other members for a brief orientation, introduction to our database, light refreshments, and socializing.",
-      "startDate": "2025-11-19T00:00:00Z",
-      "endDate": "2025-11-19T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-19T14:00:00Z",
+      "endDate": "2025-11-19T15:00:00Z",
+      "description": "New Member Mixer\t November 19, 2:00 pm Are you a new member and want to learn more about what we offer? Have a friend you’d like to join? Or do you just want to know more about the Seniors Association? Meet with staff and other members for a brief orientation, introduction to our database, light refreshments, and socializing.",
       "location": "",
       "dateStr": "November 19",
-      "timeStr": "2:00 pm"
+      "timeStr": "2:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Time for Tea November 20, 1:00 pm Explore the fine art of tea and food pairing with a certified tea sommelier. Discover how nuanced flavors enhance cuisine through expertly selected teas and culinary harmony over the Holiday season.",
-      "startDate": "2025-11-20T00:00:00Z",
-      "endDate": "2025-11-20T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-20T13:00:00Z",
+      "endDate": "2025-11-20T14:00:00Z",
+      "description": "Time for Tea November 20, 1:00 pm Explore the fine art of tea and food pairing with a certified tea sommelier. Discover how nuanced flavors enhance cuisine through expertly selected teas and culinary harmony over the Holiday season.",
       "location": "",
       "dateStr": "November 20",
-      "timeStr": "1:00 pm"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Book & Puzzle EXCHANGE November 21, 10:00 am Bring up to 10 paperback books or puzzles to the Rendezvous Café to exchange for any in our library. Additional books or puzzles can be purchased for $2.",
-      "startDate": "2025-11-21T00:00:00Z",
-      "endDate": "2025-11-21T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-21T10:00:00Z",
+      "endDate": "2025-11-21T11:00:00Z",
+      "description": "Book & Puzzle EXCHANGE November 21, 10:00 am Bring up to 10 paperback books or puzzles to the Rendezvous Café to exchange for any in our library. Additional books or puzzles can be purchased for $2.",
       "location": "",
       "dateStr": "November 21",
-      "timeStr": "10:00 am"
+      "timeStr": "10:00 am",
+      "price": "$2",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Annual General Meeting November 21, 11:00 am The theme for the 49th Annual General Meeting is Strategic Growth for Future Success and will be held at The Seniors Centre.",
-      "startDate": "2025-11-21T00:00:00Z",
-      "endDate": "2025-11-21T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-21T11:00:00Z",
+      "endDate": "2025-11-21T12:00:00Z",
+      "description": "Annual General Meeting November 21, 11:00 am The theme for the 49th Annual General Meeting is Strategic Growth for Future Success and will be held at The Seniors Centre.",
       "location": "",
       "dateStr": "November 21",
-      "timeStr": "11:00 am"
+      "timeStr": "11:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "December Vista Available for Pickup November 21, 12:00 pm Volunteer Deliverers pick up their bundles to hand deliver and members can pick up their individual copy.",
-      "startDate": "2025-11-21T00:00:00Z",
-      "endDate": "2025-11-21T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-21T12:00:00Z",
+      "endDate": "2025-11-21T13:00:00Z",
+      "description": "December Vista Available for Pickup November 21, 12:00 pm Volunteer Deliverers pick up their bundles to hand deliver and members can pick up their individual copy.",
       "location": "",
       "dateStr": "November 21",
-      "timeStr": "12:00 pm"
+      "timeStr": "12:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Holiday Artisan Fair November 22, 10:00 am Something for everyone!",
-      "startDate": "2025-11-22T00:00:00Z",
-      "endDate": "2025-11-22T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-22T10:00:00Z",
+      "endDate": "2025-11-22T11:00:00Z",
+      "description": "Holiday Artisan Fair November 22, 10:00 am Something for everyone!",
       "location": "",
       "dateStr": "November 22",
-      "timeStr": "10:00 am"
+      "timeStr": "10:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Simplify Your Digital Life  November 24, 12:00 pm Feeling overwhelmed by your online accounts, passwords, and subscriptions? This presentation offers practical strategies to simplify your digital life. Learn to organize accounts, manage passwords, use cloud storage effectively, and understand your subscriptions. We’ll also explore options for closing services you no longer need – empowering you to take control of your digital world.",
-      "startDate": "2025-11-24T00:00:00Z",
-      "endDate": "2025-11-24T01:00:00Z",
-      "description": "",
-      "location": "",
+      "startDate": "2025-11-24T12:00:00Z",
+      "endDate": "2025-11-24T13:00:00Z",
+      "description": "Simplify Your Digital Life  November 24, 12:00 pm Feeling overwhelmed by your online accounts, passwords, and subscriptions? This presentation offers practical strategies to simplify your digital life. Learn to organize accounts, manage passwords, use cloud storage effectively, and understand your subscriptions. We’ll also explore options for closing services you no longer need – empowering you to take control of your digital world.",
+      "location": "Online",
       "dateStr": "November 24",
-      "timeStr": "12:00 pm"
+      "timeStr": "12:00 pm",
+      "price": "",
+      "instructor": "Jarda Zborovsy",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Legal Advice November 24, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
-      "startDate": "2025-11-24T00:00:00Z",
-      "endDate": "2025-11-24T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-24T13:00:00Z",
+      "endDate": "2025-11-24T14:00:00Z",
+      "description": "Legal Advice November 24, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
       "location": "",
       "dateStr": "November 24",
-      "timeStr": "1:00 pm"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "Call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Fresh Food Market November 25, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
-      "startDate": "2025-11-25T00:00:00Z",
-      "endDate": "2025-11-25T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-25T10:00:00Z",
+      "endDate": "2025-11-25T11:00:00Z",
+      "description": "Fresh Food Market November 25, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
       "location": "",
       "dateStr": "November 25",
-      "timeStr": "10:00 am"
+      "timeStr": "10:00 am",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Holiday Lunch November 25, 12:00 pm Tomato Basil Soup, Roast Turkey, dressing, mashed potatoes, vegetables, cranberry sauce, and dessert!",
-      "startDate": "2025-11-25T00:00:00Z",
-      "endDate": "2025-11-25T01:00:00Z",
-      "description": "",
-      "location": "",
+      "startDate": "2025-11-25T12:00:00Z",
+      "endDate": "2025-11-25T13:00:00Z",
+      "description": "Holiday Lunch November 25, 12:00 pm Tomato Basil Soup, Roast Turkey, dressing, mashed potatoes, vegetables, cranberry sauce, and dessert!",
+      "location": "Online",
       "dateStr": "November 25",
-      "timeStr": "12:00 pm"
+      "timeStr": "12:00 pm",
+      "price": "$25",
+      "instructor": "",
+      "registration": "call 613.548.7810",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Domino Theatre Dress Rehearsal: Miss Bennet: Christmas at Pemberley November 26, 7:30 pm Celebrate the holidays with a witty sequel to Pride and Prejudice, where overlooked Mary Bennet discovers romance at Pemberley. Full of heart, humour, and Regency charm, this play delights.",
-      "startDate": "2025-11-26T00:00:00Z",
-      "endDate": "2025-11-26T01:00:00Z",
-      "description": "",
-      "location": "",
+      "startDate": "2025-11-26T19:30:00Z",
+      "endDate": "2025-11-26T20:30:00Z",
+      "description": "Domino Theatre Dress Rehearsal: Miss Bennet: Christmas at Pemberley November 26, 7:30 pm Celebrate the holidays with a witty sequel to Pride and Prejudice, where overlooked Mary Bennet discovers romance at Pemberley. Full of heart, humour, and Regency charm, this play delights.",
+      "location": "Online",
       "dateStr": "November 26",
-      "timeStr": "7:30 pm"
+      "timeStr": "7:30 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     },
     {
       "title": "Anxiety Unlocked  November 27, 1:00 pm Discover fun, easy-to-use tools that bring quick relief from anxiety. Learn simple, effective techniques you may not know, designed to calm your mind, ease stress, and restore balance anytime, anywhere.",
-      "startDate": "2025-11-27T00:00:00Z",
-      "endDate": "2025-11-27T01:00:00Z",
-      "description": "",
+      "startDate": "2025-11-27T13:00:00Z",
+      "endDate": "2025-11-27T14:00:00Z",
+      "description": "Anxiety Unlocked  November 27, 1:00 pm Discover fun, easy-to-use tools that bring quick relief from anxiety. Learn simple, effective techniques you may not know, designed to calm your mind, ease stress, and restore balance anytime, anywhere.",
       "location": "",
       "dateStr": "November 27",
-      "timeStr": "1:00 pm"
-    },
-    {
-      "title": "Holly Brooks, Hearing Instrument Specialist, from Hear Right Canada provides hearing tests and hearing aid cleaning. Batteries also available for a fee. Appointments required.",
-      "startDate": "2025-10-23T09:43:36.656957Z",
-      "endDate": "2025-10-23T10:43:36.656957Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Latest Program Guide",
-      "startDate": "2025-10-23T09:43:36.755578Z",
-      "endDate": "2025-10-23T10:43:36.755578Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Program Guide",
-      "startDate": "2025-10-23T09:43:36.755958Z",
-      "endDate": "2025-10-23T10:43:36.755958Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "close X",
-      "startDate": "2025-10-13T00:00:00Z",
-      "endDate": "2025-10-13T01:00:00Z",
-      "description": "",
-      "location": "",
-      "dateStr": "October 13",
-      "timeStr": "8:30am"
-    },
-    {
-      "title": "56 Francis St, Kingston, ON K7M 1L7   Mon - Fri 8:30am - 4:30pm   (613) 548-7810   info@seniorskingston.ca      Menu",
-      "startDate": "2025-10-13T00:00:00Z",
-      "endDate": "2025-10-13T01:00:00Z",
-      "description": "",
-      "location": "",
-      "dateStr": "October 13",
-      "timeStr": "8:30am"
-    },
-    {
-      "title": "56 Francis St, Kingston, ON K7M 1L7   Mon - Fri 8:30am - 4:30pm   (613) 548-7810   info@seniorskingston.ca",
-      "startDate": "2025-10-23T09:43:36.812829Z",
-      "endDate": "2025-10-23T10:43:36.812829Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "8:30am"
-    },
-    {
-      "title": "56 Francis St, Kingston, ON K7M 1L7",
-      "startDate": "2025-10-23T09:43:36.813396Z",
-      "endDate": "2025-10-23T10:43:36.813396Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Mon - Fri 8:30am - 4:30pm",
-      "startDate": "2025-10-23T09:43:36.813710Z",
-      "endDate": "2025-10-23T10:43:36.813710Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "8:30am"
-    },
-    {
-      "title": "info@seniorskingston.ca",
-      "startDate": "2025-10-23T09:43:36.814123Z",
-      "endDate": "2025-10-23T10:43:36.814123Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Get Active",
-      "startDate": "2025-10-23T09:43:36.814835Z",
-      "endDate": "2025-10-23T10:43:36.814835Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Programs",
-      "startDate": "2025-10-23T09:43:36.815806Z",
-      "endDate": "2025-10-23T10:43:36.815806Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Programs at Home",
-      "startDate": "2025-10-23T09:43:36.817296Z",
-      "endDate": "2025-10-23T10:43:36.817296Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Attention! All Seniors Association locations are closed Monday October 13. No programs or rentals are scheduled.",
-      "startDate": "2025-10-13T00:00:00Z",
-      "endDate": "2025-10-13T01:00:00Z",
-      "description": "",
-      "location": "",
-      "dateStr": "October 13",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Get Involved Events",
-      "startDate": "2025-10-23T00:00:00Z",
-      "endDate": "2025-10-23T01:00:00Z",
-      "description": "",
-      "location": "",
-      "dateStr": "October 23",
-      "timeStr": "10:00 am"
-    },
-    {
-      "title": "Register Today Upcoming Events",
-      "startDate": "2025-10-23T00:00:00Z",
-      "endDate": "2025-10-23T01:00:00Z",
-      "description": "",
-      "location": "",
-      "dateStr": "October 23",
-      "timeStr": "10:00 am"
-    },
-    {
-      "title": "After learning the properties and techniques of this unique watercolour, students will use their knowledgeto complete work of their choosing. All materials included.",
-      "startDate": "2025-10-23T09:43:36.823837Z",
-      "endDate": "2025-10-23T10:43:36.823837Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Learn about the Frontenac Lennox & Addington Ontario Health Team, working to provide connected, team-based care that supports overall wellness and improves home care services for adults in our community.",
-      "startDate": "2025-10-23T09:43:36.824284Z",
-      "endDate": "2025-10-23T10:43:36.824284Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Celebrate timeless hits in this unforgettable tribute concert. Relive legendary duets",
-      "startDate": "2025-10-23T09:43:36.824817Z",
-      "endDate": "2025-10-23T10:43:36.824817Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Smartwatches and fitness trackers have become increasing popular. Learn how wearable technology can support your health, fitness and everyday activities.",
-      "startDate": "2025-10-23T09:43:36.825377Z",
-      "endDate": "2025-10-23T10:43:36.825377Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
-      "startDate": "2025-10-23T09:43:36.826012Z",
-      "endDate": "2025-10-23T10:43:36.826012Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
-      "startDate": "2025-10-23T09:43:36.826461Z",
-      "endDate": "2025-10-23T10:43:36.826461Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Let’s Dance! Join Carole for spooky tunes and groovy moves. Supportive footwear is mandatory.",
-      "startDate": "2025-10-23T09:43:36.827117Z",
-      "endDate": "2025-10-23T10:43:36.827117Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Online Program Registration Starts Today",
-      "startDate": "2025-10-23T09:43:36.827641Z",
-      "endDate": "2025-10-23T10:43:36.827641Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Removing communication barriers leads to engagement within the community. Learn about how assistive listening solutions can help hard-of-hearing members remove background noise and hear what they are intended to. This session will provide an overview of the solutions available today and how they can benefit those who struggle to hear in public spaces.",
-      "startDate": "2025-10-23T09:43:36.828161Z",
-      "endDate": "2025-10-23T10:43:36.828161Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "In-person and mail registration begins Monday November 3 at 8:30am. Session 2 begins November 27.",
-      "startDate": "2025-11-03T00:00:00Z",
-      "endDate": "2025-11-03T01:00:00Z",
-      "description": "",
-      "location": "",
-      "dateStr": "November 3",
-      "timeStr": "8:30am"
-    },
-    {
-      "title": "Protect your money and identity from phone, internet, and in-person fraudsters. Learn how to spot and avoid scams.",
-      "startDate": "2025-10-23T09:43:36.829269Z",
-      "endDate": "2025-10-23T10:43:36.829269Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Join Carole and learn to make charming loo roll snowflakes to bring whimsy to your winter decor.",
-      "startDate": "2025-10-23T09:43:36.829827Z",
-      "endDate": "2025-10-23T10:43:36.829827Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Tarocchini is a card game where trumps take tricks. Created in 1400 in Italy, it has evolved into games like Bridge. Is Tarot a game of fortune telling, tricks, or a psychological study? Come play and decide.",
-      "startDate": "2025-10-23T09:43:36.830416Z",
-      "endDate": "2025-10-23T10:43:36.830416Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Join Carole and learn to make fanciful paper trees for your holiday tablescapes.",
-      "startDate": "2025-10-23T09:43:36.831102Z",
-      "endDate": "2025-10-23T10:43:36.831102Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Dip your toes into online shopping. Learn how to get the most out of online stores, how to comparison shop and making informed purchases and how to choose streaming services for movies and TV programs.",
-      "startDate": "2025-10-23T09:43:36.832275Z",
-      "endDate": "2025-10-23T10:43:36.832275Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Service Canada representatives come to The Seniors Centre to help you with Canadian Pension Plan (CPP), Old Age Security (OAS), Guaranteed Income Supplement (GIS), Social Insurance Number (SIN), or Canadian Dental Care Plan.",
-      "startDate": "2025-10-23T09:43:36.833749Z",
-      "endDate": "2025-10-23T10:43:36.833749Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Members celebrate their birthday month for free!",
-      "startDate": "2025-10-23T09:43:36.834546Z",
-      "endDate": "2025-10-23T10:43:36.834546Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Experience the award-winning Georgette Fry's soulful blend of blues, jazz, and pop. Her electrifying style will have you up and dancing all afternoon long!",
-      "startDate": "2025-10-23T09:43:36.834931Z",
-      "endDate": "2025-10-23T10:43:36.834931Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "No programs are scheduled at any Seniors Association locations.",
-      "startDate": "2025-10-23T09:43:36.835197Z",
-      "endDate": "2025-10-23T10:43:36.835197Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Meet new people quickly in a fun, structured setting with speed friending, a platonic twist on speed dating. Rotate through brief conversations, connect with others, and potentially form lasting friendships in just minutes.",
-      "startDate": "2025-10-23T09:43:36.836059Z",
-      "endDate": "2025-10-23T10:43:36.836059Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "The process of thinking about, writing down, and sharing your wishes/instructions with loved ones for future health care treatment if you become incapable of deciding for yourself. Learn, listen, and ask questions to help you improve your plan.",
-      "startDate": "2025-10-23T09:43:36.837463Z",
-      "endDate": "2025-10-23T10:43:36.837463Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Rekindle your passion for abstract art through expressive mark-making. This liberating workshop uses skill-building exercises and soul-nurturing prompts to unlock your subconscious, inspire creativity, and help you rediscover your unique, lyrical style.",
-      "startDate": "2025-10-23T09:43:36.839548Z",
-      "endDate": "2025-10-23T10:43:36.839548Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Join a monthly bilingual meetup where Francophones and Anglophones connect chat, and build confidence in both languages through lively, judgement-free conversations on a variety of engaging topics.",
-      "startDate": "2025-10-23T09:43:36.840281Z",
-      "endDate": "2025-10-23T10:43:36.840281Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Experience the award-winning documentary Resilience, then join Teach Resilience trainers from Kingston Community Health Centres for an engaging panel discussion of the film, speaking about trauma and its impact.",
-      "startDate": "2025-10-23T09:43:36.840761Z",
-      "endDate": "2025-10-23T10:43:36.840761Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Rediscover purpose, passion, and joy in retirement. Learn simple tools to dream again, break free from “too late” thinking, and design a vibrant next chapter – filled with meaning, connection, and confidence.",
-      "startDate": "2025-10-23T09:43:36.841250Z",
-      "endDate": "2025-10-23T10:43:36.841250Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Are you a new member and want to learn more about what we offer? Have a friend you’d like to join? Or do you just want to know more about the Seniors Association? Meet with staff and other members for a brief orientation, introduction to our database, light refreshments, and socializing.",
-      "startDate": "2025-10-23T09:43:36.841710Z",
-      "endDate": "2025-10-23T10:43:36.841710Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Explore the fine art of tea and food pairing with a certified tea sommelier. Discover how nuanced flavors enhance cuisine through expertly selected teas and culinary harmony over the Holiday season.",
-      "startDate": "2025-10-23T09:43:36.842456Z",
-      "endDate": "2025-10-23T10:43:36.842456Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Bring up to 10 paperback books or puzzles to the Rendezvous Café to exchange for any in our library. Additional books or puzzles can be purchased for $2.",
-      "startDate": "2025-10-23T09:43:36.843023Z",
-      "endDate": "2025-10-23T10:43:36.843023Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "The theme for the 49th Annual General Meeting is Strategic Growth for Future Success and will be held at The Seniors Centre.",
-      "startDate": "2025-10-23T09:43:36.843713Z",
-      "endDate": "2025-10-23T10:43:36.843713Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "11:00am"
-    },
-    {
-      "title": "Something for everyone!",
-      "startDate": "2025-10-23T09:43:36.846073Z",
-      "endDate": "2025-10-23T10:43:36.846073Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Feeling overwhelmed by your online accounts, passwords, and subscriptions? This presentation offers practical strategies to simplify your digital life. Learn to organize accounts, manage passwords, use cloud storage effectively, and understand your subscriptions. We’ll also explore options for closing services you no longer need – empowering you to take control of your digital world.",
-      "startDate": "2025-10-23T09:43:36.846554Z",
-      "endDate": "2025-10-23T10:43:36.846554Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Tomato Basil Soup, Roast Turkey, dressing, mashed potatoes, vegetables, cranberry sauce, and dessert!",
-      "startDate": "2025-10-23T09:43:36.847157Z",
-      "endDate": "2025-10-23T10:43:36.847157Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Discover fun, easy-to-use tools that bring quick relief from anxiety. Learn simple, effective techniques you may not know, designed to calm your mind, ease stress, and restore balance anytime, anywhere.",
-      "startDate": "2025-10-23T09:43:36.850106Z",
-      "endDate": "2025-10-23T10:43:36.850106Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "October 2025todaySunMonTueWedThuFriSat2829301234567891011121314151617181920212223242526272829303112345678",
-      "startDate": "2025-10-20T00:00:00Z",
-      "endDate": "2025-10-20T01:00:00Z",
-      "description": "",
-      "location": "",
-      "dateStr": "October 20",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "October 2025today",
-      "startDate": "2025-10-20T00:00:00Z",
-      "endDate": "2025-10-20T01:00:00Z",
-      "description": "",
-      "location": "",
-      "dateStr": "October 20",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "October 2025",
-      "startDate": "2025-10-20T00:00:00Z",
-      "endDate": "2025-10-20T01:00:00Z",
-      "description": "",
-      "location": "",
-      "dateStr": "October 20",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Programs Wait... there's more! Take a look at our engaging programs that seniors love!",
-      "startDate": "2025-10-23T09:43:36.855342Z",
-      "endDate": "2025-10-23T10:43:36.855342Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Enhancing the quality of life for seniors throughout our",
-      "startDate": "2025-10-23T09:43:36.855717Z",
-      "endDate": "2025-10-23T10:43:36.855717Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Quick Links About Us  Events  Programs  Hatter's Menu  Volunteer",
-      "startDate": "2025-10-23T09:43:36.856181Z",
-      "endDate": "2025-10-23T10:43:36.856181Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "About Us  Events  Programs  Hatter's Menu  Volunteer",
-      "startDate": "2025-10-23T09:43:36.856261Z",
-      "endDate": "2025-10-23T10:43:36.856261Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Contact Us  56 Francis St, Kingston, ON K7M 1L7  (613) 548-7810  info@seniorskingston.ca  @KingstonSeniors",
-      "startDate": "2025-10-23T09:43:36.856380Z",
-      "endDate": "2025-10-23T10:43:36.856380Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "56 Francis St, Kingston, ON K7M 1L7  (613) 548-7810  info@seniorskingston.ca  @KingstonSeniors",
-      "startDate": "2025-10-23T09:43:36.856613Z",
-      "endDate": "2025-10-23T10:43:36.856613Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "@KingstonSeniors",
-      "startDate": "2025-10-23T09:43:36.856931Z",
-      "endDate": "2025-10-23T10:43:36.856931Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Quick Links About Us  Events  Programs  Hatter's Menu  Volunteer  Contact Us  56 Francis St, Kingston, ON K7M 1L7  (613) 548-7810  info@seniorskingston.ca  @KingstonSeniors Program Guide",
-      "startDate": "2025-10-23T09:43:36.857443Z",
-      "endDate": "2025-10-23T10:43:36.857443Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Copyright © 2025 The Seniors Association Kingston Region Developed and Powered by",
-      "startDate": "2025-10-23T09:43:36.857831Z",
-      "endDate": "2025-10-23T10:43:36.857831Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Copyright © 2025 The Seniors Association Kingston Region",
-      "startDate": "2025-10-23T09:43:36.858015Z",
-      "endDate": "2025-10-23T10:43:36.858015Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Live Music",
-      "startDate": "2025-10-23T09:43:36.859978Z",
-      "endDate": "2025-10-23T10:43:36.859978Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
-    },
-    {
-      "title": "Hot Apple Cider",
-      "startDate": "2025-10-23T09:43:36.860031Z",
-      "endDate": "2025-10-23T10:43:36.860031Z",
-      "description": "",
-      "location": "",
-      "dateStr": "TBA",
-      "timeStr": "TBA"
+      "timeStr": "1:00 pm",
+      "price": "",
+      "instructor": "",
+      "registration": "",
+      "image_url": "/event-schedule-banner.png"
     }
   ]
 }
