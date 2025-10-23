@@ -11,6 +11,9 @@ interface Event {
   dateStr?: string;
   timeStr?: string;
   image_url?: string;
+  price?: string;
+  instructor?: string;
+  registration?: string;
 }
 
 interface EventEditorProps {
@@ -35,7 +38,10 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     location: '',
     dateStr: '',
     timeStr: '',
-    image_url: '/assets/event-schedule-banner.png'
+    image_url: '/assets/event-schedule-banner.png',
+    price: '',
+    instructor: '',
+    registration: ''
   });
 
   // Auto-load November events when editor opens and user is authenticated
@@ -566,7 +572,10 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
       location: '',
       dateStr: '',
       timeStr: '',
-      image_url: '/assets/event-schedule-banner.png'
+      image_url: '/assets/event-schedule-banner.png',
+      price: '',
+      instructor: '',
+      registration: ''
     });
     setMessage('Event added successfully');
     setMessageType('success');
@@ -598,7 +607,10 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
       location: '',
       dateStr: '',
       timeStr: '',
-      image_url: '/assets/event-schedule-banner.png'
+      image_url: '/assets/event-schedule-banner.png',
+      price: '',
+      instructor: '',
+      registration: ''
     });
     setMessage('Event updated successfully');
     setMessageType('success');
@@ -625,7 +637,10 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
       location: '',
       dateStr: '',
       timeStr: '',
-      image_url: '/assets/event-schedule-banner.png'
+      image_url: '/assets/event-schedule-banner.png',
+      price: '',
+      instructor: '',
+      registration: ''
     });
   };
 
@@ -698,7 +713,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             disabled={loading}
             className="event-editor-button event-editor-button-success"
           >
-            {loading ? 'Loading...' : '📥 Load All Scraped Events (151)'}
+            {loading ? 'Loading...' : '📥 Load All Scraped Events'}
           </button>
           <button 
             onClick={saveEvents} 
@@ -782,6 +797,37 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
                 placeholder="e.g., 2:00 PM"
               />
             </div>
+          </div>
+
+          <div className="event-editor-form-row">
+            <div className="event-editor-form-group">
+              <label>Price</label>
+              <input
+                type="text"
+                value={newEvent.price || ''}
+                onChange={(e) => setNewEvent({ ...newEvent, price: e.target.value })}
+                placeholder="e.g., $15, Free, $25"
+              />
+            </div>
+            <div className="event-editor-form-group">
+              <label>Instructor</label>
+              <input
+                type="text"
+                value={newEvent.instructor || ''}
+                onChange={(e) => setNewEvent({ ...newEvent, instructor: e.target.value })}
+                placeholder="Instructor name"
+              />
+            </div>
+          </div>
+
+          <div className="event-editor-form-group">
+            <label>Registration Info</label>
+            <input
+              type="text"
+              value={newEvent.registration || ''}
+              onChange={(e) => setNewEvent({ ...newEvent, registration: e.target.value })}
+              placeholder="e.g., Call 613-548-7810, Online registration required"
+            />
           </div>
 
           <div className="event-editor-form-actions">

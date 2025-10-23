@@ -1810,13 +1810,72 @@ async def upload_excel(request: Request):
         if not file:
             return {"success": False, "error": "No file uploaded"}
         
-        # For now, just return success (you can add Excel processing later)
-        print(f"📊 Excel file uploaded: {file.filename}")
+        # Read the file content
+        content = await file.read()
+        filename = file.filename
         
-        return {
-            "success": True,
-            "message": f"Excel file '{file.filename}' uploaded successfully! (Processing not yet implemented)"
-        }
+        print(f"📊 Excel file uploaded: {filename} ({len(content)} bytes)")
+        
+        # Save the file temporarily
+        import os
+        temp_path = f"temp_{filename}"
+        with open(temp_path, "wb") as f:
+            f.write(content)
+        
+        # Process the Excel file (basic implementation)
+        try:
+            import pandas as pd
+            
+            # Read Excel file
+            df = pd.read_excel(temp_path)
+            print(f"📋 Excel file contains {len(df)} rows")
+            
+            # Convert to events format (basic conversion)
+            events = []
+            for index, row in df.iterrows():
+                event = {
+                    "title": str(row.get('title', row.get('Title', f'Event {index + 1}'))),
+                    "startDate": str(row.get('startDate', row.get('Start Date', '2025-01-01T10:00:00Z'))),
+                    "endDate": str(row.get('endDate', row.get('End Date', '2025-01-01T11:00:00Z'))),
+                    "description": str(row.get('description', row.get('Description', ''))),
+                    "location": str(row.get('location', row.get('Location', ''))),
+                    "dateStr": str(row.get('dateStr', row.get('Date String', ''))),
+                    "timeStr": str(row.get('timeStr', row.get('Time String', ''))),
+                    "price": str(row.get('price', row.get('Price', ''))),
+                    "instructor": str(row.get('instructor', row.get('Instructor', ''))),
+                    "registration": str(row.get('registration', row.get('Registration', ''))),
+                    "image_url": "/assets/event-schedule-banner.png"
+                }
+                events.append(event)
+            
+            # Store the events
+            global stored_events
+            stored_events = events
+            
+            # Clean up temp file
+            os.remove(temp_path)
+            
+            return {
+                "success": True,
+                "message": f"Excel file '{filename}' processed successfully! Loaded {len(events)} events.",
+                "events_count": len(events)
+            }
+            
+        except ImportError:
+            # Clean up temp file
+            os.remove(temp_path)
+            return {
+                "success": False,
+                "error": "pandas library not available for Excel processing"
+            }
+        except Exception as excel_error:
+            # Clean up temp file
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            return {
+                "success": False,
+                "error": f"Excel processing error: {str(excel_error)}"
+            }
         
     except Exception as e:
         print(f"❌ Error uploading Excel: {e}")

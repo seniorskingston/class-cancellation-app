@@ -212,7 +212,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                   fontWeight: 'bold'
                 }}
               >
-                📥 Load All Scraped Events (151 events)
+                📥 Load All Scraped Events
               </button>
               <button 
                 onClick={() => setShowEventEditor(true)}
