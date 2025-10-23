@@ -1331,6 +1331,12 @@ def get_events(request: Request):
             print(f"✅ Successfully fetched {len(real_events)} real events from website")
             # Combine real events with Canadian holidays, editable events, and stored events
             all_events = real_events + globals()['known_events'] + list(editable_events.values()) + stored_events
+            
+            # Fix image URLs for all events
+            for event in all_events:
+                if not event.get('image_url') or event.get('image_url') == '/assets/event-schedule-banner.png':
+                    event['image_url'] = '/event-schedule-banner.png'
+            
             return {
                 "events": all_events,
                 "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
@@ -1690,6 +1696,11 @@ def get_events(request: Request):
     
     # Combine known events with Canadian holidays, editable events, and stored events
     all_events = known_events + globals()['known_events'] + list(editable_events.values()) + stored_events
+    
+    # Fix image URLs for all events
+    for event in all_events:
+        if not event.get('image_url') or event.get('image_url') == '/assets/event-schedule-banner.png':
+            event['image_url'] = '/event-schedule-banner.png'
     
     return {
         "events": all_events,
