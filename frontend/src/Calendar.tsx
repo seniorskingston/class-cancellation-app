@@ -11,10 +11,6 @@ interface Event {
   endDate: Date;
   description?: string;
   location?: string;
-  banner?: string;
-  image_url?: string;
-  dateStr?: string;
-  timeStr?: string;
 }
 
 type ViewMode = 'month' | 'week' | 'day';
@@ -32,6 +28,12 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
+  // Debug: Log view mode changes
+  useEffect(() => {
+    console.log('🔍 View mode changed to:', viewMode);
+    console.log('📱 Is mobile:', isMobile);
+  }, [viewMode, isMobile]);
+  
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -39,8 +41,12 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
   // Generate calendar days based on view mode
   const generateCalendarDays = (): Date[] => {
+    console.log('🔄 Generating calendar days for view mode:', viewMode);
+    
     if (viewMode === 'day') {
-      return [new Date(currentDate)];
+      const day = [new Date(currentDate)];
+      console.log('📅 Day view: 1 day generated');
+      return day;
     } else if (viewMode === 'week') {
       const startOfWeek = new Date(currentDate);
       startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
@@ -50,15 +56,18 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         day.setDate(startOfWeek.getDate() + i);
         days.push(day);
       }
+      console.log('📅 Week view: 7 days generated:', days.map(d => d.toDateString()));
       return days;
     } else {
       // Month view
       const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
       
+      // Get the first day of the calendar grid (might be from previous month)
       const firstDayOfCalendar = new Date(firstDayOfMonth);
       firstDayOfCalendar.setDate(firstDayOfCalendar.getDate() - firstDayOfMonth.getDay());
       
+      // Get the last day of the calendar grid (might be from next month)
       const lastDayOfCalendar = new Date(lastDayOfMonth);
       lastDayOfCalendar.setDate(lastDayOfCalendar.getDate() + (6 - lastDayOfMonth.getDay()));
 
@@ -75,6 +84,11 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
   const calendarDays = generateCalendarDays();
 
+  // Debug: Log calendar days count after generation
+  useEffect(() => {
+    console.log('📅 Calendar days count:', calendarDays.length);
+  }, [calendarDays.length]);
+
   // Get events for a specific date
   const getEventsForDate = (date: Date): Event[] => {
     return events.filter(event => {
@@ -83,7 +97,42 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
     });
   };
 
-  // Fetch events from backend
+
+
+  // Parse iCal date format (YYYYMMDDTHHMMSSZ or YYYYMMDDTHHMMSS or YYYYMMDD)
+  const parseICalDate = (dateStr: string): Date => {
+    try {
+      // Remove timezone info if present
+      const cleanDateStr = dateStr.replace(/Z$/, '').replace(/[+-]\d{4}$/, '');
+      
+      // Handle different formats
+      if (cleanDateStr.length === 8) {
+        // Format: YYYYMMDD (date only)
+        const year = parseInt(cleanDateStr.substring(0, 4));
+        const month = parseInt(cleanDateStr.substring(4, 6)) - 1; // Month is 0-indexed
+        const day = parseInt(cleanDateStr.substring(6, 8));
+        return new Date(year, month, day);
+      } else if (cleanDateStr.length >= 15 && cleanDateStr.includes('T')) {
+        // Format: YYYYMMDDTHHMMSS
+        const year = parseInt(cleanDateStr.substring(0, 4));
+        const month = parseInt(cleanDateStr.substring(4, 6)) - 1; // Month is 0-indexed
+        const day = parseInt(cleanDateStr.substring(6, 8));
+        const hour = parseInt(cleanDateStr.substring(9, 11)) || 0;
+        const minute = parseInt(cleanDateStr.substring(11, 13)) || 0;
+        const second = parseInt(cleanDateStr.substring(13, 15)) || 0;
+        
+        return new Date(year, month, day, hour, minute, second);
+      } else {
+        // Fallback: try to parse as regular date string
+        return new Date(cleanDateStr);
+      }
+    } catch (error) {
+      console.warn('Error parsing iCal date:', dateStr, error);
+      return new Date(); // Fallback to current date
+    }
+  };
+
+  // Fetch events from Seniors Kingston iCal feed
   const getApiUrl = () => {
     return process.env.NODE_ENV === 'production' 
       ? 'https://class-cancellation-backend.onrender.com/api'
@@ -102,26 +151,27 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Backend response:', data);
+        
         if (data.events && data.events.length > 0) {
+          // Convert backend events to frontend format
           const convertedEvents: Event[] = data.events.map((event: any) => ({
             id: event.id,
             title: event.title,
             startDate: new Date(event.startDate),
             endDate: new Date(event.endDate),
             description: event.description || '',
-            location: event.location || '',
-            banner: event.banner,
-            image_url: event.image_url,
-            dateStr: event.dateStr,
-            timeStr: event.timeStr
+            location: event.location || ''
           }));
           
+          console.log('Converted events:', convertedEvents);
           setEvents(convertedEvents);
           setDataSource('real');
           return;
         }
       }
       
+      console.log('Backend fetch failed or no events');
       setDataSource('none');
       
     } catch (error) {
@@ -144,6 +194,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
       let response;
       if (event.id) {
+        // Update existing event
         response = await fetch(`${getApiUrl()}/events/${event.id}`, {
           method: 'PUT',
           headers: {
@@ -152,6 +203,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           body: JSON.stringify(eventData)
         });
       } else {
+        // Create new event
         response = await fetch(`${getApiUrl()}/events`, {
           method: 'POST',
           headers: {
@@ -162,10 +214,13 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       }
 
       if (response.ok) {
-        fetchEvents();
+        console.log('Event saved successfully');
+        fetchEvents(); // Refresh events list
         setIsModalOpen(false);
         setSelectedEvent(null);
         setSelectedDate(undefined);
+      } else {
+        console.error('Failed to save event');
       }
     } catch (error) {
       console.error('Error saving event:', error);
@@ -179,9 +234,12 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       });
 
       if (response.ok) {
-        fetchEvents();
+        console.log('Event deleted successfully');
+        fetchEvents(); // Refresh events list
         setIsModalOpen(false);
         setSelectedEvent(null);
+      } else {
+        console.error('Failed to delete event');
       }
     } catch (error) {
       console.error('Error deleting event:', error);
@@ -191,28 +249,35 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   useEffect(() => {
     fetchEvents();
     
+    // Set initial view mode based on screen size and mobile view setting
     const handleResize = () => {
       const mobile = window.innerWidth <= 768;
+      // Always use the isMobileView prop if provided, otherwise use screen size
       const useMobileView = isMobileView !== undefined ? isMobileView : mobile;
       setIsMobile(useMobileView);
       
+      // Auto-set view mode for mobile only
       if (useMobileView && viewMode === 'month') {
         setViewMode('week');
       }
+      // Removed automatic month override for desktop - let user choose
     };
     
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Respond to isMobileView prop changes
   useEffect(() => {
     if (isMobileView !== undefined) {
       setIsMobile(isMobileView);
       
+      // Auto-set view mode for mobile only
       if (isMobileView && viewMode === 'month') {
         setViewMode('week');
       }
+      // Removed automatic month override for desktop - let user choose
     }
   }, [isMobileView, viewMode]);
 
@@ -237,10 +302,21 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
   const isHoliday = (eventTitle: string): boolean => {
     const holidays = [
-      'New Year\'s Day', 'Good Friday', 'Easter Monday', 'Victoria Day',
-      'Saint-Jean-Baptiste Day', 'Canada Day', 'Civic Holiday', 'Labour Day',
-      'National Day for Truth and Reconciliation', 'Thanksgiving Day',
-      'Christmas Day', 'Boxing Day', 'Family Day'
+      // 2025 Holidays
+      'New Year\'s Day',
+      'Good Friday',
+      'Easter Monday',
+      'Victoria Day',
+      'Saint-Jean-Baptiste Day',
+      'Canada Day',
+      'Civic Holiday',
+      'Labour Day',
+      'National Day for Truth and Reconciliation',
+      'Thanksgiving Day',
+      'Christmas Day',
+      'Boxing Day',
+      // 2026 Holidays
+      'Family Day'
     ];
     return holidays.some(holiday => eventTitle.includes(holiday));
   };
@@ -252,6 +328,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+  // Navigation functions
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(currentDate);
     
@@ -260,6 +337,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
     } else if (viewMode === 'week') {
       newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
     } else {
+      // Month view
       newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
     }
     
@@ -268,8 +346,10 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
 
   const goToPreviousMonth = () => navigateDate('prev');
   const goToNextMonth = () => navigateDate('next');
+  
   const goToToday = () => setCurrentDate(new Date());
 
+  // Get title for current view
   const getViewTitle = () => {
     if (viewMode === 'day') {
       return `${monthNames[currentDate.getMonth()]} ${currentDate.getDate()}, ${currentDate.getFullYear()}`;
@@ -320,25 +400,35 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           <button onClick={goToToday} className="today-button custom-tooltip" data-tooltip="Go to Today">Today</button>
           <button onClick={goToNextMonth} className="nav-button custom-tooltip" data-tooltip="Next Month/Week/Day">›</button>
           
+          {/* View Mode Controls - moved next to Today button */}
           {!isMobile && (
             <>
               <button 
                 className={`view-button custom-tooltip ${viewMode === 'month' ? 'active' : ''}`}
-                onClick={() => setViewMode('month')}
+                onClick={() => {
+                  console.log('🔘 Month button clicked!');
+                  setViewMode('month');
+                }}
                 data-tooltip="Month View"
               >
                 Month
               </button>
               <button 
                 className={`view-button custom-tooltip ${viewMode === 'week' ? 'active' : ''}`}
-                onClick={() => setViewMode('week')}
+                onClick={() => {
+                  console.log('🔘 Week button clicked!');
+                  setViewMode('week');
+                }}
                 data-tooltip="Week View"
               >
                 Week
               </button>
               <button 
                 className={`view-button custom-tooltip ${viewMode === 'day' ? 'active' : ''}`}
-                onClick={() => setViewMode('day')}
+                onClick={() => {
+                  console.log('🔘 Day button clicked!');
+                  setViewMode('day');
+                }}
                 data-tooltip="Day View"
               >
                 Day
@@ -363,7 +453,9 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
               </button>
             </>
           )}
+          
         </div>
+        
         
         <h2 className="month-year">
           {getViewTitle()}
@@ -385,6 +477,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         </div>
       )}
 
+      {/* Mobile List View - Show when mobile view is active */}
       {isMobile ? (
         <div className="mobile-list-view">
           {calendarDays.map((day, index) => {
@@ -406,7 +499,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                       <div 
                         key={eventIndex} 
                         className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                        onClick={() => handleEventClick(event)}
+                        // onClick={() => handleEventClick(event)} // Disabled - events are read-only
                       >
                         <div className="mobile-event-time">
                           {event.startDate.toLocaleTimeString('en-US', { 
@@ -430,7 +523,9 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           })}
         </div>
       ) : (
+        /* Desktop Grid View */
         <div className={`calendar-grid ${viewMode}-view`} data-view-mode={viewMode}>
+          {/* Day headers */}
           {viewMode !== 'day' && (
             <div className="calendar-weekdays">
               {dayNames.map(day => (
@@ -439,6 +534,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             </div>
           )}
 
+          {/* Calendar days */}
           <div className={`calendar-days ${viewMode}-days`}>
             {calendarDays.map((day, index) => {
               const isCurrentMonth = day.getMonth() === currentDate.getMonth();
@@ -449,6 +545,15 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                 <div
                   key={index}
                   className={`calendar-day ${viewMode}-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`}
+                  // onClick={() => {
+                  //   if (viewMode === 'day') {
+                  //     setSelectedDate(day);
+                  //     setSelectedEvent(null);
+                  //     setIsModalOpen(true);
+                  //   } else {
+                  //     handleDayClick(day.getDate());
+                  //   }
+                  // }} // Disabled - calendar is read-only
                 >
                   <div className="day-number">{day.getDate()}</div>
                   <div className="day-events">
@@ -456,10 +561,10 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                       <div
                         key={eventIndex}
                         className={`event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEventClick(event);
-                        }}
+                        // onClick={(e) => {
+                        //   e.stopPropagation();
+                        //   handleEventClick(event);
+                        // }} // Disabled - events are read-only
                       >
                         <div className="event-time">
                           {event.startDate.toLocaleTimeString('en-US', { 
