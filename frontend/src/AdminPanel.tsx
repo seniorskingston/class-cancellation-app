@@ -291,7 +291,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                     </button>
                     <button 
                       onClick={() => {
-                        if (confirm('Are you sure you want to clear all events?')) {
+                        if (window.confirm('Are you sure you want to clear all events?')) {
                           setUploadMessage('🗑️ All events cleared successfully!');
                         }
                       }}
