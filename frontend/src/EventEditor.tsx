@@ -63,7 +63,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
       if (response.ok) {
         const data = await response.json();
         setEvents(data.events || []);
-        setMessage('Events loaded successfully');
+        setMessage(`Loaded ${data.events?.length || 0} events from backend`);
         setMessageType('success');
       } else {
         throw new Error('Failed to load events');
@@ -71,6 +71,85 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     } catch (error) {
       console.error('Error loading events:', error);
       setMessage('Failed to load events');
+      setMessageType('error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load scraped events from local file
+  const loadScrapedEvents = async () => {
+    setLoading(true);
+    try {
+      // Try to load from the scraped events file
+      const response = await fetch('/editable_events.json');
+      if (response.ok) {
+        const data = await response.json();
+        const scrapedEvents = data.events || [];
+        setEvents(scrapedEvents);
+        setMessage(`Loaded ${scrapedEvents.length} scraped events with complete details!`);
+        setMessageType('success');
+      } else {
+        // Fallback: create sample events with November data
+        const sampleEvents = [
+          {
+            title: "Daylight Savings Ends",
+            startDate: "2025-11-02T08:00:00Z",
+            endDate: "2025-11-02T09:00:00Z",
+            description: "Daylight saving time ends. Clocks fall back one hour.",
+            location: "Everywhere",
+            dateStr: "November 2",
+            timeStr: "8:00 AM",
+            image_url: "/assets/event-schedule-banner.png"
+          },
+          {
+            title: "Online Registration Begins",
+            startDate: "2025-11-03T08:00:00Z",
+            endDate: "2025-11-03T09:00:00Z",
+            description: "Online Program Registration Starts Today",
+            location: "Online",
+            dateStr: "November 3",
+            timeStr: "8:00 AM",
+            image_url: "/assets/event-schedule-banner.png"
+          },
+          {
+            title: "Assistive Listening Solutions",
+            startDate: "2025-11-03T12:00:00Z",
+            endDate: "2025-11-03T13:00:00Z",
+            description: "Removing communication barriers leads to engagement within the community. Learn about how assistive listening solutions can help hard-of-hearing members remove background noise and hear what they are intended to.",
+            location: "Seniors Kingston Centre",
+            dateStr: "November 3",
+            timeStr: "12:00 PM",
+            image_url: "/assets/event-schedule-banner.png"
+          },
+          {
+            title: "Fresh Food Market",
+            startDate: "2025-11-04T10:00:00Z",
+            endDate: "2025-11-04T11:00:00Z",
+            description: "Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
+            location: "Seniors Kingston Centre",
+            dateStr: "November 4",
+            timeStr: "10:00 AM",
+            image_url: "/assets/event-schedule-banner.png"
+          },
+          {
+            title: "Fraud Awareness",
+            startDate: "2025-11-05T13:00:00Z",
+            endDate: "2025-11-05T14:00:00Z",
+            description: "Protect your money and identity from phone, internet, and in-person fraudsters. Learn how to spot and avoid scams.",
+            location: "Seniors Kingston Centre",
+            dateStr: "November 5",
+            timeStr: "1:00 PM",
+            image_url: "/assets/event-schedule-banner.png"
+          }
+        ];
+        setEvents(sampleEvents);
+        setMessage(`Loaded ${sampleEvents.length} sample November events. Upload the scraped events file to see all 151 events.`);
+        setMessageType('success');
+      }
+    } catch (error) {
+      console.error('Error loading scraped events:', error);
+      setMessage('Failed to load scraped events');
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -256,7 +335,14 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             disabled={loading}
             className="event-editor-button event-editor-button-secondary"
           >
-            {loading ? 'Loading...' : 'Load Events'}
+            {loading ? 'Loading...' : 'Load Backend Events'}
+          </button>
+          <button 
+            onClick={loadScrapedEvents} 
+            disabled={loading}
+            className="event-editor-button event-editor-button-success"
+          >
+            {loading ? 'Loading...' : '📥 Load Scraped Events (151)'}
           </button>
           <button 
             onClick={saveEvents} 
