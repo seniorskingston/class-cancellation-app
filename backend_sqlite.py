@@ -1774,10 +1774,10 @@ def delete_event(event_id: str):
         return {"success": False, "error": str(e)}
 
 @app.post("/api/events/bulk-update")
-def bulk_update_events(request: Request):
+async def bulk_update_events(request: Request):
     """Bulk update events - replace all events with new ones"""
     try:
-        data = request.json()
+        data = await request.json()
         events = data.get('events', [])
         
         print(f"🔄 Bulk update received: {len(events)} events")
@@ -1797,6 +1797,29 @@ def bulk_update_events(request: Request):
         
     except Exception as e:
         print(f"❌ Error in bulk update: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/upload-excel")
+async def upload_excel(request: Request):
+    """Upload Excel file and process events"""
+    try:
+        # Get the uploaded file
+        form = await request.form()
+        file = form.get("file")
+        
+        if not file:
+            return {"success": False, "error": "No file uploaded"}
+        
+        # For now, just return success (you can add Excel processing later)
+        print(f"📊 Excel file uploaded: {file.filename}")
+        
+        return {
+            "success": True,
+            "message": f"Excel file '{file.filename}' uploaded successfully! (Processing not yet implemented)"
+        }
+        
+    except Exception as e:
+        print(f"❌ Error uploading Excel: {e}")
         return {"success": False, "error": str(e)}
 
 @app.get("/api/october-events")
