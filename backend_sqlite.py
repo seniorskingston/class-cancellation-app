@@ -1822,52 +1822,17 @@ async def upload_excel(request: Request):
         with open(temp_path, "wb") as f:
             f.write(content)
         
-        # Process the Excel file (basic implementation)
+        # Process the Excel file
         try:
-            import pandas as pd
+            # Check file extension first
+            file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
             
-            # Read Excel file
-            df = pd.read_excel(temp_path)
-            print(f"📋 Excel file contains {len(df)} rows")
+            print(f"📊 Processing file: {filename} (extension: {file_ext})")
             
-            # Convert to events format (basic conversion)
-            events = []
-            for index, row in df.iterrows():
-                event = {
-                    "title": str(row.get('title', row.get('Title', f'Event {index + 1}'))),
-                    "startDate": str(row.get('startDate', row.get('Start Date', '2025-01-01T10:00:00Z'))),
-                    "endDate": str(row.get('endDate', row.get('End Date', '2025-01-01T11:00:00Z'))),
-                    "description": str(row.get('description', row.get('Description', ''))),
-                    "location": str(row.get('location', row.get('Location', ''))),
-                    "dateStr": str(row.get('dateStr', row.get('Date String', ''))),
-                    "timeStr": str(row.get('timeStr', row.get('Time String', ''))),
-                    "price": str(row.get('price', row.get('Price', ''))),
-                    "instructor": str(row.get('instructor', row.get('Instructor', ''))),
-                    "registration": str(row.get('registration', row.get('Registration', ''))),
-                    "image_url": "/assets/event-schedule-banner.png"
-                }
-                events.append(event)
-            
-            # Store the events
-            global stored_events
-            stored_events = events
-            
-            # Clean up temp file
-            os.remove(temp_path)
-            
-            return {
-                "success": True,
-                "message": f"Excel file '{filename}' processed successfully! Loaded {len(events)} events.",
-                "events_count": len(events)
-            }
-            
-        except ImportError:
-            # Clean up temp file
-            os.remove(temp_path)
-            return {
-                "success": False,
-                "error": "pandas library not available for Excel processing"
-            }
+            # For now, use CSV processing for all files since pandas/openpyxl may not be available
+            print("📊 Using CSV processing for all file types...")
+            return process_csv_fallback(temp_path, filename)
+                    
         except Exception as excel_error:
             # Clean up temp file
             if os.path.exists(temp_path):
@@ -1880,6 +1845,64 @@ async def upload_excel(request: Request):
     except Exception as e:
         print(f"❌ Error uploading Excel: {e}")
         return {"success": False, "error": str(e)}
+
+def process_csv_fallback(temp_path, filename):
+    """Process CSV file as fallback"""
+    try:
+        import csv
+        
+        # Try to read as CSV
+        events = []
+        with open(temp_path, 'r', encoding='utf-8') as file:
+            # Try to detect delimiter
+            sample = file.read(1024)
+            file.seek(0)
+            
+            delimiter = ','
+            if '\t' in sample:
+                delimiter = '\t'
+            elif ';' in sample:
+                delimiter = ';'
+            
+            reader = csv.DictReader(file, delimiter=delimiter)
+            
+            for row in reader:
+                event = {
+                    "title": str(row.get('title', row.get('Title', f'Event {len(events) + 1}'))),
+                    "startDate": str(row.get('startDate', row.get('Start Date', '2025-01-01T10:00:00Z'))),
+                    "endDate": str(row.get('endDate', row.get('End Date', '2025-01-01T11:00:00Z'))),
+                    "description": str(row.get('description', row.get('Description', ''))),
+                    "location": str(row.get('location', row.get('Location', ''))),
+                    "dateStr": str(row.get('dateStr', row.get('Date String', ''))),
+                    "timeStr": str(row.get('timeStr', row.get('Time String', ''))),
+                    "price": str(row.get('price', row.get('Price', ''))),
+                    "instructor": str(row.get('instructor', row.get('Instructor', ''))),
+                    "registration": str(row.get('registration', row.get('Registration', ''))),
+                    "image_url": "/event-schedule-banner.png"
+                }
+                events.append(event)
+        
+        # Store the events
+        global stored_events
+        stored_events = events
+        
+        # Clean up temp file
+        os.remove(temp_path)
+        
+        return {
+            "success": True,
+            "message": f"CSV file '{filename}' processed successfully! Loaded {len(events)} events.",
+            "events_count": len(events)
+        }
+        
+    except Exception as csv_error:
+        # Clean up temp file
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        return {
+            "success": False,
+            "error": f"CSV processing error: {str(csv_error)}"
+        }
 
 @app.get("/api/october-events")
 def get_october_events():
