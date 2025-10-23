@@ -18,15 +18,36 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
     }
   };
 
-  const handleExcelUpload = () => {
+  const handleExcelUpload = async () => {
     if (!selectedFile) {
       setUploadMessage('Please select a file first');
       return;
     }
 
-    // Redirect to the working upload page
-    setUploadMessage('Redirecting to Excel upload page...');
-    window.open('https://class-cancellation-backend.onrender.com/upload', '_blank');
+    setUploadMessage('Uploading...');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const response = await fetch('https://class-cancellation-backend.onrender.com/api/upload-excel', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setUploadMessage(`✅ Successfully uploaded ${selectedFile.name}! ${result.message || ''}`);
+        } else {
+          setUploadMessage(`❌ Upload failed: ${result.error || 'Unknown error'}`);
+        }
+      } else {
+        setUploadMessage(`❌ Upload failed: ${response.statusText}`);
+      }
+    } catch (error) {
+      setUploadMessage(`❌ Upload error: ${error}`);
+    }
   };
 
   return (
@@ -147,7 +168,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                           marginTop: '10px'
                         }}
                       >
-                        Open Excel Upload Page
+                        Upload Excel File
                       </button>
             </div>
           </div>
