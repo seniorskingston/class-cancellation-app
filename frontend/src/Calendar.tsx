@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './Calendar.css';
 import logo from './logo.png';
 import homeIcon from './assets/home-icon.png';
-import EventModal from './EventModal';
 import EventViewModal from './EventViewModal';
 
 interface Event {
@@ -12,6 +11,12 @@ interface Event {
   endDate: Date;
   description?: string;
   location?: string;
+  dateStr?: string;
+  timeStr?: string;
+  image_url?: string;
+  price?: string;
+  instructor?: string;
+  registration?: string;
 }
 
 type ViewMode = 'month' | 'week' | 'day';
@@ -169,7 +174,13 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             startDate: new Date(event.startDate),
             endDate: new Date(event.endDate),
             description: event.description || '',
-            location: event.location || ''
+            location: event.location || '',
+            dateStr: event.dateStr || '',
+            timeStr: event.timeStr || '',
+            image_url: event.image_url || '/event-schedule-banner.png',
+            price: event.price || '',
+            instructor: event.instructor || '',
+            registration: event.registration || ''
           }));
           
           console.log('Converted events:', convertedEvents);
@@ -190,69 +201,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
     }
   };
 
-  const saveEvent = async (event: Event) => {
-    try {
-      const eventData = {
-        title: event.title,
-        description: event.description || '',
-        location: event.location || '',
-        startDate: event.startDate.toISOString(),
-        endDate: event.endDate.toISOString()
-      };
-
-      let response;
-      if (event.id) {
-        // Update existing event
-        response = await fetch(`${getApiUrl()}/events/${event.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(eventData)
-        });
-      } else {
-        // Create new event
-        response = await fetch(`${getApiUrl()}/events`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(eventData)
-        });
-      }
-
-      if (response.ok) {
-        console.log('Event saved successfully');
-        fetchEvents(); // Refresh events list
-        setIsModalOpen(false);
-        setSelectedEvent(null);
-        setSelectedDate(undefined);
-      } else {
-        console.error('Failed to save event');
-      }
-    } catch (error) {
-      console.error('Error saving event:', error);
-    }
-  };
-
-  const deleteEvent = async (eventId: string) => {
-    try {
-      const response = await fetch(`${getApiUrl()}/events/${eventId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        console.log('Event deleted successfully');
-        fetchEvents(); // Refresh events list
-        setIsModalOpen(false);
-        setSelectedEvent(null);
-      } else {
-        console.error('Failed to delete event');
-      }
-    } catch (error) {
-      console.error('Error deleting event:', error);
-    }
-  };
 
   useEffect(() => {
     fetchEvents();
@@ -508,7 +456,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                         style={{ cursor: 'pointer' }}
                       >
                         <div className="mobile-event-time">
-                          {event.startDate.toLocaleTimeString('en-US', { 
+                          {event.timeStr || event.startDate.toLocaleTimeString('en-US', { 
                             hour: 'numeric', 
                             minute: '2-digit',
                             hour12: true 
@@ -574,7 +522,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                         style={{ cursor: 'pointer' }}
                       >
                         <div className="event-time">
-                          {event.startDate.toLocaleTimeString('en-US', { 
+                          {event.timeStr || event.startDate.toLocaleTimeString('en-US', { 
                             hour: 'numeric', 
                             minute: '2-digit',
                             hour12: true 
@@ -593,15 +541,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           </div>
         </div>
       )}
-
-      <EventModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onSave={saveEvent}
-        onDelete={selectedEvent?.id ? deleteEvent : undefined}
-        event={selectedEvent}
-        selectedDate={selectedDate}
-      />
 
       <EventViewModal
         isOpen={isModalOpen && selectedEvent !== null}

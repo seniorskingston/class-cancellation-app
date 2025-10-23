@@ -11,6 +11,9 @@ interface Event {
   dateStr?: string;
   timeStr?: string;
   image_url?: string;
+  price?: string;
+  instructor?: string;
+  registration?: string;
 }
 
 interface EventViewModalProps {
@@ -45,11 +48,6 @@ const EventViewModal: React.FC<EventViewModalProps> = ({
     });
   };
 
-  const formatDuration = (startDate: Date, endDate: Date): string => {
-    const startTime = formatTime(startDate);
-    const endTime = formatTime(endDate);
-    return `${startTime} - ${endTime}`;
-  };
 
   return (
     <div className="event-view-modal-overlay" onClick={onClose}>
@@ -85,16 +83,34 @@ const EventViewModal: React.FC<EventViewModalProps> = ({
           <div className="event-detail-section">
             <div className="event-detail-item">
               <span className="event-detail-label">📅 Date:</span>
-              <span className="event-detail-value">{formatDate(event.startDate)}</span>
+              <span className="event-detail-value">{event.dateStr || formatDate(event.startDate)}</span>
             </div>
             <div className="event-detail-item">
               <span className="event-detail-label">🕐 Time:</span>
-              <span className="event-detail-value">{formatDuration(event.startDate, event.endDate)}</span>
+              <span className="event-detail-value">{event.timeStr || formatTime(event.startDate)}</span>
             </div>
             {event.location && (
               <div className="event-detail-item">
                 <span className="event-detail-label">📍 Location:</span>
                 <span className="event-detail-value">{event.location}</span>
+              </div>
+            )}
+            {event.price && (
+              <div className="event-detail-item">
+                <span className="event-detail-label">💰 Price:</span>
+                <span className="event-detail-value">{event.price}</span>
+              </div>
+            )}
+            {event.instructor && (
+              <div className="event-detail-item">
+                <span className="event-detail-label">👨‍🏫 Instructor:</span>
+                <span className="event-detail-value">{event.instructor}</span>
+              </div>
+            )}
+            {event.registration && (
+              <div className="event-detail-item">
+                <span className="event-detail-label">📝 Registration:</span>
+                <span className="event-detail-value">{event.registration}</span>
               </div>
             )}
           </div>
@@ -104,22 +120,14 @@ const EventViewModal: React.FC<EventViewModalProps> = ({
             <div className="event-detail-section">
               <h3 className="event-detail-section-title">About this event</h3>
               <p className="event-description">{event.description}</p>
+              {event.instructor && (
+                <p className="event-description"><strong>Instructor:</strong> {event.instructor}</p>
+              )}
+              {event.registration && (
+                <p className="event-description"><strong>Registration:</strong> {event.registration}</p>
+              )}
             </div>
           )}
-
-          {/* Additional Info */}
-          <div className="event-detail-section">
-            <div className="event-detail-item">
-              <span className="event-detail-label">🆔 Event ID:</span>
-              <span className="event-detail-value">{event.id || 'N/A'}</span>
-            </div>
-            <div className="event-detail-item">
-              <span className="event-detail-label">📊 Duration:</span>
-              <span className="event-detail-value">
-                {Math.round((event.endDate.getTime() - event.startDate.getTime()) / (1000 * 60 * 60 * 100) * 10) / 10} hours
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
