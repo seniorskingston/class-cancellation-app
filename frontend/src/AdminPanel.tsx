@@ -18,10 +18,38 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
     }
   };
 
-  const handleExcelUpload = () => {
-    // Redirect to the working upload page
-    setUploadMessage('Opening Excel upload page...');
-    window.open('https://class-cancellation-backend.onrender.com/upload', '_blank');
+  const handleExcelUpload = async () => {
+    if (!selectedFile) {
+      setUploadMessage('Please select a file first');
+      return;
+    }
+
+    setUploadMessage('Uploading...');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      // Use the working upload endpoint that accepts Excel files
+      const response = await fetch('https://class-cancellation-backend.onrender.com/api/import-excel', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        if (result.status === 'success') {
+          setUploadMessage(`✅ Successfully uploaded ${selectedFile.name}! ${result.message || ''}`);
+        } else {
+          setUploadMessage(`❌ Upload failed: ${result.message || 'Unknown error'}`);
+        }
+      } else {
+        setUploadMessage(`❌ Upload failed: ${response.statusText}`);
+      }
+    } catch (error) {
+      setUploadMessage(`❌ Upload error: ${error}`);
+    }
   };
 
   return (
@@ -130,19 +158,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                       )}
                       <button 
                         onClick={handleExcelUpload}
-                        disabled={false}
+                        disabled={!selectedFile}
                         style={{
-                          background: '#007bff',
+                          background: selectedFile ? '#007bff' : '#6c757d',
                           color: 'white',
                           border: 'none',
                           padding: '12px 24px',
                           borderRadius: '8px',
-                          cursor: 'pointer',
+                          cursor: selectedFile ? 'pointer' : 'not-allowed',
                           fontSize: '16px',
                           marginTop: '10px'
                         }}
                       >
-                        Open Excel Upload Page
+                        Upload Excel File
                       </button>
             </div>
           </div>
