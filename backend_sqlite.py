@@ -1335,7 +1335,7 @@ def get_events(request: Request):
             # Fix image URLs for all events
             for event in all_events:
                 if not event.get('image_url') or event.get('image_url') == '/assets/event-schedule-banner.png':
-                    event['image_url'] = '/event-schedule-banner.png'
+                    event['image_url'] = '/logo192.png'  # Use accessible logo as banner
             
             return {
                 "events": all_events,
@@ -1700,7 +1700,7 @@ def get_events(request: Request):
     # Fix image URLs for all events
     for event in all_events:
         if not event.get('image_url') or event.get('image_url') == '/assets/event-schedule-banner.png':
-            event['image_url'] = '/event-schedule-banner.png'
+            event['image_url'] = '/logo192.png'  # Use accessible logo as banner
     
     return {
         "events": all_events,
