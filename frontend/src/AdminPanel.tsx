@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import EventEditor from './EventEditor';
-import EventEditorMinimal from './EventEditorMinimal';
+import EventEditorFixed from './EventEditorFixed';
 
 interface AdminPanelProps {
   onBackToMain: () => void;
@@ -387,8 +387,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
         </div>
       </div>
 
-      {/* Event Editor Modal - Using Minimal Version for Testing */}
-      <EventEditorMinimal
+      {/* Event Editor Modal - Using Fixed Version */}
+      <EventEditorFixed
         isOpen={showEventEditor}
         onClose={() => setShowEventEditor(false)}
       />
