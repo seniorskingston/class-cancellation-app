@@ -973,6 +973,11 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
         {/* Events List */}
         <div className="event-editor-list">
           <h3>Current Events ({events.length})</h3>
+          <div style={{background: '#fff3cd', border: '1px solid #ffeaa7', padding: '10px', marginBottom: '10px', borderRadius: '5px'}}>
+            <strong>🐛 Debug Info:</strong><br/>
+            Events length: {events.length}<br/>
+            Events array: {JSON.stringify(events, null, 2)}
+          </div>
           {events.length > 0 && (
             <div style={{
               background: '#d4edda',
@@ -993,8 +998,14 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             </div>
           ) : (
             <div className="event-editor-events">
+              <div style={{background: '#e7f3ff', border: '1px solid #b3d9ff', padding: '10px', marginBottom: '10px', borderRadius: '5px'}}>
+                <strong>🔍 Rendering Events List:</strong> About to render {events.length} events
+              </div>
               {events.map((event, index) => (
-                <div key={event.id || index} className="event-editor-event">
+                <div key={event.id || index} className="event-editor-event" style={{border: '2px solid #007bff', marginBottom: '10px'}}>
+                  <div style={{background: '#f0f8ff', padding: '5px', marginBottom: '10px', borderRadius: '3px'}}>
+                    <strong>🎯 Event {index + 1}:</strong> {event.title}
+                  </div>
                   <div className="event-editor-event-info">
                     <h4>{event.title}</h4>
                     <p><strong>Date:</strong> {event.dateStr || new Date(event.startDate).toLocaleDateString()}</p>
