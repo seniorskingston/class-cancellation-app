@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import EventEditor from './EventEditor';
+import EventEditorMinimal from './EventEditorMinimal';
 
 interface AdminPanelProps {
   onBackToMain: () => void;
@@ -237,7 +238,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                 📥 Load New Events
               </button>
               <button 
-                onClick={() => setShowEventEditor(true)}
+                onClick={() => {
+                  alert('Opening Event Editor...');
+                  setShowEventEditor(true);
+                }}
                 style={{
                   background: '#17a2b8',
                   color: 'white',
@@ -383,8 +387,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
         </div>
       </div>
 
-      {/* Event Editor Modal */}
-      <EventEditor
+      {/* Event Editor Modal - Using Minimal Version for Testing */}
+      <EventEditorMinimal
         isOpen={showEventEditor}
         onClose={() => setShowEventEditor(false)}
       />
