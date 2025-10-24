@@ -73,23 +73,24 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     setLoading(true);
     try {
       const response = await fetch('https://class-cancellation-backend.onrender.com/api/events');
-              if (response.ok) {
-                const data = await response.json();
-                const events = data.events || [];
-                // Ensure all events have image URLs
-                const eventsWithImages = events.map((event: any) => ({
-                  ...event,
-                  image_url: event.image_url || '/event-schedule-banner.png'
-                }));
-                setEvents(eventsWithImages);
-                setMessage(`Loaded ${events.length} events from backend`);
-                setMessageType('success');
-              } else {
-                throw new Error('Failed to load events');
-              }
+      if (response.ok) {
+        const data = await response.json();
+        const backendEvents = data.events || [];
+        // Ensure all events have image URLs
+        const eventsWithImages = backendEvents.map((event: any) => ({
+          ...event,
+          image_url: event.image_url || '/event-schedule-banner.png'
+        }));
+        setEvents(eventsWithImages);
+        console.log('Events loaded:', eventsWithImages.length, eventsWithImages);
+        setMessage(`✅ Loaded ${backendEvents.length} events from backend`);
+        setMessageType('success');
+      } else {
+        throw new Error('Failed to load events');
+      }
     } catch (error) {
       console.error('Error loading events:', error);
-      setMessage('Failed to load events');
+      setMessage('❌ Failed to load events');
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -702,12 +703,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     });
   };
 
-  // Load events when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      loadEvents();
-    }
-  }, [isOpen]);
+  // This useEffect was conflicting with the authentication one above
 
   // Clear message after 3 seconds
   useEffect(() => {
@@ -765,6 +761,16 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             className="event-editor-button event-editor-button-secondary"
           >
             {loading ? 'Loading...' : '🔄 Load Backend Events'}
+          </button>
+          <button 
+            onClick={() => {
+              console.log('Current events state:', events);
+              setMessage(`Debug: Events state has ${events.length} events`);
+              setMessageType('success');
+            }}
+            className="event-editor-button event-editor-button-secondary"
+          >
+            🐛 Debug Events
           </button>
           <button 
             onClick={loadScrapedEvents} 
