@@ -765,12 +765,49 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           <button 
             onClick={() => {
               console.log('Current events state:', events);
-              setMessage(`Debug: Events state has ${events.length} events`);
+              console.log('Events array:', events);
+              console.log('Events length:', events.length);
+              setMessage(`Debug: Events state has ${events.length} events. Check console for details.`);
               setMessageType('success');
             }}
             className="event-editor-button event-editor-button-secondary"
           >
             🐛 Debug Events
+          </button>
+          <button 
+            onClick={() => {
+              // Test with sample events
+              const testEvents = [
+                {
+                  id: 'test1',
+                  title: 'Test Event 1',
+                  startDate: '2025-01-01T10:00:00Z',
+                  endDate: '2025-01-01T11:00:00Z',
+                  description: 'This is a test event',
+                  location: 'Test Location',
+                  dateStr: 'January 1, 2025',
+                  timeStr: '10:00 AM',
+                  image_url: '/event-schedule-banner.png'
+                },
+                {
+                  id: 'test2',
+                  title: 'Test Event 2',
+                  startDate: '2025-01-02T14:00:00Z',
+                  endDate: '2025-01-02T15:00:00Z',
+                  description: 'This is another test event',
+                  location: 'Test Location 2',
+                  dateStr: 'January 2, 2025',
+                  timeStr: '2:00 PM',
+                  image_url: '/event-schedule-banner.png'
+                }
+              ];
+              setEvents(testEvents);
+              setMessage(`✅ Loaded ${testEvents.length} test events for debugging`);
+              setMessageType('success');
+            }}
+            className="event-editor-button event-editor-button-secondary"
+          >
+            🧪 Test Events
           </button>
           <button 
             onClick={loadScrapedEvents} 
@@ -937,9 +974,17 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
         <div className="event-editor-list">
           <h3>Current Events ({events.length})</h3>
           {events.length > 0 && (
-            <p style={{color: '#28a745', fontWeight: 'bold', marginBottom: '10px'}}>
-              ✅ {events.length} events loaded successfully! You can edit them below.
-            </p>
+            <div style={{
+              background: '#d4edda',
+              border: '1px solid #c3e6cb',
+              borderRadius: '5px',
+              padding: '10px',
+              marginBottom: '15px',
+              color: '#155724'
+            }}>
+              <strong>✅ {events.length} events loaded successfully!</strong><br/>
+              You can edit them below. Click "Edit" to modify an event or "Delete" to remove it.
+            </div>
           )}
           {events.length === 0 ? (
             <div className="event-editor-empty">
