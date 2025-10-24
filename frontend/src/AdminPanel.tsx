@@ -18,36 +18,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
     }
   };
 
-  const handleExcelUpload = async () => {
-    if (!selectedFile) {
-      setUploadMessage('Please select a file first');
-      return;
-    }
-
-    setUploadMessage('Uploading...');
-
-    try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      const response = await fetch('https://class-cancellation-backend.onrender.com/api/upload-excel', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setUploadMessage(`✅ Successfully uploaded ${selectedFile.name}! ${result.message || ''}`);
-        } else {
-          setUploadMessage(`❌ Upload failed: ${result.error || 'Unknown error'}`);
-        }
-      } else {
-        setUploadMessage(`❌ Upload failed: ${response.statusText}`);
-      }
-    } catch (error) {
-      setUploadMessage(`❌ Upload error: ${error}`);
-    }
+  const handleExcelUpload = () => {
+    // Redirect to the working upload page
+    setUploadMessage('Opening Excel upload page...');
+    window.open('https://class-cancellation-backend.onrender.com/upload', '_blank');
   };
 
   return (
@@ -156,19 +130,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                       )}
                       <button 
                         onClick={handleExcelUpload}
-                        disabled={!selectedFile}
+                        disabled={false}
                         style={{
-                          background: selectedFile ? '#007bff' : '#6c757d',
+                          background: '#007bff',
                           color: 'white',
                           border: 'none',
                           padding: '12px 24px',
                           borderRadius: '8px',
-                          cursor: selectedFile ? 'pointer' : 'not-allowed',
+                          cursor: 'pointer',
                           fontSize: '16px',
                           marginTop: '10px'
                         }}
                       >
-                        Upload Excel File
+                        Open Excel Upload Page
                       </button>
             </div>
           </div>
