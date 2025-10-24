@@ -728,6 +728,32 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Authentication */}
+        <div style={{background: '#fff3cd', border: '2px solid #ffc107', padding: '15px', margin: '10px', borderRadius: '5px'}}>
+          <h4 style={{color: '#856404', margin: '0 0 10px 0'}}>🔍 AUTH DEBUG</h4>
+          <p><strong>isAuthenticated:</strong> {isAuthenticated ? 'TRUE' : 'FALSE'}</p>
+          <p><strong>password:</strong> "{password}"</p>
+          <p><strong>checkAuthentication():</strong> {checkAuthentication() ? 'TRUE' : 'FALSE'}</p>
+        </div>
+        
+        <button 
+          onClick={() => {
+            setIsAuthenticated(true);
+            setMessage('Authentication bypassed for debugging');
+            setMessageType('success');
+          }}
+          style={{
+            background: '#dc3545',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '5px',
+            margin: '10px',
+            cursor: 'pointer'
+          }}
+        >
+          🚨 BYPASS AUTH FOR DEBUGGING
+        </button>
+        
         {!isAuthenticated ? (
           <div className="event-editor-auth">
             <h3>🔒 Admin Access Required</h3>
@@ -743,6 +769,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
               <button onClick={handleLogin}>Login</button>
             </div>
             <p className="auth-note">Only authorized users can edit events</p>
+            <p style={{color: 'red', fontWeight: 'bold'}}>🚨 YOU ARE NOT AUTHENTICATED - EVENTS LIST IS HIDDEN</p>
           </div>
         ) : (
           <>
