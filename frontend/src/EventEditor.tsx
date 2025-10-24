@@ -28,8 +28,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
+  // Authentication removed - direct access for admin
   const [newEvent, setNewEvent] = useState<Event>({
     title: '',
     startDate: '',
@@ -44,29 +43,14 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     registration: ''
   });
 
-  // Auto-load events when editor opens and user is authenticated
+  // Auto-load events when editor opens
   useEffect(() => {
-    if (isOpen && isAuthenticated) {
-      loadEvents(); // Load from backend instead of scraped events
+    if (isOpen) {
+      loadEvents(); // Load from backend
     }
-  }, [isOpen, isAuthenticated]);
+  }, [isOpen]);
 
-  // Check if user is authenticated (simple password check)
-  const checkAuthentication = () => {
-    const correctPassword = 'rebecca2025'; // Change this to your preferred password
-    return password === correctPassword;
-  };
-
-  const handleLogin = () => {
-    if (checkAuthentication()) {
-      setIsAuthenticated(true);
-      setMessage('Access granted! You can now edit events.');
-      setMessageType('success');
-    } else {
-      setMessage('Incorrect password. Only authorized users can edit events.');
-      setMessageType('error');
-    }
-  };
+  // Authentication functions removed - direct access for admin
 
   // Load events from backend
   const loadEvents = async () => {
@@ -727,52 +711,8 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           <button className="event-editor-close" onClick={onClose}>×</button>
         </div>
 
-        {/* Authentication */}
-        <div style={{background: '#fff3cd', border: '2px solid #ffc107', padding: '15px', margin: '10px', borderRadius: '5px'}}>
-          <h4 style={{color: '#856404', margin: '0 0 10px 0'}}>🔍 AUTH DEBUG</h4>
-          <p><strong>isAuthenticated:</strong> {isAuthenticated ? 'TRUE' : 'FALSE'}</p>
-          <p><strong>password:</strong> "{password}"</p>
-          <p><strong>checkAuthentication():</strong> {checkAuthentication() ? 'TRUE' : 'FALSE'}</p>
-        </div>
-        
-        <button 
-          onClick={() => {
-            setIsAuthenticated(true);
-            setMessage('Authentication bypassed for debugging');
-            setMessageType('success');
-          }}
-          style={{
-            background: '#dc3545',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '5px',
-            margin: '10px',
-            cursor: 'pointer'
-          }}
-        >
-          🚨 BYPASS AUTH FOR DEBUGGING
-        </button>
-        
-        {!isAuthenticated ? (
-          <div className="event-editor-auth">
-            <h3>🔒 Admin Access Required</h3>
-            <p>Enter password to edit events:</p>
-            <div className="auth-form">
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-              />
-              <button onClick={handleLogin}>Login</button>
-            </div>
-            <p className="auth-note">Only authorized users can edit events</p>
-            <p style={{color: 'red', fontWeight: 'bold'}}>🚨 YOU ARE NOT AUTHENTICATED - EVENTS LIST IS HIDDEN</p>
-          </div>
-        ) : (
-          <>
+        {/* Direct access - no authentication required */}
+        <>
             {/* Message */}
             {message && (
               <div className={`event-editor-message ${messageType}`}>
@@ -1096,8 +1036,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             )}
           </div>
         </div>
-          </>
-        )}
+        </>
       </div>
     </div>
   );
