@@ -247,9 +247,21 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
             gap: '15px'
           }}>
                     <button 
-                      onClick={() => {
+                      onClick={async () => {
                         setUploadMessage('🔄 Syncing with Seniors Kingston website...');
-                        setTimeout(() => setUploadMessage('✅ Sync completed! Found 151 events.'));
+                        try {
+                          const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events', {
+                            method: 'POST'
+                          });
+                          const result = await response.json();
+                          if (result.success) {
+                            setUploadMessage(`✅ Sync completed! Found ${result.events_count} events.`);
+                          } else {
+                            setUploadMessage(`❌ Sync failed: ${result.message}`);
+                          }
+                        } catch (error) {
+                          setUploadMessage(`❌ Sync error: ${error}`);
+                        }
                       }}
                       style={{
                         background: '#6f42c1',

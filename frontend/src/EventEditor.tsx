@@ -100,7 +100,36 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
   const loadScrapedEvents = async () => {
     setLoading(true);
     try {
-      // Try to load from the actual scraped file first
+      // Load events from the backend API (which includes scraped events)
+      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events');
+      if (response.ok) {
+        const data = await response.json();
+        const backendEvents = data.events || [];
+        if (backendEvents.length > 0) {
+          // Convert backend events to frontend format
+          const convertedEvents = backendEvents.map((event: any) => ({
+            id: event.id,
+            title: event.title,
+            startDate: event.startDate,
+            endDate: event.endDate,
+            description: event.description || '',
+            location: event.location || '',
+            dateStr: event.dateStr || '',
+            timeStr: event.timeStr || '',
+            image_url: event.image_url || '/logo192.png',
+            price: event.price || '',
+            instructor: event.instructor || '',
+            registration: event.registration || ''
+          }));
+          
+          setEvents(convertedEvents);
+          setMessage(`✅ Loaded ${convertedEvents.length} events from backend!`);
+          setMessageType('success');
+          return;
+        }
+      }
+      
+      // Fallback: Try to load from the actual scraped file
       try {
         const response = await fetch('/editable_events.json');
         if (response.ok) {
@@ -117,7 +146,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
               // Ensure all events have image URLs
               const eventsWithImages = scrapedEvents.map((event: any) => ({
                 ...event,
-                image_url: event.image_url || '/event-schedule-banner.png'
+                image_url: event.image_url || '/logo192.png'
               }));
               setEvents(eventsWithImages);
               setMessage(`✅ Loaded ${scrapedEvents.length} scraped events from file!`);
