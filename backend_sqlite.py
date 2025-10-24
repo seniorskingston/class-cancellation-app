@@ -1332,10 +1332,25 @@ def get_events(request: Request):
             # Combine real events with Canadian holidays, editable events, and stored events
             all_events = real_events + globals()['known_events'] + list(editable_events.values()) + stored_events
             
-            # Fix image URLs for all events
+            # Fix image URLs and clean titles for all events
             for event in all_events:
                 if not event.get('image_url') or event.get('image_url') == '/assets/event-schedule-banner.png':
                     event['image_url'] = '/logo192.png'  # Use accessible logo as banner
+                
+                # Clean up titles that contain descriptions
+                title = event.get('title', '')
+                description = event.get('description', '')
+                
+                # If title is very long and contains description, extract just the title part
+                if len(title) > 100 and description and description in title:
+                    # Try to extract just the event name (before the date/time)
+                    import re
+                    # Look for pattern like "Event Name  Date, Time Description"
+                    match = re.match(r'^([^0-9]+?)\s+\w+\s+\d+,\s+\d+', title)
+                    if match:
+                        clean_title = match.group(1).strip()
+                        event['title'] = clean_title
+                        print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
             
             return {
                 "events": all_events,
@@ -1697,10 +1712,25 @@ def get_events(request: Request):
     # Combine known events with Canadian holidays, editable events, and stored events
     all_events = known_events + globals()['known_events'] + list(editable_events.values()) + stored_events
     
-    # Fix image URLs for all events
+    # Fix image URLs and clean titles for all events
     for event in all_events:
         if not event.get('image_url') or event.get('image_url') == '/assets/event-schedule-banner.png':
             event['image_url'] = '/logo192.png'  # Use accessible logo as banner
+        
+        # Clean up titles that contain descriptions
+        title = event.get('title', '')
+        description = event.get('description', '')
+        
+        # If title is very long and contains description, extract just the title part
+        if len(title) > 100 and description and description in title:
+            # Try to extract just the event name (before the date/time)
+            import re
+            # Look for pattern like "Event Name  Date, Time Description"
+            match = re.match(r'^([^0-9]+?)\s+\w+\s+\d+,\s+\d+', title)
+            if match:
+                clean_title = match.group(1).strip()
+                event['title'] = clean_title
+                print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
     
     return {
         "events": all_events,
@@ -1861,6 +1891,15 @@ def process_csv_fallback(temp_path, filename):
     """Process CSV file as fallback"""
     try:
         import csv
+        
+        # Check if file is actually a CSV file
+        file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
+        
+        if file_ext not in ['csv', 'txt']:
+            return {
+                "success": False,
+                "error": f"File type '{file_ext}' not supported. Please upload a CSV file."
+            }
         
         # Try to read as CSV
         events = []
