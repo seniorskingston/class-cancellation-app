@@ -1394,15 +1394,27 @@ def get_events(request: Request):
                 description = event.get('description', '')
                 
                 # If title is very long and contains description, extract just the title part
-                if len(title) > 100 and description and description in title:
-                    # Try to extract just the event name (before the date/time)
+                if len(title) > 50:  # Lower threshold to catch more cases
                     import re
-                    # Look for pattern like "Event Name  Date, Time Description"
-                    match = re.match(r'^([^0-9]+?)\s+\w+\s+\d+,\s+\d+', title)
-                    if match:
-                        clean_title = match.group(1).strip()
-                        event['title'] = clean_title
-                        print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
+                    # Look for pattern like "Event Name October 24, 1:30 pm Description"
+                    # Try multiple patterns to extract just the event name
+                    patterns = [
+                        r'^([^0-9]+?)\s+\w+\s+\d+,\s+\d+:\d+\s+[ap]m',  # "Event Name October 24, 1:30 pm"
+                        r'^([^0-9]+?)\s+\w+\s+\d+',  # "Event Name October 24"
+                        r'^([^0-9]+?)\s+\d+:\d+\s+[ap]m',  # "Event Name 1:30 pm"
+                        r'^([^0-9]+?)\s+\d+',  # "Event Name 24"
+                    ]
+                    
+                    for pattern in patterns:
+                        match = re.match(pattern, title)
+                        if match:
+                            clean_title = match.group(1).strip()
+                            # Remove trailing punctuation and extra spaces
+                            clean_title = re.sub(r'[,\s]+$', '', clean_title)
+                            if len(clean_title) > 3:  # Make sure we have a meaningful title
+                                event['title'] = clean_title
+                                print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
+                                break
             
             return {
                 "events": all_events,
@@ -1779,15 +1791,27 @@ def get_events(request: Request):
         description = event.get('description', '')
         
         # If title is very long and contains description, extract just the title part
-        if len(title) > 100 and description and description in title:
-            # Try to extract just the event name (before the date/time)
+        if len(title) > 50:  # Lower threshold to catch more cases
             import re
-            # Look for pattern like "Event Name  Date, Time Description"
-            match = re.match(r'^([^0-9]+?)\s+\w+\s+\d+,\s+\d+', title)
-            if match:
-                clean_title = match.group(1).strip()
-                event['title'] = clean_title
-                print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
+            # Look for pattern like "Event Name October 24, 1:30 pm Description"
+            # Try multiple patterns to extract just the event name
+            patterns = [
+                r'^([^0-9]+?)\s+\w+\s+\d+,\s+\d+:\d+\s+[ap]m',  # "Event Name October 24, 1:30 pm"
+                r'^([^0-9]+?)\s+\w+\s+\d+',  # "Event Name October 24"
+                r'^([^0-9]+?)\s+\d+:\d+\s+[ap]m',  # "Event Name 1:30 pm"
+                r'^([^0-9]+?)\s+\d+',  # "Event Name 24"
+            ]
+            
+            for pattern in patterns:
+                match = re.match(pattern, title)
+                if match:
+                    clean_title = match.group(1).strip()
+                    # Remove trailing punctuation and extra spaces
+                    clean_title = re.sub(r'[,\s]+$', '', clean_title)
+                    if len(clean_title) > 3:  # Make sure we have a meaningful title
+                        event['title'] = clean_title
+                        print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
+                        break
     
     return {
         "events": all_events,
