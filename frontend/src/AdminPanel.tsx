@@ -18,6 +18,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
     }
   };
 
+  const clearMessage = () => {
+    setUploadMessage('');
+  };
+
   const handleExcelUpload = async () => {
     if (!selectedFile) {
       setUploadMessage('Please select a file first');
@@ -148,13 +152,29 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                         }}
                       />
                       {uploadMessage && (
-                        <p style={{ 
-                          color: uploadMessage.includes('✅') ? '#28a745' : uploadMessage.includes('❌') ? '#dc3545' : '#666',
-                          margin: '10px 0',
-                          fontSize: '14px'
-                        }}>
-                          {uploadMessage}
-                        </p>
+                        <div style={{ marginTop: '10px' }}>
+                          <p style={{ 
+                            color: uploadMessage.includes('✅') ? '#28a745' : uploadMessage.includes('❌') ? '#dc3545' : '#666',
+                            margin: '0 0 10px 0',
+                            fontSize: '14px'
+                          }}>
+                            {uploadMessage}
+                          </p>
+                          <button 
+                            onClick={clearMessage}
+                            style={{
+                              background: '#6c757d',
+                              color: 'white',
+                              border: 'none',
+                              padding: '5px 10px',
+                              borderRadius: '4px',
+                              fontSize: '12px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Clear Message
+                          </button>
+                        </div>
                       )}
                       <button 
                         onClick={handleExcelUpload}
@@ -274,23 +294,29 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
             gap: '15px'
           }}>
-                    <button 
-                      onClick={async () => {
-                        setUploadMessage('🔄 Syncing with Seniors Kingston website...');
-                        try {
-                          const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events', {
-                            method: 'POST'
-                          });
-                          const result = await response.json();
-                          if (result.success) {
-                            setUploadMessage(`✅ Sync completed! Found ${result.events_count} events.`);
-                          } else {
-                            setUploadMessage(`❌ Sync failed: ${result.message}`);
-                          }
-                        } catch (error) {
-                          setUploadMessage(`❌ Sync error: ${error}`);
+                  <button 
+                    onClick={async () => {
+                      setUploadMessage('🔄 Syncing with Seniors Kingston website...');
+                      try {
+                        const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events', {
+                          method: 'POST'
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                          setUploadMessage(`✅ Sync completed! Found ${result.events_count} events.`);
+                          // Clear message after 5 seconds
+                          setTimeout(() => setUploadMessage(''), 5000);
+                        } else {
+                          setUploadMessage(`❌ Sync failed: ${result.message}`);
+                          // Clear message after 5 seconds
+                          setTimeout(() => setUploadMessage(''), 5000);
                         }
-                      }}
+                      } catch (error) {
+                        setUploadMessage(`❌ Sync error: ${error}`);
+                        // Clear message after 5 seconds
+                        setTimeout(() => setUploadMessage(''), 5000);
+                      }
+                    }}
                       style={{
                         background: '#6f42c1',
                         color: 'white',

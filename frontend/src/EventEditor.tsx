@@ -96,11 +96,11 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  // Load scraped events from local file
+  // Load scraped events from backend API
   const loadScrapedEvents = async () => {
     setLoading(true);
     try {
-      // Load events from the backend API (which includes scraped events)
+      // Load events from the backend API (which includes all current events)
       const response = await fetch('https://class-cancellation-backend.onrender.com/api/events');
       if (response.ok) {
         const data = await response.json();
@@ -126,7 +126,15 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           setMessage(`✅ Loaded ${convertedEvents.length} events from backend!`);
           setMessageType('success');
           return;
+        } else {
+          setMessage('❌ No events found in backend');
+          setMessageType('error');
+          return;
         }
+      } else {
+        setMessage(`❌ Failed to load events: ${response.statusText}`);
+        setMessageType('error');
+        return;
       }
       
       // Fallback: Try to load from the actual scraped file
