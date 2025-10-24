@@ -47,7 +47,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
   // Auto-load events when editor opens and user is authenticated
   useEffect(() => {
     if (isOpen && isAuthenticated) {
-      loadScrapedEvents();
+      loadEvents(); // Load from backend instead of scraped events
     }
   }, [isOpen, isAuthenticated]);
 
@@ -83,7 +83,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
         }));
         setEvents(eventsWithImages);
         console.log('Events loaded:', eventsWithImages.length, eventsWithImages);
-        setMessage(`✅ Loaded ${backendEvents.length} events from backend`);
+        setMessage(`✅ Loaded ${backendEvents.length} events from backend! Events should now be visible below.`);
         setMessageType('success');
       } else {
         throw new Error('Failed to load events');
@@ -936,6 +936,11 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
         {/* Events List */}
         <div className="event-editor-list">
           <h3>Current Events ({events.length})</h3>
+          {events.length > 0 && (
+            <p style={{color: '#28a745', fontWeight: 'bold', marginBottom: '10px'}}>
+              ✅ {events.length} events loaded successfully! You can edit them below.
+            </p>
+          )}
           {events.length === 0 ? (
             <div className="event-editor-empty">
               <p>No events found. Click "Load Backend Events" or "Load New Events" to load events.</p>
