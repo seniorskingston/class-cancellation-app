@@ -177,7 +177,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             location: event.location || '',
             dateStr: event.dateStr || '',
             timeStr: event.timeStr || '',
-            image_url: event.image_url || "/event-schedule-banner.png",
+            image_url: event.image_url || "/logo192.png",
             price: event.price || '',
             instructor: event.instructor || '',
             registration: event.registration || ''
