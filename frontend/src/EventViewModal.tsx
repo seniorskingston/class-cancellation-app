@@ -68,7 +68,7 @@ const EventViewModal: React.FC<EventViewModalProps> = ({
         {event.image_url && (
           <div className="event-view-modal-image">
             <img 
-              src={event.image_url} 
+              src={event.image_url.startsWith('http') ? event.image_url : `https://class-cancellation-frontend.onrender.com${event.image_url}`} 
               alt={event.title}
               onError={(e) => {
                 // Show a placeholder instead of hiding the image
