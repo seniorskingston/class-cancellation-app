@@ -106,6 +106,80 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
     setMessageType('success');
   };
 
+  // Edit event function
+  const editEvent = (index: number) => {
+    const event = events[index];
+    setNewEvent({
+      id: event.id || '',
+      title: event.title,
+      startDate: event.startDate,
+      endDate: event.endDate,
+      description: event.description || '',
+      location: event.location || '',
+      dateStr: event.dateStr || '',
+      timeStr: event.timeStr || '',
+      image_url: event.image_url || '/event-schedule-banner.png',
+      price: event.price || '',
+      instructor: event.instructor || '',
+      registration: event.registration || ''
+    });
+    setEditingIndex(index);
+    setMessage(`Editing event: ${event.title}`);
+    setMessageType('success');
+  };
+
+  // Delete event function
+  const deleteEvent = (index: number) => {
+    if (window.confirm(`Are you sure you want to delete "${events[index].title}"?`)) {
+      const updatedEvents = events.filter((_, i) => i !== index);
+      setEvents(updatedEvents);
+      setMessage(`✅ Deleted event: ${events[index].title}`);
+      setMessageType('success');
+    }
+  };
+
+  // Save event function
+  const saveEvent = () => {
+    if (!newEvent.title.trim()) {
+      setMessage('❌ Please enter a title');
+      setMessageType('error');
+      return;
+    }
+
+    const updatedEvents = [...events];
+    if (editingIndex !== null) {
+      // Update existing event
+      updatedEvents[editingIndex] = { ...newEvent };
+      setMessage(`✅ Updated event: ${newEvent.title}`);
+    } else {
+      // Add new event
+      updatedEvents.push({ ...newEvent });
+      setMessage(`✅ Added new event: ${newEvent.title}`);
+    }
+    
+    setEvents(updatedEvents);
+    setMessageType('success');
+    resetForm();
+  };
+
+  // Reset form function
+  const resetForm = () => {
+    setNewEvent({
+      title: '',
+      startDate: '',
+      endDate: '',
+      description: '',
+      location: '',
+      dateStr: '',
+      timeStr: '',
+      image_url: '/event-schedule-banner.png',
+      price: '',
+      instructor: '',
+      registration: ''
+    });
+    setEditingIndex(null);
+  };
+
   if (!isOpen) {
     return null;
   }
@@ -218,11 +292,226 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
               border: 'none',
               padding: '10px 20px',
               borderRadius: '5px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              marginRight: '10px'
             }}
           >
             🐛 Debug Events
           </button>
+          
+          <button 
+            onClick={resetForm}
+            style={{
+              background: '#ffc107',
+              color: '#212529',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            ➕ Add New Event
+          </button>
+        </div>
+
+        {/* Add/Edit Event Form */}
+        <div style={{
+          border: '2px solid #28a745',
+          background: '#f8f9fa',
+          padding: '20px',
+          borderRadius: '5px',
+          marginBottom: '20px'
+        }}>
+          <h3 style={{ margin: '0 0 15px 0', color: '#28a745' }}>
+            {editingIndex !== null ? '✏️ Edit Event' : '➕ Add New Event'}
+          </h3>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Event ID</label>
+              <input
+                type="text"
+                value={newEvent.id || ''}
+                onChange={(e) => setNewEvent({ ...newEvent, id: e.target.value })}
+                placeholder="Event ID (optional)"
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Title *</label>
+              <input
+                type="text"
+                value={newEvent.title}
+                onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                placeholder="Event title"
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Date String</label>
+              <input
+                type="text"
+                value={newEvent.dateStr || ''}
+                onChange={(e) => setNewEvent({ ...newEvent, dateStr: e.target.value })}
+                placeholder="e.g., January 15, 2025"
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Time String</label>
+              <input
+                type="text"
+                value={newEvent.timeStr || ''}
+                onChange={(e) => setNewEvent({ ...newEvent, timeStr: e.target.value })}
+                placeholder="e.g., 10:00 AM"
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+          </div>
+          
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Location</label>
+            <input
+              type="text"
+              value={newEvent.location || ''}
+              onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+              placeholder="Event location"
+              style={{
+                width: '100%',
+                padding: '8px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+          
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description</label>
+            <textarea
+              value={newEvent.description || ''}
+              onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+              placeholder="Event description"
+              rows={3}
+              style={{
+                width: '100%',
+                padding: '8px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                fontSize: '14px',
+                resize: 'vertical'
+              }}
+            />
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Price</label>
+              <input
+                type="text"
+                value={newEvent.price || ''}
+                onChange={(e) => setNewEvent({ ...newEvent, price: e.target.value })}
+                placeholder="e.g., $15, Free, $25"
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Instructor</label>
+              <input
+                type="text"
+                value={newEvent.instructor || ''}
+                onChange={(e) => setNewEvent({ ...newEvent, instructor: e.target.value })}
+                placeholder="Instructor name"
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+          </div>
+          
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Registration Info</label>
+            <input
+              type="text"
+              value={newEvent.registration || ''}
+              onChange={(e) => setNewEvent({ ...newEvent, registration: e.target.value })}
+              placeholder="e.g., Call 613-548-7810, Online registration required"
+              style={{
+                width: '100%',
+                padding: '8px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+          
+          <div style={{ textAlign: 'right' }}>
+            <button 
+              onClick={resetForm}
+              style={{
+                background: '#6c757d',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                marginRight: '10px'
+              }}
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={saveEvent}
+              style={{
+                background: '#28a745',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '5px',
+                cursor: 'pointer'
+              }}
+            >
+              {editingIndex !== null ? '💾 Update Event' : '➕ Add Event'}
+            </button>
+          </div>
         </div>
 
         {/* Events List */}
@@ -268,9 +557,42 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
                   borderRadius: '5px',
                   background: '#f0f8ff'
                 }}>
-                  <h4 style={{ margin: '0 0 10px 0', color: '#007bff' }}>
-                    Event {index + 1}: {event.title}
-                  </h4>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                    <h4 style={{ margin: '0', color: '#007bff', flex: 1 }}>
+                      Event {index + 1}: {event.title}
+                    </h4>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button 
+                        onClick={() => editEvent(index)}
+                        style={{
+                          background: '#17a2b8',
+                          color: 'white',
+                          border: 'none',
+                          padding: '5px 10px',
+                          borderRadius: '3px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button 
+                        onClick={() => deleteEvent(index)}
+                        style={{
+                          background: '#dc3545',
+                          color: 'white',
+                          border: 'none',
+                          padding: '5px 10px',
+                          borderRadius: '3px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </div>
+                  <p><strong>ID:</strong> {event.id || 'No ID'}</p>
                   <p><strong>Date:</strong> {event.dateStr || 'No date'}</p>
                   <p><strong>Time:</strong> {event.timeStr || 'No time'}</p>
                   <p><strong>Location:</strong> {event.location || 'No location'}</p>
