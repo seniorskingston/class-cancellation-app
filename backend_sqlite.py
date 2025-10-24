@@ -1376,8 +1376,13 @@ def get_events(request: Request):
         real_events = scrape_seniors_kingston_events()
         if real_events and len(real_events) > 0:
             print(f"✅ Successfully fetched {len(real_events)} real events from website")
-            # Combine real events with Canadian holidays, editable events, and stored events
-            all_events = real_events + globals()['known_events'] + list(editable_events.values()) + stored_events
+            # If we have stored events, use them instead of real events
+            if stored_events and len(stored_events) > 0:
+                print(f"📦 Using {len(stored_events)} stored events instead of real events")
+                all_events = stored_events
+            else:
+                # Combine real events with Canadian holidays, editable events, and stored events
+                all_events = real_events + globals()['known_events'] + list(editable_events.values()) + stored_events
             
             # Fix image URLs and clean titles for all events
             for event in all_events:
@@ -1756,8 +1761,13 @@ def get_events(request: Request):
         }
     ]
     
-    # Combine known events with Canadian holidays, editable events, and stored events
-    all_events = known_events + globals()['known_events'] + list(editable_events.values()) + stored_events
+    # If we have stored events, use them instead of known events
+    if stored_events and len(stored_events) > 0:
+        print(f"📦 Using {len(stored_events)} stored events instead of known events")
+        all_events = stored_events
+    else:
+        # Combine known events with Canadian holidays, editable events, and stored events
+        all_events = known_events + globals()['known_events'] + list(editable_events.values()) + stored_events
     
     # Fix image URLs and clean titles for all events
     for event in all_events:
