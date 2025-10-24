@@ -794,6 +794,21 @@ def extract_events_from_loaded_content(soup):
                         print(f"🎯 Found event title: {text_content}")
                         event_data = parse_event_from_text(text_content)
                         if event_data and not any(e['title'] == event_data['title'] for e in events):
+                            # Look for associated image in the same container
+                            parent = element.parent
+                            if parent:
+                                img = parent.find('img')
+                                if img and img.get('src'):
+                                    event_data['image_url'] = img.get('src')
+                                    print(f"🖼️ Found event image: {event_data['image_url']}")
+                                else:
+                                    # Look for image in nearby elements
+                                    for sibling in parent.find_all(['img', 'div']):
+                                        if sibling.name == 'img' and sibling.get('src'):
+                                            event_data['image_url'] = sibling.get('src')
+                                            print(f"🖼️ Found event image in sibling: {event_data['image_url']}")
+                                            break
+                            
                             events.append(event_data)
                             print(f"📅 Added event: {event_data['title']}")
                         continue
@@ -904,7 +919,7 @@ def parse_event_from_text(text):
             'location': '',
             'dateStr': date_str or 'TBA',
             'timeStr': time_str or 'TBA',
-            'image_url': '/logo192.png'  # Add default image URL for scraped events
+            'image_url': 'https://www.seniorskingston.ca/images/event-banner.jpg'  # Use actual event banner from Seniors website
         }
         
     except Exception as e:
