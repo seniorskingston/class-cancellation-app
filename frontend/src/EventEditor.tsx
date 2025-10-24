@@ -44,9 +44,9 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     registration: ''
   });
 
-  // Auto-load new events when editor opens and user is authenticated
+  // Auto-load events when editor opens and user is authenticated
   useEffect(() => {
-    if (isOpen && isAuthenticated && events.length === 0) {
+    if (isOpen && isAuthenticated) {
       loadScrapedEvents();
     }
   }, [isOpen, isAuthenticated]);
@@ -764,7 +764,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             disabled={loading}
             className="event-editor-button event-editor-button-secondary"
           >
-            {loading ? 'Loading...' : 'Load Backend Events'}
+            {loading ? 'Loading...' : '🔄 Load Backend Events'}
           </button>
           <button 
             onClick={loadScrapedEvents} 
@@ -778,7 +778,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             disabled={saving || events.length === 0}
             className="event-editor-button event-editor-button-primary"
           >
-            {saving ? 'Saving...' : `Save ${events.length} Events`}
+            {saving ? 'Saving...' : `💾 Save ${events.length} Events`}
           </button>
         </div>
 
@@ -931,16 +931,22 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
         <div className="event-editor-list">
           <h3>Current Events ({events.length})</h3>
           {events.length === 0 ? (
-            <p className="event-editor-empty">No events found. Add some events above.</p>
+            <div className="event-editor-empty">
+              <p>No events found. Click "Load Backend Events" or "Load New Events" to load events.</p>
+              <p>Or add new events using the form above.</p>
+            </div>
           ) : (
             <div className="event-editor-events">
               {events.map((event, index) => (
                 <div key={event.id || index} className="event-editor-event">
                   <div className="event-editor-event-info">
                     <h4>{event.title}</h4>
-                    <p><strong>Date:</strong> {new Date(event.startDate).toLocaleDateString()}</p>
-                    <p><strong>Time:</strong> {new Date(event.startDate).toLocaleTimeString()}</p>
+                    <p><strong>Date:</strong> {event.dateStr || new Date(event.startDate).toLocaleDateString()}</p>
+                    <p><strong>Time:</strong> {event.timeStr || new Date(event.startDate).toLocaleTimeString()}</p>
                     {event.location && <p><strong>Location:</strong> {event.location}</p>}
+                    {event.price && <p><strong>Price:</strong> {event.price}</p>}
+                    {event.instructor && <p><strong>Instructor:</strong> {event.instructor}</p>}
+                    {event.registration && <p><strong>Registration:</strong> {event.registration}</p>}
                     {event.description && <p><strong>Description:</strong> {event.description.substring(0, 100)}...</p>}
                   </div>
                   <div className="event-editor-event-actions">
