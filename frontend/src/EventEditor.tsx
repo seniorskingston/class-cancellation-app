@@ -971,8 +971,8 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Events List */}
-        <div className="event-editor-list">
-          <h3>Current Events ({events.length})</h3>
+        <div className="event-editor-list" style={{border: '3px solid red', background: 'white', minHeight: '200px'}}>
+          <h3 style={{color: 'red', fontSize: '20px'}}>🔴 CURRENT EVENTS ({events.length}) 🔴</h3>
           <div style={{background: '#fff3cd', border: '1px solid #ffeaa7', padding: '10px', marginBottom: '10px', borderRadius: '5px'}}>
             <strong>🐛 Debug Info:</strong><br/>
             Events length: {events.length}<br/>
@@ -991,8 +991,18 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
               You can edit them below. Click "Edit" to modify an event or "Delete" to remove it.
             </div>
           )}
+          {/* FORCE SHOW EVENTS LIST FOR DEBUGGING */}
+          <div style={{background: '#ffebee', border: '2px solid #f44336', padding: '15px', marginBottom: '15px', borderRadius: '5px'}}>
+            <h4 style={{color: '#d32f2f', margin: '0 0 10px 0'}}>🚨 FORCE DEBUG SECTION 🚨</h4>
+            <p><strong>Events length:</strong> {events.length}</p>
+            <p><strong>Events type:</strong> {typeof events}</p>
+            <p><strong>Events is array:</strong> {Array.isArray(events) ? 'YES' : 'NO'}</p>
+            <p><strong>Conditional check:</strong> {events.length === 0 ? 'SHOWING EMPTY' : 'SHOWING EVENTS'}</p>
+          </div>
+          
           {events.length === 0 ? (
-            <div className="event-editor-empty">
+            <div className="event-editor-empty" style={{background: '#ffcdd2', border: '2px solid #f44336', padding: '15px'}}>
+              <h4 style={{color: '#d32f2f'}}>❌ NO EVENTS FOUND</h4>
               <p>No events found. Click "Load Backend Events" or "Load New Events" to load events.</p>
               <p>Or add new events using the form above.</p>
             </div>
@@ -1034,6 +1044,30 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
               ))}
             </div>
           )}
+          
+          {/* ALWAYS SHOW EVENTS FOR DEBUGGING */}
+          <div style={{background: '#e8f5e8', border: '3px solid #4caf50', padding: '20px', marginTop: '20px', borderRadius: '5px'}}>
+            <h4 style={{color: '#2e7d32', margin: '0 0 15px 0'}}>🟢 ALWAYS SHOW EVENTS (NO CONDITIONS) 🟢</h4>
+            {events.map((event, index) => (
+              <div key={`debug-${event.id || index}`} style={{
+                background: '#f1f8e9',
+                border: '2px solid #8bc34a',
+                padding: '15px',
+                marginBottom: '10px',
+                borderRadius: '5px'
+              }}>
+                <h5 style={{color: '#33691e', margin: '0 0 10px 0'}}>🎯 Event {index + 1}: {event.title}</h5>
+                <p><strong>ID:</strong> {event.id}</p>
+                <p><strong>Date:</strong> {event.dateStr || 'No date'}</p>
+                <p><strong>Time:</strong> {event.timeStr || 'No time'}</p>
+                <p><strong>Location:</strong> {event.location || 'No location'}</p>
+                <p><strong>Description:</strong> {event.description || 'No description'}</p>
+              </div>
+            ))}
+            {events.length === 0 && (
+              <p style={{color: '#d32f2f', fontWeight: 'bold'}}>❌ NO EVENTS IN ARRAY</p>
+            )}
+          </div>
         </div>
           </>
         )}
