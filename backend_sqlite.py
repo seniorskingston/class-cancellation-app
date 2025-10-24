@@ -903,7 +903,8 @@ def parse_event_from_text(text):
             'description': '',
             'location': '',
             'dateStr': date_str or 'TBA',
-            'timeStr': time_str or 'TBA'
+            'timeStr': time_str or 'TBA',
+            'image_url': '/logo192.png'  # Add default image URL for scraped events
         }
         
     except Exception as e:
@@ -1997,6 +1998,43 @@ def get_october_events():
         "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
         "count": len(all_events),
         "source": "manual_october"
+        }
+
+@app.post("/api/scrape-events")
+async def scrape_events_endpoint():
+    """Manually trigger event scraping from Seniors Kingston website"""
+    try:
+        print("🔄 Manual event scraping requested")
+        
+        # Scrape events from website
+        scraped_events = scrape_seniors_kingston_events()
+        
+        if scraped_events and len(scraped_events) > 0:
+            # Update stored events with scraped events
+            global stored_events
+            stored_events = scraped_events
+            
+            print(f"✅ Successfully scraped {len(scraped_events)} events")
+            
+            return {
+                "success": True,
+                "message": f"Successfully scraped {len(scraped_events)} events from Seniors Kingston website",
+                "events_count": len(scraped_events),
+                "events": scraped_events[:5]  # Return first 5 events as sample
+            }
+        else:
+            return {
+                "success": False,
+                "message": "No events found during scraping",
+                "events_count": 0
+            }
+            
+    except Exception as e:
+        print(f"❌ Error in manual scraping: {e}")
+        return {
+            "success": False,
+            "message": f"Scraping failed: {str(e)}",
+            "events_count": 0
         }
 
 @app.get("/sync")
