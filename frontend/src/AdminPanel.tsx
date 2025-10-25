@@ -334,6 +334,70 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                       🔄 Sync with Website
                     </button>
                     <button 
+                      onClick={async () => {
+                        setUploadMessage('🚨 Quick Fix: Restoring 45 events...');
+                        try {
+                          // Check current events count
+                          const response = await fetch('https://class-cancellation-backend.onrender.com/api/events');
+                          const currentData = await response.json();
+                          const currentCount = currentData.events ? currentData.events.length : 0;
+                          
+                          if (currentCount === 45) {
+                            setUploadMessage('✅ Events are already correct (45 events)');
+                            setTimeout(() => setUploadMessage(''), 3000);
+                            return;
+                          }
+                          
+                          setUploadMessage(`⚠️ Found ${currentCount} events, restoring to 45...`);
+                          
+                          // Load bulletproof events from our backup
+                          const bulletproofResponse = await fetch('/bulletproof_events_backup.json');
+                          const bulletproofData = await bulletproofResponse.json();
+                          const bulletproofEvents = bulletproofData.events || [];
+                          
+                          if (bulletproofEvents.length !== 45) {
+                            setUploadMessage('❌ Bulletproof backup not found or corrupted');
+                            setTimeout(() => setUploadMessage(''), 5000);
+                            return;
+                          }
+                          
+                          // Upload the bulletproof events
+                          const uploadResponse = await fetch('https://class-cancellation-backend.onrender.com/api/events/bulk-update', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ events: bulletproofEvents }),
+                          });
+                          
+                          const uploadResult = await uploadResponse.json();
+                          
+                          if (uploadResponse.ok && uploadResult.success) {
+                            setUploadMessage(`✅ Quick Fix Complete! Restored ${bulletproofEvents.length} events with real banners`);
+                            setTimeout(() => setUploadMessage(''), 5000);
+                          } else {
+                            setUploadMessage(`❌ Quick Fix failed: ${uploadResult.error || 'Unknown error'}`);
+                            setTimeout(() => setUploadMessage(''), 5000);
+                          }
+                        } catch (error) {
+                          setUploadMessage(`❌ Quick Fix error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                          setTimeout(() => setUploadMessage(''), 5000);
+                        }
+                      }}
+                      style={{
+                        background: '#fd7e14',
+                        color: 'white',
+                        border: 'none',
+                        padding: '12px 16px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      🚨 Quick Fix Events
+                    </button>
+                    <button 
                       onClick={() => {
                         if (window.confirm('Are you sure you want to clear all events?')) {
                           setUploadMessage('🗑️ All events cleared successfully!');
