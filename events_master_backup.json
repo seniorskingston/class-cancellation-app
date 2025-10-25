@@ -20,7 +20,7 @@
       "price": "$12",
       "instructor": "",
       "registration": "call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Wearable Tech",
@@ -33,7 +33,7 @@
       "price": "",
       "instructor": "Sam Kalb",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Legal Advice",
@@ -46,7 +46,7 @@
       "price": "",
       "instructor": "",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Fresh Food Market",
@@ -59,7 +59,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "18th Century Astronomy",
@@ -72,7 +72,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Caroles Dance Party",
@@ -85,7 +85,7 @@
       "price": "",
       "instructor": "Carole Gibson services",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Daylight Savings Ends  November 2, 8:00 am",
@@ -98,7 +98,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Online Registration Begins",
@@ -111,7 +111,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Assistive Listening Solutions",
@@ -124,7 +124,7 @@
       "price": "",
       "instructor": "Stephanie Brown, Hearing Assistive Technology Solutions Group",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "In-Person Registration for Session 2 Begins",
@@ -137,7 +137,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Fresh Food Market",
@@ -150,7 +150,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Fraud Awareness",
@@ -163,7 +163,7 @@
       "price": "",
       "instructor": "Paul Van Nest, Kingston Rotary Club",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Cut. Fold. Glue. Stars.",
@@ -176,7 +176,7 @@
       "price": "",
       "instructor": "Carole Gibson",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Learn about Tarot",
@@ -189,7 +189,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Hearing Clinic",
@@ -202,7 +202,7 @@
       "price": "",
       "instructor": "",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Coffee with a Cop",
@@ -215,7 +215,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Cut. Fold. Glue. Trees",
@@ -228,7 +228,7 @@
       "price": "",
       "instructor": "Carole Gibson",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Shopping & Buying Online",
@@ -241,7 +241,7 @@
       "price": "",
       "instructor": "Sam Kalb",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Legal Advice",
@@ -254,7 +254,7 @@
       "price": "",
       "instructor": "",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Fresh Food Market",
@@ -267,7 +267,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Service Canada Clinic",
@@ -280,7 +280,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Coast to Coast: A Canoe Odyssey",
@@ -293,7 +293,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Birthday Lunch",
@@ -306,7 +306,7 @@
       "price": "$16",
       "instructor": "",
       "registration": "call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Sound Escapes: Georgette Fry",
@@ -319,7 +319,7 @@
       "price": "$12",
       "instructor": "",
       "registration": "call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Program Break Week",
@@ -332,7 +332,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Speed Friending",
@@ -345,7 +345,7 @@
       "price": "",
       "instructor": "",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Advanced Care Planning",
@@ -358,7 +358,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Fresh Food Market",
@@ -371,7 +371,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Expressive Mark Making",
@@ -384,7 +384,7 @@
       "price": "",
       "instructor": "Sharlena Wood",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Cafe Franglish",
@@ -397,7 +397,7 @@
       "price": "free",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Tuesday at Tom’s",
@@ -410,7 +410,7 @@
       "price": "",
       "instructor": "",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Learn Resilience",
@@ -423,7 +423,7 @@
       "price": "",
       "instructor": "",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Vision Workshop",
@@ -436,7 +436,7 @@
       "price": "free",
       "instructor": "Victoria Hirst",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "New Member Mixer",
@@ -449,7 +449,7 @@
       "price": "",
       "instructor": "",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Time for Tea",
@@ -462,7 +462,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Book & Puzzle EXCHANGE",
@@ -475,7 +475,7 @@
       "price": "$2",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Annual General Meeting",
@@ -488,7 +488,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "December Vista Available for Pickup",
@@ -501,7 +501,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Holiday Artisan Fair",
@@ -514,7 +514,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Simplify Your Digital Life",
@@ -527,7 +527,7 @@
       "price": "",
       "instructor": "Jarda Zborovsy",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Legal Advice",
@@ -540,7 +540,7 @@
       "price": "",
       "instructor": "",
       "registration": "Call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Fresh Food Market",
@@ -553,7 +553,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Holiday Lunch",
@@ -566,7 +566,7 @@
       "price": "$25",
       "instructor": "",
       "registration": "call 613.548.7810",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Domino Theatre Dress Rehearsal: Miss Bennet: Christmas at Pemberley",
@@ -579,7 +579,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=600&h=200&fit=crop&crop=center"
     },
     {
       "title": "Anxiety Unlocked",
@@ -592,7 +592,7 @@
       "price": "",
       "instructor": "",
       "registration": "",
-      "image_url": "/logo192.png"
+      "image_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&crop=center"
     }
   ]
 }
