@@ -1,0 +1,12 @@
+{
+  "metadata": {
+    "created_at": "2025-10-24T21:48:50.347372",
+    "description": "Manual mapping of event titles to real banner URLs",
+    "instructions": "Add event titles and their corresponding banner URLs from seniorskingston.ca/events"
+  },
+  "banner_mapping": {
+    "Sound Escapes: Kenny & Dolly": "https://seniorskingston.ca/images/kenny-dolly-banner.jpg",
+    "Wearable Tech": "https://seniorskingston.ca/images/tech-banner.jpg",
+    "Legal Advice": "https://seniorskingston.ca/images/legal-banner.jpg"
+  }
+}
