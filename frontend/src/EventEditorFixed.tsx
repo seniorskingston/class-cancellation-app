@@ -24,6 +24,7 @@ interface EventEditorFixedProps {
 const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -75,70 +76,40 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
     }
   };
 
-  // Test events function
-  const loadTestEvents = () => {
-    const testEvents = [
-      {
-        id: 'test1',
-        title: 'Test Event 1',
-        startDate: '2025-01-01T10:00:00Z',
-        endDate: '2025-01-01T11:00:00Z',
-        description: 'This is a test event',
-        location: 'Test Location',
-        dateStr: 'January 1, 2025',
-        timeStr: '10:00 AM',
-        image_url: '/event-schedule-banner.png'
-      },
-      {
-        id: 'test2',
-        title: 'Test Event 2',
-        startDate: '2025-01-02T14:00:00Z',
-        endDate: '2025-01-02T15:00:00Z',
-        description: 'This is another test event',
-        location: 'Test Location 2',
-        dateStr: 'January 2, 2025',
-        timeStr: '2:00 PM',
-        image_url: '/event-schedule-banner.png'
+  // Save all events to backend
+  const saveAllEvents = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/bulk-update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ events }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setMessage(`✅ Successfully saved ${events.length} events to backend!`);
+          setMessageType('success');
+        } else {
+          throw new Error(result.error || 'Save failed');
+        }
+      } else {
+        const errorText = await response.text();
+        throw new Error(`Save failed: ${response.status} - ${errorText}`);
       }
-    ];
-    setEvents(testEvents);
-    setMessage(`✅ Loaded ${testEvents.length} test events for debugging`);
-    setMessageType('success');
-  };
-
-  // Edit event function
-  const editEvent = (index: number) => {
-    const event = events[index];
-    setNewEvent({
-      id: event.id || '',
-      title: event.title,
-      startDate: event.startDate,
-      endDate: event.endDate,
-      description: event.description || '',
-      location: event.location || '',
-      dateStr: event.dateStr || '',
-      timeStr: event.timeStr || '',
-      image_url: event.image_url || '/event-schedule-banner.png',
-      price: event.price || '',
-      instructor: event.instructor || '',
-      registration: event.registration || ''
-    });
-    setEditingIndex(index);
-    setMessage(`Editing event: ${event.title}`);
-    setMessageType('success');
-  };
-
-  // Delete event function
-  const deleteEvent = (index: number) => {
-    if (window.confirm(`Are you sure you want to delete "${events[index].title}"?`)) {
-      const updatedEvents = events.filter((_, i) => i !== index);
-      setEvents(updatedEvents);
-      setMessage(`✅ Deleted event: ${events[index].title}`);
-      setMessageType('success');
+    } catch (error) {
+      console.error('Error saving events:', error);
+      setMessage(`❌ Failed to save events: ${error}`);
+      setMessageType('error');
+    } finally {
+      setSaving(false);
     }
   };
 
-  // Save event function
+  // Save individual event
   const saveEvent = () => {
     if (!newEvent.title.trim()) {
       setMessage('❌ Please enter a title');
@@ -146,24 +117,37 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
       return;
     }
 
-    const updatedEvents = [...events];
+    if (!newEvent.startDate) {
+      setMessage('❌ Please enter a start date');
+      setMessageType('error');
+      return;
+    }
+
+    if (!newEvent.endDate) {
+      setMessage('❌ Please enter an end date');
+      setMessageType('error');
+      return;
+    }
+
+    const eventToSave: Event = {
+      ...newEvent,
+      id: newEvent.id || `event_${Date.now()}`,
+    };
+
     if (editingIndex !== null) {
       // Update existing event
-      updatedEvents[editingIndex] = { ...newEvent };
-      setMessage(`✅ Updated event: ${newEvent.title}`);
+      const updatedEvents = [...events];
+      updatedEvents[editingIndex] = eventToSave;
+      setEvents(updatedEvents);
+      setMessage('✅ Event updated successfully!');
     } else {
       // Add new event
-      updatedEvents.push({ ...newEvent });
-      setMessage(`✅ Added new event: ${newEvent.title}`);
+      setEvents([...events, eventToSave]);
+      setMessage('✅ Event added successfully!');
     }
-    
-    setEvents(updatedEvents);
-    setMessageType('success');
-    resetForm();
-  };
 
-  // Reset form function
-  const resetForm = () => {
+    setMessageType('success');
+    setEditingIndex(null);
     setNewEvent({
       title: '',
       startDate: '',
@@ -172,17 +156,36 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
       location: '',
       dateStr: '',
       timeStr: '',
-      image_url: '/event-schedule-banner.png',
+      image_url: "/event-schedule-banner.png",
       price: '',
       instructor: '',
       registration: ''
     });
-    setEditingIndex(null);
   };
 
-  if (!isOpen) {
-    return null;
-  }
+  // Edit event
+  const editEvent = (index: number) => {
+    setEditingIndex(index);
+    setNewEvent(events[index]);
+  };
+
+  // Delete event
+  const deleteEvent = (index: number) => {
+    if (window.confirm('Are you sure you want to delete this event?')) {
+      const updatedEvents = events.filter((_, i) => i !== index);
+      setEvents(updatedEvents);
+      setMessage('✅ Event deleted successfully!');
+      setMessageType('success');
+    }
+  };
+
+  // Clear message
+  const clearMessage = () => {
+    setMessage('');
+    setMessageType('');
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div style={{
@@ -191,20 +194,22 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(0, 0, 0, 0.5)',
-      zIndex: 1000,
+      background: 'rgba(0, 0, 0, 0.8)',
       display: 'flex',
       justifyContent: 'center',
-      alignItems: 'center'
+      alignItems: 'center',
+      zIndex: 10000,
+      padding: '20px'
     }}>
       <div style={{
         background: 'white',
-        padding: '20px',
-        borderRadius: '10px',
-        maxWidth: '95%',
-        maxHeight: '95%',
+        borderRadius: '15px',
+        padding: '30px',
+        maxWidth: '800px',
+        width: '100%',
+        maxHeight: '90vh',
         overflow: 'auto',
-        width: '90%'
+        boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
       }}>
         {/* Header */}
         <div style={{
@@ -212,23 +217,22 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
           justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: '20px',
-          paddingBottom: '10px',
-          borderBottom: '2px solid #eee'
+          borderBottom: '2px solid #f0f0f0',
+          paddingBottom: '15px'
         }}>
-          <h2 style={{ margin: 0, color: '#333' }}>Event Editor (Fixed Version)</h2>
-          <button 
+          <h2 style={{ margin: 0, color: '#333' }}>📅 Event Editor</h2>
+          <button
             onClick={onClose}
             style={{
-              background: 'red',
+              background: '#dc3545',
               color: 'white',
               border: 'none',
-              padding: '10px 20px',
+              padding: '8px 15px',
               borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '16px'
+              cursor: 'pointer'
             }}
           >
-            × Close
+            ✕ Close
           </button>
         </div>
 
@@ -238,18 +242,35 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             padding: '10px',
             marginBottom: '20px',
             borderRadius: '5px',
-            backgroundColor: messageType === 'success' ? '#d4edda' : '#f8d7da',
+            background: messageType === 'success' ? '#d4edda' : '#f8d7da',
             color: messageType === 'success' ? '#155724' : '#721c24',
             border: `1px solid ${messageType === 'success' ? '#c3e6cb' : '#f5c6cb'}`
           }}>
             {message}
+            <button
+              onClick={clearMessage}
+              style={{
+                float: 'right',
+                background: 'none',
+                border: 'none',
+                color: 'inherit',
+                cursor: 'pointer'
+              }}
+            >
+              ✕
+            </button>
           </div>
         )}
 
-        {/* Controls */}
-        <div style={{ marginBottom: '20px' }}>
-          <button 
-            onClick={loadEvents} 
+        {/* Action Buttons */}
+        <div style={{
+          display: 'flex',
+          gap: '10px',
+          marginBottom: '20px',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={loadEvents}
             disabled={loading}
             style={{
               background: '#007bff',
@@ -258,247 +279,183 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
               padding: '10px 20px',
               borderRadius: '5px',
               cursor: loading ? 'not-allowed' : 'pointer',
-              marginRight: '10px',
               opacity: loading ? 0.6 : 1
             }}
           >
-            {loading ? 'Loading...' : '📥 Load Backend Events'}
+            {loading ? '⏳ Loading...' : '🔄 Load Events'}
           </button>
           
-          <button 
-            onClick={loadTestEvents}
+          <button
+            onClick={saveAllEvents}
+            disabled={saving || events.length === 0}
             style={{
               background: '#28a745',
               color: 'white',
               border: 'none',
               padding: '10px 20px',
               borderRadius: '5px',
-              cursor: 'pointer',
-              marginRight: '10px'
+              cursor: (saving || events.length === 0) ? 'not-allowed' : 'pointer',
+              opacity: (saving || events.length === 0) ? 0.6 : 1
             }}
           >
-            🧪 Test Events
-          </button>
-          
-          <button 
-            onClick={() => {
-              console.log('Current events state:', events);
-              setMessage(`Debug: Events state has ${events.length} events. Check console for details.`);
-              setMessageType('success');
-            }}
-            style={{
-              background: '#6c757d',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              marginRight: '10px'
-            }}
-          >
-            🐛 Debug Events
-          </button>
-          
-          <button 
-            onClick={resetForm}
-            style={{
-              background: '#ffc107',
-              color: '#212529',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            ➕ Add New Event
+            {saving ? '⏳ Saving...' : '💾 Save All Events'}
           </button>
         </div>
 
-        {/* Add/Edit Event Form */}
+        {/* Event Form */}
         <div style={{
-          border: '2px solid #28a745',
           background: '#f8f9fa',
           padding: '20px',
-          borderRadius: '5px',
+          borderRadius: '10px',
           marginBottom: '20px'
         }}>
-          <h3 style={{ margin: '0 0 15px 0', color: '#28a745' }}>
+          <h3 style={{ marginTop: 0, color: '#333' }}>
             {editingIndex !== null ? '✏️ Edit Event' : '➕ Add New Event'}
           </h3>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Event ID</label>
-              <input
-                type="text"
-                value={newEvent.id || ''}
-                onChange={(e) => setNewEvent({ ...newEvent, id: e.target.value })}
-                placeholder="Event ID (optional)"
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px'
-                }}
-              />
-            </div>
-            <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Title *</label>
               <input
                 type="text"
                 value={newEvent.title}
-                onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                placeholder="Event title"
+                onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
                 style={{
                   width: '100%',
                   padding: '8px',
                   border: '1px solid #ddd',
                   borderRadius: '4px',
-                  fontSize: '14px'
+                  boxSizing: 'border-box'
                 }}
+                placeholder="Event title"
+              />
+            </div>
+            
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Location</label>
+              <input
+                type="text"
+                value={newEvent.location || ''}
+                onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Event location"
               />
             </div>
           </div>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Date String</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Start Date *</label>
               <input
-                type="text"
-                value={newEvent.dateStr || ''}
-                onChange={(e) => setNewEvent({ ...newEvent, dateStr: e.target.value })}
-                placeholder="e.g., January 15, 2025"
+                type="datetime-local"
+                value={newEvent.startDate}
+                onChange={(e) => setNewEvent({...newEvent, startDate: e.target.value})}
                 style={{
                   width: '100%',
                   padding: '8px',
                   border: '1px solid #ddd',
                   borderRadius: '4px',
-                  fontSize: '14px'
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
+            
             <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Time String</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>End Date *</label>
               <input
-                type="text"
-                value={newEvent.timeStr || ''}
-                onChange={(e) => setNewEvent({ ...newEvent, timeStr: e.target.value })}
-                placeholder="e.g., 10:00 AM"
+                type="datetime-local"
+                value={newEvent.endDate}
+                onChange={(e) => setNewEvent({...newEvent, endDate: e.target.value})}
                 style={{
                   width: '100%',
                   padding: '8px',
                   border: '1px solid #ddd',
                   borderRadius: '4px',
-                  fontSize: '14px'
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
           </div>
-          
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Location</label>
-            <input
-              type="text"
-              value={newEvent.location || ''}
-              onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-              placeholder="Event location"
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
-          
+
           <div style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description</label>
             <textarea
               value={newEvent.description || ''}
-              onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-              placeholder="Event description"
-              rows={3}
+              onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
               style={{
                 width: '100%',
                 padding: '8px',
                 border: '1px solid #ddd',
                 borderRadius: '4px',
-                fontSize: '14px',
+                boxSizing: 'border-box',
+                minHeight: '80px',
                 resize: 'vertical'
               }}
+              placeholder="Event description"
             />
           </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginBottom: '15px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Price</label>
               <input
                 type="text"
                 value={newEvent.price || ''}
-                onChange={(e) => setNewEvent({ ...newEvent, price: e.target.value })}
-                placeholder="e.g., $15, Free, $25"
+                onChange={(e) => setNewEvent({...newEvent, price: e.target.value})}
                 style={{
                   width: '100%',
                   padding: '8px',
                   border: '1px solid #ddd',
                   borderRadius: '4px',
-                  fontSize: '14px'
+                  boxSizing: 'border-box'
                 }}
+                placeholder="e.g., $10, Free"
               />
             </div>
+            
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Instructor</label>
               <input
                 type="text"
                 value={newEvent.instructor || ''}
-                onChange={(e) => setNewEvent({ ...newEvent, instructor: e.target.value })}
-                placeholder="Instructor name"
+                onChange={(e) => setNewEvent({...newEvent, instructor: e.target.value})}
                 style={{
                   width: '100%',
                   padding: '8px',
                   border: '1px solid #ddd',
                   borderRadius: '4px',
-                  fontSize: '14px'
+                  boxSizing: 'border-box'
                 }}
+                placeholder="Instructor name"
+              />
+            </div>
+            
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Registration</label>
+              <input
+                type="text"
+                value={newEvent.registration || ''}
+                onChange={(e) => setNewEvent({...newEvent, registration: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Registration info"
               />
             </div>
           </div>
-          
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Registration Info</label>
-            <input
-              type="text"
-              value={newEvent.registration || ''}
-              onChange={(e) => setNewEvent({ ...newEvent, registration: e.target.value })}
-              placeholder="e.g., Call 613-548-7810, Online registration required"
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
-          
-          <div style={{ textAlign: 'right' }}>
-            <button 
-              onClick={resetForm}
-              style={{
-                background: '#6c757d',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                marginRight: '10px'
-              }}
-            >
-              Cancel
-            </button>
-            <button 
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
               onClick={saveEvent}
               style={{
                 background: '#28a745',
@@ -511,61 +468,82 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             >
               {editingIndex !== null ? '💾 Update Event' : '➕ Add Event'}
             </button>
+            
+            {editingIndex !== null && (
+              <button
+                onClick={() => {
+                  setEditingIndex(null);
+                  setNewEvent({
+                    title: '',
+                    startDate: '',
+                    endDate: '',
+                    description: '',
+                    location: '',
+                    dateStr: '',
+                    timeStr: '',
+                    image_url: "/event-schedule-banner.png",
+                    price: '',
+                    instructor: '',
+                    registration: ''
+                  });
+                }}
+                style={{
+                  background: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '5px',
+                  cursor: 'pointer'
+                }}
+              >
+                ❌ Cancel Edit
+              </button>
+            )}
           </div>
         </div>
 
         {/* Events List */}
-        <div style={{
-          border: '3px solid red',
-          background: 'white',
-          minHeight: '200px',
-          padding: '20px'
-        }}>
-          <h3 style={{ color: 'red', fontSize: '20px', marginTop: 0 }}>
-            🔴 CURRENT EVENTS ({events.length}) 🔴
-          </h3>
+        <div>
+          <h3 style={{ color: '#333' }}>📋 Current Events ({events.length})</h3>
           
           {events.length === 0 ? (
-            <div style={{
-              background: '#ffcdd2',
-              border: '2px solid #f44336',
-              padding: '15px',
-              textAlign: 'center'
-            }}>
-              <h4 style={{ color: '#d32f2f', margin: '0 0 10px 0' }}>❌ NO EVENTS FOUND</h4>
-              <p>No events found. Click "Load Backend Events" or "Test Events" to load events.</p>
-            </div>
+            <p style={{ color: '#666', fontStyle: 'italic' }}>No events loaded. Click "Load Events" to load from backend.</p>
           ) : (
-            <div>
-              <div style={{
-                background: '#d4edda',
-                border: '1px solid #c3e6cb',
-                borderRadius: '5px',
-                padding: '10px',
-                marginBottom: '15px',
-                color: '#155724'
-              }}>
-                <strong>✅ {events.length} events loaded successfully!</strong><br/>
-                You can see them listed below.
-              </div>
-              
+            <div style={{ maxHeight: '300px', overflow: 'auto' }}>
               {events.map((event, index) => (
-                <div key={event.id || index} style={{
-                  border: '2px solid #007bff',
-                  marginBottom: '10px',
-                  padding: '15px',
-                  borderRadius: '5px',
-                  background: '#f0f8ff'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                    <h4 style={{ margin: '0', color: '#007bff', flex: 1 }}>
-                      Event {index + 1}: {event.title}
-                    </h4>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <button 
+                <div
+                  key={event.id || index}
+                  style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    padding: '15px',
+                    marginBottom: '10px',
+                    background: editingIndex === index ? '#e3f2fd' : 'white'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ margin: '0 0 5px 0', color: '#333' }}>{event.title}</h4>
+                      <p style={{ margin: '0 0 5px 0', color: '#666', fontSize: '14px' }}>
+                        📅 {new Date(event.startDate).toLocaleDateString()} at {new Date(event.startDate).toLocaleTimeString()}
+                      </p>
+                      {event.location && (
+                        <p style={{ margin: '0 0 5px 0', color: '#666', fontSize: '14px' }}>
+                          📍 {event.location}
+                        </p>
+                      )}
+                      {event.description && (
+                        <p style={{ margin: '0 0 5px 0', color: '#666', fontSize: '14px' }}>
+                          📝 {event.description.substring(0, 100)}...
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '5px' }}>
+                      <button
                         onClick={() => editEvent(index)}
                         style={{
-                          background: '#17a2b8',
+                          background: '#007bff',
                           color: 'white',
                           border: 'none',
                           padding: '5px 10px',
@@ -576,7 +554,7 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
                       >
                         ✏️ Edit
                       </button>
-                      <button 
+                      <button
                         onClick={() => deleteEvent(index)}
                         style={{
                           background: '#dc3545',
@@ -592,14 +570,6 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
                       </button>
                     </div>
                   </div>
-                  <p><strong>ID:</strong> {event.id || 'No ID'}</p>
-                  <p><strong>Date:</strong> {event.dateStr || 'No date'}</p>
-                  <p><strong>Time:</strong> {event.timeStr || 'No time'}</p>
-                  <p><strong>Location:</strong> {event.location || 'No location'}</p>
-                  <p><strong>Description:</strong> {event.description || 'No description'}</p>
-                  <p><strong>Price:</strong> {event.price || 'No price'}</p>
-                  <p><strong>Instructor:</strong> {event.instructor || 'No instructor'}</p>
-                  <p><strong>Registration:</strong> {event.registration || 'No registration info'}</p>
                 </div>
               ))}
             </div>
