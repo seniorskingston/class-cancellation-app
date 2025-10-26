@@ -426,12 +426,6 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         </div>
       </div>
 
-      {loading && (
-        <div className="loading-message">
-          Loading events...
-        </div>
-      )}
-
       {/* Mobile List View - Show when mobile view is active */}
       {isMobile ? (
         <div className="mobile-list-view">
