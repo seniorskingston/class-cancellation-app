@@ -1370,19 +1370,27 @@ def get_events(request: Request):
     user_agent = request.headers.get('user-agent', '')
     track_visit(user_agent)
     
-    # Try to get real events from Seniors Kingston website first
-    print("🔍 Attempting to fetch real events from Seniors Kingston website...")
-    try:
-        real_events = scrape_seniors_kingston_events()
-        if real_events and len(real_events) > 0:
-            print(f"✅ Successfully fetched {len(real_events)} real events from website")
-            # If we have stored events, use them instead of real events
-            if stored_events and len(stored_events) > 0:
-                print(f"📦 Using {len(stored_events)} stored events instead of real events")
-                all_events = stored_events
-            else:
+    # PRIORITY: Use stored events first (most reliable)
+    print("🔍 Checking for stored events first...")
+    if stored_events and len(stored_events) > 0:
+        print(f"📦 Using {len(stored_events)} stored events (PRIORITY)")
+        all_events = stored_events
+    else:
+        # Fallback: Try to get real events from Seniors Kingston website
+        print("🔍 No stored events found, attempting to fetch from website...")
+        try:
+            real_events = scrape_seniors_kingston_events()
+            if real_events and len(real_events) > 0:
+                print(f"✅ Successfully fetched {len(real_events)} real events from website")
                 # Combine real events with Canadian holidays, editable events, and stored events
                 all_events = real_events + globals()['known_events'] + list(editable_events.values()) + stored_events
+            else:
+                print("⚠️ No real events found from website, using fallback events")
+                all_events = globals()['known_events'] + list(editable_events.values()) + stored_events
+        except Exception as e:
+            print(f"❌ Error fetching real events: {e}")
+            print("🔄 Using fallback events")
+            all_events = globals()['known_events'] + list(editable_events.values()) + stored_events
             
             # Fix image URLs and clean titles for all events
             for event in all_events:
