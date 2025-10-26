@@ -351,7 +351,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                           setUploadMessage(`⚠️ Found ${currentCount} events, restoring to 45...`);
                           
                           // Load bulletproof events from our backup
-                          const bulletproofResponse = await fetch('/bulletproof_events_backup.json');
+                          const bulletproofResponse = await fetch('/render_persistent_master.json');
                           const bulletproofData = await bulletproofResponse.json();
                           const bulletproofEvents = bulletproofData.events || [];
                           
