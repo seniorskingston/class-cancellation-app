@@ -3455,7 +3455,7 @@ def get_cancellations(
     )
     
     print(f"📈 Returning {len(programs)} results")
-    return {"data": programs, "last_loaded": datetime.now(KINGSTON_TZ).isoformat()}
+    return {"cancellations": programs, "last_loaded": datetime.now(KINGSTON_TZ).isoformat()}
 
 @app.post("/api/refresh")
 async def refresh_data():
@@ -3958,6 +3958,39 @@ This message was sent from the Class Cancellation App.
             "message": f"Failed to send message: {str(e)}"
         }
 
-if __name__ == "__main__":
+
+@app.get("/api/test-programs")
+def test_programs():
+    """Simple test endpoint to verify database access"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Get total count
+        cursor.execute("SELECT COUNT(*) FROM programs")
+        total_count = cursor.fetchone()[0]
+        
+        # Get first 10 programs
+        cursor.execute("SELECT program_id, program, sheet, location, program_status FROM programs LIMIT 10")
+        programs = cursor.fetchall()
+        
+        conn.close()
+        
+        return {
+            "total_count": total_count,
+            "sample_programs": [
+                {
+                    "program_id": p[0],
+                    "program": p[1],
+                    "day": p[2],
+                    "location": p[3],
+                    "program_status": p[4]
+                } for p in programs
+            ],
+            "carole_found": any(p[0] == "28785" for p in programs)
+        }
+    except Exception as e:
+        return {"error": str(e)}
+\nif __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=PORT)
