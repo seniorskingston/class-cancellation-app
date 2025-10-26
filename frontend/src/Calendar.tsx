@@ -414,12 +414,14 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           {getViewTitle()}
         </h2>
         <div className="data-source-indicator">
-          {dataSource === 'real' ? (
+          {loading ? (
+            <span className="loading-data">🔄 Events Loading...</span>
+          ) : dataSource === 'real' ? (
             <span className="real-data">✅ Live from Seniors Association Kingston Website</span>
           ) : dataSource === 'sample' ? (
             <span className="sample-data">📅 Seniors Kingston events (based on real events from their website)</span>
           ) : (
-            <span className="no-data">❌ No events loaded</span>
+            <span className="loading-data">🔄 Events Loading...</span>
           )}
         </div>
       </div>
