@@ -9,7 +9,7 @@ const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px', maxHeight: '90vh', overflow: 'auto' }}>
         <div className="user-guide-content">
-          <h2 style={{ color: '#0072ce', textAlign: 'center' }}>📖 Program Schedule Update App – User Guide</h2>
+          <h2 style={{ color: '#0072ce', textAlign: 'center' }}>📖 Program Schedule Update App (Beta) – User Guide</h2>
 
           <h3>1. Getting Started & Installation</h3>
           

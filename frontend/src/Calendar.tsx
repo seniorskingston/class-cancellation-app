@@ -339,7 +339,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             <img src={homeIcon} alt="Home" className="home-icon" />
           </button>
         </div>
-        <h1>Event Schedule Update</h1>
+        <h1>Event Schedule Update (Beta)</h1>
         <div className="datetime-display">
           {new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {new Date().toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
         </div>
@@ -429,48 +429,68 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       {/* Mobile List View - Show when mobile view is active */}
       {isMobile ? (
         <div className="mobile-list-view">
-          {calendarDays.map((day, index) => {
-            const isCurrentMonth = day.getMonth() === currentDate.getMonth();
-            const isToday = day.toDateString() === new Date().toDateString();
-            const dayEvents = getEventsForDate(day);
+          {/* Show all events grouped by month for mobile */}
+          {(() => {
+            // Group events by month
+            const eventsByMonth: { [key: string]: Event[] } = {};
+            events.forEach(event => {
+              const eventDate = new Date(event.startDate);
+              const monthKey = `${eventDate.getFullYear()}-${eventDate.getMonth()}`;
+              if (!eventsByMonth[monthKey]) {
+                eventsByMonth[monthKey] = [];
+              }
+              eventsByMonth[monthKey].push(event);
+            });
 
-            return (
-              <div key={index} className={`mobile-list-day ${isToday ? 'today' : ''}`}>
-                <div className="mobile-day-header">
-                  <div className="mobile-day-name">{dayNames[day.getDay()]}</div>
-                  <div className="mobile-day-date">
-                    {day.getDate()} {monthNames[day.getMonth()].substring(0, 3)}
+            // Sort months
+            const sortedMonths = Object.keys(eventsByMonth).sort();
+            
+            return sortedMonths.map(monthKey => {
+              const monthEvents = eventsByMonth[monthKey];
+              const firstEvent = monthEvents[0];
+              const eventDate = new Date(firstEvent.startDate);
+              const monthName = monthNames[eventDate.getMonth()];
+              const year = eventDate.getFullYear();
+              
+              return (
+                <div key={monthKey} className="mobile-month-section">
+                  <div className="mobile-month-header">
+                    {monthName} {year}
                   </div>
-                </div>
-                <div className="mobile-day-events">
-                  {dayEvents.length > 0 ? (
-                    dayEvents.map((event, eventIndex) => (
-                      <div 
-                        key={eventIndex} 
-                        className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''}`}
-                        onClick={() => handleEventClick(event)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div className="mobile-event-time">
-                          {event.timeStr || event.startDate.toLocaleTimeString('en-US', { 
-                            hour: 'numeric', 
-                            minute: '2-digit',
-                            hour12: true 
-                          })}
+                  {monthEvents
+                    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+                    .map((event, eventIndex) => {
+                      const eventDate = new Date(event.startDate);
+                      const isToday = eventDate.toDateString() === new Date().toDateString();
+                      
+                      return (
+                        <div 
+                          key={eventIndex} 
+                          className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''} ${isToday ? 'today-event' : ''}`}
+                          onClick={() => handleEventClick(event)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="mobile-event-date">
+                            {dayNames[eventDate.getDay()]}, {eventDate.getDate()} {monthNames[eventDate.getMonth()].substring(0, 3)}
+                          </div>
+                          <div className="mobile-event-time">
+                            {event.timeStr || eventDate.toLocaleTimeString('en-US', { 
+                              hour: 'numeric', 
+                              minute: '2-digit',
+                              hour12: true 
+                            })}
+                          </div>
+                          <div className="mobile-event-title">{event.title}</div>
+                          {event.location && (
+                            <div className="mobile-event-location">📍 {event.location}</div>
+                          )}
                         </div>
-                        <div className="mobile-event-title">{event.title}</div>
-                        {event.location && (
-                          <div className="mobile-event-location">📍 {event.location}</div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="mobile-no-events">No events</div>
-                  )}
+                      );
+                    })}
                 </div>
-              </div>
-            );
-          })}
+              );
+            });
+          })()}
         </div>
       ) : (
         /* Desktop Grid View */

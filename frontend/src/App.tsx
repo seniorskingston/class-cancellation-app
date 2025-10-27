@@ -642,7 +642,7 @@ function App() {
               <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="mobile-events-schedule-image" />
             </button>
           </div>
-          <h1>Program Schedule Update</h1>
+          <h1>Program Schedule Update (Beta)</h1>
           <div className="mobile-datetime">
             {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
           </div>
@@ -1287,7 +1287,7 @@ function App() {
             <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="events-schedule-image" />
           </button>
         </div>
-        <h1>Program Schedule Update</h1>
+        <h1>Program Schedule Update (Beta)</h1>
         <div className="datetime-display">
             {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {currentDateTime.toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
         </div>
@@ -1500,13 +1500,13 @@ function App() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <header className="app-header">
               <img src={logo} alt="Company Logo" className="app-logo" />
-              <h1>Program Schedule Update</h1>
+              <h1>Program Schedule Update (Beta)</h1>
               <div className="datetime-display">
                 {currentDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })} {currentDateTime.toLocaleTimeString('en-CA', { timeZone: 'America/Toronto' })}
               </div>
             </header>
             <div className="user-guide-content">
-              <h2>Program Schedule Update App – User Guide</h2>
+              <h2>Program Schedule Update App (Beta) – User Guide</h2>
               
               <p><strong>Welcome!</strong> This guide will help you use the Program Schedule Update App to quickly search, filter, and manage program schedules and cancellations. The app works on both desktop and mobile devices, and can be installed as a native app on your phone or tablet.</p>
 
