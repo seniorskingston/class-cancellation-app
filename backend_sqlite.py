@@ -1887,23 +1887,41 @@ def update_event(event_id: str, event_data: dict):
     print(f"🌐 Update event API call received for ID {event_id}: {event_data}")
     
     try:
-        if event_id not in editable_events:
+        updated = False
+        
+        # Check editable_events first
+        if event_id in editable_events:
+            editable_events[event_id].update({
+                'title': event_data.get('title', editable_events[event_id]['title']),
+                'startDate': event_data.get('startDate', editable_events[event_id]['startDate']),
+                'endDate': event_data.get('endDate', editable_events[event_id]['endDate']),
+                'description': event_data.get('description', editable_events[event_id]['description']),
+                'location': event_data.get('location', editable_events[event_id]['location'])
+            })
+            updated = True
+        
+        # Check stored_events (by matching title and startDate if event_id is index-based)
+        global stored_events
+        if event_id.startswith('stored_'):
+            # Extract index from event_id like "stored_0", "stored_1", etc.
+            try:
+                idx = int(event_id.replace('stored_', ''))
+                if 0 <= idx < len(stored_events):
+                    stored_events[idx].update(event_data)
+                    updated = True
+            except ValueError:
+                pass
+        
+        if not updated:
             return {"success": False, "error": "Event not found"}
         
-        # Update event
-        editable_events[event_id].update({
-            'title': event_data.get('title', editable_events[event_id]['title']),
-            'startDate': event_data.get('startDate', editable_events[event_id]['startDate']),
-            'endDate': event_data.get('endDate', editable_events[event_id]['endDate']),
-            'description': event_data.get('description', editable_events[event_id]['description']),
-            'location': event_data.get('location', editable_events[event_id]['location'])
-        })
-        
         print(f"✅ Event updated with ID: {event_id}")
-        return {"success": True, "event": editable_events[event_id], "message": "Event updated successfully"}
+        return {"success": True, "message": "Event updated successfully"}
         
     except Exception as e:
         print(f"❌ Error updating event: {e}")
+        import traceback
+        traceback.print_exc()
         return {"success": False, "error": str(e)}
 
 @app.delete("/api/events/{event_id}")
@@ -1912,64 +1930,65 @@ def delete_event(event_id: str):
     print(f"🌐 Delete event API call received for ID {event_id}")
     
     try:
-        if event_id not in editable_events:
-            return {"success": False, "error": "Event not found"}
+        deleted = False
         
-        # Remove event
-        deleted_event = editable_events.pop(event_id)
+        # Check editable_events first
+        if event_id in editable_events:
+            editable_events.pop(event_id)
+            deleted = True
+        else:
+            # Check stored_events by removing the event
+            global stored_events
+            if event_id.startswith('stored_'):
+                try:
+                    idx = int(event_id.replace('stored_', ''))
+                    if 0 <= idx < len(stored_events):
+                        stored_events.pop(idx)
+                        deleted = True
+                except ValueError:
+                    pass
+        
+        if not deleted:
+            return {"success": False, "error": "Event not found"}
         
         print(f"✅ Event deleted with ID: {event_id}")
         return {"success": True, "message": "Event deleted successfully"}
         
     except Exception as e:
         print(f"❌ Error deleting event: {e}")
+        import traceback
+        traceback.print_exc()
         return {"success": False, "error": str(e)}
 
 @app.post("/api/events/bulk-update")
 async def bulk_update_events(request: Request):
-    """Bulk update events - merge with existing events to avoid duplicates"""
+    """Bulk update events - REPLACE all events with new ones (from Event Editor)"""
     try:
         data = await request.json()
         events = data.get('events', [])
         
-        print(f"🔄 Bulk update received: {len(events)} events")
+        print(f"🔄 Bulk update received: {len(events)} events to REPLACE all existing events")
         
-        # Merge with existing events instead of replacing
+        # Replace all stored events with the new list
         global stored_events
+        old_count = len(stored_events)
+        stored_events = events
         
-        # Create a set to track existing events by (title, startDate)
-        existing_events_dict = {}
-        for event in stored_events:
-            key = (event.get('title', ''), event.get('startDate', ''))
-            existing_events_dict[key] = event
-        
-        # Track counts
-        added_count = 0
-        skipped_count = 0
-        
-        # Add only new events (no duplicates)
-        for new_event in events:
-            key = (new_event.get('title', ''), new_event.get('startDate', ''))
-            if key not in existing_events_dict:
-                stored_events.append(new_event)
-                existing_events_dict[key] = new_event
-                added_count += 1
-            else:
-                skipped_count += 1
-        
-        print(f"✅ Merged {added_count} new events (skipped {skipped_count} duplicates)")
+        print(f"✅ Successfully replaced {old_count} old events with {len(events)} new events")
         print(f"📊 Total events now: {len(stored_events)}")
         
         return {
             "success": True,
-            "message": f"Successfully added {added_count} new events ({skipped_count} duplicates skipped)",
+            "message": f"Successfully updated {len(events)} events",
             "total_count": len(stored_events),
-            "added": added_count,
-            "skipped": skipped_count
+            "old_count": old_count,
+            "new_count": len(stored_events)
         }
         
     except Exception as e:
         print(f"❌ Error in bulk update: {e}")
+        import traceback
+        traceback.print_exc()
         return {"success": False, "error": str(e)}
 
 @app.post("/api/upload-excel")
