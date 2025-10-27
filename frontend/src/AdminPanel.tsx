@@ -335,12 +335,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                     </button>
                     <button 
                       onClick={async () => {
-                        setUploadMessage('🚨 Quick Fix: Restoring 45 events...');
+                        setUploadMessage('🚨 Quick Fix: Restoring missing events...');
                         try {
-                          // Check current events count
+                          // Get current events first
                           const response = await fetch('https://class-cancellation-backend.onrender.com/api/events');
                           const currentData = await response.json();
-                          const currentCount = currentData.events ? currentData.events.length : 0;
+                          const currentEvents = currentData.events || [];
+                          const currentCount = currentEvents.length;
                           
                           if (currentCount === 45) {
                             setUploadMessage('✅ Events are already correct (45 events)');
@@ -348,7 +349,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                             return;
                           }
                           
-                          setUploadMessage(`⚠️ Found ${currentCount} events, restoring to 45...`);
+                          setUploadMessage(`⚠️ Found ${currentCount} events, checking for missing ones...`);
                           
                           // Load bulletproof events from our backup
                           const bulletproofResponse = await fetch('/render_persistent_master.json');
@@ -361,19 +362,42 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                             return;
                           }
                           
-                          // Upload the bulletproof events
+                          // Smart merge: Only add events that don't already exist
+                          // Compare by title, date, and time
+                          const getEventKey = (event: any) => {
+                            return `${event.title || ''}|${event.startDate || ''}|${event.timeStr || ''}`;
+                          };
+                          
+                          const currentEventKeys = new Set(currentEvents.map((e: any) => getEventKey(e)));
+                          const missingEvents = bulletproofEvents.filter((e: any) => {
+                            const key = getEventKey(e);
+                            return !currentEventKeys.has(key);
+                          });
+                          
+                          if (missingEvents.length === 0) {
+                            setUploadMessage(`✅ All ${currentCount} events are correct (no missing events)`);
+                            setTimeout(() => setUploadMessage(''), 3000);
+                            return;
+                          }
+                          
+                          // Merge: current events + missing events
+                          const mergedEvents = [...currentEvents, ...missingEvents];
+                          
+                          setUploadMessage(`📊 Current: ${currentCount}, Missing: ${missingEvents.length}, Total: ${mergedEvents.length}`);
+                          
+                          // Upload merged events
                           const uploadResponse = await fetch('https://class-cancellation-backend.onrender.com/api/events/bulk-update', {
                             method: 'POST',
                             headers: {
                               'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify({ events: bulletproofEvents }),
+                            body: JSON.stringify({ events: mergedEvents }),
                           });
                           
                           const uploadResult = await uploadResponse.json();
                           
                           if (uploadResponse.ok && uploadResult.success) {
-                            setUploadMessage(`✅ Quick Fix Complete! Restored ${bulletproofEvents.length} events with real banners`);
+                            setUploadMessage(`✅ Quick Fix Complete! Added ${missingEvents.length} missing events. Total: ${mergedEvents.length}. Your edits are preserved.`);
                             setTimeout(() => setUploadMessage(''), 5000);
                           } else {
                             setUploadMessage(`❌ Quick Fix failed: ${uploadResult.error || 'Unknown error'}`);
