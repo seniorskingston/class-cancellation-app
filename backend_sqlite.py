@@ -443,20 +443,21 @@ def get_programs_from_db(
     
     if program and program_id and program == program_id:
         # Unified search: search for both program name and program ID with OR
-        # Make search case-insensitive
-        search_term = f"%{program}%"
+        # Make search case-insensitive and handle apostrophes the same way
+        
+        # Escape apostrophes in search term (applies to both program and program_id)
+        escaped_search = program.replace("'", "_")
+        escaped_search = escaped_search.replace("'", "_")
+        search_term = f"%{escaped_search}%"
+        
         normalized_id = program_id.lstrip('0') or '0'
         
-        # Use LOWER() for case-insensitive matching
-        # Escape apostrophes in search term
-        escaped_program = program.replace("'", "_")
-        escaped_program = escaped_program.replace("'", "_")
-        search_term = f"%{escaped_program}%"
-        
         # Replace apostrophes in database field for matching
-        query += " AND (LOWER(REPLACE(REPLACE(CAST(program AS TEXT), '''', '_'), '''', '_')) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?))"
+        # Search program name with apostrophe normalization
+        # Search program_id with apostrophe normalization
+        query += " AND (LOWER(REPLACE(REPLACE(CAST(program AS TEXT), '''', '_'), '''', '_')) LIKE LOWER(?) OR LOWER(REPLACE(REPLACE(CAST(program_id AS TEXT), '''', '_'), '''', '_')) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?))"
         params.append(search_term)
-        params.append(f"%{program_id}%")
+        params.append(search_term)
         params.append(f"%{normalized_id}%")
     else:
         # Separate searches - make case-insensitive
