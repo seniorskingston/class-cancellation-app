@@ -444,25 +444,30 @@ def get_programs_from_db(
     if program and program_id and program == program_id:
         # Unified search: search for both program name and program ID with OR
         # Make search case-insensitive and handle special characters
-        search_term = f"%{program}%"
+        # Normalize apostrophes (both straight and curly) to handle different character encodings
+        search_term_normalized = program.replace("'", "_").replace("'", "_")
+        search_term = f"%{search_term_normalized}%"
         normalized_id = program_id.lstrip('0') or '0'
         
-        # Use LOWER() for case-insensitive matching (SQLite doesn't support COLLATE NOCASE in LIKE)
-        query += " AND (LOWER(CAST(program AS TEXT)) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?))"
+        # Use LOWER() for case-insensitive matching
+        # Use underscore wildcard for apostrophes
+        query += " AND (LOWER(REPLACE(REPLACE(CAST(program AS TEXT), '''', '_'), '''', '_')) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?))"
         params.append(search_term)
         params.append(f"%{program_id}%")
         params.append(f"%{normalized_id}%")
     else:
         # Separate searches - make case-insensitive
         if program:
-            query += " AND LOWER(CAST(program AS TEXT)) LIKE LOWER(?)"
-            params.append(f"%{program}%")
+            # Normalize apostrophes (both straight and curly) to handle different character encodings
+            program_normalized = program.replace("'", "_").replace("'", "_")
+            query += " AND LOWER(REPLACE(REPLACE(CAST(program AS TEXT), '''', '_'), '''', '_')) LIKE LOWER(?)"
+            params.append(f"%{program_normalized}%")
         
         if program_id:
             # Handle both original and normalized program IDs
             # Try both the original ID and the ID with leading zeros stripped
             normalized_id = program_id.lstrip('0') or '0'
-            query += " AND (LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?))"
+            query += " AND (LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?) ESCAPE '\\' OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?) ESCAPE '\\')"
             params.append(f"%{program_id}%")
             params.append(f"%{normalized_id}%")
     
