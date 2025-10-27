@@ -1918,24 +1918,45 @@ def delete_event(event_id: str):
 
 @app.post("/api/events/bulk-update")
 async def bulk_update_events(request: Request):
-    """Bulk update events - replace all events with new ones"""
+    """Bulk update events - merge with existing events to avoid duplicates"""
     try:
         data = await request.json()
         events = data.get('events', [])
         
         print(f"🔄 Bulk update received: {len(events)} events")
         
-        # Clear existing events and add new ones
-        # For now, we'll store them in memory (you can modify this to use a database)
+        # Merge with existing events instead of replacing
         global stored_events
-        stored_events = events
         
-        print(f"✅ Successfully stored {len(events)} events")
+        # Create a set to track existing events by (title, startDate)
+        existing_events_dict = {}
+        for event in stored_events:
+            key = (event.get('title', ''), event.get('startDate', ''))
+            existing_events_dict[key] = event
+        
+        # Track counts
+        added_count = 0
+        skipped_count = 0
+        
+        # Add only new events (no duplicates)
+        for new_event in events:
+            key = (new_event.get('title', ''), new_event.get('startDate', ''))
+            if key not in existing_events_dict:
+                stored_events.append(new_event)
+                existing_events_dict[key] = new_event
+                added_count += 1
+            else:
+                skipped_count += 1
+        
+        print(f"✅ Merged {added_count} new events (skipped {skipped_count} duplicates)")
+        print(f"📊 Total events now: {len(stored_events)}")
         
         return {
             "success": True,
-            "message": f"Successfully updated {len(events)} events",
-            "count": len(events)
+            "message": f"Successfully added {added_count} new events ({skipped_count} duplicates skipped)",
+            "total_count": len(stored_events),
+            "added": added_count,
+            "skipped": skipped_count
         }
         
     except Exception as e:
@@ -2034,9 +2055,31 @@ def process_csv_fallback(temp_path, filename):
                 }
                 events.append(event)
         
-        # Store the events
+        # Merge with existing events instead of replacing
         global stored_events
-        stored_events = events
+        
+        # Create a set to track existing events by (title, startDate)
+        existing_events_dict = {}
+        for event in stored_events:
+            key = (event.get('title', ''), event.get('startDate', ''))
+            existing_events_dict[key] = event
+        
+        # Track counts
+        added_count = 0
+        skipped_count = 0
+        
+        # Add only new events (no duplicates)
+        for new_event in events:
+            key = (new_event.get('title', ''), new_event.get('startDate', ''))
+            if key not in existing_events_dict:
+                stored_events.append(new_event)
+                existing_events_dict[key] = new_event
+                added_count += 1
+            else:
+                skipped_count += 1
+        
+        print(f"✅ Merged {added_count} new events from Excel (skipped {skipped_count} duplicates)")
+        print(f"📊 Total events now: {len(stored_events)}")
         
         # Clean up temp file
         os.remove(temp_path)
@@ -2111,31 +2154,56 @@ async def scrape_events_endpoint():
         scraped_events = scrape_seniors_kingston_events()
         
         if scraped_events and len(scraped_events) > 0:
-            # Update stored events with scraped events
+            # Merge with existing events (avoid duplicates)
             global stored_events
-            stored_events = scraped_events
             
-            print(f"✅ Successfully scraped {len(scraped_events)} events")
+            # Create a set to track existing events by (title, startDate)
+            existing_events_dict = {}
+            for event in stored_events:
+                key = (event.get('title', ''), event.get('startDate', ''))
+                existing_events_dict[key] = event
+            
+            # Track counts
+            added_count = 0
+            skipped_count = 0
+            
+            # Add only new events (no duplicates)
+            for new_event in scraped_events:
+                key = (new_event.get('title', ''), new_event.get('startDate', ''))
+                if key not in existing_events_dict:
+                    stored_events.append(new_event)
+                    existing_events_dict[key] = new_event
+                    added_count += 1
+                else:
+                    skipped_count += 1
+                    print(f"⚠️ Skipping duplicate event: {new_event.get('title', 'Unknown')} on {new_event.get('startDate', 'Unknown')}")
+            
+            print(f"✅ Successfully merged {added_count} new events (skipped {skipped_count} duplicates)")
+            print(f"📊 Total events now: {len(stored_events)}")
             
             return {
                 "success": True,
-                "message": f"Successfully scraped {len(scraped_events)} events from Seniors Kingston website",
-                "events_count": len(scraped_events),
-                "events": scraped_events[:5]  # Return first 5 events as sample
+                "message": f"Successfully added {added_count} new events ({skipped_count} duplicates skipped)",
+                "events_count": len(stored_events),
+                "added": added_count,
+                "skipped": skipped_count,
+                "events": stored_events[:5]  # Return first 5 events as sample
             }
         else:
             return {
                 "success": False,
                 "message": "No events found during scraping",
-                "events_count": 0
+                "events_count": len(stored_events)
             }
             
     except Exception as e:
         print(f"❌ Error in manual scraping: {e}")
+        import traceback
+        traceback.print_exc()
         return {
             "success": False,
             "message": f"Scraping failed: {str(e)}",
-            "events_count": 0
+            "events_count": len(stored_events)
         }
 
 @app.get("/sync")
