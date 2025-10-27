@@ -713,6 +713,43 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
 
         {/* Direct access - no authentication required */}
         <>
+            {/* COMPONENT RENDER TEST */}
+            <div style={{
+              background: '#ff0000',
+              color: 'white',
+              padding: '20px',
+              margin: '10px',
+              border: '5px solid #00ff00',
+              fontSize: '24px',
+              fontWeight: 'bold',
+              textAlign: 'center'
+            }}>
+              🚨 EVENT EDITOR IS RENDERING! 🚨
+              <br/>
+              If you see this, the component is working!
+            </div>
+            
+            {/* SIMPLE TEST BUTTON */}
+            <button 
+              onClick={() => {
+                alert('BUTTON CLICKED! Event Editor is working!');
+                setMessage('✅ Button test successful! Event Editor is working!');
+                setMessageType('success');
+              }}
+              style={{
+                background: '#00ff00',
+                color: 'black',
+                padding: '15px 30px',
+                margin: '10px',
+                border: '3px solid #ff0000',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              🧪 CLICK ME TO TEST!
+            </button>
+            
             {/* Message */}
             {message && (
               <div className={`event-editor-message ${messageType}`}>
@@ -835,6 +872,24 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
                 onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
                 placeholder="Image URL or path"
               />
+              {newEvent.image_url && (
+                <div style={{ marginTop: '10px' }}>
+                  <img 
+                    src={newEvent.image_url} 
+                    alt="Event banner preview"
+                    style={{ 
+                      maxWidth: '100%', 
+                      maxHeight: '150px', 
+                      borderRadius: '8px',
+                      border: '2px solid #0072ce',
+                      marginTop: '5px'
+                    }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -985,6 +1040,24 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
                   </div>
                   <div className="event-editor-event-info">
                     <h4>{event.title}</h4>
+                    {event.image_url && (
+                      <div style={{ marginBottom: '10px' }}>
+                        <img 
+                          src={event.image_url} 
+                          alt="Event banner"
+                          style={{ 
+                            maxWidth: '200px', 
+                            maxHeight: '100px', 
+                            borderRadius: '6px',
+                            border: '1px solid #ddd',
+                            marginTop: '5px'
+                          }}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
                     <p><strong>Date:</strong> {event.dateStr || new Date(event.startDate).toLocaleDateString()}</p>
                     <p><strong>Time:</strong> {event.timeStr || new Date(event.startDate).toLocaleTimeString()}</p>
                     {event.location && <p><strong>Location:</strong> {event.location}</p>}
@@ -1024,6 +1097,23 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
                 borderRadius: '5px'
               }}>
                 <h5 style={{color: '#33691e', margin: '0 0 10px 0'}}>🎯 Event {index + 1}: {event.title}</h5>
+                {event.image_url && (
+                  <div style={{ marginBottom: '10px' }}>
+                    <img 
+                      src={event.image_url} 
+                      alt="Event banner"
+                      style={{ 
+                        maxWidth: '150px', 
+                        maxHeight: '80px', 
+                        borderRadius: '4px',
+                        border: '1px solid #8bc34a'
+                      }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
                 <p><strong>ID:</strong> {event.id}</p>
                 <p><strong>Date:</strong> {event.dateStr || 'No date'}</p>
                 <p><strong>Time:</strong> {event.timeStr || 'No time'}</p>

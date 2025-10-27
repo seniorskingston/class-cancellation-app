@@ -523,12 +523,11 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                   <div 
                     className="mobile-event-item"
                     style={{ 
-                      cursor: 'pointer', 
                       marginBottom: '15px',
                       border: '2px solid #0072ce',
                       borderRadius: '8px',
                       padding: '12px',
-                      backgroundColor: 'white'
+                      backgroundColor: '#0072ce'
                     }}
                   >
                     <div 
@@ -539,7 +538,8 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                         fontWeight: 'bold', 
                         marginBottom: '12px',
                         padding: '8px',
-                        fontSize: '1.1rem'
+                        fontSize: '1.1rem',
+                        borderRadius: '4px'
                       }}
                     >
                       {dayName}, {monthName} {day}
@@ -555,7 +555,14 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                             key={eventIndex} 
                             className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''} ${isToday ? 'today-event' : ''}`}
                             onClick={() => handleEventClick(event)}
-                            style={{ cursor: 'pointer', marginBottom: '8px', padding: '12px', border: '1px solid #e0e0e0', borderRadius: '8px' }}
+                            style={{ 
+                              cursor: 'pointer', 
+                              marginBottom: '8px', 
+                              padding: '12px', 
+                              border: '2px solid #B3D9FF', 
+                              borderRadius: '6px',
+                              backgroundColor: '#E6F2FF'
+                            }}
                           >
                             <div className="mobile-event-time" style={{ fontWeight: '600', color: '#0072ce' }}>
                               {event.timeStr || evtDate.toLocaleTimeString('en-US', { 
@@ -564,7 +571,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                                 hour12: true 
                               })}
                             </div>
-                            <div className="mobile-event-title" style={{ fontWeight: 'bold', marginTop: '4px' }}>{event.title}</div>
+                            <div className="mobile-event-title" style={{ fontWeight: 'bold', marginTop: '4px', color: '#333' }}>{event.title}</div>
                             {event.location && (
                               <div className="mobile-event-location" style={{ color: '#666', fontSize: '0.9rem', marginTop: '4px' }}>📍 {event.location}</div>
                             )}
