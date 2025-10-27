@@ -496,63 +496,83 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
               return eventDate >= startDate && eventDate <= endDate;
             });
             
-            // Group events by month
-            const eventsByMonth: { [key: string]: Event[] } = {};
+            // Group events by individual date
+            const eventsByDate: { [key: string]: Event[] } = {};
             filteredEvents.forEach(event => {
               const eventDate = new Date(event.startDate);
-              const monthKey = `${eventDate.getFullYear()}-${eventDate.getMonth()}`;
-              if (!eventsByMonth[monthKey]) {
-                eventsByMonth[monthKey] = [];
+              eventDate.setHours(0, 0, 0, 0);
+              const dateKey = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
+              if (!eventsByDate[dateKey]) {
+                eventsByDate[dateKey] = [];
               }
-              eventsByMonth[monthKey].push(event);
+              eventsByDate[dateKey].push(event);
             });
 
-            // Sort months
-            const sortedMonths = Object.keys(eventsByMonth).sort();
+            // Sort dates
+            const sortedDates = Object.keys(eventsByDate).sort();
             
-            return sortedMonths.map(monthKey => {
-              const monthEvents = eventsByMonth[monthKey];
-              const firstEvent = monthEvents[0];
-              const eventDate = new Date(firstEvent.startDate);
+            // Track current month to add month headers
+            let lastMonth = -1;
+            let lastYear = -1;
+            
+            return sortedDates.map(dateKey => {
+              const dayEvents = eventsByDate[dateKey];
+              const eventDate = new Date(dateKey);
               const monthName = monthNames[eventDate.getMonth()];
               const year = eventDate.getFullYear();
+              const dayName = dayNames[eventDate.getDay()];
+              const day = eventDate.getDate();
+              
+              // Check if we need to add a month header
+              const needMonthHeader = eventDate.getMonth() !== lastMonth || year !== lastYear;
+              if (needMonthHeader) {
+                lastMonth = eventDate.getMonth();
+                lastYear = year;
+              }
               
               return (
-                <div key={monthKey} className="mobile-month-section">
-                  <div className="mobile-month-header">
-                    {monthName} {year}
+                <React.Fragment key={dateKey}>
+                  {needMonthHeader && (
+                    <div className="mobile-month-header" style={{ marginTop: '20px', marginBottom: '10px', fontSize: '1.2rem', fontWeight: 'bold', color: '#0072ce' }}>
+                      {monthName} {year}
+                    </div>
+                  )}
+                  <div 
+                    className="mobile-event-item"
+                    style={{ cursor: 'pointer', marginBottom: '10px' }}
+                  >
+                    <div className="mobile-event-date" style={{ color: '#28a745', fontWeight: 'bold', marginBottom: '8px' }}>
+                      {dayName}, {monthName} {day}
+                    </div>
+                    {dayEvents
+                      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+                      .map((event, eventIndex) => {
+                        const evtDate = new Date(event.startDate);
+                        const isToday = evtDate.toDateString() === new Date().toDateString();
+                        
+                        return (
+                          <div 
+                            key={eventIndex} 
+                            className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''} ${isToday ? 'today-event' : ''}`}
+                            onClick={() => handleEventClick(event)}
+                            style={{ cursor: 'pointer', marginBottom: '8px', padding: '12px', border: '1px solid #e0e0e0', borderRadius: '8px' }}
+                          >
+                            <div className="mobile-event-time" style={{ fontWeight: '600', color: '#0072ce' }}>
+                              {event.timeStr || evtDate.toLocaleTimeString('en-US', { 
+                                hour: 'numeric', 
+                                minute: '2-digit',
+                                hour12: true 
+                              })}
+                            </div>
+                            <div className="mobile-event-title" style={{ fontWeight: 'bold', marginTop: '4px' }}>{event.title}</div>
+                            {event.location && (
+                              <div className="mobile-event-location" style={{ color: '#666', fontSize: '0.9rem', marginTop: '4px' }}>📍 {event.location}</div>
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
-                  {monthEvents
-                    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-                    .map((event, eventIndex) => {
-                      const eventDate = new Date(event.startDate);
-                      const isToday = eventDate.toDateString() === new Date().toDateString();
-                      
-                      return (
-                        <div 
-                          key={eventIndex} 
-                          className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''} ${isToday ? 'today-event' : ''}`}
-                          onClick={() => handleEventClick(event)}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <div className="mobile-event-date">
-                            {dayNames[eventDate.getDay()]}, {eventDate.getDate()} {monthNames[eventDate.getMonth()].substring(0, 3)}
-                          </div>
-                          <div className="mobile-event-time">
-                            {event.timeStr || eventDate.toLocaleTimeString('en-US', { 
-                              hour: 'numeric', 
-                              minute: '2-digit',
-                              hour12: true 
-                            })}
-                          </div>
-                          <div className="mobile-event-title">{event.title}</div>
-                          {event.location && (
-                            <div className="mobile-event-location">📍 {event.location}</div>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
+                </React.Fragment>
               );
             });
           })()}
