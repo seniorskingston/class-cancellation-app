@@ -2230,6 +2230,46 @@ def get_october_events():
         "source": "manual_october"
         }
 
+@app.post("/api/events/{event_title}/update-banner")
+async def update_event_banner(event_title: str, request: Request):
+    """Update the banner/image for a specific event by title"""
+    try:
+        data = await request.json()
+        new_image_url = data.get('image_url')
+        event_date = data.get('startDate')
+        
+        if not new_image_url:
+            return {"success": False, "error": "image_url is required"}
+        
+        global stored_events
+        updated = False
+        
+        for event in stored_events:
+            if event.get('title') == event_title:
+                if event_date is None or event.get('startDate') == event_date:
+                    event['image_url'] = new_image_url
+                    updated = True
+                    print(f"✅ Updated banner for: {event_title}")
+        
+        if updated:
+            save_stored_events()
+            return {
+                "success": True,
+                "message": f"Successfully updated banner for {event_title}",
+                "image_url": new_image_url
+            }
+        else:
+            return {
+                "success": False,
+                "error": f"Event '{event_title}' not found"
+            }
+            
+    except Exception as e:
+        print(f"❌ Error updating event banner: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
 @app.post("/api/events/clear")
 async def clear_events_endpoint():
     """Clear all stored events"""
