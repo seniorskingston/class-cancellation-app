@@ -443,14 +443,17 @@ def get_programs_from_db(
     
     if program and program_id and program == program_id:
         # Unified search: search for both program name and program ID with OR
-        # Make search case-insensitive and handle special characters
-        # Normalize apostrophes (both straight and curly) to handle different character encodings
-        search_term_normalized = program.replace("'", "_").replace("'", "_")
-        search_term = f"%{search_term_normalized}%"
+        # Make search case-insensitive
+        search_term = f"%{program}%"
         normalized_id = program_id.lstrip('0') or '0'
         
         # Use LOWER() for case-insensitive matching
-        # Use underscore wildcard for apostrophes
+        # Escape apostrophes in search term
+        escaped_program = program.replace("'", "_")
+        escaped_program = escaped_program.replace("'", "_")
+        search_term = f"%{escaped_program}%"
+        
+        # Replace apostrophes in database field for matching
         query += " AND (LOWER(REPLACE(REPLACE(CAST(program AS TEXT), '''', '_'), '''', '_')) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?))"
         params.append(search_term)
         params.append(f"%{program_id}%")
@@ -459,9 +462,11 @@ def get_programs_from_db(
         # Separate searches - make case-insensitive
         if program:
             # Normalize apostrophes (both straight and curly) to handle different character encodings
-            program_normalized = program.replace("'", "_").replace("'", "_")
+            # Escape apostrophes in search term and database
+            escaped_program = program.replace("'", "_")
+            escaped_program = escaped_program.replace("'", "_")
             query += " AND LOWER(REPLACE(REPLACE(CAST(program AS TEXT), '''', '_'), '''', '_')) LIKE LOWER(?)"
-            params.append(f"%{program_normalized}%")
+            params.append(f"%{escaped_program}%")
         
         if program_id:
             # Handle both original and normalized program IDs
