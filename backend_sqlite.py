@@ -17,6 +17,7 @@ import io
 import pytz
 import time
 from dateutil import parser
+from contextlib import asynccontextmanager
 
 # Use environment variable for port, default to 8000 (Render uses PORT env var)
 PORT = int(os.environ.get("PORT", 8000))
@@ -31,22 +32,11 @@ utc = pytz.UTC
 # Global variable to store uploaded events
 stored_events = []
 
-app = FastAPI(title="Program Schedule Update API")
+# Global scheduler variable (will be initialized in lifespan)
+scheduler = None
 
-# Allow CORS for frontend - specifically allow Render domains
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://class-cancellation-frontend.onrender.com",
-        "https://class-cancellation-frontend.onrender.com/",
-        "http://localhost:3000",  # For local development
-        "https://localhost:3000"   # For local development
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
-    allow_origin_regex=r"https://.*\.onrender\.com",
-)
+# Create FastAPI app (will add lifespan and middleware later)
+# CORS middleware will be added after app is created
 
 def calculate_withdrawal(date_range: str, class_cancellation: str) -> str:
     """
@@ -613,17 +603,52 @@ def scheduled_weekly_report():
 print("🚀 Starting up - checking for Excel file...")
 check_and_import_excel()
 
-# Set up periodic check every 30 seconds
-scheduler = BackgroundScheduler()
-scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
+# Define lifespan handler for proper scheduler lifecycle
+@asynccontextmanager
+async def lifespan_handler(app: FastAPI):
+    # Startup: Initialize scheduler
+    global scheduler
+    try:
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
+        # Add scheduled analytics reports
+        # Daily report at 9:00 AM
+        scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
+        # Weekly report every Monday at 10:00 AM  
+        scheduler.add_job(scheduled_weekly_report, 'cron', day_of_week=0, hour=10, minute=0)
+        scheduler.start()
+        print("✅ Background scheduler started")
+    except Exception as e:
+        print(f"⚠️ Failed to start scheduler: {e}")
+        scheduler = None
+    
+    yield
+    
+    # Shutdown: Stop scheduler
+    if scheduler:
+        try:
+            scheduler.shutdown()
+            print("✅ Background scheduler stopped")
+        except Exception as e:
+            print(f"⚠️ Error stopping scheduler: {e}")
 
-# Add scheduled analytics reports
-# Daily report at 9:00 AM
-scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
-# Weekly report every Monday at 10:00 AM  
-scheduler.add_job(scheduled_weekly_report, 'cron', day_of_week=0, hour=10, minute=0)
+# Create FastAPI app with lifespan
+app = FastAPI(title="Program Schedule Update API", lifespan=lifespan_handler)
 
-scheduler.start()
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://class-cancellation-frontend.onrender.com",
+        "https://class-cancellation-frontend.onrender.com/",
+        "http://localhost:3000",  # For local development
+        "https://localhost:3000"   # For local development
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    allow_origin_regex=r"https://.*\.onrender\.com",
+)
 
 # In-memory storage for editable events (in production, this would be a database)
 editable_events = {}
@@ -1423,22 +1448,10 @@ def get_events(request: Request):
                                 event['title'] = clean_title
                                 print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
                                 break
-            
-            return {
-                "events": all_events,
-                "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
-                "count": len(all_events),
-                "source": "real_website"
-            }
-        else:
-            print("❌ No real events found from website")
-    except Exception as e:
-        print(f"❌ Error fetching real events: {e}")
-        import traceback
-        traceback.print_exc()
     
-    # If no real events found, try to provide some known real events as fallback
-    print("📅 No real events found from scraping, providing known events as fallback")
+    # If no events were processed, provide fallback
+    if 'all_events' not in locals() or len(all_events) == 0:
+        print("📅 No events found, using known events as fallback")
     
     # REAL EVENTS from Seniors Kingston website - 100% ACCURATE DATA (2025)
     # Extracted directly from the actual website using Selenium scraping
@@ -3991,6 +4004,3 @@ def test_programs():
         }
     except Exception as e:
         return {"error": str(e)}
-\nif __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
