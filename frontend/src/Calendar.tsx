@@ -511,37 +511,37 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             // Sort dates
             const sortedDates = Object.keys(eventsByDate).sort();
             
-            // Track current month to add month headers
-            let lastMonth = -1;
-            let lastYear = -1;
-            
             return sortedDates.map(dateKey => {
               const dayEvents = eventsByDate[dateKey];
               const eventDate = new Date(dateKey);
               const monthName = monthNames[eventDate.getMonth()];
-              const year = eventDate.getFullYear();
               const dayName = dayNames[eventDate.getDay()];
               const day = eventDate.getDate();
               
-              // Check if we need to add a month header
-              const needMonthHeader = eventDate.getMonth() !== lastMonth || year !== lastYear;
-              if (needMonthHeader) {
-                lastMonth = eventDate.getMonth();
-                lastYear = year;
-              }
-              
               return (
                 <React.Fragment key={dateKey}>
-                  {needMonthHeader && (
-                    <div className="mobile-month-header" style={{ marginTop: '20px', marginBottom: '10px', fontSize: '1.2rem', fontWeight: 'bold', color: '#0072ce' }}>
-                      {monthName} {year}
-                    </div>
-                  )}
                   <div 
                     className="mobile-event-item"
-                    style={{ cursor: 'pointer', marginBottom: '10px' }}
+                    style={{ 
+                      cursor: 'pointer', 
+                      marginBottom: '15px',
+                      border: '2px solid #0072ce',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      backgroundColor: 'white'
+                    }}
                   >
-                    <div className="mobile-event-date" style={{ color: '#28a745', fontWeight: 'bold', marginBottom: '8px' }}>
+                    <div 
+                      className="mobile-event-date" 
+                      style={{ 
+                        backgroundColor: 'white',
+                        color: '#0072ce', 
+                        fontWeight: 'bold', 
+                        marginBottom: '12px',
+                        padding: '8px',
+                        fontSize: '1.1rem'
+                      }}
+                    >
                       {dayName}, {monthName} {day}
                     </div>
                     {dayEvents
