@@ -99,7 +99,30 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   const getEventsForDate = (date: Date): Event[] => {
     return events.filter(event => {
       const eventDate = new Date(event.startDate);
+      // Filter out past events
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (eventDate < today) {
+        return false;
+      }
       return eventDate.toDateString() === date.toDateString();
+    });
+  };
+  
+  // Get events within a date range (for week/day views)
+  const getEventsInRange = (startDate: Date, endDate: Date): Event[] => {
+    return events.filter(event => {
+      const eventDate = new Date(event.startDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Filter out past events
+      if (eventDate < today) {
+        return false;
+      }
+      
+      // Check if event is within the range
+      return eventDate >= startDate && eventDate <= endDate;
     });
   };
 
@@ -429,11 +452,53 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
       {/* Mobile List View - Show when mobile view is active */}
       {isMobile ? (
         <div className="mobile-list-view">
-          {/* Show all events grouped by month for mobile */}
+          {/* Show events filtered by view mode and date range for mobile */}
           {(() => {
+            // Get the date range based on current view mode
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let startDate: Date;
+            let endDate: Date;
+            
+            if (viewMode === 'day') {
+              startDate = new Date(currentDate);
+              startDate.setHours(0, 0, 0, 0);
+              endDate = new Date(startDate);
+              endDate.setHours(23, 59, 59, 999);
+            } else if (viewMode === 'week') {
+              const startOfWeek = new Date(currentDate);
+              startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+              startOfWeek.setHours(0, 0, 0, 0);
+              startDate = startOfWeek;
+              endDate = new Date(startOfWeek);
+              endDate.setDate(endDate.getDate() + 6);
+              endDate.setHours(23, 59, 59, 999);
+            } else {
+              // Month view - show all events from today onwards in the current month
+              startDate = today;
+              const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+              endDate = new Date(lastDayOfMonth);
+              endDate.setHours(23, 59, 59, 999);
+            }
+            
+            // Filter events to only show future events within the selected range
+            const filteredEvents = events.filter(event => {
+              const eventDate = new Date(event.startDate);
+              eventDate.setHours(0, 0, 0, 0);
+              
+              // Filter out past events
+              if (eventDate < today) {
+                return false;
+              }
+              
+              // Filter by date range based on view mode
+              return eventDate >= startDate && eventDate <= endDate;
+            });
+            
             // Group events by month
             const eventsByMonth: { [key: string]: Event[] } = {};
-            events.forEach(event => {
+            filteredEvents.forEach(event => {
               const eventDate = new Date(event.startDate);
               const monthKey = `${eventDate.getFullYear()}-${eventDate.getMonth()}`;
               if (!eventsByMonth[monthKey]) {
