@@ -443,21 +443,26 @@ def get_programs_from_db(
     
     if program and program_id and program == program_id:
         # Unified search: search for both program name and program ID with OR
-        # Make search case-insensitive and handle apostrophes the same way
+        # Make search case-insensitive and handle apostrophes
         
-        # Escape apostrophes in search term (applies to both program and program_id)
-        escaped_search = program.replace("'", "_")
-        escaped_search = escaped_search.replace("'", "_")
-        search_term = f"%{escaped_search}%"
-        
+        search_term = f"%{program}%"
         normalized_id = program_id.lstrip('0') or '0'
         
-        # Replace apostrophes in database field for matching
-        # Search program name with apostrophe normalization
-        # Search program_id with apostrophe normalization
-        query += " AND (LOWER(REPLACE(REPLACE(CAST(program AS TEXT), '''', '_'), '''', '_')) LIKE LOWER(?) OR LOWER(REPLACE(REPLACE(CAST(program_id AS TEXT), '''', '_'), '''', '_')) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?))"
+        # Try multiple approaches: exact match, normalized apostrophes, and wildcards
+        # This handles cases where apostrophes might be different characters
+        query += """ AND (
+            LOWER(CAST(program AS TEXT)) LIKE LOWER(?) OR
+            LOWER(REPLACE(CAST(program AS TEXT), '''', ' ')) LIKE LOWER(?) OR
+            LOWER(REPLACE(CAST(program AS TEXT), '''', ' ')) LIKE LOWER(?) OR
+            LOWER(REPLACE(CAST(program AS TEXT), '''', '')) LIKE LOWER(?) OR
+            LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?) OR
+            LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?)
+        )"""
         params.append(search_term)
-        params.append(search_term)
+        params.append(search_term.replace("'", "").replace("'", ""))  # No apostrophes
+        params.append(search_term.replace("'", " ").replace("'", " "))  # Apostrophe as space
+        params.append(search_term.replace("'", "").replace("'", ""))  # No apostrophes
+        params.append(f"%{program_id}%")
         params.append(f"%{normalized_id}%")
     else:
         # Separate searches - make case-insensitive
