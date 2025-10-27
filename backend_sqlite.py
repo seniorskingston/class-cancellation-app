@@ -3585,7 +3585,7 @@ def get_cancellations(
     )
     
     print(f"📈 Returning {len(programs)} results")
-    return {"cancellations": programs, "last_loaded": datetime.now(KINGSTON_TZ).isoformat()}
+    return {"data": programs, "last_loaded": datetime.now(KINGSTON_TZ).isoformat()}
 
 @app.post("/api/refresh")
 async def refresh_data():
