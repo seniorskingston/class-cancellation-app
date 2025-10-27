@@ -520,65 +520,69 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
               
               return (
                 <React.Fragment key={dateKey}>
-                  <div 
-                    className="mobile-event-item"
-                    style={{ 
-                      marginBottom: '15px',
-                      border: '2px solid #0072ce',
-                      borderRadius: '8px',
-                      padding: '12px',
-                      backgroundColor: '#0072ce'
-                    }}
-                  >
-                    <div 
-                      className="mobile-event-date" 
-                      style={{ 
-                        backgroundColor: 'white',
-                        color: '#0072ce', 
-                        fontWeight: 'bold', 
-                        marginBottom: '12px',
-                        padding: '8px',
-                        fontSize: '1.1rem',
-                        borderRadius: '4px'
-                      }}
-                    >
-                      {dayName}, {monthName} {day}
+                  {/* Date Header */}
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    marginBottom: '8px',
+                    padding: '8px 12px'
+                  }}>
+                    <span style={{ fontWeight: 'bold', color: '#333' }}>{dayName}</span>
+                    <span style={{ fontWeight: 'bold', color: '#333' }}>{day} {monthName.substring(0, 3)}</span>
+                  </div>
+                  
+                  {/* Events - Old Simple Style */}
+                  {dayEvents.length === 0 ? (
+                    <div style={{ 
+                      textAlign: 'center', 
+                      color: '#999', 
+                      padding: '16px',
+                      marginBottom: '20px'
+                    }}>
+                      No events
                     </div>
-                    {dayEvents
+                  ) : (
+                    dayEvents
                       .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
                       .map((event, eventIndex) => {
                         const evtDate = new Date(event.startDate);
-                        const isToday = evtDate.toDateString() === new Date().toDateString();
                         
                         return (
                           <div 
                             key={eventIndex} 
-                            className={`mobile-event-item ${isHoliday(event.title) ? 'holiday-event' : ''} ${isToday ? 'today-event' : ''}`}
                             onClick={() => handleEventClick(event)}
                             style={{ 
-                              cursor: 'pointer', 
-                              marginBottom: '8px', 
-                              padding: '12px', 
-                              border: '2px solid #B3D9FF', 
-                              borderRadius: '6px',
-                              backgroundColor: '#E6F2FF'
+                              backgroundColor: '#0072ce',
+                              borderRadius: '8px',
+                              padding: '16px',
+                              marginBottom: '12px',
+                              cursor: 'pointer',
+                              textAlign: 'center',
+                              color: 'white'
                             }}
                           >
-                            <div className="mobile-event-time" style={{ fontWeight: '600', color: '#0072ce' }}>
+                            <div style={{ 
+                              fontWeight: 'bold', 
+                              fontSize: '1rem',
+                              marginBottom: '4px'
+                            }}>
                               {event.timeStr || evtDate.toLocaleTimeString('en-US', { 
                                 hour: 'numeric', 
                                 minute: '2-digit',
                                 hour12: true 
                               })}
                             </div>
-                            <div className="mobile-event-title" style={{ fontWeight: 'bold', marginTop: '4px', color: '#333' }}>{event.title}</div>
-                            {event.location && (
-                              <div className="mobile-event-location" style={{ color: '#666', fontSize: '0.9rem', marginTop: '4px' }}>📍 {event.location}</div>
-                            )}
+                            <div style={{ 
+                              fontWeight: 'bold', 
+                              fontSize: '1rem'
+                            }}>
+                              {event.title}
+                            </div>
                           </div>
                         );
-                      })}
-                  </div>
+                      })
+                  )}
                 </React.Fragment>
               );
             });

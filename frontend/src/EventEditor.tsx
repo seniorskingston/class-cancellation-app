@@ -864,33 +864,83 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
                 placeholder="Event location"
               />
             </div>
-            <div className="event-editor-form-group">
-              <label>Image URL</label>
-              <input
-                type="text"
-                value={newEvent.image_url || ''}
-                onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
-                placeholder="Image URL or path"
-              />
-              {newEvent.image_url && (
-                <div style={{ marginTop: '10px' }}>
-                  <img 
-                    src={newEvent.image_url} 
-                    alt="Event banner preview"
-                    style={{ 
-                      maxWidth: '100%', 
-                      maxHeight: '150px', 
-                      borderRadius: '8px',
-                      border: '2px solid #0072ce',
-                      marginTop: '5px'
-                    }}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
+          </div>
+
+          {/* Image Editing Section - More Prominent */}
+          <div className="event-editor-form-group" style={{ 
+            border: '2px solid #0072ce', 
+            padding: '15px', 
+            borderRadius: '8px',
+            backgroundColor: '#f0f8ff',
+            marginBottom: '20px'
+          }}>
+            <label style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#0072ce', marginBottom: '10px', display: 'block' }}>
+              🖼️ Event Image/Banner
+            </label>
+            <input
+              type="text"
+              value={newEvent.image_url || ''}
+              onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
+              placeholder="e.g., /event-schedule-banner.png or https://example.com/image.jpg"
+              style={{ 
+                width: '100%', 
+                padding: '10px', 
+                fontSize: '1rem',
+                border: '2px solid #0072ce',
+                borderRadius: '4px',
+                marginBottom: '10px'
+              }}
+            />
+            <div style={{ 
+              fontSize: '0.9rem', 
+              color: '#666', 
+              marginBottom: '10px',
+              fontStyle: 'italic'
+            }}>
+              Enter a URL or path to the event banner image (e.g., /event-schedule-banner.png)
             </div>
+            {newEvent.image_url && (
+              <div style={{ 
+                marginTop: '15px',
+                border: '2px solid #0072ce',
+                borderRadius: '8px',
+                padding: '15px',
+                backgroundColor: 'white',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
+              }}>
+                <div style={{ 
+                  marginBottom: '10px', 
+                  fontWeight: 'bold', 
+                  color: '#0072ce' 
+                }}>
+                  Image Preview:
+                </div>
+                <img 
+                  src={newEvent.image_url} 
+                  alt="Event banner preview"
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '200px', 
+                    borderRadius: '8px',
+                    border: '2px solid #ddd',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                  }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    const parent = (e.target as HTMLImageElement).parentElement;
+                    if (parent) {
+                      const errorMsg = document.createElement('div');
+                      errorMsg.textContent = '❌ Image not found or invalid URL';
+                      errorMsg.style.color = '#d32f2f';
+                      errorMsg.style.fontWeight = 'bold';
+                      parent.appendChild(errorMsg);
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           <div className="event-editor-form-row">
