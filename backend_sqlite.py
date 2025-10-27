@@ -23,7 +23,8 @@ from contextlib import asynccontextmanager
 PORT = int(os.environ.get("PORT", 8000))
 
 # Database file path - use persistent storage
-DB_PATH = "/tmp/class_cancellations.db" if os.getenv('RENDER') else "class_cancellations.db"
+# On Render, use /tmp for persistent storage, or project root
+DB_PATH = "class_cancellations.db"  # Store in project root (persistent on Render)
 
 # Set timezone to Kingston, Ontario
 KINGSTON_TZ = pytz.timezone('America/Toronto')
@@ -31,6 +32,37 @@ utc = pytz.UTC
 
 # Global variable to store uploaded events
 stored_events = []
+
+# File to persist stored_events across restarts
+STORED_EVENTS_FILE = "stored_events.json"
+
+def load_stored_events():
+    """Load stored events from file if it exists"""
+    global stored_events
+    try:
+        if os.path.exists(STORED_EVENTS_FILE):
+            with open(STORED_EVENTS_FILE, 'r', encoding='utf-8') as f:
+                stored_events = json.load(f)
+            print(f"✅ Loaded {len(stored_events)} events from {STORED_EVENTS_FILE}")
+        else:
+            stored_events = []
+            print("📝 No stored events file found, starting fresh")
+    except Exception as e:
+        print(f"⚠️ Error loading stored events: {e}")
+        stored_events = []
+
+def save_stored_events():
+    """Save stored events to file"""
+    global stored_events
+    try:
+        with open(STORED_EVENTS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(stored_events, f, ensure_ascii=False, indent=2)
+        print(f"💾 Saved {len(stored_events)} events to {STORED_EVENTS_FILE}")
+    except Exception as e:
+        print(f"⚠️ Error saving stored events: {e}")
+
+# Load stored events on startup
+load_stored_events()
 
 # Global scheduler variable (will be initialized in lifespan)
 scheduler = None
@@ -536,7 +568,7 @@ def check_and_import_excel():
     
     # Define Excel file paths
     EXCEL_PATH = "Class Cancellation App.xlsx"
-    BACKUP_EXCEL_PATH = "/tmp/Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
+    BACKUP_EXCEL_PATH = "backup_Class Cancellation App.xlsx"  # Use project root (persistent on Render)
     
     # Check if we're in cloud environment and need to restore from backup
     if os.getenv('RENDER') and not os.path.exists(EXCEL_PATH) and os.path.exists(BACKUP_EXCEL_PATH):
@@ -1994,6 +2026,9 @@ async def bulk_update_events(request: Request):
         old_count = len(stored_events)
         stored_events = events
         
+        # Save to persistent storage
+        save_stored_events()
+        
         print(f"✅ Successfully replaced {old_count} old events with {len(events)} new events")
         print(f"📊 Total events now: {len(stored_events)}")
         
@@ -2128,6 +2163,9 @@ def process_csv_fallback(temp_path, filename):
         
         print(f"✅ Merged {added_count} new events from Excel (skipped {skipped_count} duplicates)")
         print(f"📊 Total events now: {len(stored_events)}")
+        
+        # Save to persistent storage
+        save_stored_events()
         
         # Clean up temp file
         os.remove(temp_path)
@@ -2268,6 +2306,9 @@ async def scrape_events_endpoint():
             
             print(f"✅ Successfully merged {added_count} new events (skipped {skipped_count} duplicates)")
             print(f"📊 Total events now: {len(stored_events)}")
+            
+            # Save to persistent storage
+            save_stored_events()
             
             return {
                 "success": True,
