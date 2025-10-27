@@ -1398,8 +1398,17 @@ def get_events(request: Request):
     # PRIORITY: Use stored events first (most reliable)
     print("🔍 Checking for stored events first...")
     if stored_events and len(stored_events) > 0:
-        print(f"📦 Using {len(stored_events)} stored events (PRIORITY)")
-        all_events = stored_events
+        # Remove duplicates from stored_events before returning
+        unique_events = []
+        seen_keys = set()
+        for event in stored_events:
+            key = (event.get('title', ''), event.get('startDate', ''))
+            if key not in seen_keys:
+                unique_events.append(event)
+                seen_keys.add(key)
+        
+        print(f"📦 Using {len(unique_events)} unique stored events (removed {len(stored_events) - len(unique_events)} duplicates)")
+        all_events = unique_events
     else:
         # Fallback: Try to get real events from Seniors Kingston website
         print("🔍 No stored events found, attempting to fetch from website...")
@@ -2143,6 +2152,46 @@ def get_october_events():
         "count": len(all_events),
         "source": "manual_october"
         }
+
+@app.post("/api/events/clear")
+async def clear_events_endpoint():
+    """Clear all stored events"""
+    global stored_events
+    count = len(stored_events)
+    stored_events = []
+    print(f"🗑️ Cleared {count} events")
+    return {
+        "success": True,
+        "message": f"Successfully cleared {count} events",
+        "count": 0
+    }
+
+@app.post("/api/events/remove-duplicates")
+async def remove_duplicates_endpoint():
+    """Remove duplicate events from stored_events"""
+    global stored_events
+    original_count = len(stored_events)
+    
+    # Remove duplicates
+    unique_events = []
+    seen_keys = set()
+    for event in stored_events:
+        key = (event.get('title', ''), event.get('startDate', ''))
+        if key not in seen_keys:
+            unique_events.append(event)
+            seen_keys.add(key)
+    
+    duplicates_removed = original_count - len(unique_events)
+    stored_events = unique_events
+    
+    print(f"✅ Removed {duplicates_removed} duplicate events")
+    return {
+        "success": True,
+        "message": f"Successfully removed {duplicates_removed} duplicate events",
+        "original_count": original_count,
+        "unique_count": len(unique_events),
+        "duplicates_removed": duplicates_removed
+    }
 
 @app.post("/api/scrape-events")
 async def scrape_events_endpoint():
