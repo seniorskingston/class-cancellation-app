@@ -443,22 +443,26 @@ def get_programs_from_db(
     
     if program and program_id and program == program_id:
         # Unified search: search for both program name and program ID with OR
+        # Make search case-insensitive and handle special characters
+        search_term = f"%{program}%"
         normalized_id = program_id.lstrip('0') or '0'
-        query += " AND (program LIKE ? OR program_id LIKE ? OR program_id LIKE ?)"
-        params.append(f"%{program}%")
+        
+        # Use LOWER() for case-insensitive matching (SQLite doesn't support COLLATE NOCASE in LIKE)
+        query += " AND (LOWER(CAST(program AS TEXT)) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?))"
+        params.append(search_term)
         params.append(f"%{program_id}%")
         params.append(f"%{normalized_id}%")
     else:
-        # Separate searches
+        # Separate searches - make case-insensitive
         if program:
-            query += " AND program LIKE ?"
+            query += " AND LOWER(CAST(program AS TEXT)) LIKE LOWER(?)"
             params.append(f"%{program}%")
         
         if program_id:
             # Handle both original and normalized program IDs
             # Try both the original ID and the ID with leading zeros stripped
             normalized_id = program_id.lstrip('0') or '0'
-            query += " AND (program_id LIKE ? OR program_id LIKE ?)"
+            query += " AND (LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?) OR LOWER(CAST(program_id AS TEXT)) LIKE LOWER(?))"
             params.append(f"%{program_id}%")
             params.append(f"%{normalized_id}%")
     
