@@ -619,16 +619,16 @@ async def lifespan_handler(app: FastAPI):
     # Startup: Initialize scheduler
     global scheduler
     try:
-        scheduler = BackgroundScheduler()
+scheduler = BackgroundScheduler()
         # DISABLED: Auto-import every 30 seconds was causing data reversion
         # scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
         print("⚠️ Auto-import scheduler disabled to prevent data reversion")
-        # Add scheduled analytics reports
-        # Daily report at 9:00 AM
-        scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
-        # Weekly report every Monday at 10:00 AM  
-        scheduler.add_job(scheduled_weekly_report, 'cron', day_of_week=0, hour=10, minute=0)
-        scheduler.start()
+# Add scheduled analytics reports
+# Daily report at 9:00 AM
+scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
+# Weekly report every Monday at 10:00 AM  
+scheduler.add_job(scheduled_weekly_report, 'cron', day_of_week=0, hour=10, minute=0)
+scheduler.start()
         print("✅ Background scheduler started")
     except Exception as e:
         print(f"⚠️ Failed to start scheduler: {e}")
@@ -771,16 +771,81 @@ def scrape_with_requests_fallback():
         return get_november_2025_events_fallback()
 
 def scrape_with_smart_requests():
-    """AGGRESSIVE SCRAPING - Try to extract real events from Seniors Kingston"""
+    """REAL SCRAPING - Try to find actual API endpoints for Seniors Kingston events"""
     try:
         import requests
         from bs4 import BeautifulSoup
         import re
         import json
         
-        print("🌐 Using AGGRESSIVE scraping for Seniors Kingston website")
+        print("🌐 Attempting to find REAL events from Seniors Kingston API")
         
-        # Try the main events page with aggressive headers
+        # Strategy 1: Try to find API endpoints
+        api_endpoints = [
+            "https://seniorskingston.ca/api/events",
+            "https://seniorskingston.ca/api/calendar",
+            "https://seniorskingston.ca/api/programs",
+            "https://seniorskingston.ca/wp-json/wp/v2/posts",
+            "https://seniorskingston.ca/wp-json/wp/v2/events",
+            "https://seniorskingston.ca/events.json",
+            "https://seniorskingston.ca/api/v1/events",
+            "https://seniorskingston.ca/events/api"
+        ]
+        
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Referer': 'https://seniorskingston.ca/events'
+        }
+        
+        for endpoint in api_endpoints:
+            try:
+                print(f"🔍 Trying API endpoint: {endpoint}")
+                response = requests.get(endpoint, headers=headers, timeout=15)
+                
+                if response.status_code == 200:
+                    try:
+                        data = response.json()
+                        events = extract_events_from_api_data(data)
+                        if events:
+                            print(f"✅ Found {len(events)} events from API: {endpoint}")
+                            return events
+                    except:
+                        # Not JSON, continue
+                        pass
+                        
+            except Exception as e:
+                print(f"❌ API endpoint failed: {endpoint} - {e}")
+                continue
+        
+        # Strategy 2: Try to find WordPress REST API
+        wp_endpoints = [
+            "https://seniorskingston.ca/wp-json/wp/v2/posts?per_page=100",
+            "https://seniorskingston.ca/wp-json/wp/v2/events?per_page=100",
+            "https://seniorskingston.ca/wp-json/wp/v2/pages?per_page=100"
+        ]
+        
+        for endpoint in wp_endpoints:
+            try:
+                print(f"🔍 Trying WordPress API: {endpoint}")
+                response = requests.get(endpoint, headers=headers, timeout=15)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    events = extract_events_from_wp_data(data)
+                    if events:
+                        print(f"✅ Found {len(events)} events from WordPress API")
+                        return events
+                        
+            except Exception as e:
+                print(f"❌ WordPress API failed: {endpoint} - {e}")
+                continue
+        
+        # Strategy 3: Try to find embedded data in the main page
+        print("🔍 Trying to find embedded event data in main page...")
         url = "https://seniorskingston.ca/events"
         
         headers = {
@@ -789,232 +854,763 @@ def scrape_with_smart_requests():
             'Accept-Language': 'en-US,en;q=0.9',
             'Accept-Encoding': 'gzip, deflate, br',
             'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1'
+            'Upgrade-Insecure-Requests': '1'
         }
         
-        print(f"🔍 AGGRESSIVE scraping: {url}")
         response = requests.get(url, headers=headers, timeout=30)
-        
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.content, 'html.parser')
+                
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.content, 'html.parser')
             
-            # Debug: Print page content to understand structure
-            page_text = soup.get_text()
-            print(f"📄 Page content length: {len(page_text)} characters")
-            print(f"📄 First 500 chars: {page_text[:500]}")
-            
-            # Look for any content that might be events
-            events = []
-            
-            # Strategy 1: Look for any divs with substantial content
-            all_divs = soup.find_all('div')
-            print(f"🔍 Found {len(all_divs)} div elements")
-            
-            for i, div in enumerate(all_divs):
-                text = div.get_text().strip()
-                if len(text) > 50 and len(text) < 1000:  # Reasonable event size
-                    # Check if it contains event-like keywords
-                    keywords = ['november', 'december', 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'event', 'class', 'workshop', 'meeting', 'club', 'fair', 'party']
-                    if any(keyword in text.lower() for keyword in keywords):
-                        event = create_event_from_text(text)
-                        if event:
-                            events.append(event)
-                            print(f"✅ Found potential event: {event['title'][:50]}...")
-                            
-            # Strategy 2: Look for any text content with dates
-            lines = page_text.split('\n')
-            for line in lines:
-                line = line.strip()
-                if len(line) > 30 and len(line) < 200:
-                    # Look for date patterns
-                    date_patterns = [
-                        r'\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2}',
-                        r'\b\d{1,2}\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*',
-                        r'\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)',
-                        r'\b(?:am|pm)\b'
-                    ]
-                    
-                    if any(re.search(pattern, line, re.IGNORECASE) for pattern in date_patterns):
-                        event = create_event_from_text(line)
-                        if event and event not in events:
-                            events.append(event)
-                            print(f"✅ Found date-based event: {event['title'][:50]}...")
-            
-            # Strategy 3: Look for script tags with data
+            # Look for any script tags that might contain event data
             script_tags = soup.find_all('script')
-            print(f"🔍 Found {len(script_tags)} script tags")
+            print(f"🔍 Found {len(script_tags)} script tags to analyze")
             
             for script in script_tags:
                 if script.string:
                     script_content = script.string
-                    if len(script_content) > 100:
-                        # Look for any JSON-like data
-                        json_matches = re.findall(r'\{[^{}]*\}', script_content)
-                        for match in json_matches:
+                    
+                    # Look for common event data patterns
+                    patterns = [
+                        r'events\s*:\s*\[.*?\]',
+                        r'calendar\s*:\s*\[.*?\]',
+                        r'programs\s*:\s*\[.*?\]',
+                        r'data\s*:\s*\[.*?\]'
+                    ]
+                    
+                    for pattern in patterns:
+                        matches = re.findall(pattern, script_content, re.DOTALL | re.IGNORECASE)
+                        for match in matches:
                             try:
-                                data = json.loads(match)
-                                if isinstance(data, dict) and len(data) > 2:
-                                    event = create_event_from_json(data)
-                                    if event and event not in events:
-                                        events.append(event)
-                                        print(f"✅ Found JSON event: {event['title'][:50]}...")
+                                # Try to extract JSON array
+                                json_match = re.search(r'\[.*\]', match, re.DOTALL)
+                                if json_match:
+                                    data = json.loads(json_match.group())
+                                    events = extract_events_from_api_data(data)
+                                    if events:
+                                        print(f"✅ Found {len(events)} events in embedded script data")
+                        return events
                             except:
-                                continue
+                        continue
             
-            print(f"📊 AGGRESSIVE scraping found {len(events)} potential events")
-            
-            if events:
-                return events[:20]  # Limit to 20 events
-            else:
-                print("📅 No events found with aggressive scraping")
-                return get_comprehensive_november_events()
-                
-        else:
-            print(f"❌ HTTP {response.status_code} for {url}")
-            return get_comprehensive_november_events()
-            
+            # Look for any data attributes or hidden content
+            data_elements = soup.find_all(attrs={"data-events": True})
+            if data_elements:
+                for element in data_elements:
+                    try:
+                        data = json.loads(element['data-events'])
+                        events = extract_events_from_api_data(data)
+                        if events:
+                            print(f"✅ Found {len(events)} events in data attributes")
+                            return events
+                    except:
+                    continue
+                    
+        # If all strategies fail, return empty list (no fake events)
+        print("❌ Could not find real events from Seniors Kingston website")
+        print("💡 The website likely uses JavaScript to load events dynamically")
+        print("📝 Returning empty list - user should add events manually")
+        return []
+        
+            except Exception as e:
+        print(f"❌ Error in real scraping attempt: {e}")
+        return []
+
+def extract_events_from_api_data(data):
+    """Extract events from API response data"""
+    events = []
+    try:
+        if isinstance(data, list):
+            for item in data:
+                event = create_event_from_api_item(item)
+                if event:
+                    events.append(event)
+        elif isinstance(data, dict):
+            # Look for events array in the response
+            for key in ['events', 'data', 'items', 'posts', 'programs']:
+                if key in data and isinstance(data[key], list):
+                    for item in data[key]:
+                        event = create_event_from_api_item(item)
+                        if event:
+                            events.append(event)
+                    break
+                    
+        return events
+        
     except Exception as e:
-        print(f"❌ Error in aggressive scraping: {e}")
-        return get_comprehensive_november_events()
+        print(f"❌ Error extracting events from API data: {e}")
+        return []
+
+def extract_events_from_wp_data(data):
+    """Extract events from WordPress API data"""
+    events = []
+    try:
+        for post in data:
+            if isinstance(post, dict):
+                event = create_event_from_wp_post(post)
+                if event:
+                    events.append(event)
+        return events
+        
+    except Exception as e:
+        print(f"❌ Error extracting events from WordPress data: {e}")
+        return []
+
+def create_event_from_api_item(item):
+    """Create event from API item"""
+    try:
+        if not isinstance(item, dict):
+            return None
+            
+        title = item.get('title', {}).get('rendered', '') if isinstance(item.get('title'), dict) else item.get('title', '')
+        if not title:
+            title = item.get('name', '') or item.get('event_title', '') or item.get('program_name', '')
+            
+        if not title:
+            return None
+            
+        # Clean up title
+        title = re.sub(r'<[^>]+>', '', title)  # Remove HTML tags
+        title = title.strip()
+        
+        if len(title) > 50:
+            title = title[:50] + "..."
+            
+        return {
+            "title": title,
+            "description": item.get('content', {}).get('rendered', '') if isinstance(item.get('content'), dict) else item.get('description', title),
+            "image_url": "/event-schedule-banner.png",
+            "startDate": datetime.now().isoformat(),
+            "endDate": datetime.now().isoformat(),
+            "location": "Seniors Kingston",
+            "dateStr": "TBD",
+            "timeStr": "TBD"
+        }
+        
+    except Exception as e:
+        print(f"❌ Error creating event from API item: {e}")
+        return None
+
+def create_event_from_wp_post(post):
+    """Create event from WordPress post"""
+    try:
+        title = post.get('title', {}).get('rendered', '') if isinstance(post.get('title'), dict) else post.get('title', '')
+        if not title:
+            return None
+            
+        # Clean up title
+        title = re.sub(r'<[^>]+>', '', title)  # Remove HTML tags
+        title = title.strip()
+        
+        if len(title) > 50:
+            title = title[:50] + "..."
+            
+        return {
+            "title": title,
+            "description": post.get('content', {}).get('rendered', '') if isinstance(post.get('content'), dict) else post.get('excerpt', title),
+            "image_url": "/event-schedule-banner.png",
+            "startDate": datetime.now().isoformat(),
+            "endDate": datetime.now().isoformat(),
+            "location": "Seniors Kingston",
+            "dateStr": "TBD",
+            "timeStr": "TBD"
+        }
+        
+    except Exception as e:
+        print(f"❌ Error creating event from WordPress post: {e}")
+        return None
 
 def get_comprehensive_november_events():
-    """Return comprehensive November 2025 events - MORE EVENTS"""
+    """REAL EVENTS FALLBACK - Return actual Seniors Kingston events when scraping fails"""
+    print("🔄 Using REAL events fallback from Seniors Kingston website")
+    print("📅 These are the actual 45 events from the Seniors Kingston website")
+    
+    # Real events from Seniors Kingston website (scraped on Oct 25-26, 2025)
     return [
         {
-            'title': 'Holiday Artisan Fair',
-            'startDate': '2025-11-22T10:00:00Z',
-            'endDate': '2025-11-22T16:00:00Z',
-            'description': 'Local artisans showcase their handmade crafts and holiday gifts',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 22, 2025',
-            'timeStr': '10:00 AM - 4:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': 'Free admission',
-            'instructor': 'Various Artisans',
-            'registration': 'No registration required'
+            "title": "Sound Escapes: Kenny & Dolly",
+            "startDate": "2025-10-24T13:30:00Z",
+            "endDate": "2025-10-24T14:30:00Z",
+            "description": "Sound Escapes: Kenny & Dolly  October 24, 1:30 pm Celebrate timeless hits in this unforgettable tribute concert. Relive legendary duets",
+            "location": "Online",
+            "dateStr": "October 24",
+            "timeStr": "1:30 pm",
+            "price": "$12",
+            "instructor": "",
+            "registration": "call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/bd103f00-5824-449d-9a8d-74dd98f450c3/Sound%20Escapes%202.jpg"
         },
         {
-            'title': 'Thanksgiving Potluck',
-            'startDate': '2025-11-28T12:00:00Z',
-            'endDate': '2025-11-28T15:00:00Z',
-            'description': 'Community Thanksgiving celebration with potluck dinner',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 28, 2025',
-            'timeStr': '12:00 PM - 3:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': 'Free',
-            'instructor': 'Community',
-            'registration': 'Bring a dish to share'
+            "title": "Wearable Tech",
+            "startDate": "2025-10-27T12:00:00Z",
+            "endDate": "2025-10-27T13:00:00Z",
+            "description": "Wearable Tech  October 27, 12:00 pm Smartwatches and fitness trackers have become increasing popular. Learn how wearable technology can support your health, fitness and everyday activities.",
+            "location": "",
+            "dateStr": "October 27",
+            "timeStr": "12:00 pm",
+            "price": "",
+            "instructor": "Sam Kalb",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/9ac584b0-0bc5-4803-a59b-dd48f5589df7/Tech%20Bytes.jpg"
         },
         {
-            'title': 'Winter Wellness Workshop',
-            'startDate': '2025-11-15T14:00:00Z',
-            'endDate': '2025-11-15T16:00:00Z',
-            'description': 'Learn about staying healthy and active during winter months',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 15, 2025',
-            'timeStr': '2:00 PM - 4:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': 'Free',
-            'instructor': 'Health Professional',
-            'registration': 'Call to register'
+            "title": "Legal Advice",
+            "startDate": "2025-10-27T13:00:00Z",
+            "endDate": "2025-10-27T14:00:00Z",
+            "description": "Legal Advice October 27, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
+            "location": "",
+            "dateStr": "October 27",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/ff281879-79a3-45e3-ab4c-b54f69a2e371/Legal%20Advice.JPG"
         },
         {
-            'title': 'November Book Club',
-            'startDate': '2025-11-08T14:00:00Z',
-            'endDate': '2025-11-08T16:00:00Z',
-            'description': 'Monthly book discussion group',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 8, 2025',
-            'timeStr': '2:00 PM - 4:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': 'Free',
-            'instructor': 'Book Club Leader',
-            'registration': 'No registration required'
+            "title": "Fresh Food Market",
+            "startDate": "2025-10-28T10:00:00Z",
+            "endDate": "2025-10-28T11:00:00Z",
+            "description": "Fresh Food Market October 28, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
+            "location": "",
+            "dateStr": "October 28",
+            "timeStr": "10:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh%20Food%20Market.jpg"
         },
         {
-            'title': 'Fall Craft Workshop',
-            'startDate': '2025-11-12T10:00:00Z',
-            'endDate': '2025-11-12T12:00:00Z',
-            'description': 'Create beautiful fall-themed crafts',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 12, 2025',
-            'timeStr': '10:00 AM - 12:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': '$5 materials fee',
-            'instructor': 'Craft Instructor',
-            'registration': 'Call to register'
+            "title": "18th Century Astronomy",
+            "startDate": "2025-10-30T13:00:00Z",
+            "endDate": "2025-10-30T14:00:00Z",
+            "description": "18th Century Astronomy  October 30, 1:00 pm The 1700s changed our view of the universe. Hear about the first "X" prize, the solar system, deep skyobjects, the distance to the stars and the remarkable men and women involved.",
+            "location": "",
+            "dateStr": "October 30",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured%20Speaker.jpg"
         },
         {
-            'title': 'November Fitness Class',
-            'startDate': '2025-11-05T09:00:00Z',
-            'endDate': '2025-11-05T10:00:00Z',
-            'description': 'Low-impact fitness class for seniors',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 5, 2025',
-            'timeStr': '9:00 AM - 10:00 AM',
-            'image_url': '/event-schedule-banner.png',
-            'price': 'Free',
-            'instructor': 'Fitness Instructor',
-            'registration': 'Drop-in welcome'
+            "title": "Caroles Dance Party",
+            "startDate": "2025-10-30T13:00:00Z",
+            "endDate": "2025-10-30T14:00:00Z",
+            "description": "Caroles Dance Party  October 30, 1:00 pm Let's Dance! Join Carole for spooky tunes and groovy moves. Supportive footwear is mandatory.",
+            "location": "",
+            "dateStr": "October 30",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "Carole Gibson services",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/5f877585-1735-45c2-b513-2bbe20e82f88/Caroles%20Dance%20Party.jpg"
         },
         {
-            'title': 'Holiday Baking Workshop',
-            'startDate': '2025-11-19T13:00:00Z',
-            'endDate': '2025-11-19T15:00:00Z',
-            'description': 'Learn to bake holiday treats and cookies',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 19, 2025',
-            'timeStr': '1:00 PM - 3:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': '$10 materials fee',
-            'instructor': 'Baking Instructor',
-            'registration': 'Call to register'
+            "title": "Daylight Savings Ends  November 2, 8:00 am",
+            "startDate": "2025-11-02T08:00:00Z",
+            "endDate": "2025-11-02T09:00:00Z",
+            "description": "",
+            "location": "",
+            "dateStr": "November 2",
+            "timeStr": "8:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/d2758d2b-f79b-49db-9f4e-f55928b48126/Daylight%20Savings%20Time.jpg"
         },
         {
-            'title': 'November Movie Night',
-            'startDate': '2025-11-26T19:00:00Z',
-            'endDate': '2025-11-26T21:00:00Z',
-            'description': 'Community movie screening with popcorn',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 26, 2025',
-            'timeStr': '7:00 PM - 9:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': 'Free',
-            'instructor': 'Movie Coordinator',
-            'registration': 'No registration required'
+            "title": "Online Registration Begins",
+            "startDate": "2025-11-03T08:00:00Z",
+            "endDate": "2025-11-03T09:00:00Z",
+            "description": "Online Registration Begins  November 3, 8:00 am Online Program Registration Starts Today",
+            "location": "Online",
+            "dateStr": "November 3",
+            "timeStr": "8:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/4d931fd1-40ac-4785-bcae-81d0647e6cf7/Registration%20Online.jpg"
         },
         {
-            'title': 'Fall Garden Tour',
-            'startDate': '2025-11-03T11:00:00Z',
-            'endDate': '2025-11-03T13:00:00Z',
-            'description': 'Guided tour of local gardens and fall foliage',
-            'location': 'Meet at Seniors Kingston Centre',
-            'dateStr': 'November 3, 2025',
-            'timeStr': '11:00 AM - 1:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': 'Free',
-            'instructor': 'Garden Guide',
-            'registration': 'Call to register'
+            "title": "Assistive Listening Solutions",
+            "startDate": "2025-11-03T12:00:00Z",
+            "endDate": "2025-11-03T13:00:00Z",
+            "description": "Assistive Listening Solutions  November 3, 12:00 pm Removing communication barriers leads to engagement within the community. Learn about how assistive listening solutions can help hard-of-hearing members remove background noise and hear what they are intended to. This session will provide an overview of the solutions available today and how they can benefit those who struggle to hear in public spaces.",
+            "location": "",
+            "dateStr": "November 3",
+            "timeStr": "12:00 pm",
+            "price": "",
+            "instructor": "Stephanie Brown, Hearing Assistive Technology Solutions Group",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/94872db8-dee1-41c2-9fcb-1a8315487c24/Tech%20Bytes.jpg"
         },
         {
-            'title': 'November Technology Workshop',
-            'startDate': '2025-11-17T10:00:00Z',
-            'endDate': '2025-11-17T12:00:00Z',
-            'description': 'Learn about smartphones, tablets, and online safety',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 17, 2025',
-            'timeStr': '10:00 AM - 12:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': 'Free',
-            'instructor': 'Tech Support',
-            'registration': 'Call to register'
+            "title": "In-Person Registration for Session 2 Begins",
+            "startDate": "2025-11-04T08:30:00Z",
+            "endDate": "2025-11-04T09:30:00Z",
+            "description": "In-Person Registration for Session 2 Begins November 4, 8:30 am In-person and mail registration begins Monday November 3 at 8:30am. Session 2 begins November 27.",
+            "location": "",
+            "dateStr": "November 4",
+            "timeStr": "8:30 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/4d931fd1-40ac-4785-bcae-81d0647e6cf7/Registration%20Online.jpg"
+        },
+        {
+            "title": "Fresh Food Market",
+            "startDate": "2025-11-04T10:00:00Z",
+            "endDate": "2025-11-04T11:00:00Z",
+            "description": "Fresh Food Market November 4, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
+            "location": "",
+            "dateStr": "November 4",
+            "timeStr": "10:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh%20Food%20Market.jpg"
+        },
+        {
+            "title": "Fraud Awareness",
+            "startDate": "2025-11-05T13:00:00Z",
+            "endDate": "2025-11-05T14:00:00Z",
+            "description": "Fraud Awareness November 5, 1:00 pm Protect your money and identity from phone, internet, and in-person fraudsters. Learn how to spot and avoid scams.",
+            "location": "",
+            "dateStr": "November 5",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "Paul Van Nest, Kingston Rotary Club",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/cb66e913-8ddb-4252-a74c-4302cec7540f/PFH%20Wednesday%20PM.jpg"
+        },
+        {
+            "title": "Cut. Fold. Glue. Stars.",
+            "startDate": "2025-11-06T11:30:00Z",
+            "endDate": "2025-11-06T12:30:00Z",
+            "description": "Cut. Fold. Glue. Stars.  November 6, 11:30 am Join Carole and learn to make charming loo roll snowflakes to bring whimsy to your winter decor.",
+            "location": "",
+            "dateStr": "November 6",
+            "timeStr": "11:30 am",
+            "price": "",
+            "instructor": "Carole Gibson",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/a538b972-f854-424b-b155-a1a48515fd6a/Learn%20&%20Play.jpg"
+        },
+        {
+            "title": "Learn about Tarot",
+            "startDate": "2025-11-06T13:00:00Z",
+            "endDate": "2025-11-06T14:00:00Z",
+            "description": "Learn about Tarot  November 6, 1:00 pm Tarocchini is a card game where trumps take tricks. Created in 1400 in Italy, it has evolved into games like Bridge. Is Tarot a game of fortune telling, tricks, or a psychological study? Come play and decide.",
+            "location": "",
+            "dateStr": "November 6",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured%20Speaker.jpg"
+        },
+        {
+            "title": "Hearing Clinic",
+            "startDate": "2025-11-07T09:00:00Z",
+            "endDate": "2025-11-07T10:00:00Z",
+            "description": "Hearing Clinic November 7, 9:00 am Holly Brooks, Hearing Instrument Specialist, from Hear Right Canada provides hearing tests and hearing aid cleaning. Batteries also available for a fee. Appointments required.",
+            "location": "",
+            "dateStr": "November 7",
+            "timeStr": "9:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/4b3c4ee7-17b6-4401-9f6f-27303d9ab94f/Hearing%20Clinic.jpg"
+        },
+        {
+            "title": "Coffee with a Cop",
+            "startDate": "2025-11-07T10:00:00Z",
+            "endDate": "2025-11-07T11:00:00Z",
+            "description": "Coffee with a Cop  November 7, 10:00 am Join Constable Anthony Colangeli for coffee and conversation. Ask questions and voice concerns. Walk-in. All are welcome.",
+            "location": "",
+            "dateStr": "November 7",
+            "timeStr": "10:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/7c4a9916-5533-45e6-9a5a-45e7a6a9d252/Coffee%20with%20a%20cop%20FIXED.jpg"
+        },
+        {
+            "title": "Cut. Fold. Glue. Trees",
+            "startDate": "2025-11-10T10:45:00Z",
+            "endDate": "2025-11-10T11:45:00Z",
+            "description": "Cut. Fold. Glue. Trees November 10, 10:45 am Join Carole and learn to make fanciful paper trees for your holiday tablescapes.",
+            "location": "",
+            "dateStr": "November 10",
+            "timeStr": "10:45 am",
+            "price": "",
+            "instructor": "Carole Gibson",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/a538b972-f854-424b-b155-a1a48515fd6a/Learn%20&%20Play.jpg"
+        },
+        {
+            "title": "Shopping & Buying Online",
+            "startDate": "2025-11-10T12:00:00Z",
+            "endDate": "2025-11-10T13:00:00Z",
+            "description": "Shopping & Buying Online  November 10, 12:00 pm Dip your toes into online shopping. Learn how to get the most out of online stores, how to comparison shop and making informed purchases and how to choose streaming services for movies and TV programs.",
+            "location": "Online",
+            "dateStr": "November 10",
+            "timeStr": "12:00 pm",
+            "price": "",
+            "instructor": "Sam Kalb",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/4d931fd1-40ac-4785-bcae-81d0647e6cf7/Registration%20Online.jpg"
+        },
+        {
+            "title": "Legal Advice",
+            "startDate": "2025-11-10T13:00:00Z",
+            "endDate": "2025-11-10T14:00:00Z",
+            "description": "Legal Advice November 10, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
+            "location": "",
+            "dateStr": "November 10",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/ff281879-79a3-45e3-ab4c-b54f69a2e371/Legal%20Advice.JPG"
+        },
+        {
+            "title": "Fresh Food Market",
+            "startDate": "2025-11-11T10:00:00Z",
+            "endDate": "2025-11-11T11:00:00Z",
+            "description": "Fresh Food Market November 11, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
+            "location": "",
+            "dateStr": "November 11",
+            "timeStr": "10:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh%20Food%20Market.jpg"
+        },
+        {
+            "title": "Service Canada Clinic",
+            "startDate": "2025-11-12T09:00:00Z",
+            "endDate": "2025-11-12T10:00:00Z",
+            "description": "Service Canada Clinic November 12, 9:00 am Service Canada representatives come to The Seniors Centre to help you with Canadian Pension Plan (CPP), Old Age Security (OAS), Guaranteed Income Supplement (GIS), Social Insurance Number (SIN), or Canadian Dental Care Plan.",
+            "location": "",
+            "dateStr": "November 12",
+            "timeStr": "9:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/4b3c4ee7-17b6-4401-9f6f-27303d9ab94f/Hearing%20Clinic.jpg"
+        },
+        {
+            "title": "Coast to Coast: A Canoe Odyssey",
+            "startDate": "2025-11-13T13:00:00Z",
+            "endDate": "2025-11-13T14:00:00Z",
+            "description": "Coast to Coast: A Canoe Odyssey November 13, 1:00 pm Two paddlers, one canoe, and 8,500 km from Vancouver to Sydney – through cities, towns, and wild terrain. Hear about this epic adventure of resilience, connection, and discovery across Canada's diverse landscapes and waterways.",
+            "location": "",
+            "dateStr": "November 13",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured%20Speaker.jpg"
+        },
+        {
+            "title": "Birthday Lunch",
+            "startDate": "2025-11-14T12:00:00Z",
+            "endDate": "2025-11-14T13:00:00Z",
+            "description": "Birthday Lunch November 14, 12:00 pm Members celebrate their birthday month for free!",
+            "location": "Online",
+            "dateStr": "November 14",
+            "timeStr": "12:00 pm",
+            "price": "$16",
+            "instructor": "",
+            "registration": "call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/e09e616f-444c-4f2d-989a-32fa84b34083/Birthday.jpg"
+        },
+        {
+            "title": "Sound Escapes: Georgette Fry",
+            "startDate": "2025-11-14T13:30:00Z",
+            "endDate": "2025-11-14T14:30:00Z",
+            "description": "Sound Escapes: Georgette Fry November 14, 1:30 pm Experience the award-winning Georgette Fry's soulful blend of blues, jazz, and pop. Her electrifying style will have you up and dancing all afternoon long!",
+            "location": "Online",
+            "dateStr": "November 14",
+            "timeStr": "1:30 pm",
+            "price": "$12",
+            "instructor": "",
+            "registration": "call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/bd103f00-5824-449d-9a8d-74dd98f450c3/Sound%20Escapes%202.jpg"
+        },
+        {
+            "title": "Program Break Week",
+            "startDate": "2025-11-17T08:30:00Z",
+            "endDate": "2025-11-17T09:30:00Z",
+            "description": "Program Break Week November 17, 8:30 am No programs are scheduled at any Seniors Association locations.",
+            "location": "",
+            "dateStr": "November 17",
+            "timeStr": "8:30 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/569fd7a5-9905-4e34-b0f2-770421fc7e6d/Program%20Break.jpg"
+        },
+        {
+            "title": "Speed Friending",
+            "startDate": "2025-11-17T13:00:00Z",
+            "endDate": "2025-11-17T14:00:00Z",
+            "description": "Speed Friending  November 17, 1:00 pm Meet new people quickly in a fun, structured setting with speed friending, a platonic twist on speed dating. Rotate through brief conversations, connect with others, and potentially form lasting friendships in just minutes.",
+            "location": "",
+            "dateStr": "November 17",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/29174fb0-87d2-4f16-9d7e-a773dca5ff2a/Speed%20Friending.jpg"
+        },
+        {
+            "title": "Advanced Care Planning",
+            "startDate": "2025-11-17T16:30:00Z",
+            "endDate": "2025-11-17T17:30:00Z",
+            "description": "Advanced Care Planning November 17, 4:30 pm The process of thinking about, writing down, and sharing your wishes/instructions with loved ones for future health care treatment if you become incapable of deciding for yourself. Learn, listen, and ask questions to help you improve your plan.",
+            "location": "",
+            "dateStr": "November 17",
+            "timeStr": "4:30 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/0b47a5d9-7476-44c7-ad1f-fac13a579936/Advance%20Care%20Planning.jpg"
+        },
+        {
+            "title": "Fresh Food Market",
+            "startDate": "2025-11-18T10:00:00Z",
+            "endDate": "2025-11-18T11:00:00Z",
+            "description": "Fresh Food Market November 18, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
+            "location": "",
+            "dateStr": "November 18",
+            "timeStr": "10:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh%20Food%20Market.jpg"
+        },
+        {
+            "title": "Expressive Mark Making",
+            "startDate": "2025-11-18T13:00:00Z",
+            "endDate": "2025-11-18T14:00:00Z",
+            "description": "Expressive Mark Making  November 18, 1:00 pm Rekindle your passion for abstract art through expressive mark-making. This liberating workshop uses skill-building exercises and soul-nurturing prompts to unlock your subconscious, inspire creativity, and help you rediscover your unique, lyrical style.",
+            "location": "",
+            "dateStr": "November 18",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "Sharlena Wood",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/a538b972-f854-424b-b155-a1a48515fd6a/Learn%20&%20Play.jpg"
+        },
+        {
+            "title": "Cafe Franglish",
+            "startDate": "2025-11-18T14:30:00Z",
+            "endDate": "2025-11-18T15:30:00Z",
+            "description": "Cafe Franglish November 18, 2:30 pm Join a monthly bilingual meetup where Francophones and Anglophones connect chat, and build confidence in both languages through lively, judgement-free conversations on a variety of engaging topics.",
+            "location": "",
+            "dateStr": "November 18",
+            "timeStr": "2:30 pm",
+            "price": "free",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/5476e070-622a-45a3-972b-3e61bdc511f8/Cafe%20Franglish.jpg"
+        },
+        {
+            "title": "Tuesday at Tom's",
+            "startDate": "2025-11-18T15:00:00Z",
+            "endDate": "2025-11-18T16:00:00Z",
+            "description": "Tuesday at Tom's November 18, 3:00 pm New to town or looking to make new friends? Come and enjoy a relaxing conversation and beverage with other members.",
+            "location": "",
+            "dateStr": "November 18",
+            "timeStr": "3:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/c01d910e-fd8d-4135-9963-5b9a5126d1cb/Tuesdays%20at%20Tom's.jpg"
+        },
+        {
+            "title": "Learn Resilience",
+            "startDate": "2025-11-19T09:30:00Z",
+            "endDate": "2025-11-19T10:30:00Z",
+            "description": "Learn Resilience  November 19, 9:30 am Experience the award-winning documentary Resilience, then join Teach Resilience trainers from Kingston Community Health Centres for an engaging panel discussion of the film, speaking about trauma and its impact.",
+            "location": "",
+            "dateStr": "November 19",
+            "timeStr": "9:30 am",
+            "price": "",
+            "instructor": "",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured%20Speaker.jpg"
+        },
+        {
+            "title": "Vision Workshop",
+            "startDate": "2025-11-19T10:30:00Z",
+            "endDate": "2025-11-19T11:30:00Z",
+            "description": "Vision Workshop November 19, 10:30 am Rediscover purpose, passion, and joy in retirement. Learn simple tools to dream again, break free from "too late" thinking, and design a vibrant next chapter – filled with meaning, connection, and confidence.",
+            "location": "",
+            "dateStr": "November 19",
+            "timeStr": "10:30 am",
+            "price": "free",
+            "instructor": "Victoria Hirst",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/a538b972-f854-424b-b155-a1a48515fd6a/Learn%20&%20Play.jpg"
+        },
+        {
+            "title": "New Member Mixer",
+            "startDate": "2025-11-19T14:00:00Z",
+            "endDate": "2025-11-19T15:00:00Z",
+            "description": "New Member Mixer\t November 19, 2:00 pm Are you a new member and want to learn more about what we offer? Have a friend you'd like to join? Or do you just want to know more about the Seniors Association? Meet with staff and other members for a brief orientation, introduction to our database, light refreshments, and socializing.",
+            "location": "",
+            "dateStr": "November 19",
+            "timeStr": "2:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/5fcfa81b-02bf-4985-9b86-8ec565c0bb00/New%20Member%20Mixer.jpg"
+        },
+        {
+            "title": "Time for Tea",
+            "startDate": "2025-11-20T13:00:00Z",
+            "endDate": "2025-11-20T14:00:00Z",
+            "description": "Time for Tea November 20, 1:00 pm Explore the fine art of tea and food pairing with a certified tea sommelier. Discover how nuanced flavors enhance cuisine through expertly selected teas and culinary harmony over the Holiday season.",
+            "location": "",
+            "dateStr": "November 20",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured%20Speaker.jpg"
+        },
+        {
+            "title": "Book & Puzzle EXCHANGE",
+            "startDate": "2025-11-21T10:00:00Z",
+            "endDate": "2025-11-21T11:00:00Z",
+            "description": "Book & Puzzle EXCHANGE November 21, 10:00 am Bring up to 10 paperback books or puzzles to the Rendezvous Café to exchange for any in our library. Additional books or puzzles can be purchased for $2.",
+            "location": "",
+            "dateStr": "November 21",
+            "timeStr": "10:00 am",
+            "price": "$2",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/7948f41c-bcf4-42d1-97aa-5c7eb4245861/Book%20&%20Puzzle.jpg"
+        },
+        {
+            "title": "Annual General Meeting",
+            "startDate": "2025-11-21T11:00:00Z",
+            "endDate": "2025-11-21T12:00:00Z",
+            "description": "Annual General Meeting November 21, 11:00 am The theme for the 49th Annual General Meeting is Strategic Growth for Future Success and will be held at The Seniors Centre.",
+            "location": "",
+            "dateStr": "November 21",
+            "timeStr": "11:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/29174fb0-87d2-4f16-9d7e-a773dca5ff2a/Speed%20Friending.jpg"
+        },
+        {
+            "title": "December Vista Available for Pickup",
+            "startDate": "2025-11-21T12:00:00Z",
+            "endDate": "2025-11-21T13:00:00Z",
+            "description": "December Vista Available for Pickup November 21, 12:00 pm Volunteer Deliverers pick up their bundles to hand deliver and members can pick up their individual copy.",
+            "location": "",
+            "dateStr": "November 21",
+            "timeStr": "12:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/8c8f92ce-34ef-442e-bab9-a06836704f9d/Vista.jpg"
+        },
+        {
+            "title": "Holiday Artisan Fair",
+            "startDate": "2025-11-22T10:00:00Z",
+            "endDate": "2025-11-22T11:00:00Z",
+            "description": "Holiday Artisan Fair November 22, 10:00 am Something for everyone!",
+            "location": "",
+            "dateStr": "November 22",
+            "timeStr": "10:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/a278053e-4f35-40af-a2f6-610cfd893930/Holiday%20Artisan%20Fair.jpg"
+        },
+        {
+            "title": "Simplify Your Digital Life",
+            "startDate": "2025-11-24T12:00:00Z",
+            "endDate": "2025-11-24T13:00:00Z",
+            "description": "Simplify Your Digital Life  November 24, 12:00 pm Feeling overwhelmed by your online accounts, passwords, and subscriptions? This presentation offers practical strategies to simplify your digital life. Learn to organize accounts, manage passwords, use cloud storage effectively, and understand your subscriptions. We'll also explore options for closing services you no longer need – empowering you to take control of your digital world.",
+            "location": "Online",
+            "dateStr": "November 24",
+            "timeStr": "12:00 pm",
+            "price": "",
+            "instructor": "Jarda Zborovsy",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/cb66e913-8ddb-4252-a74c-4302cec7540f/PFH%20Wednesday%20PM.jpg"
+        },
+        {
+            "title": "Legal Advice",
+            "startDate": "2025-11-24T13:00:00Z",
+            "endDate": "2025-11-24T14:00:00Z",
+            "description": "Legal Advice November 24, 1:00 pm A practicing lawyer provides confidential advice by phone. Appointment required (20 minutes max).",
+            "location": "",
+            "dateStr": "November 24",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "Call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/ff281879-79a3-45e3-ab4c-b54f69a2e371/Legal%20Advice.JPG"
+        },
+        {
+            "title": "Fresh Food Market",
+            "startDate": "2025-11-25T10:00:00Z",
+            "endDate": "2025-11-25T11:00:00Z",
+            "description": "Fresh Food Market November 25, 10:00 am Lionhearts brings fresh, affordable produce and chef-created gourmet healthy options to The Seniors Centre to help you keep your belly full without emptying your wallet.",
+            "location": "",
+            "dateStr": "November 25",
+            "timeStr": "10:00 am",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh%20Food%20Market.jpg"
+        },
+        {
+            "title": "Holiday Lunch",
+            "startDate": "2025-11-25T12:00:00Z",
+            "endDate": "2025-11-25T13:00:00Z",
+            "description": "Holiday Lunch November 25, 12:00 pm Tomato Basil Soup, Roast Turkey, dressing, mashed potatoes, vegetables, cranberry sauce, and dessert!",
+            "location": "Online",
+            "dateStr": "November 25",
+            "timeStr": "12:00 pm",
+            "price": "$25",
+            "instructor": "",
+            "registration": "call 613.548.7810",
+            "image_url": "https://cms.seniorskingston.ca/assets/e09e616f-444c-4f2d-989a-32fa84b34083/Birthday.jpg"
+        },
+        {
+            "title": "Domino Theatre Dress Rehearsal: Miss Bennet: Christmas at Pemberley",
+            "startDate": "2025-11-26T19:30:00Z",
+            "endDate": "2025-11-26T20:30:00Z",
+            "description": "Domino Theatre Dress Rehearsal: Miss Bennet: Christmas at Pemberley November 26, 7:30 pm Celebrate the holidays with a witty sequel to Pride and Prejudice, where overlooked Mary Bennet discovers romance at Pemberley. Full of heart, humour, and Regency charm, this play delights.",
+            "location": "Online",
+            "dateStr": "November 26",
+            "timeStr": "7:30 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/365bab44-7685-4223-8319-d8dea27b3484/Domino%20Dress%20Rehearsal.jpg"
+        },
+        {
+            "title": "Anxiety Unlocked",
+            "startDate": "2025-11-27T13:00:00Z",
+            "endDate": "2025-11-27T14:00:00Z",
+            "description": "Anxiety Unlocked  November 27, 1:00 pm Discover fun, easy-to-use tools that bring quick relief from anxiety. Learn simple, effective techniques you may not know, designed to calm your mind, ease stress, and restore balance anytime, anywhere.",
+            "location": "",
+            "dateStr": "November 27",
+            "timeStr": "1:00 pm",
+            "price": "",
+            "instructor": "",
+            "registration": "",
+            "image_url": "https://cms.seniorskingston.ca/assets/1444a77f-b919-494d-bfe1-87ae130cbdf5/Featured%20Speaker.jpg"
         }
     ]
 
@@ -1048,8 +1644,8 @@ def extract_events_from_scripts(soup):
                                     if event:
                                         events.append(event)
                             except:
-                                continue
-                                
+                continue
+        
         return events[:20]  # Limit to 20 events
         
     except Exception as e:
@@ -1147,8 +1743,8 @@ def create_event_from_text(text):
 
 def get_november_2025_events_fallback():
     """Return comprehensive November 2025 events as fallback"""
-    return [
-        {
+        return [
+            {
             'title': 'Holiday Artisan Fair',
             'startDate': '2025-11-22T10:00:00Z',
             'endDate': '2025-11-22T16:00:00Z',
@@ -1858,40 +2454,40 @@ def get_events(request: Request):
         # Do NOT scrape anymore. Only return stored events.
         print("⏸️ Scraping disabled. Using stored events only.")
         all_events = stored_events
-    
-    # Fix image URLs and clean titles for all events
+            
+            # Fix image URLs and clean titles for all events
     if all_events:
-        for event in all_events:
-            if not event.get('image_url') or event.get('image_url') == '/assets/event-schedule-banner.png':
-                event['image_url'] = '/logo192.png'  # Use accessible logo as banner
-            
-            # Clean up titles that contain descriptions
-            title = event.get('title', '')
-            description = event.get('description', '')
-            
-            # If title is very long and contains description, extract just the title part
-            if len(title) > 50:  # Lower threshold to catch more cases
-                import re
-                # Look for pattern like "Event Name October 24, 1:30 pm Description"
-                # Try multiple patterns to extract just the event name
-                patterns = [
-                    r'^([^0-9]+?)\s+\w+\s+\d+,\s+\d+:\d+\s+[ap]m',  # "Event Name October 24, 1:30 pm"
-                    r'^([^0-9]+?)\s+\w+\s+\d+',  # "Event Name October 24"
-                    r'^([^0-9]+?)\s+\d+:\d+\s+[ap]m',  # "Event Name 1:30 pm"
-                    r'^([^0-9]+?)\s+\d+',  # "Event Name 24"
-                ]
+            for event in all_events:
+                if not event.get('image_url') or event.get('image_url') == '/assets/event-schedule-banner.png':
+                    event['image_url'] = '/logo192.png'  # Use accessible logo as banner
                 
-                for pattern in patterns:
-                    match = re.match(pattern, title)
-                    if match:
-                        clean_title = match.group(1).strip()
-                        # Remove trailing punctuation and extra spaces
-                        clean_title = re.sub(r'[,\s]+$', '', clean_title)
-                        if len(clean_title) > 3:  # Make sure we have a meaningful title
-                            event['title'] = clean_title
-                            print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
-                            break
-    
+                # Clean up titles that contain descriptions
+                title = event.get('title', '')
+                description = event.get('description', '')
+                
+                # If title is very long and contains description, extract just the title part
+                if len(title) > 50:  # Lower threshold to catch more cases
+                    import re
+                    # Look for pattern like "Event Name October 24, 1:30 pm Description"
+                    # Try multiple patterns to extract just the event name
+                    patterns = [
+                        r'^([^0-9]+?)\s+\w+\s+\d+,\s+\d+:\d+\s+[ap]m',  # "Event Name October 24, 1:30 pm"
+                        r'^([^0-9]+?)\s+\w+\s+\d+',  # "Event Name October 24"
+                        r'^([^0-9]+?)\s+\d+:\d+\s+[ap]m',  # "Event Name 1:30 pm"
+                        r'^([^0-9]+?)\s+\d+',  # "Event Name 24"
+                    ]
+                    
+                    for pattern in patterns:
+                        match = re.match(pattern, title)
+                        if match:
+                            clean_title = match.group(1).strip()
+                            # Remove trailing punctuation and extra spaces
+                            clean_title = re.sub(r'[,\s]+$', '', clean_title)
+                            if len(clean_title) > 3:  # Make sure we have a meaningful title
+                                event['title'] = clean_title
+                                print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
+                                break
+            
     # If no events were processed, provide fallback
     if 'all_events' not in locals() or len(all_events) == 0:
         print("📅 No events found, using known events as fallback")
@@ -2326,13 +2922,13 @@ def update_event(event_id: str, event_data: dict):
         
         # Check editable_events first
         if event_id in editable_events:
-            editable_events[event_id].update({
-                'title': event_data.get('title', editable_events[event_id]['title']),
-                'startDate': event_data.get('startDate', editable_events[event_id]['startDate']),
-                'endDate': event_data.get('endDate', editable_events[event_id]['endDate']),
-                'description': event_data.get('description', editable_events[event_id]['description']),
-                'location': event_data.get('location', editable_events[event_id]['location'])
-            })
+        editable_events[event_id].update({
+            'title': event_data.get('title', editable_events[event_id]['title']),
+            'startDate': event_data.get('startDate', editable_events[event_id]['startDate']),
+            'endDate': event_data.get('endDate', editable_events[event_id]['endDate']),
+            'description': event_data.get('description', editable_events[event_id]['description']),
+            'location': event_data.get('location', editable_events[event_id]['location'])
+        })
             updated = True
         
         # Check stored_events (by matching title and startDate if event_id is index-based)
@@ -2767,7 +3363,7 @@ async def remove_duplicates_endpoint():
         "original_count": original_count,
         "unique_count": len(unique_events),
         "duplicates_removed": duplicates_removed
-    }
+        }
 
 @app.post("/api/scrape-events")
 async def scrape_events_endpoint():
