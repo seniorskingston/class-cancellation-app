@@ -563,63 +563,20 @@ init_database()
 excel_last_modified = None
 
 def check_and_import_excel():
-    """Check if Excel file has been modified and re-import if needed"""
+    """Check if Excel file has been modified and re-import if needed - DISABLED FOR PERSISTENCE"""
     global excel_last_modified
     
+    # DISABLED: This function was causing Excel data to revert on Render
+    print("⚠️ Excel auto-import DISABLED to prevent data reversion")
+    print("📊 Excel data will persist as uploaded")
+    print("💡 Use manual Excel upload in Admin Panel if needed")
+    return
+    
+    # Original function code below (commented out to prevent data reversion):
     # Define Excel file paths
-    EXCEL_PATH = "Class Cancellation App.xlsx"
-    BACKUP_EXCEL_PATH = "/tmp/backup_Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
-    
-    # Check if we're in cloud environment and need to restore from backup
-    if os.getenv('RENDER') and not os.path.exists(EXCEL_PATH) and os.path.exists(BACKUP_EXCEL_PATH):
-        print("🔄 Restoring Excel file from backup...")
-        try:
-            import shutil
-            shutil.copy2(BACKUP_EXCEL_PATH, EXCEL_PATH)
-            print("✅ Excel file restored from backup")
-        except Exception as e:
-            print(f"❌ Error restoring Excel file: {e}")
-    
-    # Check if Excel file exists and import it
-    if os.path.exists(EXCEL_PATH):
-        current_modified = os.path.getmtime(EXCEL_PATH)
-        
-        if excel_last_modified is None or current_modified > excel_last_modified:
-            print("📁 Excel file modified, auto-importing...")
-            try:
-                import_excel_data(EXCEL_PATH)
-                excel_last_modified = current_modified
-                print("✅ Excel file auto-imported successfully")
-                
-                # Backup the Excel file to persistent storage
-                if os.getenv('RENDER'):
-                    try:
-                        import shutil
-                        shutil.copy2(EXCEL_PATH, BACKUP_EXCEL_PATH)
-                        print("✅ Excel file backed up to persistent storage")
-                    except Exception as e:
-                        print(f"⚠️ Could not backup Excel file: {e}")
-                        
-            except Exception as e:
-                print(f"❌ Error auto-importing Excel file: {e}")
-    else:
-        print("⚠️ Excel file not found - will use existing database if available")
-        
-        # If no Excel file and we're in cloud, try to use existing database
-        if os.getenv('RENDER'):
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
-            try:
-                cursor.execute("SELECT COUNT(*) FROM programs")
-                count = cursor.fetchone()[0]
-                if count > 0:
-                    print(f"✅ Using existing database with {count} records")
-                else:
-                    print("⚠️ No data available - please upload Excel file")
-            except Exception:
-                print("⚠️ Database not initialized - please upload Excel file")
-            finally:
-                conn.close()
+    # EXCEL_PATH = "Class Cancellation App.xlsx"
+    # BACKUP_EXCEL_PATH = "/tmp/backup_Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
+    # ... rest of function commented out
 
 def scheduled_daily_report():
     """Send daily analytics report (called by scheduler)"""
@@ -651,9 +608,9 @@ def scheduled_weekly_report():
     except Exception as e:
         print(f"❌ Error in scheduled weekly report: {e}")
 
-# Auto-import Excel file on startup if it exists
-print("🚀 Starting up - checking for Excel file...")
-check_and_import_excel()
+# Auto-import Excel file on startup if it exists - DISABLED FOR PERSISTENCE
+print("🚀 Starting up - Excel auto-import DISABLED to prevent data reversion")
+# check_and_import_excel()  # DISABLED: This was causing data to revert
 
 # Define lifespan handler for proper scheduler lifecycle
 @asynccontextmanager
@@ -2272,6 +2229,45 @@ async def update_event_banner(event_title: str, request: Request):
         traceback.print_exc()
         return {"success": False, "error": str(e)}
 
+@app.post("/api/excel/upload-manual")
+async def upload_excel_manual(file: UploadFile = File(...)):
+    """Manual Excel upload that persists data"""
+    try:
+        print(f"📊 Manual Excel upload: {file.filename}")
+        
+        # Read Excel file
+        contents = await file.read()
+        
+        # Save to persistent location
+        EXCEL_PATH = "Class Cancellation App.xlsx"
+        BACKUP_EXCEL_PATH = "/tmp/backup_Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
+        
+        # Save original file
+        with open(EXCEL_PATH, 'wb') as f:
+            f.write(contents)
+        
+        # Save backup for persistence
+        if os.getenv('RENDER'):
+            import shutil
+            shutil.copy2(EXCEL_PATH, BACKUP_EXCEL_PATH)
+            print(f"✅ Excel backed up to: {BACKUP_EXCEL_PATH}")
+        
+        # Import data
+        import_excel_data(EXCEL_PATH)
+        
+        return {
+            "success": True,
+            "message": f"Excel file uploaded and imported successfully. Data will persist.",
+            "filename": file.filename
+        }
+        
+    except Exception as e:
+        print(f"❌ Error uploading Excel: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 @app.post("/api/events/clear")
 async def clear_events_endpoint():
     """Clear all stored events"""
@@ -3711,10 +3707,11 @@ def get_cancellations(
 
 @app.post("/api/refresh")
 async def refresh_data():
-    """Manual refresh endpoint - checks and re-imports Excel if needed, returns current data count"""
+    """Manual refresh endpoint - DISABLED to prevent data reversion"""
     try:
-        # Force check and import Excel file
-        check_and_import_excel()
+        # DISABLED: Force check and import Excel file - was causing data reversion
+        # check_and_import_excel()
+        print("⚠️ Manual refresh DISABLED to prevent data reversion")
         
         # Get current data count
         conn = sqlite3.connect(DB_PATH)
@@ -3740,8 +3737,9 @@ async def force_refresh_data():
         # Recreate database with new schema
         init_database()
         
-        # Re-import Excel data
-        check_and_import_excel()
+        # DISABLED: Re-import Excel data - was causing data reversion
+        # check_and_import_excel()
+        print("⚠️ Force refresh DISABLED to prevent data reversion")
         
         # Get current data count
         conn = sqlite3.connect(DB_PATH)
