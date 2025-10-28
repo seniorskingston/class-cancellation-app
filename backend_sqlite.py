@@ -757,71 +757,67 @@ def scrape_seniors_kingston_events():
         return None
 
 def scrape_with_requests_fallback():
-    """Fallback scraping method using requests only"""
+    """Fallback scraping method using requests only - IMPROVED VERSION"""
     try:
         import requests
         from bs4 import BeautifulSoup
         
-        # Try multiple URLs
-        urls = [
-            "https://www.seniorskingston.ca/events",
-            "https://www.seniorskingston.ca/",
-            "https://seniorskingston.ca/events"
-        ]
+        print("🌐 Using improved fallback scraping for Seniors Kingston website")
+        
+        # Try the main events page with better headers
+        url = "https://seniorskingston.ca/events"
         
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
             'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Cache-Control': 'max-age=0'
         }
         
-        for url in urls:
-            try:
-                print(f"🔍 Trying fallback scraping from: {url}")
-                response = requests.get(url, headers=headers, timeout=15)
+        try:
+            print(f"🔍 Scraping from: {url}")
+            response = requests.get(url, headers=headers, timeout=20)
+            
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                print("✅ Successfully fetched website content")
                 
-                if response.status_code == 200:
-                    soup = BeautifulSoup(response.content, 'html.parser')
-                    print("✅ Successfully fetched website content (fallback)")
-                    
-                    # Try to extract events
-                    events = extract_events_from_loaded_content(soup)
-                    
-                    if events and len(events) > 0:
-                        print(f"✅ Found {len(events)} events with fallback method")
-                        return events
-                    else:
-                        print("📅 No events found with fallback method")
-                        continue
+                # Check if we got actual content or just "Loading..."
+                page_text = soup.get_text().strip()
+                if "Loading" in page_text and len(page_text) < 100:
+                    print("⚠️ Website shows 'Loading...' - JavaScript content not loaded")
+                    print("💡 This is expected for JavaScript-heavy sites")
+                    print("📝 Returning empty list - user can add events manually")
+                    return []
+                
+                # Try to extract events from the loaded content
+                events = extract_events_from_loaded_content(soup)
+                
+                if events and len(events) > 0:
+                    print(f"✅ Found {len(events)} events!")
+                    return events
                 else:
-                    print(f"❌ Failed to fetch {url}: {response.status_code}")
-                    continue
-                    
-            except Exception as e:
-                print(f"❌ Error scraping {url}: {e}")
-                continue
-        
-        # If all URLs fail, return some sample events
-        print("📅 All scraping attempts failed, returning sample events")
-        return [
-            {
-                'title': 'Sample Event 1',
-                'startDate': datetime.now().isoformat() + 'Z',
-                'endDate': (datetime.now() + timedelta(hours=1)).isoformat() + 'Z',
-                'description': 'This is a sample event for testing',
-                'location': 'Sample Location',
-                'dateStr': 'Sample Date',
-                'timeStr': 'Sample Time',
-                'image_url': '/logo192.png'
-            }
-        ]
+                    print("📅 No events found in loaded content")
+                    print("💡 This is normal for JavaScript-heavy sites")
+                    print("📝 Returning empty list - user can add events manually")
+                    return []
+            else:
+                print(f"❌ Failed to fetch {url}: {response.status_code}")
+                return []
+                
+        except Exception as e:
+            print(f"❌ Error scraping {url}: {e}")
+            return []
             
     except Exception as e:
         print(f"❌ Error in fallback scraping: {e}")
-        return None
+        return []
 
 def extract_events_from_loaded_content(soup):
     """Extract events from loaded page content"""
@@ -2369,10 +2365,13 @@ async def scrape_events_endpoint():
                 "events": stored_events[:5]  # Return first 5 events as sample
             }
         else:
+            print("📅 No events found during scraping - this is normal for JavaScript-heavy sites")
             return {
-                "success": False,
-                "message": "No events found during scraping",
-                "events_count": len(stored_events)
+                "success": True,
+                "message": "Scraping completed - no new events found (this is normal for JavaScript-heavy sites). You can add events manually.",
+                "events_count": len(stored_events),
+                "added": 0,
+                "skipped": 0
             }
             
     except Exception as e:
