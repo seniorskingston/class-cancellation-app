@@ -2326,42 +2326,90 @@ async def scrape_events_endpoint():
         scraped_events = scrape_seniors_kingston_events()
         
         if scraped_events and len(scraped_events) > 0:
-            # Merge with existing events (avoid duplicates)
+            # SAFE MERGE: Only add new events, never overwrite existing ones
             global stored_events
             
-            # Create a set to track existing events by (title, startDate)
-            existing_events_dict = {}
-            for event in stored_events:
-                key = (event.get('title', ''), event.get('startDate', ''))
-                existing_events_dict[key] = event
+            print(f"🔍 Starting safe merge: {len(stored_events)} existing events, {len(scraped_events)} scraped events")
             
-            # Track counts
+            # Create a comprehensive tracking system for existing events
+            existing_events_dict = {}
+            for i, event in enumerate(stored_events):
+                # Use multiple keys to prevent duplicates more effectively
+                title = event.get('title', '').strip().lower()
+                start_date = event.get('startDate', '').strip()
+                location = event.get('location', '').strip().lower()
+                
+                # Primary key: title + startDate
+                primary_key = (title, start_date)
+                # Secondary key: title + location (for events at same time, different locations)
+                secondary_key = (title, location)
+                
+                existing_events_dict[primary_key] = {
+                    'event': event,
+                    'index': i,
+                    'secondary_key': secondary_key
+                }
+            
+            # Track counts and details
             added_count = 0
             skipped_count = 0
+            skipped_details = []
             
-            # Add only new events (no duplicates)
+            # Add only completely new events (no duplicates)
             for new_event in scraped_events:
-                key = (new_event.get('title', ''), new_event.get('startDate', ''))
-                if key not in existing_events_dict:
-                    stored_events.append(new_event)
-                    existing_events_dict[key] = new_event
-                    added_count += 1
-                else:
+                new_title = new_event.get('title', '').strip().lower()
+                new_start_date = new_event.get('startDate', '').strip()
+                new_location = new_event.get('location', '').strip().lower()
+                
+                # Check for duplicates using multiple criteria
+                primary_key = (new_title, new_start_date)
+                secondary_key = (new_title, new_location)
+                
+                is_duplicate = False
+                duplicate_reason = ""
+                
+                # Check primary key (title + date)
+                if primary_key in existing_events_dict:
+                    is_duplicate = True
+                    duplicate_reason = f"Same title '{new_event.get('title', '')}' and date '{new_start_date}'"
+                
+                # Check secondary key (title + location) if primary doesn't match
+                elif any(existing['secondary_key'] == secondary_key for existing in existing_events_dict.values()):
+                    is_duplicate = True
+                    duplicate_reason = f"Same title '{new_event.get('title', '')}' and location '{new_event.get('location', '')}'"
+                
+                if is_duplicate:
                     skipped_count += 1
-                    print(f"⚠️ Skipping duplicate event: {new_event.get('title', 'Unknown')} on {new_event.get('startDate', 'Unknown')}")
+                    skipped_details.append(f"⚠️ Skipped: {duplicate_reason}")
+                    print(f"⚠️ Skipping duplicate event: {new_event.get('title', 'Unknown')} - {duplicate_reason}")
+                else:
+                    # Add new event
+                    stored_events.append(new_event)
+                    existing_events_dict[primary_key] = {
+                        'event': new_event,
+                        'index': len(stored_events) - 1,
+                        'secondary_key': secondary_key
+                    }
+                    added_count += 1
+                    print(f"✅ Added new event: {new_event.get('title', 'Unknown')} on {new_start_date}")
             
-            print(f"✅ Successfully merged {added_count} new events (skipped {skipped_count} duplicates)")
-            print(f"📊 Total events now: {len(stored_events)}")
+            print(f"✅ SAFE MERGE COMPLETE:")
+            print(f"   📊 Added {added_count} new events")
+            print(f"   🚫 Skipped {skipped_count} duplicates")
+            print(f"   📈 Total events now: {len(stored_events)}")
+            print(f"   🔒 Existing events preserved (no overwrites)")
             
             # Save to persistent storage
             save_stored_events()
             
             return {
                 "success": True,
-                "message": f"Successfully added {added_count} new events ({skipped_count} duplicates skipped)",
+                "message": f"✅ Safe merge complete! Added {added_count} new events, skipped {skipped_count} duplicates. Your existing events are preserved.",
                 "events_count": len(stored_events),
                 "added": added_count,
                 "skipped": skipped_count,
+                "preserved": len(stored_events) - added_count,
+                "skipped_details": skipped_details[:5],  # Show first 5 skipped details
                 "events": stored_events[:5]  # Return first 5 events as sample
             }
         else:
