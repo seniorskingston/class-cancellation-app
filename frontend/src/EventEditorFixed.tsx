@@ -349,6 +349,124 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             </div>
           </div>
 
+          {/* SUPER PROMINENT IMAGE EDITOR */}
+          <div style={{ 
+            border: '5px solid #ff0000', 
+            padding: '25px', 
+            borderRadius: '15px',
+            backgroundColor: '#ffe6e6',
+            marginBottom: '30px',
+            position: 'relative',
+            zIndex: 9999,
+            boxShadow: '0 0 20px rgba(255,0,0,0.3)'
+          }}>
+            <div style={{ 
+              position: 'absolute',
+              top: '-15px',
+              left: '25px',
+              backgroundColor: '#ff0000',
+              color: 'white',
+              padding: '8px 20px',
+              borderRadius: '20px',
+              fontSize: '1rem',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.3)'
+            }}>
+              🖼️ IMAGE EDITOR - CHANGE EVENT BANNERS HERE
+            </div>
+            <label style={{ 
+              fontSize: '1.4rem', 
+              fontWeight: 'bold', 
+              color: '#ff0000', 
+              marginBottom: '20px', 
+              display: 'block',
+              marginTop: '15px',
+              textAlign: 'center'
+            }}>
+              🖼️ EVENT BANNER/IMAGE URL 🖼️
+            </label>
+            <input
+              type="text"
+              value={newEvent.image_url || ''}
+              onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
+              placeholder="Enter image URL: /event-schedule-banner.png or https://example.com/image.jpg"
+              style={{ 
+                width: '100%', 
+                padding: '20px', 
+                fontSize: '1.2rem',
+                border: '4px solid #ff0000',
+                borderRadius: '10px',
+                marginBottom: '20px',
+                backgroundColor: 'white',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+              }}
+            />
+            <div style={{ 
+              fontSize: '1.1rem', 
+              color: '#ff0000', 
+              marginBottom: '20px',
+              fontWeight: 'bold',
+              backgroundColor: '#fff0f0',
+              padding: '15px',
+              borderRadius: '8px',
+              border: '2px solid #ff0000',
+              textAlign: 'center'
+            }}>
+              💡 Enter a URL or path to the event banner image (e.g., /event-schedule-banner.png)
+            </div>
+            {newEvent.image_url && (
+              <div style={{ 
+                marginTop: '25px',
+                border: '4px solid #ff0000',
+                borderRadius: '15px',
+                padding: '25px',
+                backgroundColor: 'white',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+              }}>
+                <div style={{ 
+                  marginBottom: '20px', 
+                  fontWeight: 'bold', 
+                  color: '#ff0000',
+                  fontSize: '1.3rem'
+                }}>
+                  📸 IMAGE PREVIEW:
+                </div>
+                <img 
+                  src={newEvent.image_url} 
+                  alt="Event banner preview"
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '300px', 
+                    borderRadius: '15px',
+                    border: '4px solid #ddd',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+                  }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    const parent = (e.target as HTMLImageElement).parentElement;
+                    if (parent) {
+                      const errorMsg = document.createElement('div');
+                      errorMsg.textContent = '❌ Image not found or invalid URL';
+                      errorMsg.style.color = '#d32f2f';
+                      errorMsg.style.fontWeight = 'bold';
+                      errorMsg.style.fontSize = '1.2rem';
+                      errorMsg.style.padding = '25px';
+                      errorMsg.style.border = '3px solid #d32f2f';
+                      errorMsg.style.borderRadius = '10px';
+                      errorMsg.style.backgroundColor = '#ffebee';
+                      parent.appendChild(errorMsg);
+                    }
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Start Date *</label>
