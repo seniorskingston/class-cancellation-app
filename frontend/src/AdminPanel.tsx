@@ -354,22 +354,92 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                       🚫 Quick Fix Events (DISABLED)
                     </button>
                     <button 
-                      onClick={() => {
-                        if (window.confirm('Are you sure you want to clear all events?')) {
-                          setUploadMessage('🗑️ All events cleared successfully!');
+                      onClick={async () => {
+                        try {
+                          setUploadMessage('📥 Downloading events file...');
+                          const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/export');
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = 'events_export.json';
+                          document.body.appendChild(a);
+                          a.click();
+                          window.URL.revokeObjectURL(url);
+                          document.body.removeChild(a);
+                          setUploadMessage('✅ Events file downloaded successfully!');
+                          setTimeout(() => setUploadMessage(''), 3000);
+                        } catch (error) {
+                          setUploadMessage(`❌ Download failed: ${error.message}`);
+                          setTimeout(() => setUploadMessage(''), 5000);
                         }
                       }}
                       style={{
-                        background: '#dc3545',
+                        background: '#28a745',
                         color: 'white',
                         border: 'none',
                         padding: '12px 16px',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        fontWeight: 'bold'
                       }}
                     >
-                      🗑️ Clear All Events
+                      📥 Download Events File
+                    </button>
+                    
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        
+                        try {
+                          setUploadMessage('📤 Uploading events file...');
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          
+                          const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/import', {
+                            method: 'POST',
+                            body: formData
+                          });
+                          
+                          const result = await response.json();
+                          
+                          if (result.success) {
+                            setUploadMessage(`✅ ${result.message}`);
+                            setTimeout(() => setUploadMessage(''), 5000);
+                          } else {
+                            setUploadMessage(`❌ Upload failed: ${result.error}`);
+                            setTimeout(() => setUploadMessage(''), 5000);
+                          }
+                        } catch (error) {
+                          setUploadMessage(`❌ Upload error: ${error.message}`);
+                          setTimeout(() => setUploadMessage(''), 5000);
+                        }
+                        
+                        // Reset file input
+                        e.target.value = '';
+                      }}
+                      style={{ display: 'none' }}
+                      id="events-file-input"
+                    />
+                    
+                    <button 
+                      onClick={() => document.getElementById('events-file-input')?.click()}
+                      style={{
+                        background: '#17a2b8',
+                        color: 'white',
+                        border: 'none',
+                        padding: '12px 16px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      📤 Upload Events File
                     </button>
                     <button 
                       onClick={() => {
