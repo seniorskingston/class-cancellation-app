@@ -911,8 +911,8 @@ def scrape_with_smart_requests():
         print("💡 The website likely uses JavaScript to load events dynamically")
         print("📝 Returning empty list - user should add events manually")
         return []
-                    
-            except Exception as e:
+        
+    except Exception as e:
         print(f"❌ Error in real scraping attempt: {e}")
         return []
 
@@ -1063,7 +1063,7 @@ def get_comprehensive_november_events():
     print("📅 Using hardcoded events fallback (45 events from Seniors Kingston)")
     
     # Real events from Seniors Kingston website (scraped on Oct 25-26, 2025)
-        return [
+    return [
             {
             "title": "Sound Escapes: Kenny & Dolly",
             "startDate": "2025-10-24T13:30:00Z",
@@ -2959,13 +2959,13 @@ def update_event(event_id: str, event_data: dict):
         
         # Check editable_events first
         if event_id in editable_events:
-        editable_events[event_id].update({
-            'title': event_data.get('title', editable_events[event_id]['title']),
-            'startDate': event_data.get('startDate', editable_events[event_id]['startDate']),
-            'endDate': event_data.get('endDate', editable_events[event_id]['endDate']),
-            'description': event_data.get('description', editable_events[event_id]['description']),
-            'location': event_data.get('location', editable_events[event_id]['location'])
-        })
+            editable_events[event_id].update({
+                'title': event_data.get('title', editable_events[event_id]['title']),
+                'startDate': event_data.get('startDate', editable_events[event_id]['startDate']),
+                'endDate': event_data.get('endDate', editable_events[event_id]['endDate']),
+                'description': event_data.get('description', editable_events[event_id]['description']),
+                'location': event_data.get('location', editable_events[event_id]['location'])
+            })
             updated = True
         
         # Check stored_events (by matching title and startDate if event_id is index-based)
