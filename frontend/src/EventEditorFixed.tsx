@@ -236,20 +236,20 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
           </button>
         </div>
 
-        {/* Events Management Section */}
+        {/* Scraping Section */}
         <div style={{
-          background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+          background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
           padding: '20px',
           borderRadius: '12px',
           marginBottom: '20px',
-          border: '2px solid #4caf50'
+          border: '2px solid #2196f3'
         }}>
-          <h3 style={{ color: '#2e7d32', marginBottom: '15px', fontSize: '1.3rem' }}>
-            📅 Events Management
+          <h3 style={{ color: '#1976d2', marginBottom: '15px', fontSize: '1.3rem' }}>
+            🌐 Scrape Events from Seniors Kingston Website
           </h3>
           <p style={{ color: '#424242', marginBottom: '15px', fontSize: '1rem' }}>
-            The Seniors Kingston website uses JavaScript to load events, making automatic scraping difficult. 
-            Use the options below to manage your events:
+            Click the button below to scrape the latest events from the Seniors Kingston website. 
+            The events will be loaded into the editor below for you to review and edit.
           </p>
           
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -257,20 +257,36 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
               onClick={async () => {
                 try {
                   setLoading(true);
-                  setMessage('🔄 Loading current events...');
+                  setMessage('🔄 Scraping events from Seniors Kingston website...');
                   setMessageType('');
                   
-                  await loadEvents();
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events', {
+                    method: 'POST'
+                  });
                   
-                  setMessage(`✅ Loaded ${events.length} events from storage`);
-                  setMessageType('success');
+                  const result = await response.json();
                   
-                  setTimeout(() => {
-                    setMessage('');
-                    setMessageType('');
-                  }, 3000);
+                  if (result.success) {
+                    setMessage(`✅ Successfully scraped ${result.events_count} events! Loading into editor...`);
+                    setMessageType('success');
+                    
+                    // Reload events to show the newly scraped ones
+                    await loadEvents();
+                    
+                    setTimeout(() => {
+                      setMessage('');
+                      setMessageType('');
+                    }, 3000);
+                  } else {
+                    setMessage(`❌ Scraping failed: ${result.error}`);
+                    setMessageType('error');
+                    setTimeout(() => {
+                      setMessage('');
+                      setMessageType('');
+                    }, 5000);
+                  }
                 } catch (error) {
-                  setMessage(`❌ Error loading events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setMessage(`❌ Error scraping events: ${error instanceof Error ? error.message : 'Unknown error'}`);
                   setMessageType('error');
                   setTimeout(() => {
                     setMessage('');
@@ -282,99 +298,72 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
               }}
               disabled={loading}
               style={{
-                background: '#4caf50',
+                background: '#2196f3',
                 color: 'white',
                 border: 'none',
-                padding: '10px 20px',
+                padding: '12px 24px',
                 borderRadius: '8px',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '0.9rem',
+                fontSize: '1rem',
                 fontWeight: 'bold',
-                opacity: loading ? 0.7 : 1
+                opacity: loading ? 0.7 : 1,
+                boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)'
               }}
             >
-              📥 Load Current Events
-            </button>
-            
-            <button 
-              onClick={() => {
-                const newEvent = {
-                  title: '',
-                  startDate: '',
-                  endDate: '',
-                  description: '',
-                  location: '',
-                  dateStr: '',
-                  timeStr: '',
-                  image_url: '/event-schedule-banner.png',
-                  price: '',
-                  instructor: '',
-                  registration: ''
-                };
-                setNewEvent(newEvent);
-                setEditingIndex(null);
-                setMessage('✅ Ready to add new event - fill in the details below');
-                setMessageType('success');
-                setTimeout(() => {
-                  setMessage('');
-                  setMessageType('');
-                }, 3000);
-              }}
-              style={{
-                background: '#ff9800',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                fontWeight: 'bold'
-              }}
-            >
-              ➕ Add New Event
+              {loading ? '🔄 Scraping...' : '🌐 Scrape Events from Website'}
             </button>
             
             <button 
               onClick={async () => {
                 try {
-                  setSaving(true);
-                  setMessage('💾 Saving all events...');
+                  setLoading(true);
+                  setMessage('📥 Downloading scraped events file...');
                   setMessageType('');
                   
-                  await saveAllEvents();
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/export');
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'scraped_events.json';
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
                   
-                  setMessage('✅ All events saved successfully!');
+                  setMessage('✅ Events file downloaded! You can edit it locally and upload it back.');
                   setMessageType('success');
                   
                   setTimeout(() => {
                     setMessage('');
                     setMessageType('');
-                  }, 3000);
+                  }, 5000);
                 } catch (error) {
-                  setMessage(`❌ Error saving events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setMessage(`❌ Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
                   setMessageType('error');
                   setTimeout(() => {
                     setMessage('');
                     setMessageType('');
                   }, 5000);
                 } finally {
-                  setSaving(false);
+                  setLoading(false);
                 }
               }}
-              disabled={saving}
+              disabled={loading}
               style={{
-                background: '#2196f3',
+                background: '#28a745',
                 color: 'white',
                 border: 'none',
-                padding: '10px 20px',
+                padding: '12px 24px',
                 borderRadius: '8px',
-                cursor: saving ? 'not-allowed' : 'pointer',
-                fontSize: '0.9rem',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '1rem',
                 fontWeight: 'bold',
-                opacity: saving ? 0.7 : 1
+                opacity: loading ? 0.7 : 1,
+                boxShadow: '0 2px 8px rgba(40, 167, 69, 0.3)'
               }}
             >
-              {saving ? '💾 Saving...' : '💾 Save All Events'}
+              📥 Download Events File
             </button>
           </div>
           
@@ -387,8 +376,7 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             fontSize: '0.9rem',
             color: '#856404'
           }}>
-            <strong>💡 Tip:</strong> Since automatic scraping is difficult, you can manually add events by clicking "Add New Event" 
-            or copy events from the Seniors Kingston website and paste them into the editor below.
+            <strong>💡 Workflow:</strong> 1) Scrape events from website → 2) Download the JSON file → 3) Edit events locally → 4) Upload back to app (same as Excel workflow)
           </div>
         </div>
 
@@ -508,38 +496,82 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             </button>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Title *</label>
-              <input
-                type="text"
-                value={newEvent.title}
-                onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box'
-                }}
-                placeholder="Event title"
-              />
+          {/* Basic Event Info */}
+          <div style={{ 
+            background: '#f8f9fa', 
+            padding: '15px', 
+            borderRadius: '8px', 
+            marginBottom: '15px',
+            border: '2px solid #6c757d'
+          }}>
+            <h4 style={{ margin: '0 0 15px 0', color: '#495057', fontSize: '1.1rem' }}>
+              📝 Basic Event Information
+            </h4>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#dc3545' }}>
+                  🎯 Event Title *
+                </label>
+                <input
+                  type="text"
+                  value={newEvent.title}
+                  onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #dc3545',
+                    borderRadius: '6px',
+                    boxSizing: 'border-box',
+                    fontSize: '1rem',
+                    fontWeight: 'bold',
+                    backgroundColor: 'white'
+                  }}
+                  placeholder="e.g., Holiday Artisan Fair, Carole's Dance Party"
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#28a745' }}>
+                  📍 Location/Venue
+                </label>
+                <input
+                  type="text"
+                  value={newEvent.location || ''}
+                  onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #28a745',
+                    borderRadius: '6px',
+                    boxSizing: 'border-box',
+                    fontSize: '1rem',
+                    backgroundColor: 'white'
+                  }}
+                  placeholder="e.g., Seniors Kingston Centre, Room 101"
+                />
+              </div>
             </div>
             
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Location</label>
-              <input
-                type="text"
-                value={newEvent.location || ''}
-                onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#17a2b8' }}>
+                📖 Event Description
+              </label>
+              <textarea
+                value={newEvent.description || ''}
+                onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
                 style={{
                   width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box'
+                  padding: '10px',
+                  border: '2px solid #17a2b8',
+                  borderRadius: '6px',
+                  boxSizing: 'border-box',
+                  minHeight: '100px',
+                  resize: 'vertical',
+                  fontSize: '1rem',
+                  backgroundColor: 'white'
                 }}
-                placeholder="Event location"
+                placeholder="Describe what this event is about, what participants will do, what to bring, etc."
               />
             </div>
           </div>
@@ -698,74 +730,79 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             </div>
           </div>
 
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description</label>
-            <textarea
-              value={newEvent.description || ''}
-              onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                boxSizing: 'border-box',
-                minHeight: '80px',
-                resize: 'vertical'
-              }}
-              placeholder="Event description"
-            />
-          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Price</label>
-              <input
-                type="text"
-                value={newEvent.price || ''}
-                onChange={(e) => setNewEvent({...newEvent, price: e.target.value})}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box'
-                }}
-                placeholder="e.g., $10, Free"
-              />
-            </div>
+          {/* Event Details Section */}
+          <div style={{ 
+            background: '#e3f2fd', 
+            padding: '15px', 
+            borderRadius: '8px', 
+            marginBottom: '15px',
+            border: '2px solid #2196f3'
+          }}>
+            <h4 style={{ margin: '0 0 15px 0', color: '#1976d2', fontSize: '1.1rem' }}>
+              📋 Event Details
+            </h4>
             
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Instructor</label>
-              <input
-                type="text"
-                value={newEvent.instructor || ''}
-                onChange={(e) => setNewEvent({...newEvent, instructor: e.target.value})}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box'
-                }}
-                placeholder="Instructor name"
-              />
-            </div>
-            
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Registration</label>
-              <input
-                type="text"
-                value={newEvent.registration || ''}
-                onChange={(e) => setNewEvent({...newEvent, registration: e.target.value})}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box'
-                }}
-                placeholder="Registration info"
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#1976d2' }}>
+                  💰 Price/Cost
+                </label>
+                <input
+                  type="text"
+                  value={newEvent.price || ''}
+                  onChange={(e) => setNewEvent({...newEvent, price: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '2px solid #2196f3',
+                    borderRadius: '4px',
+                    boxSizing: 'border-box',
+                    backgroundColor: 'white'
+                  }}
+                  placeholder="e.g., $10, Free, $25/person"
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#1976d2' }}>
+                  👨‍🏫 Instructor/Leader
+                </label>
+                <input
+                  type="text"
+                  value={newEvent.instructor || ''}
+                  onChange={(e) => setNewEvent({...newEvent, instructor: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '2px solid #2196f3',
+                    borderRadius: '4px',
+                    boxSizing: 'border-box',
+                    backgroundColor: 'white'
+                  }}
+                  placeholder="e.g., John Smith, Staff Member"
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#1976d2' }}>
+                  📝 Registration Info
+                </label>
+                <input
+                  type="text"
+                  value={newEvent.registration || ''}
+                  onChange={(e) => setNewEvent({...newEvent, registration: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '2px solid #2196f3',
+                    borderRadius: '4px',
+                    boxSizing: 'border-box',
+                    backgroundColor: 'white'
+                  }}
+                  placeholder="e.g., Call 613-123-4567, Online only"
+                />
+              </div>
             </div>
           </div>
 
