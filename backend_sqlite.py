@@ -619,16 +619,16 @@ async def lifespan_handler(app: FastAPI):
     # Startup: Initialize scheduler
     global scheduler
     try:
-scheduler = BackgroundScheduler()
+        scheduler = BackgroundScheduler()
         # DISABLED: Auto-import every 30 seconds was causing data reversion
         # scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
         print("⚠️ Auto-import scheduler disabled to prevent data reversion")
-# Add scheduled analytics reports
-# Daily report at 9:00 AM
-scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
-# Weekly report every Monday at 10:00 AM  
-scheduler.add_job(scheduled_weekly_report, 'cron', day_of_week=0, hour=10, minute=0)
-scheduler.start()
+        # Add scheduled analytics reports
+        # Daily report at 9:00 AM
+        scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
+        # Weekly report every Monday at 10:00 AM  
+        scheduler.add_job(scheduled_weekly_report, 'cron', day_of_week=0, hour=10, minute=0)
+        scheduler.start()
         print("✅ Background scheduler started")
     except Exception as e:
         print(f"⚠️ Failed to start scheduler: {e}")
@@ -911,7 +911,7 @@ def scrape_with_smart_requests():
         print("💡 The website likely uses JavaScript to load events dynamically")
         print("📝 Returning empty list - user should add events manually")
         return []
-        
+                    
             except Exception as e:
         print(f"❌ Error in real scraping attempt: {e}")
         return []
@@ -1020,14 +1020,51 @@ def create_event_from_wp_post(post):
         print(f"❌ Error creating event from WordPress post: {e}")
         return None
 
+def get_excel_fallback_data():
+    """Get Excel programs from fallback data"""
+    try:
+        fallback_file = "/tmp/excel_fallback_data.json" if os.getenv('RENDER') else "excel_fallback_data.json"
+        
+        if os.path.exists(fallback_file):
+            with open(fallback_file, 'r', encoding='utf-8') as f:
+                fallback_data = json.load(f)
+            
+            if 'programs' in fallback_data and fallback_data['programs']:
+                print(f"📅 Excel fallback last updated: {fallback_data.get('metadata', {}).get('last_updated', 'Unknown')}")
+                return fallback_data['programs']
+        
+        return []
+        
+    except Exception as e:
+        print(f"❌ Error loading Excel fallback data: {e}")
+        return []
+
 def get_comprehensive_november_events():
-    """REAL EVENTS FALLBACK - Return actual Seniors Kingston events when scraping fails"""
-    print("🔄 Using REAL events fallback from Seniors Kingston website")
-    print("📅 These are the actual 45 events from the Seniors Kingston website")
+    """SMART EVENTS FALLBACK - Try saved fallback first, then use hardcoded events"""
+    print("🔄 Using SMART events fallback system")
+    
+    # First, try to load saved fallback data
+    fallback_file = "/tmp/events_fallback_data.json" if os.getenv('RENDER') else "events_fallback_data.json"
+    
+    if os.path.exists(fallback_file):
+        try:
+            with open(fallback_file, 'r', encoding='utf-8') as f:
+                fallback_data = json.load(f)
+            
+            if 'events' in fallback_data and fallback_data['events']:
+                events = fallback_data['events']
+                print(f"✅ Using saved fallback events: {len(events)} events")
+                print(f"📅 Last updated: {fallback_data.get('metadata', {}).get('last_updated', 'Unknown')}")
+                return events
+        except Exception as e:
+            print(f"❌ Error loading fallback events: {e}")
+    
+    # If no saved fallback, use hardcoded events
+    print("📅 Using hardcoded events fallback (45 events from Seniors Kingston)")
     
     # Real events from Seniors Kingston website (scraped on Oct 25-26, 2025)
-    return [
-        {
+        return [
+            {
             "title": "Sound Escapes: Kenny & Dolly",
             "startDate": "2025-10-24T13:30:00Z",
             "endDate": "2025-10-24T14:30:00Z",
@@ -1083,7 +1120,7 @@ def get_comprehensive_november_events():
             "title": "18th Century Astronomy",
             "startDate": "2025-10-30T13:00:00Z",
             "endDate": "2025-10-30T14:00:00Z",
-            "description": "18th Century Astronomy  October 30, 1:00 pm The 1700s changed our view of the universe. Hear about the first "X" prize, the solar system, deep skyobjects, the distance to the stars and the remarkable men and women involved.",
+            "description": "18th Century Astronomy  October 30, 1:00 pm The 1700s changed our view of the universe. Hear about the first \"X\" prize, the solar system, deep skyobjects, the distance to the stars and the remarkable men and women involved.",
             "location": "",
             "dateStr": "October 30",
             "timeStr": "1:00 pm",
@@ -1447,7 +1484,7 @@ def get_comprehensive_november_events():
             "title": "Vision Workshop",
             "startDate": "2025-11-19T10:30:00Z",
             "endDate": "2025-11-19T11:30:00Z",
-            "description": "Vision Workshop November 19, 10:30 am Rediscover purpose, passion, and joy in retirement. Learn simple tools to dream again, break free from "too late" thinking, and design a vibrant next chapter – filled with meaning, connection, and confidence.",
+            "description": "Vision Workshop November 19, 10:30 am Rediscover purpose, passion, and joy in retirement. Learn simple tools to dream again, break free from \"too late\" thinking, and design a vibrant next chapter – filled with meaning, connection, and confidence.",
             "location": "",
             "dateStr": "November 19",
             "timeStr": "10:30 am",
@@ -1644,10 +1681,10 @@ def extract_events_from_scripts(soup):
                                     if event:
                                         events.append(event)
                             except:
-                continue
+                                continue
         
         return events[:20]  # Limit to 20 events
-        
+            
     except Exception as e:
         print(f"❌ Error extracting events from scripts: {e}")
         return []
@@ -1743,7 +1780,7 @@ def create_event_from_text(text):
 
 def get_november_2025_events_fallback():
     """Return comprehensive November 2025 events as fallback"""
-        return [
+    return [
             {
             'title': 'Holiday Artisan Fair',
             'startDate': '2025-11-22T10:00:00Z',
@@ -3264,6 +3301,135 @@ async def debug_events():
     
     print(f"🔍 DEBUG: {debug_info}")
     return debug_info
+
+@app.post("/api/fallback/save-events")
+async def save_events_as_fallback():
+    """Save current stored events as fallback data"""
+    try:
+        global stored_events
+        
+        if not stored_events:
+            return {"success": False, "error": "No events to save as fallback"}
+        
+        # Create fallback data structure
+        fallback_data = {
+            "metadata": {
+                "created_at": datetime.now().isoformat(),
+                "description": "Fallback events data - saved from current stored events",
+                "total_events": len(stored_events),
+                "last_updated": datetime.now().isoformat(),
+                "source": "current_stored_events"
+            },
+            "events": stored_events
+        }
+        
+        # Save to fallback file
+        fallback_file = "/tmp/events_fallback_data.json" if os.getenv('RENDER') else "events_fallback_data.json"
+        
+        with open(fallback_file, 'w', encoding='utf-8') as f:
+            json.dump(fallback_data, f, indent=2, ensure_ascii=False)
+        
+        print(f"✅ Saved {len(stored_events)} events as fallback data")
+        
+        return {
+            "success": True,
+            "message": f"Successfully saved {len(stored_events)} events as fallback data",
+            "total_events": len(stored_events),
+            "fallback_file": fallback_file
+        }
+        
+    except Exception as e:
+        print(f"❌ Error saving events as fallback: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/fallback/save-excel")
+async def save_excel_as_fallback():
+    """Save current Excel data as fallback data"""
+    try:
+        # Read current Excel data
+        programs = get_programs_from_db()
+        
+        if not programs:
+            return {"success": False, "error": "No Excel data to save as fallback"}
+        
+        # Create fallback data structure
+        fallback_data = {
+            "metadata": {
+                "created_at": datetime.now().isoformat(),
+                "description": "Fallback Excel data - saved from current Excel file",
+                "total_programs": len(programs),
+                "last_updated": datetime.now().isoformat(),
+                "source": "current_excel_file",
+                "excel_file": "Class Cancellation App.xlsx"
+            },
+            "programs": programs
+        }
+        
+        # Save to fallback file
+        fallback_file = "/tmp/excel_fallback_data.json" if os.getenv('RENDER') else "excel_fallback_data.json"
+        
+        with open(fallback_file, 'w', encoding='utf-8') as f:
+            json.dump(fallback_data, f, indent=2, ensure_ascii=False)
+        
+        print(f"✅ Saved {len(programs)} programs as fallback data")
+        
+        return {
+            "success": True,
+            "message": f"Successfully saved {len(programs)} programs as fallback data",
+            "total_programs": len(programs),
+            "fallback_file": fallback_file
+        }
+        
+    except Exception as e:
+        print(f"❌ Error saving Excel as fallback: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/fallback/status")
+async def get_fallback_status():
+    """Get current fallback data status"""
+    try:
+        status = {
+            "events_fallback": {
+                "file_exists": False,
+                "total_events": 0,
+                "last_updated": None
+            },
+            "excel_fallback": {
+                "file_exists": False,
+                "total_programs": 0,
+                "last_updated": None
+            }
+        }
+        
+        # Check events fallback
+        events_fallback_file = "/tmp/events_fallback_data.json" if os.getenv('RENDER') else "events_fallback_data.json"
+        if os.path.exists(events_fallback_file):
+            try:
+                with open(events_fallback_file, 'r', encoding='utf-8') as f:
+                    events_data = json.load(f)
+                status["events_fallback"]["file_exists"] = True
+                status["events_fallback"]["total_events"] = events_data.get("metadata", {}).get("total_events", 0)
+                status["events_fallback"]["last_updated"] = events_data.get("metadata", {}).get("last_updated", "Unknown")
+            except:
+                pass
+        
+        # Check Excel fallback
+        excel_fallback_file = "/tmp/excel_fallback_data.json" if os.getenv('RENDER') else "excel_fallback_data.json"
+        if os.path.exists(excel_fallback_file):
+            try:
+                with open(excel_fallback_file, 'r', encoding='utf-8') as f:
+                    excel_data = json.load(f)
+                status["excel_fallback"]["file_exists"] = True
+                status["excel_fallback"]["total_programs"] = excel_data.get("metadata", {}).get("total_programs", 0)
+                status["excel_fallback"]["last_updated"] = excel_data.get("metadata", {}).get("last_updated", "Unknown")
+            except:
+                pass
+        
+        return status
+        
+    except Exception as e:
+        print(f"❌ Error getting fallback status: {e}")
+        return {"success": False, "error": str(e)}
 
 @app.get("/api/events/export")
 async def export_events():
