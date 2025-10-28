@@ -866,66 +866,95 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Image Editing Section - More Prominent */}
+          {/* Image Editing Section - ALWAYS VISIBLE */}
           <div className="event-editor-form-group" style={{ 
-            border: '2px solid #0072ce', 
-            padding: '15px', 
-            borderRadius: '8px',
-            backgroundColor: '#f0f8ff',
-            marginBottom: '20px'
+            border: '3px solid #ff6b35', 
+            padding: '20px', 
+            borderRadius: '10px',
+            backgroundColor: '#fff5f0',
+            marginBottom: '25px',
+            position: 'relative',
+            zIndex: 1000
           }}>
-            <label style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#0072ce', marginBottom: '10px', display: 'block' }}>
-              🖼️ Event Image/Banner
+            <div style={{ 
+              position: 'absolute',
+              top: '-10px',
+              left: '20px',
+              backgroundColor: '#ff6b35',
+              color: 'white',
+              padding: '5px 15px',
+              borderRadius: '15px',
+              fontSize: '0.9rem',
+              fontWeight: 'bold'
+            }}>
+              🖼️ IMAGE EDITOR
+            </div>
+            <label style={{ 
+              fontSize: '1.2rem', 
+              fontWeight: 'bold', 
+              color: '#ff6b35', 
+              marginBottom: '15px', 
+              display: 'block',
+              marginTop: '10px'
+            }}>
+              Event Banner/Image URL
             </label>
             <input
               type="text"
               value={newEvent.image_url || ''}
               onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
-              placeholder="e.g., /event-schedule-banner.png or https://example.com/image.jpg"
+              placeholder="Enter image URL: /event-schedule-banner.png or https://example.com/image.jpg"
               style={{ 
                 width: '100%', 
-                padding: '10px', 
-                fontSize: '1rem',
-                border: '2px solid #0072ce',
-                borderRadius: '4px',
-                marginBottom: '10px'
+                padding: '15px', 
+                fontSize: '1.1rem',
+                border: '3px solid #ff6b35',
+                borderRadius: '8px',
+                marginBottom: '15px',
+                backgroundColor: 'white',
+                fontWeight: 'bold'
               }}
             />
             <div style={{ 
-              fontSize: '0.9rem', 
-              color: '#666', 
-              marginBottom: '10px',
-              fontStyle: 'italic'
+              fontSize: '1rem', 
+              color: '#ff6b35', 
+              marginBottom: '15px',
+              fontWeight: 'bold',
+              backgroundColor: '#fff0e6',
+              padding: '10px',
+              borderRadius: '5px',
+              border: '1px solid #ff6b35'
             }}>
-              Enter a URL or path to the event banner image (e.g., /event-schedule-banner.png)
+              💡 Enter a URL or path to the event banner image (e.g., /event-schedule-banner.png)
             </div>
             {newEvent.image_url && (
               <div style={{ 
-                marginTop: '15px',
-                border: '2px solid #0072ce',
-                borderRadius: '8px',
-                padding: '15px',
+                marginTop: '20px',
+                border: '3px solid #ff6b35',
+                borderRadius: '10px',
+                padding: '20px',
                 backgroundColor: 'white',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center'
               }}>
                 <div style={{ 
-                  marginBottom: '10px', 
+                  marginBottom: '15px', 
                   fontWeight: 'bold', 
-                  color: '#0072ce' 
+                  color: '#ff6b35',
+                  fontSize: '1.1rem'
                 }}>
-                  Image Preview:
+                  📸 Image Preview:
                 </div>
                 <img 
                   src={newEvent.image_url} 
                   alt="Event banner preview"
                   style={{ 
                     maxWidth: '100%', 
-                    maxHeight: '200px', 
-                    borderRadius: '8px',
-                    border: '2px solid #ddd',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                    maxHeight: '250px', 
+                    borderRadius: '10px',
+                    border: '3px solid #ddd',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                   }}
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
@@ -935,6 +964,11 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
                       errorMsg.textContent = '❌ Image not found or invalid URL';
                       errorMsg.style.color = '#d32f2f';
                       errorMsg.style.fontWeight = 'bold';
+                      errorMsg.style.fontSize = '1.1rem';
+                      errorMsg.style.padding = '20px';
+                      errorMsg.style.border = '2px solid #d32f2f';
+                      errorMsg.style.borderRadius = '8px';
+                      errorMsg.style.backgroundColor = '#ffebee';
                       parent.appendChild(errorMsg);
                     }
                   }}
