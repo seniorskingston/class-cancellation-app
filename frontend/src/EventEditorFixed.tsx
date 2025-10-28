@@ -220,7 +220,7 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
           borderBottom: '2px solid #f0f0f0',
           paddingBottom: '15px'
         }}>
-          <h2 style={{ margin: 0, color: '#333' }}>📅 Event Editor</h2>
+          <h2 style={{ margin: 0, color: '#333' }}>🔄 Scrape & Edit Events</h2>
           <button
             onClick={onClose}
             style={{
@@ -233,6 +233,82 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             }}
           >
             ✕ Close
+          </button>
+        </div>
+
+        {/* Scraping Section */}
+        <div style={{
+          background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+          padding: '20px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          border: '2px solid #2196f3'
+        }}>
+          <h3 style={{ color: '#1976d2', marginBottom: '15px', fontSize: '1.3rem' }}>
+            🌐 Scrape Events from Seniors Kingston Website
+          </h3>
+          <p style={{ color: '#424242', marginBottom: '15px', fontSize: '1rem' }}>
+            Click the button below to automatically scrape the latest events from the Seniors Kingston website. 
+            The events will be loaded directly into the editor below for you to review and edit.
+          </p>
+          <button 
+            onClick={async () => {
+              try {
+                setLoading(true);
+                setMessage('🔄 Scraping events from Seniors Kingston website...');
+                setMessageType('');
+                
+                const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events', {
+                  method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                  setMessage(`✅ Successfully scraped ${result.events_count} events! Loading into editor...`);
+                  setMessageType('success');
+                  
+                  // Reload events to show the newly scraped ones
+                  await loadEvents();
+                  
+                  setTimeout(() => {
+                    setMessage('');
+                    setMessageType('');
+                  }, 3000);
+                } else {
+                  setMessage(`❌ Scraping failed: ${result.error}`);
+                  setMessageType('error');
+                  setTimeout(() => {
+                    setMessage('');
+                    setMessageType('');
+                  }, 5000);
+                }
+              } catch (error) {
+                setMessage(`❌ Error scraping events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                setMessageType('error');
+                setTimeout(() => {
+                  setMessage('');
+                  setMessageType('');
+                }, 5000);
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}
+            style={{
+              background: '#2196f3',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: '1rem',
+              fontWeight: 'bold',
+              opacity: loading ? 0.7 : 1,
+              boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)'
+            }}
+          >
+            {loading ? '🔄 Scraping...' : '🌐 Scrape Events from Website'}
           </button>
         </div>
 

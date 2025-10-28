@@ -223,24 +223,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
               gap: '15px'
             }}>
               <button 
-                onClick={() => {
-                  setUploadMessage('⚠️ Load New Events DISABLED - This was causing data to revert!');
-                  setTimeout(() => setUploadMessage(''), 3000);
-                }}
+                onClick={() => setShowEventEditor(true)}
                 style={{
-                  background: '#6c757d',
+                  background: '#007bff',
                   color: 'white',
                   border: 'none',
                   padding: '15px 20px',
                   borderRadius: '8px',
-                  cursor: 'not-allowed',
+                  cursor: 'pointer',
                   fontSize: '16px',
-                  fontWeight: 'bold',
-                  opacity: 0.6
+                  fontWeight: 'bold'
                 }}
-                disabled
               >
-                🚫 Load New Events (DISABLED)
+                🔄 Scrape & Edit Events
               </button>
               
               <input
