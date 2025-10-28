@@ -222,6 +222,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
               flexDirection: 'column',
               gap: '15px'
             }}>
+              {/* Main Event Management Button */}
               <button 
                 onClick={() => setShowEventEditor(true)}
                 style={{
@@ -232,95 +233,112 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                   borderRadius: '8px',
                   cursor: 'pointer',
                   fontSize: '16px',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 8px rgba(0, 123, 255, 0.3)'
                 }}
               >
                 🔄 Scrape & Edit Events
               </button>
               
-              <input
-                type="file"
-                accept=".json"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  
-                  try {
-                    setUploadMessage('📤 Uploading events file...');
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    
-                    const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/import', {
-                      method: 'POST',
-                      body: formData
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                      setUploadMessage(`✅ ${result.message}`);
-                      setTimeout(() => setUploadMessage(''), 5000);
-                    } else {
-                      setUploadMessage(`❌ Upload failed: ${result.error}`);
+              {/* File Management Buttons */}
+              <div style={{
+                display: 'flex',
+                gap: '10px',
+                flexWrap: 'wrap'
+              }}>
+                <button 
+                  onClick={async () => {
+                    try {
+                      setUploadMessage('📥 Downloading events file...');
+                      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/export');
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'events_export.json';
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                      document.body.removeChild(a);
+                      setUploadMessage('✅ Events file downloaded successfully!');
+                      setTimeout(() => setUploadMessage(''), 3000);
+                    } catch (error) {
+                      setUploadMessage(`❌ Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
                       setTimeout(() => setUploadMessage(''), 5000);
                     }
-                  } catch (error) {
-                    setUploadMessage(`❌ Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                    setTimeout(() => setUploadMessage(''), 5000);
-                  }
-                  
-                  // Reset file input
-                  e.target.value = '';
-                }}
-                style={{ display: 'none' }}
-                id="main-events-file-input"
-              />
-              
-              <button 
-                onClick={() => document.getElementById('main-events-file-input')?.click()}
-                style={{
-                  background: '#17a2b8',
-                  color: 'white',
-                  border: 'none',
-                  padding: '15px 20px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold'
-                }}
-              >
-                📤 Upload Events File
-              </button>
-              <button 
-                onClick={() => {
-                  alert('Opening Event Editor...');
-                  setShowEventEditor(true);
-                }}
-                style={{
-                  background: '#17a2b8',
-                  color: 'white',
-                  border: 'none',
-                  padding: '15px 20px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold'
-                }}
-              >
-                ✏️ Edit Events
-              </button>
-              <button style={{
-                background: '#ffc107',
-                color: '#212529',
-                border: 'none',
-                padding: '15px 20px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: 'bold'
-              }}>
-                💾 Save All Changes
-              </button>
+                  }}
+                  style={{
+                    background: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 16px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    flex: '1',
+                    minWidth: '150px'
+                  }}
+                >
+                  📥 Download Events
+                </button>
+                
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    
+                    try {
+                      setUploadMessage('📤 Uploading events file...');
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      
+                      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/import', {
+                        method: 'POST',
+                        body: formData
+                      });
+                      
+                      const result = await response.json();
+                      
+                      if (result.success) {
+                        setUploadMessage(`✅ ${result.message}`);
+                        setTimeout(() => setUploadMessage(''), 5000);
+                      } else {
+                        setUploadMessage(`❌ Upload failed: ${result.error}`);
+                        setTimeout(() => setUploadMessage(''), 5000);
+                      }
+                    } catch (error) {
+                      setUploadMessage(`❌ Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                      setTimeout(() => setUploadMessage(''), 5000);
+                    }
+                    
+                    // Reset file input
+                    e.target.value = '';
+                  }}
+                  style={{ display: 'none' }}
+                  id="events-file-input"
+                />
+                
+                <button 
+                  onClick={() => document.getElementById('events-file-input')?.click()}
+                  style={{
+                    background: '#17a2b8',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 16px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    flex: '1',
+                    minWidth: '150px'
+                  }}
+                >
+                  📤 Upload Events
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -338,197 +356,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
           </div>
         )}
 
-        <div style={{
-          marginTop: '30px',
-          padding: '20px',
-          background: '#e9ecef',
-          borderRadius: '10px'
-        }}>
-          <h3 style={{ color: '#495057', marginBottom: '15px' }}>
-            📋 Quick Actions
-          </h3>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '15px'
-          }}>
-                  <button 
-                    onClick={async () => {
-                      setUploadMessage('🔄 Syncing with Seniors Kingston website...');
-                      try {
-                        const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events', {
-                          method: 'POST'
-                        });
-                        const result = await response.json();
-                        if (result.success) {
-                          setUploadMessage(`✅ Sync completed! Found ${result.events_count} events.`);
-                          // Clear message after 5 seconds
-                          setTimeout(() => setUploadMessage(''), 5000);
-                        } else {
-                          setUploadMessage(`❌ Sync failed: ${result.message}`);
-                          // Clear message after 5 seconds
-                          setTimeout(() => setUploadMessage(''), 5000);
-                        }
-                      } catch (error) {
-                        setUploadMessage(`❌ Sync error: ${error}`);
-                        // Clear message after 5 seconds
-                        setTimeout(() => setUploadMessage(''), 5000);
-                      }
-                    }}
-                      style={{
-                        background: '#6f42c1',
-                        color: 'white',
-                        border: 'none',
-                        padding: '12px 16px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      🔄 Sync with Website
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setUploadMessage('⚠️ Quick Fix Events DISABLED - This was causing data to revert!');
-                        setTimeout(() => setUploadMessage(''), 3000);
-                      }}
-                      style={{
-                        background: '#6c757d',
-                        color: 'white',
-                        border: 'none',
-                        padding: '12px 16px',
-                        borderRadius: '6px',
-                        cursor: 'not-allowed',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        opacity: 0.6
-                      }}
-                      disabled
-                    >
-                      🚫 Quick Fix Events (DISABLED)
-                    </button>
-                    <button 
-                      onClick={async () => {
-                        try {
-                          setUploadMessage('📥 Downloading events file...');
-                          const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/export');
-                          const blob = await response.blob();
-                          const url = window.URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = 'events_export.json';
-                          document.body.appendChild(a);
-                          a.click();
-                          window.URL.revokeObjectURL(url);
-                          document.body.removeChild(a);
-                          setUploadMessage('✅ Events file downloaded successfully!');
-                          setTimeout(() => setUploadMessage(''), 3000);
-                        } catch (error) {
-                          setUploadMessage(`❌ Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                          setTimeout(() => setUploadMessage(''), 5000);
-                        }
-                      }}
-                      style={{
-                        background: '#28a745',
-                        color: 'white',
-                        border: 'none',
-                        padding: '12px 16px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      📥 Download Events File
-                    </button>
-                    
-                    <input
-                      type="file"
-                      accept=".json"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        
-                        try {
-                          setUploadMessage('📤 Uploading events file...');
-                          const formData = new FormData();
-                          formData.append('file', file);
-                          
-                          const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/import', {
-                            method: 'POST',
-                            body: formData
-                          });
-                          
-                          const result = await response.json();
-                          
-                          if (result.success) {
-                            setUploadMessage(`✅ ${result.message}`);
-                            setTimeout(() => setUploadMessage(''), 5000);
-                          } else {
-                            setUploadMessage(`❌ Upload failed: ${result.error}`);
-                            setTimeout(() => setUploadMessage(''), 5000);
-                          }
-                        } catch (error) {
-                          setUploadMessage(`❌ Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                          setTimeout(() => setUploadMessage(''), 5000);
-                        }
-                        
-                        // Reset file input
-                        e.target.value = '';
-                      }}
-                      style={{ display: 'none' }}
-                      id="events-file-input"
-                    />
-                    
-                    <button 
-                      onClick={() => document.getElementById('events-file-input')?.click()}
-                      style={{
-                        background: '#17a2b8',
-                        color: 'white',
-                        border: 'none',
-                        padding: '12px 16px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      📤 Upload Events File
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setUploadMessage('📊 Statistics: 151 total events scraped, 35 current month events, 12 next month events, 104 other events');
-                      }}
-                      style={{
-                        background: '#20c997',
-                        color: 'white',
-                        border: 'none',
-                        padding: '12px 16px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      📊 View Statistics
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setUploadMessage('🔧 System Settings: Auto-sync enabled, Password protection active, Mobile optimized');
-                      }}
-                      style={{
-                        background: '#fd7e14',
-                        color: 'white',
-                        border: 'none',
-                        padding: '12px 16px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      🔧 System Settings
-                    </button>
-          </div>
-        </div>
       </div>
 
       {/* Event Editor Modal - Using Fixed Version */}
