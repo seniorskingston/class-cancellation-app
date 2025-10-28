@@ -24,7 +24,7 @@ PORT = int(os.environ.get("PORT", 8000))
 
 # Database file path - use persistent storage
 # On Render, use /tmp for persistent storage, or project root
-DB_PATH = "class_cancellations.db"  # Store in project root (persistent on Render)
+DB_PATH = "/tmp/class_cancellations.db" if os.getenv('RENDER') else "class_cancellations.db"
 
 # Set timezone to Kingston, Ontario
 KINGSTON_TZ = pytz.timezone('America/Toronto')
@@ -34,7 +34,7 @@ utc = pytz.UTC
 stored_events = []
 
 # File to persist stored_events across restarts
-STORED_EVENTS_FILE = "stored_events.json"
+STORED_EVENTS_FILE = "/tmp/stored_events.json" if os.getenv('RENDER') else "stored_events.json"
 
 def load_stored_events():
     """Load stored events from file if it exists"""
@@ -568,7 +568,7 @@ def check_and_import_excel():
     
     # Define Excel file paths
     EXCEL_PATH = "Class Cancellation App.xlsx"
-    BACKUP_EXCEL_PATH = "backup_Class Cancellation App.xlsx"  # Use project root (persistent on Render)
+    BACKUP_EXCEL_PATH = "/tmp/backup_Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
     
     # Check if we're in cloud environment and need to restore from backup
     if os.getenv('RENDER') and not os.path.exists(EXCEL_PATH) and os.path.exists(BACKUP_EXCEL_PATH):
@@ -662,7 +662,9 @@ async def lifespan_handler(app: FastAPI):
     global scheduler
     try:
         scheduler = BackgroundScheduler()
-        scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
+        # DISABLED: Auto-import every 30 seconds was causing data reversion
+        # scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
+        print("⚠️ Auto-import scheduler disabled to prevent data reversion")
         # Add scheduled analytics reports
         # Daily report at 9:00 AM
         scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)

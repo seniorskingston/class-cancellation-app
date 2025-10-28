@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "created_at": "2025-10-28T08:44:18.912624",
+    "auto_restore_disabled": true,
+    "persistent_save_only": true,
+    "version": "5.0"
+  },
+  "instructions": {
+    "data_persistence": "Data will now persist as edited",
+    "no_auto_restore": "No automatic reversion to backup files",
+    "manual_control": "Only manual changes will affect the data",
+    "render_compatible": "Works with Render hosting"
+  },
+  "save_locations": {
+    "database": "/tmp/class_cancellations.db",
+    "events_file": "/tmp/stored_events.json",
+    "excel_backup": "/tmp/backup_Class Cancellation App.xlsx"
+  }
+}

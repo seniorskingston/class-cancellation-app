@@ -1,0 +1,23 @@
+{
+  "disabled_at": "2025-10-28T08:44:18.898386",
+  "reason": "Auto-restore systems were causing data to revert automatically",
+  "disabled_files": [
+    "auto_restore_events.py",
+    "auto_restore_render.py",
+    "bulletproof_event_system.py",
+    "bulletproof_event_guardian.py",
+    "continuous_monitor.py",
+    "monitor_event_consistency.py",
+    "check_event_consistency.py",
+    "permanent_event_fix.py",
+    "create_render_persistence_solution.py",
+    "fix_render_persistence.py",
+    "backend_startup_fix.py",
+    "backend_startup_load.py",
+    "render_auto_restore.py",
+    "admin_panel_persistence.py",
+    "EMERGENCY_FIX_RENDER.py",
+    "QUICK_FIX_RENDER.py"
+  ],
+  "message": "These scripts automatically restore events to 45 whenever the count changes, overriding user edits"
+}
