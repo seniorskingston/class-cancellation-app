@@ -711,51 +711,43 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           <button className="event-editor-close" onClick={onClose}>×</button>
         </div>
 
-        {/* Direct access - no authentication required */}
-        <>
-            {/* COMPONENT RENDER TEST */}
-            <div style={{
+        {/* Message */}
+        {message && (
+          <div className={`event-editor-message ${messageType}`}>
+            {message}
+          </div>
+        )}
+
+        {/* Image Editor Test Button */}
+        <div style={{ 
+          textAlign: 'center', 
+          marginBottom: '20px',
+          padding: '15px',
+          backgroundColor: '#fff0f0',
+          border: '2px solid #ff0000',
+          borderRadius: '10px'
+        }}>
+          <button 
+            onClick={() => {
+              setNewEvent({ ...newEvent, image_url: '/event-schedule-banner.png' });
+              setMessage('✅ Test image URL set! Check the image editor below.');
+              setMessageType('success');
+            }}
+            style={{
               background: '#ff0000',
               color: 'white',
-              padding: '20px',
-              margin: '10px',
-              border: '5px solid #00ff00',
-              fontSize: '24px',
+              padding: '15px 30px',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '1.1rem',
               fontWeight: 'bold',
-              textAlign: 'center'
-            }}>
-              🚨 EVENT EDITOR IS RENDERING! 🚨
-              <br/>
-              If you see this, the component is working!
-            </div>
-            
-            {/* SIMPLE TEST BUTTON */}
-            <button 
-              onClick={() => {
-                alert('BUTTON CLICKED! Event Editor is working!');
-                setMessage('✅ Button test successful! Event Editor is working!');
-                setMessageType('success');
-              }}
-              style={{
-                background: '#00ff00',
-                color: 'black',
-                padding: '15px 30px',
-                margin: '10px',
-                border: '3px solid #ff0000',
-                fontSize: '18px',
-                fontWeight: 'bold',
-                cursor: 'pointer'
-              }}
-            >
-              🧪 CLICK ME TO TEST!
-            </button>
-            
-            {/* Message */}
-            {message && (
-              <div className={`event-editor-message ${messageType}`}>
-                {message}
-              </div>
-            )}
+              cursor: 'pointer',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+            }}
+          >
+            🧪 TEST IMAGE EDITOR - Click to set test image
+          </button>
+        </div>
 
         {/* Controls */}
         <div className="event-editor-controls">
@@ -866,38 +858,41 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Image Editing Section - ALWAYS VISIBLE */}
-          <div className="event-editor-form-group" style={{ 
-            border: '3px solid #ff6b35', 
-            padding: '20px', 
-            borderRadius: '10px',
-            backgroundColor: '#fff5f0',
-            marginBottom: '25px',
+          {/* Image Editing Section - SUPER PROMINENT */}
+          <div style={{ 
+            border: '5px solid #ff0000', 
+            padding: '25px', 
+            borderRadius: '15px',
+            backgroundColor: '#ffe6e6',
+            marginBottom: '30px',
             position: 'relative',
-            zIndex: 1000
+            zIndex: 9999,
+            boxShadow: '0 0 20px rgba(255,0,0,0.3)'
           }}>
             <div style={{ 
               position: 'absolute',
-              top: '-10px',
-              left: '20px',
-              backgroundColor: '#ff6b35',
+              top: '-15px',
+              left: '25px',
+              backgroundColor: '#ff0000',
               color: 'white',
-              padding: '5px 15px',
-              borderRadius: '15px',
-              fontSize: '0.9rem',
-              fontWeight: 'bold'
+              padding: '8px 20px',
+              borderRadius: '20px',
+              fontSize: '1rem',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.3)'
             }}>
-              🖼️ IMAGE EDITOR
+              🖼️ IMAGE EDITOR - CHANGE EVENT BANNERS HERE
             </div>
             <label style={{ 
-              fontSize: '1.2rem', 
+              fontSize: '1.4rem', 
               fontWeight: 'bold', 
-              color: '#ff6b35', 
-              marginBottom: '15px', 
+              color: '#ff0000', 
+              marginBottom: '20px', 
               display: 'block',
-              marginTop: '10px'
+              marginTop: '15px',
+              textAlign: 'center'
             }}>
-              Event Banner/Image URL
+              🖼️ EVENT BANNER/IMAGE URL 🖼️
             </label>
             <input
               type="text"
@@ -906,55 +901,59 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
               placeholder="Enter image URL: /event-schedule-banner.png or https://example.com/image.jpg"
               style={{ 
                 width: '100%', 
-                padding: '15px', 
-                fontSize: '1.1rem',
-                border: '3px solid #ff6b35',
-                borderRadius: '8px',
-                marginBottom: '15px',
+                padding: '20px', 
+                fontSize: '1.2rem',
+                border: '4px solid #ff0000',
+                borderRadius: '10px',
+                marginBottom: '20px',
                 backgroundColor: 'white',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                textAlign: 'center',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
               }}
             />
             <div style={{ 
-              fontSize: '1rem', 
-              color: '#ff6b35', 
-              marginBottom: '15px',
+              fontSize: '1.1rem', 
+              color: '#ff0000', 
+              marginBottom: '20px',
               fontWeight: 'bold',
-              backgroundColor: '#fff0e6',
-              padding: '10px',
-              borderRadius: '5px',
-              border: '1px solid #ff6b35'
+              backgroundColor: '#fff0f0',
+              padding: '15px',
+              borderRadius: '8px',
+              border: '2px solid #ff0000',
+              textAlign: 'center'
             }}>
               💡 Enter a URL or path to the event banner image (e.g., /event-schedule-banner.png)
             </div>
             {newEvent.image_url && (
               <div style={{ 
-                marginTop: '20px',
-                border: '3px solid #ff6b35',
-                borderRadius: '10px',
-                padding: '20px',
+                marginTop: '25px',
+                border: '4px solid #ff0000',
+                borderRadius: '15px',
+                padding: '25px',
                 backgroundColor: 'white',
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center'
+                alignItems: 'center',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
               }}>
                 <div style={{ 
-                  marginBottom: '15px', 
+                  marginBottom: '20px', 
                   fontWeight: 'bold', 
-                  color: '#ff6b35',
-                  fontSize: '1.1rem'
+                  color: '#ff0000',
+                  fontSize: '1.3rem'
                 }}>
-                  📸 Image Preview:
+                  📸 IMAGE PREVIEW:
                 </div>
                 <img 
                   src={newEvent.image_url} 
                   alt="Event banner preview"
                   style={{ 
                     maxWidth: '100%', 
-                    maxHeight: '250px', 
-                    borderRadius: '10px',
-                    border: '3px solid #ddd',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                    maxHeight: '300px', 
+                    borderRadius: '15px',
+                    border: '4px solid #ddd',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
                   }}
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
@@ -964,10 +963,10 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
                       errorMsg.textContent = '❌ Image not found or invalid URL';
                       errorMsg.style.color = '#d32f2f';
                       errorMsg.style.fontWeight = 'bold';
-                      errorMsg.style.fontSize = '1.1rem';
-                      errorMsg.style.padding = '20px';
-                      errorMsg.style.border = '2px solid #d32f2f';
-                      errorMsg.style.borderRadius = '8px';
+                      errorMsg.style.fontSize = '1.2rem';
+                      errorMsg.style.padding = '25px';
+                      errorMsg.style.border = '3px solid #d32f2f';
+                      errorMsg.style.borderRadius = '10px';
                       errorMsg.style.backgroundColor = '#ffebee';
                       parent.appendChild(errorMsg);
                     }
@@ -1077,51 +1076,19 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Events List */}
-        <div className="event-editor-list" style={{border: '3px solid red', background: 'white', minHeight: '200px'}}>
-          <h3 style={{color: 'red', fontSize: '20px'}}>🔴 CURRENT EVENTS ({events.length}) 🔴</h3>
-          <div style={{background: '#fff3cd', border: '1px solid #ffeaa7', padding: '10px', marginBottom: '10px', borderRadius: '5px'}}>
-            <strong>🐛 Debug Info:</strong><br/>
-            Events length: {events.length}<br/>
-            Events array: {JSON.stringify(events, null, 2)}
-          </div>
-          {events.length > 0 && (
-            <div style={{
-              background: '#d4edda',
-              border: '1px solid #c3e6cb',
-              borderRadius: '5px',
-              padding: '10px',
-              marginBottom: '15px',
-              color: '#155724'
-            }}>
-              <strong>✅ {events.length} events loaded successfully!</strong><br/>
-              You can edit them below. Click "Edit" to modify an event or "Delete" to remove it.
-            </div>
-          )}
-          {/* FORCE SHOW EVENTS LIST FOR DEBUGGING */}
-          <div style={{background: '#ffebee', border: '2px solid #f44336', padding: '15px', marginBottom: '15px', borderRadius: '5px'}}>
-            <h4 style={{color: '#d32f2f', margin: '0 0 10px 0'}}>🚨 FORCE DEBUG SECTION 🚨</h4>
-            <p><strong>Events length:</strong> {events.length}</p>
-            <p><strong>Events type:</strong> {typeof events}</p>
-            <p><strong>Events is array:</strong> {Array.isArray(events) ? 'YES' : 'NO'}</p>
-            <p><strong>Conditional check:</strong> {events.length === 0 ? 'SHOWING EMPTY' : 'SHOWING EVENTS'}</p>
-          </div>
+        <div className="event-editor-list">
+          <h3>Current Events ({events.length})</h3>
           
           {events.length === 0 ? (
-            <div className="event-editor-empty" style={{background: '#ffcdd2', border: '2px solid #f44336', padding: '15px'}}>
-              <h4 style={{color: '#d32f2f'}}>❌ NO EVENTS FOUND</h4>
+            <div className="event-editor-empty">
+              <h4>No Events Found</h4>
               <p>No events found. Click "Load Backend Events" or "Load New Events" to load events.</p>
               <p>Or add new events using the form above.</p>
             </div>
           ) : (
             <div className="event-editor-events">
-              <div style={{background: '#e7f3ff', border: '1px solid #b3d9ff', padding: '10px', marginBottom: '10px', borderRadius: '5px'}}>
-                <strong>🔍 Rendering Events List:</strong> About to render {events.length} events
-              </div>
               {events.map((event, index) => (
-                <div key={event.id || index} className="event-editor-event" style={{border: '2px solid #007bff', marginBottom: '10px'}}>
-                  <div style={{background: '#f0f8ff', padding: '5px', marginBottom: '10px', borderRadius: '3px'}}>
-                    <strong>🎯 Event {index + 1}:</strong> {event.title}
-                  </div>
+                <div key={event.id || index} className="event-editor-event">
                   <div className="event-editor-event-info">
                     <h4>{event.title}</h4>
                     {event.image_url && (
@@ -1168,47 +1135,6 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
               ))}
             </div>
           )}
-          
-          {/* ALWAYS SHOW EVENTS FOR DEBUGGING */}
-          <div style={{background: '#e8f5e8', border: '3px solid #4caf50', padding: '20px', marginTop: '20px', borderRadius: '5px'}}>
-            <h4 style={{color: '#2e7d32', margin: '0 0 15px 0'}}>🟢 ALWAYS SHOW EVENTS (NO CONDITIONS) 🟢</h4>
-            {events.map((event, index) => (
-              <div key={`debug-${event.id || index}`} style={{
-                background: '#f1f8e9',
-                border: '2px solid #8bc34a',
-                padding: '15px',
-                marginBottom: '10px',
-                borderRadius: '5px'
-              }}>
-                <h5 style={{color: '#33691e', margin: '0 0 10px 0'}}>🎯 Event {index + 1}: {event.title}</h5>
-                {event.image_url && (
-                  <div style={{ marginBottom: '10px' }}>
-                    <img 
-                      src={event.image_url} 
-                      alt="Event banner"
-                      style={{ 
-                        maxWidth: '150px', 
-                        maxHeight: '80px', 
-                        borderRadius: '4px',
-                        border: '1px solid #8bc34a'
-                      }}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  </div>
-                )}
-                <p><strong>ID:</strong> {event.id}</p>
-                <p><strong>Date:</strong> {event.dateStr || 'No date'}</p>
-                <p><strong>Time:</strong> {event.timeStr || 'No time'}</p>
-                <p><strong>Location:</strong> {event.location || 'No location'}</p>
-                <p><strong>Description:</strong> {event.description || 'No description'}</p>
-              </div>
-            ))}
-            {events.length === 0 && (
-              <p style={{color: '#d32f2f', fontWeight: 'bold'}}>❌ NO EVENTS IN ARRAY</p>
-            )}
-          </div>
         </div>
         </>
       </div>
