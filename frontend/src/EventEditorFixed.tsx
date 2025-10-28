@@ -349,30 +349,32 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             </div>
           </div>
 
-          {/* SUPER PROMINENT IMAGE EDITOR */}
+          {/* ELEGANT IMAGE EDITOR */}
           <div style={{ 
-            border: '5px solid #ff0000', 
-            padding: '25px', 
-            borderRadius: '15px',
-            backgroundColor: '#ffe6e6',
+            border: '2px solid #0072ce', 
+            padding: '30px', 
+            borderRadius: '12px',
+            backgroundColor: 'linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%)',
             marginBottom: '30px',
             position: 'relative',
             zIndex: 9999,
-            boxShadow: '0 0 20px rgba(255,0,0,0.3)'
+            boxShadow: '0 8px 32px rgba(0,114,206,0.15)',
+            background: 'linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%)'
           }}>
             <div style={{ 
               position: 'absolute',
-              top: '-15px',
-              left: '25px',
-              backgroundColor: '#ff0000',
+              top: '-12px',
+              left: '30px',
+              background: 'linear-gradient(135deg, #0072ce 0%, #0056b3 100%)',
               color: 'white',
-              padding: '8px 20px',
-              borderRadius: '20px',
+              padding: '10px 24px',
+              borderRadius: '25px',
               fontSize: '1rem',
-              fontWeight: 'bold',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.3)'
+              fontWeight: '600',
+              boxShadow: '0 4px 16px rgba(0,114,206,0.3)',
+              letterSpacing: '0.5px'
             }}>
-              🖼️ IMAGE EDITOR - CHANGE EVENT BANNERS HERE
+              🖼️ Image Editor - Change Event Banners
             </div>
             <label style={{ 
               fontSize: '1.4rem', 
