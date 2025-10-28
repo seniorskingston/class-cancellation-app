@@ -858,9 +858,9 @@ def scrape_with_smart_requests():
         }
         
         response = requests.get(url, headers=headers, timeout=30)
-                
-                if response.status_code == 200:
-                    soup = BeautifulSoup(response.content, 'html.parser')
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
             
             # Look for any script tags that might contain event data
             script_tags = soup.find_all('script')
@@ -889,9 +889,9 @@ def scrape_with_smart_requests():
                                     events = extract_events_from_api_data(data)
                                     if events:
                                         print(f"✅ Found {len(events)} events in embedded script data")
-                        return events
+                                        return events
                             except:
-                        continue
+                                continue
             
             # Look for any data attributes or hidden content
             data_elements = soup.find_all(attrs={"data-events": True})
@@ -904,7 +904,7 @@ def scrape_with_smart_requests():
                             print(f"✅ Found {len(events)} events in data attributes")
                             return events
                     except:
-                    continue
+                        continue
                     
         # If all strategies fail, return empty list (no fake events)
         print("❌ Could not find real events from Seniors Kingston website")
