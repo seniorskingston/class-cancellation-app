@@ -18,6 +18,7 @@ import pytz
 import time
 from dateutil import parser
 from contextlib import asynccontextmanager
+from urllib.parse import urljoin
 
 # Use environment variable for port, default to 8000 (Render uses PORT env var)
 PORT = int(os.environ.get("PORT", 8000))
@@ -757,40 +758,136 @@ def scrape_seniors_kingston_events():
         return None
 
 def scrape_with_requests_fallback():
-    """Enhanced scraping method for Seniors Kingston website - MULTIPLE STRATEGIES"""
+    """ORIGINAL WORKING SCRAPING METHOD - Restored from previous working version"""
     try:
-        import requests
-        from bs4 import BeautifulSoup
-        import re
-        import json
+        print("🌐 Using ORIGINAL WORKING scraping method for Seniors Kingston website")
         
-        print("🌐 Using enhanced multi-strategy scraping for Seniors Kingston website")
-        
-        # Strategy 1: Try the main events page
-        events = try_scrape_events_page()
-        if events and len(events) > 0:
-            return events
-        
-        # Strategy 2: Try the main homepage for events
-        events = try_scrape_homepage()
-        if events and len(events) > 0:
-            return events
-        
-        # Strategy 3: Try alternative URLs
-        events = try_scrape_alternative_urls()
-        if events and len(events) > 0:
-            return events
-        
-        # Strategy 4: Return known November events as fallback
-        print("📅 All scraping strategies failed, returning known November 2025 events")
-        return get_november_2025_events()
+        # Try Selenium first (works locally)
+        try:
+            from selenium import webdriver
+            from selenium.webdriver.chrome.options import Options
+            from selenium.webdriver.common.by import By
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+            from selenium.common.exceptions import TimeoutException, WebDriverException
+            from webdriver_manager.chrome import ChromeDriverManager
+            from selenium.webdriver.chrome.service import Service
+            import time
+            
+            print("🌐 Using Selenium to scrape JavaScript-loaded content...")
+            
+            # Set up Chrome options
+            chrome_options = Options()
+            chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument('--disable-dev-shm-usage')
+            chrome_options.add_argument('--disable-gpu')
+            chrome_options.add_argument('--window-size=1920,1080')
+            chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
+            
+            # Try to create driver with webdriver-manager
+            try:
+                service = Service(ChromeDriverManager().install())
+                driver = webdriver.Chrome(service=service, options=chrome_options)
+            except Exception as e:
+                print(f"❌ Chrome driver setup failed: {e}")
+                return try_simple_requests_scraping()
+            
+            url = "https://seniorskingston.ca/events"
+            print(f"🔍 Loading page: {url}")
+            
+            driver.get(url)
+            
+            # Wait for the page to load completely
+            print("⏳ Waiting for page to load...")
+            time.sleep(10)  # Give it time to load all JavaScript
+            
+            # Find event elements using the ORIGINAL WORKING METHOD
+            event_elements = driver.find_elements(By.CSS_SELECTOR, "div[class*='event'], div[class*='card'], article")
+            
+            if not event_elements:
+                # Fallback: find any divs with event-like content (ORIGINAL METHOD)
+                all_divs = driver.find_elements(By.TAG_NAME, "div")
+                event_elements = []
+                for div in all_divs:
+                    try:
+                        text = div.text.strip()
+                        if len(text) > 50 and any(word in text.lower() for word in ['october', 'november', 'december', 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'pm', 'am', 'event', 'class']):
+                            event_elements.append(div)
+                            if len(event_elements) >= 50:  # Limit for performance
+                                break
+                    except:
+                        continue
+            
+            print(f"📊 Found {len(event_elements)} potential events")
+            
+            scraped_events = []
+            
+            for i, event_element in enumerate(event_elements):
+                try:
+                    # Extract event data (ORIGINAL METHOD)
+                    event_text = event_element.text.strip()
+                    if len(event_text) < 20:
+                        continue
+                    
+                    lines = [line.strip() for line in event_text.split('\n') if line.strip()]
+                    title = lines[0] if lines else f"Event {i+1}"
+                    
+                    # Clean up title
+                    if len(title) > 50:
+                        title = title[:50] + "..."
+                    
+                    # Extract banner image
+                    banner_url = None
+                    try:
+                        img_elements = event_element.find_elements(By.TAG_NAME, "img")
+                        for img in img_elements:
+                            img_src = img.get_attribute("src")
+                            if img_src and not any(skip in img_src.lower() for skip in ['logo', 'icon', 'avatar', 'profile', 'favicon']):
+                                if img_src.startswith('//'):
+                                    banner_url = 'https:' + img_src
+                                elif img_src.startswith('/'):
+                                    banner_url = urljoin(url, img_src)
+                                elif img_src.startswith('http'):
+                                    banner_url = img_src
+                                else:
+                                    banner_url = urljoin(url, img_src)
+                                break
+                    except:
+                        pass
+                    
+                    # Create event object (ORIGINAL METHOD)
+                    event = {
+                        "title": title,
+                        "description": event_text,
+                        "image_url": banner_url or "/event-schedule-banner.png",
+                        "startDate": datetime.now().isoformat(),
+                        "endDate": datetime.now().isoformat(),
+                        "location": "Seniors Kingston",
+                        "dateStr": "TBD",
+                        "timeStr": "TBD"
+                    }
+                    
+                    scraped_events.append(event)
+                    
+                except Exception as e:
+                    print(f"   ❌ Error processing event {i+1}: {e}")
+                    continue
+            
+            print(f"✅ ORIGINAL METHOD: Found {len(scraped_events)} events!")
+            driver.quit()
+            return scraped_events
+            
+        except Exception as e:
+            print(f"❌ Selenium failed: {e}")
+            return try_simple_requests_scraping()
         
     except Exception as e:
-        print(f"❌ Error in enhanced scraping: {e}")
-        return get_november_2025_events()
+        print(f"❌ Error in original scraping method: {e}")
+        return try_simple_requests_scraping()
 
-def try_scrape_events_page():
-    """Try to scrape from the main events page"""
+def try_simple_requests_scraping():
+    """Simple requests fallback for cloud environments"""
     try:
         import requests
         from bs4 import BeautifulSoup
@@ -798,181 +895,37 @@ def try_scrape_events_page():
         url = "https://seniorskingston.ca/events"
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate, br',
             'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
+            'Upgrade-Insecure-Requests': '1',
         }
         
-        print(f"🔍 Strategy 1: Scraping events page: {url}")
-        response = requests.get(url, headers=headers, timeout=20)
+        print(f"🔍 Trying simple requests scraping from: {url}")
+        response = requests.get(url, headers=headers, timeout=30)
         
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, 'html.parser')
-            
-            # Look for JSON data in script tags
-            script_tags = soup.find_all('script')
-            for script in script_tags:
-                if script.string and ('event' in script.string.lower() or 'november' in script.string.lower()):
-                    print("🔍 Found potential event data in script tag")
-                    # Try to extract JSON data
-                    try:
-                        # Look for JSON-like structures
-                        json_match = re.search(r'\{.*\}', script.string, re.DOTALL)
-                        if json_match:
-                            json_data = json.loads(json_match.group())
-                            events = extract_events_from_json(json_data)
-                            if events:
-                                print(f"✅ Found {len(events)} events from JSON data")
-                                return events
-                    except:
-                        pass
+            print("✅ Successfully fetched website content")
             
             # Try to extract events from HTML content
             events = extract_events_from_loaded_content(soup)
+            
             if events:
-                print(f"✅ Found {len(events)} events from HTML content")
+                print(f"✅ Simple requests found {len(events)} events")
                 return events
-        
-        print("❌ Strategy 1 failed - no events found")
-        return []
-        
+            else:
+                print("📅 No events found with simple requests")
+                return []
+        else:
+            print(f"❌ Failed to fetch website: HTTP {response.status_code}")
+            return []
+            
     except Exception as e:
-        print(f"❌ Strategy 1 error: {e}")
+        print(f"❌ Error in simple requests scraping: {e}")
         return []
 
-def try_scrape_homepage():
-    """Try to scrape from the homepage"""
-    try:
-        import requests
-        from bs4 import BeautifulSoup
-        
-        url = "https://seniorskingston.ca/"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
-        }
-        
-        print(f"🔍 Strategy 2: Scraping homepage: {url}")
-        response = requests.get(url, headers=headers, timeout=20)
-        
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.content, 'html.parser')
-            events = extract_events_from_loaded_content(soup)
-            if events:
-                print(f"✅ Found {len(events)} events from homepage")
-                return events
-        
-        print("❌ Strategy 2 failed - no events found")
-        return []
-        
-    except Exception as e:
-        print(f"❌ Strategy 2 error: {e}")
-        return []
-
-def try_scrape_alternative_urls():
-    """Try alternative URLs"""
-    try:
-        import requests
-        from bs4 import BeautifulSoup
-        
-        urls = [
-            "https://www.seniorskingston.ca/events",
-            "https://seniorskingston.ca/calendar",
-            "https://seniorskingston.ca/programs"
-        ]
-        
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
-        }
-        
-        print(f"🔍 Strategy 3: Trying alternative URLs")
-        for url in urls:
-            try:
-                print(f"   Trying: {url}")
-                response = requests.get(url, headers=headers, timeout=15)
-                
-                if response.status_code == 200:
-                    soup = BeautifulSoup(response.content, 'html.parser')
-                    events = extract_events_from_loaded_content(soup)
-                    if events:
-                        print(f"✅ Found {len(events)} events from {url}")
-                        return events
-            except Exception as e:
-                print(f"   Error with {url}: {e}")
-                continue
-        
-        print("❌ Strategy 3 failed - no events found")
-        return []
-        
-    except Exception as e:
-        print(f"❌ Strategy 3 error: {e}")
-        return []
-
-def extract_events_from_json(json_data):
-    """Extract events from JSON data"""
-    events = []
-    try:
-        # This would need to be customized based on the actual JSON structure
-        # For now, return empty list
-        return events
-    except Exception as e:
-        print(f"❌ Error extracting events from JSON: {e}")
-        return []
-
-def get_november_2025_events():
-    """Return known November 2025 events as fallback"""
-    return [
-        {
-            'title': 'Holiday Artisan Fair',
-            'startDate': '2025-11-22T10:00:00Z',
-            'endDate': '2025-11-22T16:00:00Z',
-            'description': 'Local artisans showcase their handmade crafts and holiday gifts',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 22, 2025',
-            'timeStr': '10:00 AM - 4:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': 'Free admission',
-            'instructor': 'Various Artisans',
-            'registration': 'No registration required'
-        },
-        {
-            'title': 'Thanksgiving Potluck',
-            'startDate': '2025-11-28T12:00:00Z',
-            'endDate': '2025-11-28T15:00:00Z',
-            'description': 'Community Thanksgiving celebration with potluck dinner',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 28, 2025',
-            'timeStr': '12:00 PM - 3:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': 'Free',
-            'instructor': 'Community',
-            'registration': 'Bring a dish to share'
-        },
-        {
-            'title': 'Winter Wellness Workshop',
-            'startDate': '2025-11-15T14:00:00Z',
-            'endDate': '2025-11-15T16:00:00Z',
-            'description': 'Learn about staying healthy and active during winter months',
-            'location': 'Seniors Kingston Centre',
-            'dateStr': 'November 15, 2025',
-            'timeStr': '2:00 PM - 4:00 PM',
-            'image_url': '/event-schedule-banner.png',
-            'price': 'Free',
-            'instructor': 'Health Professional',
-            'registration': 'Call to register'
-        }
-    ]
 
 def extract_events_from_loaded_content(soup):
     """Extract events from loaded page content"""
