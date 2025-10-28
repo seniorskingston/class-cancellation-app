@@ -236,80 +236,160 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
           </button>
         </div>
 
-        {/* Scraping Section */}
+        {/* Events Management Section */}
         <div style={{
-          background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+          background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
           padding: '20px',
           borderRadius: '12px',
           marginBottom: '20px',
-          border: '2px solid #2196f3'
+          border: '2px solid #4caf50'
         }}>
-          <h3 style={{ color: '#1976d2', marginBottom: '15px', fontSize: '1.3rem' }}>
-            🌐 Scrape Events from Seniors Kingston Website
+          <h3 style={{ color: '#2e7d32', marginBottom: '15px', fontSize: '1.3rem' }}>
+            📅 Events Management
           </h3>
           <p style={{ color: '#424242', marginBottom: '15px', fontSize: '1rem' }}>
-            Click the button below to automatically scrape the latest events from the Seniors Kingston website. 
-            The events will be loaded directly into the editor below for you to review and edit.
+            The Seniors Kingston website uses JavaScript to load events, making automatic scraping difficult. 
+            Use the options below to manage your events:
           </p>
-          <button 
-            onClick={async () => {
-              try {
-                setLoading(true);
-                setMessage('🔄 Scraping events from Seniors Kingston website...');
-                setMessageType('');
-                
-                const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events', {
-                  method: 'POST'
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                  setMessage(`✅ Successfully scraped ${result.events_count} events! Loading into editor...`);
-                  setMessageType('success');
+          
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button 
+              onClick={async () => {
+                try {
+                  setLoading(true);
+                  setMessage('🔄 Loading current events...');
+                  setMessageType('');
                   
-                  // Reload events to show the newly scraped ones
                   await loadEvents();
+                  
+                  setMessage(`✅ Loaded ${events.length} events from storage`);
+                  setMessageType('success');
                   
                   setTimeout(() => {
                     setMessage('');
                     setMessageType('');
                   }, 3000);
-                } else {
-                  setMessage(`❌ Scraping failed: ${result.error}`);
+                } catch (error) {
+                  setMessage(`❌ Error loading events: ${error instanceof Error ? error.message : 'Unknown error'}`);
                   setMessageType('error');
                   setTimeout(() => {
                     setMessage('');
                     setMessageType('');
                   }, 5000);
+                } finally {
+                  setLoading(false);
                 }
-              } catch (error) {
-                setMessage(`❌ Error scraping events: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                setMessageType('error');
+              }}
+              disabled={loading}
+              style={{
+                background: '#4caf50',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: 'bold',
+                opacity: loading ? 0.7 : 1
+              }}
+            >
+              📥 Load Current Events
+            </button>
+            
+            <button 
+              onClick={() => {
+                const newEvent = {
+                  title: '',
+                  startDate: '',
+                  endDate: '',
+                  description: '',
+                  location: '',
+                  dateStr: '',
+                  timeStr: '',
+                  image_url: '/event-schedule-banner.png',
+                  price: '',
+                  instructor: '',
+                  registration: ''
+                };
+                setNewEvent(newEvent);
+                setEditingIndex(null);
+                setMessage('✅ Ready to add new event - fill in the details below');
+                setMessageType('success');
                 setTimeout(() => {
                   setMessage('');
                   setMessageType('');
-                }, 5000);
-              } finally {
-                setLoading(false);
-              }
-            }}
-            disabled={loading}
-            style={{
-              background: '#2196f3',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              opacity: loading ? 0.7 : 1,
-              boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)'
-            }}
-          >
-            {loading ? '🔄 Scraping...' : '🌐 Scrape Events from Website'}
-          </button>
+                }, 3000);
+              }}
+              style={{
+                background: '#ff9800',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: 'bold'
+              }}
+            >
+              ➕ Add New Event
+            </button>
+            
+            <button 
+              onClick={async () => {
+                try {
+                  setSaving(true);
+                  setMessage('💾 Saving all events...');
+                  setMessageType('');
+                  
+                  await saveAllEvents();
+                  
+                  setMessage('✅ All events saved successfully!');
+                  setMessageType('success');
+                  
+                  setTimeout(() => {
+                    setMessage('');
+                    setMessageType('');
+                  }, 3000);
+                } catch (error) {
+                  setMessage(`❌ Error saving events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setMessageType('error');
+                  setTimeout(() => {
+                    setMessage('');
+                    setMessageType('');
+                  }, 5000);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              disabled={saving}
+              style={{
+                background: '#2196f3',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                cursor: saving ? 'not-allowed' : 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: 'bold',
+                opacity: saving ? 0.7 : 1
+              }}
+            >
+              {saving ? '💾 Saving...' : '💾 Save All Events'}
+            </button>
+          </div>
+          
+          <div style={{ 
+            marginTop: '15px', 
+            padding: '10px', 
+            background: '#fff3cd', 
+            border: '1px solid #ffeaa7',
+            borderRadius: '8px',
+            fontSize: '0.9rem',
+            color: '#856404'
+          }}>
+            <strong>💡 Tip:</strong> Since automatic scraping is difficult, you can manually add events by clicking "Add New Event" 
+            or copy events from the Seniors Kingston website and paste them into the editor below.
+          </div>
         </div>
 
         {/* Message */}
@@ -385,9 +465,48 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
           borderRadius: '10px',
           marginBottom: '20px'
         }}>
-          <h3 style={{ marginTop: 0, color: '#333' }}>
-            {editingIndex !== null ? '✏️ Edit Event' : '➕ Add New Event'}
-          </h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h3 style={{ margin: 0, color: '#333' }}>
+              {editingIndex !== null ? '✏️ Edit Event' : '➕ Add New Event'}
+            </h3>
+            <button
+              onClick={() => {
+                const templateEvent = {
+                  title: 'Sample Event',
+                  startDate: new Date().toISOString().slice(0, 16),
+                  endDate: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16),
+                  description: 'This is a sample event description. You can edit all the details below.',
+                  location: 'Seniors Kingston Centre',
+                  dateStr: new Date().toLocaleDateString(),
+                  timeStr: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+                  image_url: '/event-schedule-banner.png',
+                  price: 'Free',
+                  instructor: 'Staff Member',
+                  registration: 'No registration required'
+                };
+                setNewEvent(templateEvent);
+                setEditingIndex(null);
+                setMessage('✅ Template event loaded - edit the details below');
+                setMessageType('success');
+                setTimeout(() => {
+                  setMessage('');
+                  setMessageType('');
+                }, 3000);
+              }}
+              style={{
+                background: '#6c757d',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: 'bold'
+              }}
+            >
+              📝 Load Template
+            </button>
+          </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
             <div>

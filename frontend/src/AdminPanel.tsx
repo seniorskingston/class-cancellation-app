@@ -235,7 +235,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                   fontWeight: 'bold'
                 }}
               >
-                🔄 Scrape & Edit Events
+                📅 Manage Events
               </button>
               
               <input
