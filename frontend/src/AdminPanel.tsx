@@ -223,9 +223,68 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
               gap: '15px'
             }}>
               <button 
-                onClick={() => setShowEventEditor(true)}
+                onClick={() => {
+                  setUploadMessage('⚠️ Load New Events DISABLED - This was causing data to revert!');
+                  setTimeout(() => setUploadMessage(''), 3000);
+                }}
                 style={{
-                  background: '#28a745',
+                  background: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  padding: '15px 20px',
+                  borderRadius: '8px',
+                  cursor: 'not-allowed',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  opacity: 0.6
+                }}
+                disabled
+              >
+                🚫 Load New Events (DISABLED)
+              </button>
+              
+              <input
+                type="file"
+                accept=".json"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  
+                  try {
+                    setUploadMessage('📤 Uploading events file...');
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/import', {
+                      method: 'POST',
+                      body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                      setUploadMessage(`✅ ${result.message}`);
+                      setTimeout(() => setUploadMessage(''), 5000);
+                    } else {
+                      setUploadMessage(`❌ Upload failed: ${result.error}`);
+                      setTimeout(() => setUploadMessage(''), 5000);
+                    }
+                  } catch (error) {
+                    setUploadMessage(`❌ Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    setTimeout(() => setUploadMessage(''), 5000);
+                  }
+                  
+                  // Reset file input
+                  e.target.value = '';
+                }}
+                style={{ display: 'none' }}
+                id="main-events-file-input"
+              />
+              
+              <button 
+                onClick={() => document.getElementById('main-events-file-input')?.click()}
+                style={{
+                  background: '#17a2b8',
                   color: 'white',
                   border: 'none',
                   padding: '15px 20px',
@@ -235,7 +294,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                   fontWeight: 'bold'
                 }}
               >
-                📥 Load New Events
+                📤 Upload Events File
               </button>
               <button 
                 onClick={() => {
