@@ -1136,7 +1136,6 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             </div>
           )}
         </div>
-        </>
       </div>
     </div>
   );
