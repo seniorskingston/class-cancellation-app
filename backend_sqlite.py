@@ -1051,8 +1051,9 @@ def start_auto_sync():
     sync_thread.start()
     print("🔄 Automatic sync started - will sync every 6 hours")
 
-# Start automatic syncing when the server starts
-start_auto_sync()
+# Start automatic syncing when the server starts - DISABLED to prevent data changes
+# start_auto_sync()
+print("⏸️ Automatic sync disabled - events will come only from stored file")
 
 def extract_events_comprehensively(soup):
     """Extract events from Seniors Kingston website systematically"""
@@ -1421,21 +1422,9 @@ def get_events(request: Request):
         print(f"📦 Using {len(unique_events)} unique stored events (removed {len(stored_events) - len(unique_events)} duplicates)")
         all_events = unique_events
     else:
-        # Fallback: Try to get real events from Seniors Kingston website
-        print("🔍 No stored events found, attempting to fetch from website...")
-        try:
-            real_events = scrape_seniors_kingston_events()
-            if real_events and len(real_events) > 0:
-                print(f"✅ Successfully fetched {len(real_events)} real events from website")
-                # Combine real events with Canadian holidays, editable events, and stored events
-                all_events = real_events + globals()['known_events'] + list(editable_events.values()) + stored_events
-            else:
-                print("⚠️ No real events found from website, using fallback events")
-                all_events = globals()['known_events'] + list(editable_events.values()) + stored_events
-        except Exception as e:
-            print(f"❌ Error fetching real events: {e}")
-            print("🔄 Using fallback events")
-            all_events = globals()['known_events'] + list(editable_events.values()) + stored_events
+        # Do NOT scrape anymore. Only return stored events.
+        print("⏸️ Scraping disabled. Using stored events only.")
+        all_events = stored_events
             
             # Fix image URLs and clean titles for all events
             for event in all_events:
@@ -2229,44 +2218,65 @@ async def update_event_banner(event_title: str, request: Request):
         traceback.print_exc()
         return {"success": False, "error": str(e)}
 
-@app.post("/api/excel/upload-manual")
-async def upload_excel_manual(file: UploadFile = File(...)):
-    """Manual Excel upload that persists data"""
+@app.get("/api/events/export")
+async def export_events():
+    """Export all stored events as JSON file"""
     try:
-        print(f"📊 Manual Excel upload: {file.filename}")
+        global stored_events
         
-        # Read Excel file
-        contents = await file.read()
+        export_data = {
+            "export_date": datetime.now().isoformat(),
+            "total_events": len(stored_events),
+            "events": stored_events
+        }
         
-        # Save to persistent location
-        EXCEL_PATH = "Class Cancellation App.xlsx"
-        BACKUP_EXCEL_PATH = "/tmp/backup_Class Cancellation App.xlsx" if os.getenv('RENDER') else "backup_Class Cancellation App.xlsx"
+        return Response(
+            content=json.dumps(export_data, indent=2),
+            media_type="application/json",
+            headers={"Content-Disposition": "attachment; filename=events_export.json"}
+        )
         
-        # Save original file
-        with open(EXCEL_PATH, 'wb') as f:
-            f.write(contents)
+    except Exception as e:
+        print(f"❌ Error exporting events: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/events/import")
+async def import_events(file: UploadFile = File(...)):
+    """Import events from JSON file"""
+    try:
+        global stored_events
         
-        # Save backup for persistence
-        if os.getenv('RENDER'):
-            import shutil
-            shutil.copy2(EXCEL_PATH, BACKUP_EXCEL_PATH)
-            print(f"✅ Excel backed up to: {BACKUP_EXCEL_PATH}")
+        # Read the uploaded file
+        content = await file.read()
+        data = json.loads(content.decode('utf-8'))
         
-        # Import data
-        import_excel_data(EXCEL_PATH)
+        if 'events' not in data:
+            return {"success": False, "error": "Invalid file format - no 'events' key found"}
+        
+        new_events = data['events']
+        
+        # Remove duplicates based on title + startDate
+        unique_events = []
+        seen_keys = set()
+        for event in new_events:
+            key = (event.get('title', ''), event.get('startDate', ''))
+            if key not in seen_keys:
+                unique_events.append(event)
+                seen_keys.add(key)
+        
+        # Replace stored events
+        stored_events = unique_events
+        save_stored_events()
         
         return {
             "success": True,
-            "message": f"Excel file uploaded and imported successfully. Data will persist.",
-            "filename": file.filename
+            "message": f"Successfully imported {len(unique_events)} events (removed {len(new_events) - len(unique_events)} duplicates)",
+            "total_events": len(unique_events)
         }
         
     except Exception as e:
-        print(f"❌ Error uploading Excel: {e}")
-        return {
-            "success": False,
-            "error": str(e)
-        }
+        print(f"❌ Error importing events: {e}")
+        return {"success": False, "error": str(e)}
 
 @app.post("/api/events/clear")
 async def clear_events_endpoint():
@@ -3533,14 +3543,14 @@ def test_scraping():
                 "success": True,
                 "message": f"Found {len(events)} events",
                 "events": events[:10],  # Show first 10 events
-                "auto_sync": "Enabled - syncing every 6 hours",
+                "auto_sync": "Disabled",
                 "scraping_method": "Selenium + BeautifulSoup"
             }
         else:
             return {
                 "success": False,
                 "message": "No events found",
-                "auto_sync": "Enabled - syncing every 6 hours",
+                "auto_sync": "Disabled",
                 "scraping_method": "Selenium + BeautifulSoup"
             }
     except Exception as e:
@@ -3786,11 +3796,12 @@ async def import_excel(file: UploadFile = File(...)):
                 f.write(content)
             print(f"💾 Excel file saved to: {EXCEL_PATH}")
             
-            # Also backup to persistent storage if in cloud
-            if os.getenv('RENDER'):
-                with open(BACKUP_EXCEL_PATH, 'wb') as f:
-                    f.write(content)
-                print(f"💾 Excel file backed up to: {BACKUP_EXCEL_PATH}")
+            # DISABLED: No backup - Excel data will persist as uploaded
+            # if os.getenv('RENDER'):
+            #     with open(BACKUP_EXCEL_PATH, 'wb') as f:
+            #         f.write(content)
+            #     print(f"💾 Excel file backed up to: {BACKUP_EXCEL_PATH}")
+            print("✅ Excel data will persist as uploaded - no backup needed")
                 
         except Exception as e:
             print(f"⚠️ Could not save Excel file: {e}")
