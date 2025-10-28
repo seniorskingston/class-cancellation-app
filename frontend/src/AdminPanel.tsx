@@ -343,6 +343,154 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
           </div>
         </div>
 
+        {/* Fallback Data Management Section */}
+        <div style={{
+          background: '#f8f9fa',
+          padding: '25px',
+          borderRadius: '15px',
+          border: '2px solid #e9ecef',
+          marginTop: '30px'
+        }}>
+          <h2 style={{ 
+            color: '#6f42c1', 
+            marginBottom: '20px',
+            fontSize: '1.5rem'
+          }}>
+            💾 Fallback Data Management
+          </h2>
+          <p style={{ 
+            color: '#666', 
+            marginBottom: '20px',
+            lineHeight: '1.6'
+          }}>
+            Save current data as fallback. When scraping fails, the app will use this saved data instead of showing empty results.
+          </p>
+          <div style={{
+            display: 'flex',
+            gap: '10px',
+            flexWrap: 'wrap'
+          }}>
+            <button 
+              onClick={async () => {
+                try {
+                  setUploadMessage('💾 Saving current events as fallback...');
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/fallback/save-events', {
+                    method: 'POST'
+                  });
+                  
+                  const result = await response.json();
+                  
+                  if (result.success) {
+                    setUploadMessage(`✅ ${result.message}`);
+                    setTimeout(() => setUploadMessage(''), 5000);
+                  } else {
+                    setUploadMessage(`❌ Failed to save events fallback: ${result.error}`);
+                    setTimeout(() => setUploadMessage(''), 5000);
+                  }
+                } catch (error) {
+                  setUploadMessage(`❌ Error saving events fallback: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setTimeout(() => setUploadMessage(''), 5000);
+                }
+              }}
+              style={{
+                background: '#6f42c1',
+                color: 'white',
+                border: 'none',
+                padding: '12px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                flex: '1',
+                minWidth: '180px'
+              }}
+            >
+              💾 Save Events as Fallback
+            </button>
+            
+            <button 
+              onClick={async () => {
+                try {
+                  setUploadMessage('💾 Saving current Excel data as fallback...');
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/fallback/save-excel', {
+                    method: 'POST'
+                  });
+                  
+                  const result = await response.json();
+                  
+                  if (result.success) {
+                    setUploadMessage(`✅ ${result.message}`);
+                    setTimeout(() => setUploadMessage(''), 5000);
+                  } else {
+                    setUploadMessage(`❌ Failed to save Excel fallback: ${result.error}`);
+                    setTimeout(() => setUploadMessage(''), 5000);
+                  }
+                } catch (error) {
+                  setUploadMessage(`❌ Error saving Excel fallback: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setTimeout(() => setUploadMessage(''), 5000);
+                }
+              }}
+              style={{
+                background: '#fd7e14',
+                color: 'white',
+                border: 'none',
+                padding: '12px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                flex: '1',
+                minWidth: '180px'
+              }}
+            >
+              💾 Save Excel as Fallback
+            </button>
+            
+            <button 
+              onClick={async () => {
+                try {
+                  setUploadMessage('📊 Checking fallback status...');
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/fallback/status');
+                  const status = await response.json();
+                  
+                  let message = '📊 Fallback Status:\n';
+                  if (status.events_fallback.file_exists) {
+                    message += `✅ Events: ${status.events_fallback.total_events} events (${status.events_fallback.last_updated})\n`;
+                  } else {
+                    message += `❌ Events: No fallback data\n`;
+                  }
+                  
+                  if (status.excel_fallback.file_exists) {
+                    message += `✅ Excel: ${status.excel_fallback.total_programs} programs (${status.excel_fallback.last_updated})`;
+                  } else {
+                    message += `❌ Excel: No fallback data`;
+                  }
+                  
+                  setUploadMessage(message);
+                  setTimeout(() => setUploadMessage(''), 8000);
+                } catch (error) {
+                  setUploadMessage(`❌ Error checking fallback status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setTimeout(() => setUploadMessage(''), 5000);
+                }
+              }}
+              style={{
+                background: '#20c997',
+                color: 'white',
+                border: 'none',
+                padding: '12px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                flex: '1',
+                minWidth: '180px'
+              }}
+            >
+              📊 Check Fallback Status
+            </button>
+          </div>
+        </div>
+
         {uploadMessage && (
           <div style={{
             marginTop: '20px',
