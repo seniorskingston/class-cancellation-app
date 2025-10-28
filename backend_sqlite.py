@@ -1425,42 +1425,44 @@ def get_events(request: Request):
         # Do NOT scrape anymore. Only return stored events.
         print("⏸️ Scraping disabled. Using stored events only.")
         all_events = stored_events
+    
+    # Fix image URLs and clean titles for all events
+    if all_events:
+        for event in all_events:
+            if not event.get('image_url') or event.get('image_url') == '/assets/event-schedule-banner.png':
+                event['image_url'] = '/logo192.png'  # Use accessible logo as banner
             
-            # Fix image URLs and clean titles for all events
-            for event in all_events:
-                if not event.get('image_url') or event.get('image_url') == '/assets/event-schedule-banner.png':
-                    event['image_url'] = '/logo192.png'  # Use accessible logo as banner
+            # Clean up titles that contain descriptions
+            title = event.get('title', '')
+            description = event.get('description', '')
+            
+            # If title is very long and contains description, extract just the title part
+            if len(title) > 50:  # Lower threshold to catch more cases
+                import re
+                # Look for pattern like "Event Name October 24, 1:30 pm Description"
+                # Try multiple patterns to extract just the event name
+                patterns = [
+                    r'^([^0-9]+?)\s+\w+\s+\d+,\s+\d+:\d+\s+[ap]m',  # "Event Name October 24, 1:30 pm"
+                    r'^([^0-9]+?)\s+\w+\s+\d+',  # "Event Name October 24"
+                    r'^([^0-9]+?)\s+\d+:\d+\s+[ap]m',  # "Event Name 1:30 pm"
+                    r'^([^0-9]+?)\s+\d+',  # "Event Name 24"
+                ]
                 
-                # Clean up titles that contain descriptions
-                title = event.get('title', '')
-                description = event.get('description', '')
-                
-                # If title is very long and contains description, extract just the title part
-                if len(title) > 50:  # Lower threshold to catch more cases
-                    import re
-                    # Look for pattern like "Event Name October 24, 1:30 pm Description"
-                    # Try multiple patterns to extract just the event name
-                    patterns = [
-                        r'^([^0-9]+?)\s+\w+\s+\d+,\s+\d+:\d+\s+[ap]m',  # "Event Name October 24, 1:30 pm"
-                        r'^([^0-9]+?)\s+\w+\s+\d+',  # "Event Name October 24"
-                        r'^([^0-9]+?)\s+\d+:\d+\s+[ap]m',  # "Event Name 1:30 pm"
-                        r'^([^0-9]+?)\s+\d+',  # "Event Name 24"
-                    ]
-                    
-                    for pattern in patterns:
-                        match = re.match(pattern, title)
-                        if match:
-                            clean_title = match.group(1).strip()
-                            # Remove trailing punctuation and extra spaces
-                            clean_title = re.sub(r'[,\s]+$', '', clean_title)
-                            if len(clean_title) > 3:  # Make sure we have a meaningful title
-                                event['title'] = clean_title
-                                print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
-                                break
+                for pattern in patterns:
+                    match = re.match(pattern, title)
+                    if match:
+                        clean_title = match.group(1).strip()
+                        # Remove trailing punctuation and extra spaces
+                        clean_title = re.sub(r'[,\s]+$', '', clean_title)
+                        if len(clean_title) > 3:  # Make sure we have a meaningful title
+                            event['title'] = clean_title
+                            print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
+                            break
     
     # If no events were processed, provide fallback
     if 'all_events' not in locals() or len(all_events) == 0:
         print("📅 No events found, using known events as fallback")
+        all_events = []
     
     # REAL EVENTS from Seniors Kingston website - 100% ACCURATE DATA (2025)
     # Extracted directly from the actual website using Selenium scraping
