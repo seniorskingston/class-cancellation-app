@@ -370,7 +370,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                           setUploadMessage('✅ Events file downloaded successfully!');
                           setTimeout(() => setUploadMessage(''), 3000);
                         } catch (error) {
-                          setUploadMessage(`❌ Download failed: ${error.message}`);
+                          setUploadMessage(`❌ Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
                           setTimeout(() => setUploadMessage(''), 5000);
                         }
                       }}
@@ -415,7 +415,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                             setTimeout(() => setUploadMessage(''), 5000);
                           }
                         } catch (error) {
-                          setUploadMessage(`❌ Upload error: ${error.message}`);
+                          setUploadMessage(`❌ Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
                           setTimeout(() => setUploadMessage(''), 5000);
                         }
                         
