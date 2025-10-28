@@ -267,16 +267,27 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
                   const result = await response.json();
                   
                   if (result.success) {
-                    setMessage(`✅ Successfully scraped ${result.events_count} events! Loading into editor...`);
+                    let messageText = result.message;
+                    
+                    // Show detailed results if available
+                    if (result.added !== undefined) {
+                      messageText = `✅ Scraping complete! Added ${result.added} new events, skipped ${result.skipped} duplicates. Total events: ${result.events_count}`;
+                      
+                      if (result.skipped_details && result.skipped_details.length > 0) {
+                        messageText += `\n\nSkipped duplicates:\n${result.skipped_details.join('\n')}`;
+                      }
+                    }
+                    
+                    setMessage(messageText);
                     setMessageType('success');
                     
-                    // Reload events to show the newly scraped ones
+                    // Reload events to show the updated list
                     await loadEvents();
                     
                     setTimeout(() => {
                       setMessage('');
                       setMessageType('');
-                    }, 3000);
+                    }, 8000); // Show longer to read the details
                   } else {
                     setMessage(`❌ Scraping failed: ${result.error}`);
                     setMessageType('error');
@@ -376,7 +387,7 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             fontSize: '0.9rem',
             color: '#856404'
           }}>
-            <strong>💡 Workflow:</strong> 1) Scrape events from website → 2) Download the JSON file → 3) Edit events locally → 4) Upload back to app (same as Excel workflow)
+            <strong>💡 Safe Workflow:</strong> 1) Scrape events from website (only adds NEW events, never overwrites existing) → 2) Download the JSON file → 3) Edit events locally → 4) Upload back to app (same as Excel workflow)
           </div>
         </div>
 
