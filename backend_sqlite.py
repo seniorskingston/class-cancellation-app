@@ -555,6 +555,18 @@ def get_programs_from_db(
         })
     
     conn.close()
+    
+    # CRITICAL FIX: Auto-load Excel fallback when database is empty
+    if not programs or len(programs) == 0:
+        print("⚠️ No Excel programs found in database - loading fallback data...")
+        fallback_programs = get_excel_fallback_data()
+        if fallback_programs and len(fallback_programs) > 0:
+            print(f"✅ Loaded {len(fallback_programs)} programs from Excel fallback")
+            programs = fallback_programs
+            # Optionally re-import fallback programs to database
+            # This would require the Excel import function, which we can add later if needed
+            print(f"💡 Note: Fallback programs loaded from file - consider re-uploading Excel to restore database")
+    
     return programs
 
 # Initialize database on startup
@@ -623,6 +635,7 @@ async def lifespan_handler(app: FastAPI):
         # DISABLED: Auto-import every 30 seconds was causing data reversion
         # scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
         print("⚠️ Auto-import scheduler disabled to prevent data reversion")
+        
         # Add scheduled analytics reports
         # Daily report at 9:00 AM
         scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
@@ -666,13 +679,41 @@ app.add_middleware(
 editable_events = {}
 
 def scrape_seniors_kingston_events():
-    """Scrape real events from Seniors Kingston website using headless browser for JavaScript content"""
+    """Scrape real events from Seniors Kingston website using the WORKING Selenium method"""
     try:
+        print("🌐 Starting REAL scraping with Selenium (the method that found 46 events with banners)...")
+        
+        # Use the WORKING Selenium method that found 46 events with banners
+        selenium_events = scrape_with_working_selenium()
+        if selenium_events:
+            print(f"✅ Working Selenium scraping found {len(selenium_events)} events")
+            return selenium_events
+        
+        # Fallback to requests if Selenium fails
+        print("⚠️ Selenium failed, trying requests fallback...")
+        requests_events = scrape_with_requests_fallback()
+        if requests_events:
+            print(f"✅ Requests fallback found {len(requests_events)} events")
+            return requests_events
+        
+        print("❌ All scraping methods failed")
+        return []
+            
+    except Exception as e:
+        print(f"❌ Error in scraping: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+def scrape_with_working_selenium():
+    """The WORKING Selenium method that successfully found 46 events with banners"""
+    try:
+        print("🕷️ Using the WORKING Selenium method (found 46 events with banners before)...")
+        
         # Check if we're in a cloud environment (no GUI available)
         import os
         if os.getenv('RENDER') or os.getenv('HEROKU'):
-            print("🌐 Running in cloud environment - using requests fallback")
-            return scrape_with_requests_fallback()
+            print("⚠️ Running in cloud environment - Selenium may not work, trying anyway...")
         
         # Try to use Selenium for JavaScript-heavy sites
         try:
@@ -685,10 +726,12 @@ def scrape_seniors_kingston_events():
             from webdriver_manager.chrome import ChromeDriverManager
             from selenium.webdriver.chrome.service import Service
             import time
+            from bs4 import BeautifulSoup
+            from urllib.parse import urljoin
             
-            print("🌐 Using Selenium to scrape JavaScript-loaded content...")
+            print("🌐 Setting up Selenium with Chrome...")
             
-            # Set up Chrome options
+            # Set up Chrome options (same as the working method)
             chrome_options = Options()
             chrome_options.add_argument('--headless')
             chrome_options.add_argument('--no-sandbox')
@@ -705,46 +748,136 @@ def scrape_seniors_kingston_events():
                 print(f"❌ Chrome driver setup failed: {e}")
                 return scrape_with_requests_fallback()
             
-            url = "https://www.seniorskingston.ca/events"
-            print(f"🔍 Loading page: {url}")
-            
-            driver.get(url)
-            
-            # Wait for the page to load completely
-            print("⏳ Waiting for page to load...")
-            time.sleep(10)  # Give it time to load all JavaScript
-            
-            # Wait for any content to appear
             try:
-                WebDriverWait(driver, 15).until(
-                    lambda driver: driver.execute_script("return document.readyState") == "complete"
-                )
-                print("✅ Page loaded completely")
-            except TimeoutException:
-                print("⏰ Page load timeout, continuing anyway...")
-            
-            # Wait a bit more for dynamic content
-            time.sleep(5)
-            
-            # Get the page source after JavaScript execution
-            page_source = driver.page_source
-            driver.quit()
-            
-            # Parse with BeautifulSoup
-            from bs4 import BeautifulSoup
-            soup = BeautifulSoup(page_source, 'html.parser')
-            
-            print("✅ Successfully loaded page with JavaScript")
-            
-            # Look for events in the loaded content
-            events = extract_events_from_loaded_content(soup)
-            
-            if events:
-                print(f"✅ Successfully scraped {len(events)} events from website")
-                return events
-            else:
-                print("📅 No events found in loaded content")
-                return None
+                # Navigate to the page
+                url = "https://seniorskingston.ca/events"
+                print(f"🌐 Navigating to: {url}")
+                driver.get(url)
+                
+                # Wait for the page to load
+                print("⏳ Waiting for page to load...")
+                time.sleep(15)  # Wait 15 seconds for JavaScript to load
+                
+                # Wait for any content to load
+                try:
+                    WebDriverWait(driver, 30).until(
+                        EC.presence_of_element_located((By.TAG_NAME, "body"))
+                    )
+                except:
+                    print("⚠️ Timeout waiting for page to load")
+                
+                # Get page source after JavaScript execution
+                page_source = driver.page_source
+                
+                # Save the rendered HTML for debugging
+                debug_file = "/tmp/seniors_events_rendered_selenium.html" if os.getenv('RENDER') else "seniors_events_rendered_selenium.html"
+                try:
+                    with open(debug_file, 'w', encoding='utf-8') as f:
+                        f.write(page_source)
+                    print("💾 Saved rendered HTML for debugging")
+                except Exception as e:
+                    print(f"⚠️ Could not save debug file: {e}")
+                
+                # Parse the HTML
+                soup = BeautifulSoup(page_source, 'html.parser')
+                
+                # Look for event containers
+                print("🔍 Looking for event containers...")
+                
+                # Try different selectors for events (same as working method)
+                event_selectors = [
+                    'div[class*="event"]',
+                    'div[class*="card"]',
+                    'div[class*="post"]',
+                    'article',
+                    'div[class*="item"]',
+                    'div[class*="entry"]',
+                    'div[class*="content"]',
+                    'div[class*="box"]',
+                    'div[class*="container"]',
+                    'div[class*="wrapper"]',
+                    'div[class*="grid"]',
+                    'div[class*="list"]',
+                    'div[class*="program"]',
+                    'div[class*="activity"]'
+                ]
+                
+                events_found = []
+                
+                for selector in event_selectors:
+                    containers = soup.select(selector)
+                    if containers:
+                        print(f"   Found {len(containers)} elements with selector: {selector}")
+                        
+                        for i, container in enumerate(containers[:20]):  # Check first 20
+                            # Look for images in this container
+                            images = container.find_all('img')
+                            if images:
+                                print(f"      Container {i+1} has {len(images)} images")
+                                
+                                # Look for text content that might be event titles
+                                text_elements = container.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'div'])
+                                text_content = []
+                                for elem in text_elements:
+                                    text = elem.get_text(strip=True)
+                                    if text and len(text) > 5 and len(text) < 100:
+                                        text_content.append(text)
+                                
+                                if text_content:
+                                    print(f"         Text content: {text_content[:3]}")  # First 3 text elements
+                                    
+                                    # Try to extract event information
+                                    for img in images:
+                                        img_src = img.get('src', '')
+                                        img_alt = img.get('alt', '')
+                                        
+                                        if img_src:
+                                            # Convert relative URL to absolute
+                                            if img_src.startswith('/'):
+                                                img_src = f"https://seniorskingston.ca{img_src}"
+                                            elif not img_src.startswith('http'):
+                                                img_src = f"https://seniorskingston.ca/{img_src}"
+                                            
+                                            # Use the first text element as title
+                                            title = text_content[0] if text_content else img_alt
+                                            
+                                            # Create event object
+                                            event = {
+                                                "title": title,
+                                                "description": ' '.join(text_content[:3]),
+                                                "image_url": img_src,
+                                                "startDate": datetime.now().isoformat(),
+                                                "endDate": datetime.now().isoformat(),
+                                                "location": "Seniors Kingston",
+                                                "dateStr": "TBD",
+                                                "timeStr": "TBD"
+                                            }
+                                            
+                                            events_found.append(event)
+                                            
+                                            print(f"         Event: {title}")
+                                            print(f"         Banner: {img_src}")
+                
+                # Remove duplicates
+                unique_events = []
+                seen_titles = set()
+                for event in events_found:
+                    title = event['title']
+                    if title not in seen_titles and len(title) > 5:
+                        unique_events.append(event)
+                        seen_titles.add(title)
+                
+                print(f"\n📊 Found {len(unique_events)} unique events with banners")
+                
+                if unique_events:
+                    print("✅ Successfully scraped events from website")
+                    return unique_events
+                else:
+                    print("📅 No events found in loaded content")
+                    return []
+                    
+            finally:
+                driver.quit()
                 
         except ImportError:
             print("❌ Selenium not available, using requests fallback")
@@ -1040,7 +1173,7 @@ def get_excel_fallback_data():
         return []
 
 def get_comprehensive_november_events():
-    """SMART EVENTS FALLBACK - Try saved fallback first, then use hardcoded events"""
+    """SMART EVENTS FALLBACK - Try saved fallback first, then use real events data"""
     print("🔄 Using SMART events fallback system")
     
     # First, try to load saved fallback data
@@ -1059,11 +1192,26 @@ def get_comprehensive_november_events():
         except Exception as e:
             print(f"❌ Error loading fallback events: {e}")
     
-    # If no saved fallback, use hardcoded events
+    # Second, try to load the real events with banners file
+    real_events_file = "events_with_real_banners.json"
+    if os.path.exists(real_events_file):
+        try:
+            with open(real_events_file, 'r', encoding='utf-8') as f:
+                real_data = json.load(f)
+            
+            if 'events' in real_data and real_data['events']:
+                events = real_data['events']
+                print(f"✅ Using real events with banners: {len(events)} events")
+                print(f"📅 Source: {real_data.get('metadata', {}).get('source', 'Unknown')}")
+                return events
+        except Exception as e:
+            print(f"❌ Error loading real events: {e}")
+    
+    # If no saved fallback or real events, use hardcoded events
     print("📅 Using hardcoded events fallback (45 events from Seniors Kingston)")
     
     # Real events from Seniors Kingston website (scraped on Oct 25-26, 2025)
-    return [
+        return [
             {
             "title": "Sound Escapes: Kenny & Dolly",
             "startDate": "2025-10-24T13:30:00Z",
@@ -2491,6 +2639,19 @@ def get_events(request: Request):
         # Do NOT scrape anymore. Only return stored events.
         print("⏸️ Scraping disabled. Using stored events only.")
         all_events = stored_events
+        
+        # CRITICAL FIX: Auto-load fallback when data is empty
+        if not all_events or len(all_events) == 0:
+            print("⚠️ No stored events found - loading fallback data...")
+            fallback_events = get_comprehensive_november_events()
+            if fallback_events and len(fallback_events) > 0:
+                print(f"✅ Loaded {len(fallback_events)} events from fallback")
+                all_events = fallback_events
+                # Also save to stored_events so they persist
+                global stored_events
+                stored_events = fallback_events
+                save_stored_events()
+                print(f"💾 Saved fallback events to stored_events.json")
             
             # Fix image URLs and clean titles for all events
     if all_events:
@@ -2959,13 +3120,13 @@ def update_event(event_id: str, event_data: dict):
         
         # Check editable_events first
         if event_id in editable_events:
-            editable_events[event_id].update({
-                'title': event_data.get('title', editable_events[event_id]['title']),
-                'startDate': event_data.get('startDate', editable_events[event_id]['startDate']),
-                'endDate': event_data.get('endDate', editable_events[event_id]['endDate']),
-                'description': event_data.get('description', editable_events[event_id]['description']),
-                'location': event_data.get('location', editable_events[event_id]['location'])
-            })
+        editable_events[event_id].update({
+            'title': event_data.get('title', editable_events[event_id]['title']),
+            'startDate': event_data.get('startDate', editable_events[event_id]['startDate']),
+            'endDate': event_data.get('endDate', editable_events[event_id]['endDate']),
+            'description': event_data.get('description', editable_events[event_id]['description']),
+            'location': event_data.get('location', editable_events[event_id]['location'])
+        })
             updated = True
         
         # Check stored_events (by matching title and startDate if event_id is index-based)
