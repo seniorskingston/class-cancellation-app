@@ -838,6 +838,12 @@ function App() {
                       <span className="mobile-value">{c.instructor}</span>
                     </div>
                     <div className="mobile-detail-row">
+                      <span className="mobile-label">Status:</span>
+                      <span className="mobile-value" style={{ fontWeight: 'bold', color: c.program_status === 'Cancelled' ? '#d9534f' : (c.program_status === 'Active' ? '#28a745' : '#0072ce') }}>
+                        {c.program_status || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="mobile-detail-row">
                       <span className="mobile-label">Cancelled:</span>
                       <span className="mobile-value mobile-cancellation">
                         {c.class_cancellation && c.class_cancellation !== '' ? 
