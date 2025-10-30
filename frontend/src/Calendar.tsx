@@ -126,6 +126,14 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
     });
   };
 
+  // Build a local date key YYYY-MM-DD without timezone shifts
+  const toLocalDateKey = (d: Date): string => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Handle event click
   const handleEventClick = (event: Event) => {
     console.log('🎯 Event clicked:', event.title);
@@ -496,12 +504,12 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
               return eventDate >= startDate && eventDate <= endDate;
             });
             
-            // Group events by individual date
+            // Group events by individual date (using LOCAL date, not UTC)
             const eventsByDate: { [key: string]: Event[] } = {};
             filteredEvents.forEach(event => {
               const eventDate = new Date(event.startDate);
               eventDate.setHours(0, 0, 0, 0);
-              const dateKey = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
+              const dateKey = toLocalDateKey(eventDate); // YYYY-MM-DD (local)
               if (!eventsByDate[dateKey]) {
                 eventsByDate[dateKey] = [];
               }
@@ -513,7 +521,8 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
             
             return sortedDates.map(dateKey => {
               const dayEvents = eventsByDate[dateKey];
-              const eventDate = new Date(dateKey);
+              const [y, m, d] = dateKey.split('-').map(Number);
+              const eventDate = new Date(y, (m || 1) - 1, d || 1);
               const monthName = monthNames[eventDate.getMonth()];
               const dayName = dayNames[eventDate.getDay()];
               const day = eventDate.getDate();
