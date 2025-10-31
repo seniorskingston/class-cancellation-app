@@ -1,0 +1,110 @@
+{
+  "metadata": {
+    "created_at": "2025-10-28T15:16:16.420909",
+    "description": "Fallback Excel programs data when Excel import fails",
+    "total_programs": 10,
+    "last_updated": "2025-10-28T15:16:16.420962"
+  },
+  "programs": [
+    {
+      "program": "Carole's Dance Party",
+      "program_id": "28785",
+      "day": "Wednesday",
+      "location": "Seniors Centre West",
+      "program_status": "Active",
+      "class_cancellation": "",
+      "additional_information": "Dance party with Carole - fun and energetic!",
+      "refund": "No"
+    },
+    {
+      "program": "Anxiety Unlocked",
+      "program_id": "28786",
+      "day": "Wednesday",
+      "location": "Seniors Centre",
+      "program_status": "Active",
+      "class_cancellation": "",
+      "additional_information": "Learn techniques to manage anxiety",
+      "refund": "No"
+    },
+    {
+      "program": "Sound Escapes: Kenny & Dolly",
+      "program_id": "28787",
+      "day": "Thursday",
+      "location": "Seniors Centre",
+      "program_status": "Active",
+      "class_cancellation": "",
+      "additional_information": "Musical performance featuring Kenny & Dolly",
+      "refund": "No"
+    },
+    {
+      "program": "Wearable Tech",
+      "program_id": "28788",
+      "day": "Sunday",
+      "location": "Seniors Centre",
+      "program_status": "Active",
+      "class_cancellation": "",
+      "additional_information": "Learn about wearable technology",
+      "refund": "No"
+    },
+    {
+      "program": "Legal Advice",
+      "program_id": "28789",
+      "day": "Sunday",
+      "location": "Seniors Centre",
+      "program_status": "Active",
+      "class_cancellation": "",
+      "additional_information": "Free legal consultation",
+      "refund": "No"
+    },
+    {
+      "program": "Fresh Food Market",
+      "program_id": "28790",
+      "day": "Monday",
+      "location": "Seniors Centre",
+      "program_status": "Active",
+      "class_cancellation": "",
+      "additional_information": "Fresh produce and local goods",
+      "refund": "No"
+    },
+    {
+      "program": "18th Century Astronomy",
+      "program_id": "28791",
+      "day": "Wednesday",
+      "location": "Seniors Centre",
+      "program_status": "Active",
+      "class_cancellation": "",
+      "additional_information": "Explore astronomy from the 18th century",
+      "refund": "No"
+    },
+    {
+      "program": "Coffee with a Cop",
+      "program_id": "28792",
+      "day": "Thursday",
+      "location": "Seniors Centre",
+      "program_status": "Active",
+      "class_cancellation": "",
+      "additional_information": "Meet and chat with local police officers",
+      "refund": "No"
+    },
+    {
+      "program": "Hearing Clinic",
+      "program_id": "28793",
+      "day": "Thursday",
+      "location": "Seniors Centre",
+      "program_status": "Active",
+      "class_cancellation": "",
+      "additional_information": "Free hearing tests and consultations",
+      "refund": "No"
+    },
+    {
+      "program": "Speed Friending",
+      "program_id": "28794",
+      "day": "Sunday",
+      "location": "Seniors Centre",
+      "program_status": "Active",
+      "class_cancellation": "",
+      "additional_information": "Meet new people in a fun, structured way",
+      "refund": "No"
+    }
+  ]
+}

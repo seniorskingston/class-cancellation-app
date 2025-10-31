@@ -59,11 +59,127 @@ def save_stored_events():
         with open(STORED_EVENTS_FILE, 'w', encoding='utf-8') as f:
             json.dump(stored_events, f, ensure_ascii=False, indent=2)
         print(f"💾 Saved {len(stored_events)} events to {STORED_EVENTS_FILE}")
+        
+        # CRITICAL: Also automatically save to fallback to ensure data persistence
+        save_events_to_fallback_auto()
     except Exception as e:
         print(f"⚠️ Error saving stored events: {e}")
 
+def save_events_to_fallback_auto():
+    """Automatically save events to fallback file (called after every save)"""
+    try:
+        global stored_events
+        if not stored_events:
+            return
+        
+        fallback_file = "/tmp/events_fallback_data.json" if os.getenv('RENDER') else "events_fallback_data.json"
+        
+        # Load existing fallback to preserve metadata
+        existing_metadata = {}
+        if os.path.exists(fallback_file):
+            try:
+                with open(fallback_file, 'r', encoding='utf-8') as f:
+                    existing_data = json.load(f)
+                    if 'metadata' in existing_data:
+                        existing_metadata = existing_data['metadata']
+            except:
+                pass
+        
+        # Create fallback data with updated metadata
+        fallback_data = {
+            "metadata": {
+                "created_at": existing_metadata.get('created_at', datetime.now().isoformat()),
+                "description": "Permanent fallback events data - automatically updated",
+                "total_events": len(stored_events),
+                "last_updated": datetime.now().isoformat(),
+                "source": "auto_save_from_stored_events",
+                "auto_backup": True
+            },
+            "events": stored_events.copy()  # Copy to prevent reference issues
+        }
+        
+        # Save to fallback file
+        with open(fallback_file, 'w', encoding='utf-8') as f:
+            json.dump(fallback_data, f, indent=2, ensure_ascii=False)
+        
+        print(f"🔄 Auto-saved {len(stored_events)} events to fallback")
+    except Exception as e:
+        print(f"⚠️ Error auto-saving to fallback: {e}")
+
+def ensure_fallback_files_exist():
+    """Ensure fallback files exist by copying from codebase if missing"""
+    try:
+        # Events fallback
+        fallback_events_file = "/tmp/events_fallback_data.json" if os.getenv('RENDER') else "events_fallback_data.json"
+        source_events_file = "events_fallback_data.json"
+        
+        if not os.path.exists(fallback_events_file) and os.path.exists(source_events_file):
+            import shutil
+            shutil.copy2(source_events_file, fallback_events_file)
+            print(f"✅ Restored events fallback from codebase: {fallback_events_file}")
+        
+        # Excel fallback
+        fallback_excel_file = "/tmp/excel_fallback_data.json" if os.getenv('RENDER') else "excel_fallback_data.json"
+        source_excel_file = "excel_fallback_data.json"
+        
+        if not os.path.exists(fallback_excel_file) and os.path.exists(source_excel_file):
+            import shutil
+            shutil.copy2(source_excel_file, fallback_excel_file)
+            print(f"✅ Restored Excel fallback from codebase: {fallback_excel_file}")
+    except Exception as e:
+        print(f"⚠️ Error ensuring fallback files exist: {e}")
+
+def merge_events_preserving_edits(existing_events, new_events):
+    """Merge new events with existing events, preserving edited fields"""
+    if not existing_events:
+        return new_events
+    
+    if not new_events:
+        return existing_events
+    
+    # Create a dict of existing events by (title, startDate) key
+    existing_dict = {}
+    for event in existing_events:
+        key = (event.get('title', ''), event.get('startDate', ''))
+        existing_dict[key] = event
+    
+    # Track which events are edited (have custom fields that differ from fallback)
+    edited_keys = set()
+    for event in existing_events:
+        # Check for edit markers or custom fields
+        if event.get('id') and event.get('id').startswith('event_'):
+            key = (event.get('title', ''), event.get('startDate', ''))
+            edited_keys.add(key)
+        # Also check for fields that suggest manual editing
+        if event.get('edited') or event.get('custom_image_url') or event.get('price') or event.get('instructor'):
+            key = (event.get('title', ''), event.get('startDate', ''))
+            edited_keys.add(key)
+    
+    merged_events = []
+    seen_keys = set()
+    
+    # First, add all existing events (preserve all edits)
+    for event in existing_events:
+        key = (event.get('title', ''), event.get('startDate', ''))
+        if key not in seen_keys:
+            merged_events.append(event.copy())
+            seen_keys.add(key)
+    
+    # Then, add new events that don't exist yet
+    for new_event in new_events:
+        key = (new_event.get('title', ''), new_event.get('startDate', ''))
+        if key not in seen_keys:
+            merged_events.append(new_event.copy())
+            seen_keys.add(key)
+    
+    print(f"🔄 Merged events: {len(existing_events)} existing + {len(new_events)} new = {len(merged_events)} total (preserved {len(edited_keys)} edited events)")
+    return merged_events
+
 # Load stored events on startup
 load_stored_events()
+
+# Ensure fallback files exist on startup
+ensure_fallback_files_exist()
 
 # Global scheduler variable (will be initialized in lifespan)
 scheduler = None
@@ -451,11 +567,57 @@ def import_excel_data(file_path_or_content):
         conn.commit()
         conn.close()
         print(f"✅ Imported {total_records} records to database")
+        
+        # CRITICAL: Auto-save to Excel fallback after import
+        save_excel_to_fallback_auto()
+        
         return True
         
     except Exception as e:
         print(f"❌ Error importing Excel data: {e}")
         return False
+
+def save_excel_to_fallback_auto():
+    """Automatically save Excel programs to fallback file after import"""
+    try:
+        programs = get_programs_from_db()
+        if not programs:
+            print("⚠️ No programs to save to fallback")
+            return
+        
+        fallback_file = "/tmp/excel_fallback_data.json" if os.getenv('RENDER') else "excel_fallback_data.json"
+        
+        # Load existing fallback to preserve metadata
+        existing_metadata = {}
+        if os.path.exists(fallback_file):
+            try:
+                with open(fallback_file, 'r', encoding='utf-8') as f:
+                    existing_data = json.load(f)
+                    if 'metadata' in existing_data:
+                        existing_metadata = existing_data['metadata']
+            except:
+                pass
+        
+        # Create fallback data with updated metadata
+        fallback_data = {
+            "metadata": {
+                "created_at": existing_metadata.get('created_at', datetime.now().isoformat()),
+                "description": "Permanent fallback Excel programs data - automatically updated",
+                "total_programs": len(programs),
+                "last_updated": datetime.now().isoformat(),
+                "source": "auto_save_from_excel_import",
+                "auto_backup": True
+            },
+            "programs": programs
+        }
+        
+        # Save to fallback file
+        with open(fallback_file, 'w', encoding='utf-8') as f:
+            json.dump(fallback_data, f, indent=2, ensure_ascii=False)
+        
+        print(f"🔄 Auto-saved {len(programs)} programs to Excel fallback")
+    except Exception as e:
+        print(f"⚠️ Error auto-saving Excel to fallback: {e}")
 
 def get_programs_from_db(
     program: Optional[str] = None,
@@ -571,6 +733,39 @@ def get_programs_from_db(
 
 # Initialize database on startup
 init_database()
+
+def restore_data_from_fallback_on_startup():
+    """Restore data from fallback if current data is missing (startup check)"""
+    try:
+        print("🔍 Startup: Checking if data needs restoration from fallback...")
+        
+        # Check events
+        global stored_events
+        if not stored_events or len(stored_events) == 0:
+            print("⚠️ No stored events found at startup - restoring from fallback...")
+            fallback_events = get_comprehensive_november_events()
+            if fallback_events and len(fallback_events) > 0:
+                stored_events = fallback_events
+                save_stored_events()
+                print(f"✅ Restored {len(fallback_events)} events from fallback on startup")
+        
+        # Check Excel programs
+        programs = get_programs_from_db()
+        if not programs or len(programs) == 0:
+            print("⚠️ No Excel programs found in database at startup - restoring from fallback...")
+            fallback_programs = get_excel_fallback_data()
+            if fallback_programs and len(fallback_programs) > 0:
+                # Note: We can't directly restore to database without Excel file,
+                # but we can ensure the fallback is available for display
+                print(f"✅ Fallback Excel data available: {len(fallback_programs)} programs")
+                print(f"💡 Note: Re-upload Excel file to restore to database, or use fallback for display")
+        
+        print("✅ Startup data check complete")
+    except Exception as e:
+        print(f"⚠️ Error during startup data restoration: {e}")
+
+# Restore data from fallback on startup if needed
+restore_data_from_fallback_on_startup()
 
 # Track Excel file modification time
 excel_last_modified = None
@@ -2642,17 +2837,21 @@ def get_events(request: Request):
         print("⏸️ Scraping disabled. Using stored events only.")
         all_events = stored_events
         
-        # CRITICAL FIX: Auto-load fallback when data is empty
+        # CRITICAL FIX: Auto-load fallback when data is empty, preserving any edits
         if not all_events or len(all_events) == 0:
             print("⚠️ No stored events found - loading fallback data...")
             fallback_events = get_comprehensive_november_events()
             if fallback_events and len(fallback_events) > 0:
                 print(f"✅ Loaded {len(fallback_events)} events from fallback")
-                all_events = fallback_events
-                # Also save to stored_events so they persist
-                stored_events = fallback_events
+                
+                # CRITICAL: Merge with existing stored_events to preserve edits
+                # Even if stored_events is empty, this ensures we use the merge function
+                merged_events = merge_events_preserving_edits(stored_events, fallback_events)
+                
+                all_events = merged_events
+                stored_events = merged_events
                 save_stored_events()
-                print(f"💾 Saved fallback events to stored_events.json")
+                print(f"💾 Saved merged events to stored_events.json (preserved any edits)")
             
             # Fix image URLs and clean titles for all events
     if all_events:
@@ -3118,6 +3317,7 @@ def update_event(event_id: str, event_data: dict):
     
     try:
         updated = False
+        global stored_events
         
         # Check editable_events first
         if event_id in editable_events:
@@ -3131,19 +3331,31 @@ def update_event(event_id: str, event_data: dict):
             updated = True
         
         # Check stored_events (by matching title and startDate if event_id is index-based)
-        global stored_events
         if event_id.startswith('stored_'):
             # Extract index from event_id like "stored_0", "stored_1", etc.
             try:
                 idx = int(event_id.replace('stored_', ''))
                 if 0 <= idx < len(stored_events):
                     stored_events[idx].update(event_data)
+                    # Mark as edited
+                    stored_events[idx]['edited'] = True
                     updated = True
             except ValueError:
                 pass
+        else:
+            # Try to find by title and startDate
+            for event in stored_events:
+                if event.get('id') == event_id:
+                    event.update(event_data)
+                    event['edited'] = True
+                    updated = True
+                    break
         
         if not updated:
             return {"success": False, "error": "Event not found"}
+        
+        # CRITICAL: Save after update and auto-save to fallback
+        save_stored_events()
         
         print(f"✅ Event updated with ID: {event_id}")
         return {"success": True, "message": "Event updated successfully"}
@@ -3202,12 +3414,18 @@ async def bulk_update_events(request: Request):
         # Replace all stored events with the new list
         global stored_events
         old_count = len(stored_events)
-        stored_events = events
         
-        # Save to persistent storage
+        # CRITICAL: Merge intelligently to preserve any edits instead of complete replace
+        # Only if we have existing events, merge them
+        if stored_events and len(stored_events) > 0:
+            stored_events = merge_events_preserving_edits(stored_events, events)
+        else:
+            stored_events = events
+        
+        # Save to persistent storage (this also auto-saves to fallback)
         save_stored_events()
         
-        print(f"✅ Successfully replaced {old_count} old events with {len(events)} new events")
+        print(f"✅ Successfully merged {old_count} old events with {len(events)} new events")
         print(f"📊 Total events now: {len(stored_events)}")
         
         return {
@@ -3639,8 +3857,14 @@ async def import_events(file: UploadFile = File(...)):
                 unique_events.append(event)
                 seen_keys.add(key)
         
-        # Replace stored events
-        stored_events = unique_events
+        # CRITICAL: Merge instead of replace to preserve edits
+        global stored_events
+        if stored_events and len(stored_events) > 0:
+            stored_events = merge_events_preserving_edits(stored_events, unique_events)
+        else:
+            stored_events = unique_events
+        
+        # Save (this also auto-saves to fallback)
         save_stored_events()
         
         return {
