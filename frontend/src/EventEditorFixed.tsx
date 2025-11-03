@@ -80,6 +80,8 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
   const saveAllEvents = async () => {
     setSaving(true);
     try {
+      console.log(`💾 Saving ${events.length} events to backend...`);
+      
       const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/bulk-update', {
         method: 'POST',
         headers: {
@@ -88,21 +90,27 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
         body: JSON.stringify({ events }),
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setMessage(`✅ Successfully saved ${events.length} events to backend!`);
-          setMessageType('success');
-        } else {
-          throw new Error(result.error || 'Save failed');
-        }
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        const message = result.message || `✅ Successfully saved ${result.new_count || events.length} events!`;
+        setMessage(`${message}\n📊 Total events: ${result.total_count || events.length}\n💾 Saved to: ${result.saved_to || 'backend'}`);
+        setMessageType('success');
+        
+        // Reload events to verify they were saved
+        setTimeout(async () => {
+          console.log('🔄 Reloading events to verify save...');
+          await loadEvents();
+        }, 1000);
       } else {
-        const errorText = await response.text();
-        throw new Error(`Save failed: ${response.status} - ${errorText}`);
+        const errorMsg = result.error || result.message || 'Unknown error';
+        const warningMsg = result.warning ? `\n⚠️ Warning: ${result.warning}` : '';
+        throw new Error(`${errorMsg}${warningMsg}`);
       }
     } catch (error) {
-      console.error('Error saving events:', error);
-      setMessage(`❌ Failed to save events: ${error}`);
+      console.error('❌ Error saving events:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setMessage(`❌ Failed to save events!\n\nError: ${errorMessage}\n\n💡 Check the browser console for details.`);
       setMessageType('error');
     } finally {
       setSaving(false);
