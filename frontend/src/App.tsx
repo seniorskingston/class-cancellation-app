@@ -226,30 +226,43 @@ function App() {
   useEffect(() => {
     const checkMobile = () => {
       const width = window.innerWidth;
-      const userAgent = navigator.userAgent;
-      
-      // More comprehensive mobile detection
-      const isMobileWidth = width <= 768;
+      const height = window.innerHeight;
+      const minDimension = Math.min(width, height);
+      const userAgent = navigator.userAgent || '';
+      const isAndroid = /Android/i.test(userAgent);
       const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(userAgent);
-      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      
-      const isMobile = isMobileWidth || isMobileUA || isTouchDevice;
-      
+      const hasTouchSupport = ('ontouchstart' in window) || ((navigator.maxTouchPoints || 0) > 1);
+      const isSmallViewport = width <= 900 || minDimension <= 900;
+      const shouldUseMobile = Boolean(isMobileUA || hasTouchSupport || isSmallViewport);
+
       console.log('Mobile detection:', {
-        width: width,
-        userAgent: userAgent,
-        isMobileWidth: isMobileWidth,
-        isMobileUA: isMobileUA,
-        isTouchDevice: isTouchDevice,
-        isMobile: isMobile
+        width,
+        height,
+        minDimension,
+        userAgent,
+        isMobileUA,
+        hasTouchSupport,
+        isSmallViewport,
+        shouldUseMobile,
+        isAndroid
       });
       
-      setIsMobileView(isMobile);
+      setIsMobileView(shouldUseMobile);
+
+      const root = document.documentElement;
+      if (shouldUseMobile && isAndroid) {
+        root.classList.add('android-mobile');
+      } else {
+        root.classList.remove('android-mobile');
+      }
     };
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      document.documentElement.classList.remove('android-mobile');
+    };
   }, []);
 
   // PWA Install functionality
