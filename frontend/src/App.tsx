@@ -2260,8 +2260,7 @@ function App() {
               lineHeight: '1.6',
               marginBottom: '30px'
             }}>
-              Rachel, your AI assistant, is currently under development. 
-              She'll be here soon to help answer your questions about programs and events!
+              Rachel, your AI assistant, will be here soon!
             </p>
             <button
               onClick={() => setShowRachelComingSoon(false)}
