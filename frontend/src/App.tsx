@@ -656,22 +656,32 @@ function App() {
             >
               <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="mobile-events-schedule-image" />
             </button>
-            <button 
+            <div
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 console.log('Chatbot button clicked!');
                 setShowRachelComingSoon(true);
               }}
-              onTouchStart={(e) => {
+              onTouchEnd={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
+                console.log('Chatbot touch end!');
+                setShowRachelComingSoon(true);
               }}
               className="mobile-rachel-chatbot-button custom-tooltip"
               data-tooltip="Chat with Rachel"
-              type="button"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setShowRachelComingSoon(true);
+                }
+              }}
             >
               <img src={rachelChatbotIcon} alt="Rachel Chatbot" className="mobile-rachel-chatbot-icon" />
-            </button>
+            </div>
           </div>
           <h1>Program Schedule Update (Beta)</h1>
           <div className="mobile-datetime">
