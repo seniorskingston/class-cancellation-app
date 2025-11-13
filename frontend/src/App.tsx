@@ -1264,6 +1264,85 @@ function App() {
             </div>
           </div>
         )}
+
+        {/* Rachel Coming Soon Modal - Mobile */}
+        {showRachelComingSoon && (
+          <div style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            zIndex: 9999999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+          onClick={() => setShowRachelComingSoon(false)}
+          >
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '40px',
+              maxWidth: '500px',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              position: 'relative',
+              border: '4px solid #28a745',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+              textAlign: 'center'
+            }}
+            onClick={e => e.stopPropagation()}
+            >
+              <div style={{ marginBottom: '20px' }}>
+                <img 
+                  src={rachelChatbotIcon} 
+                  alt="Rachel Chatbot" 
+                  style={{ 
+                    width: '120px', 
+                    height: '120px', 
+                    margin: '0 auto 20px',
+                    display: 'block'
+                  }} 
+                />
+              </div>
+              <h2 style={{ color: '#28a745', marginBottom: '15px', fontSize: '2rem' }}>
+                Rachel
+              </h2>
+              <h3 style={{ color: '#333', marginBottom: '20px', fontSize: '1.5rem' }}>
+                Coming Soon
+              </h3>
+              <p style={{ 
+                color: '#666', 
+                fontSize: '1.1rem', 
+                lineHeight: '1.6',
+                marginBottom: '30px'
+              }}>
+                Rachel, your AI assistant, will be here soon!
+              </p>
+              <button
+                onClick={() => setShowRachelComingSoon(false)}
+                style={{
+                  background: '#28a745',
+                  color: 'white',
+                  padding: '12px 30px',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                  transition: 'background 0.3s ease'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#218838'}
+                onMouseOut={(e) => e.currentTarget.style.background = '#28a745'}
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
