@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Calendar.css';
 import logo from './logo.png';
 import homeIcon from './assets/home-icon.png';
+import rachelChatbotIcon from './assets/rachel-chatbot-icon.svg';
 import EventViewModal from './EventViewModal';
 
 interface Event {
@@ -44,6 +45,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [showRachelComingSoon, setShowRachelComingSoon] = useState(false);
 
   // Generate calendar days based on view mode
   const generateCalendarDays = (): Date[] => {
@@ -369,6 +371,13 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           >
             <img src={homeIcon} alt="Home" className="home-icon" />
           </button>
+          <button 
+            onClick={() => setShowRachelComingSoon(true)} 
+            className="rachel-chatbot-button custom-tooltip"
+            data-tooltip="Chat with Rachel (Coming Soon)"
+          >
+            <img src={rachelChatbotIcon} alt="Rachel Chatbot" className="rachel-chatbot-icon" />
+          </button>
         </div>
         <h1>Event Schedule Update (Beta)</h1>
         <div className="datetime-display">
@@ -553,14 +562,14 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                     </div>
                   ) : (
                     dayEvents
-                      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-                      .map((event, eventIndex) => {
+                    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+                    .map((event, eventIndex) => {
                         const evtDate = new Date(event.startDate);
-                        
-                        return (
-                          <div 
-                            key={eventIndex} 
-                            onClick={() => handleEventClick(event)}
+                      
+                      return (
+                        <div 
+                          key={eventIndex} 
+                          onClick={() => handleEventClick(event)}
                             style={{ 
                               backgroundColor: '#0072ce',
                               borderRadius: '8px',
@@ -577,19 +586,19 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
                               marginBottom: '4px'
                             }}>
                               {event.timeStr || evtDate.toLocaleTimeString('en-US', { 
-                                hour: 'numeric', 
-                                minute: '2-digit',
-                                hour12: true 
-                              })}
-                            </div>
+                              hour: 'numeric', 
+                              minute: '2-digit',
+                              hour12: true 
+                            })}
+                          </div>
                             <div style={{ 
                               fontWeight: 'bold', 
                               fontSize: '1rem'
                             }}>
                               {event.title}
                             </div>
-                          </div>
-                        );
+                        </div>
+                      );
                       })
                   )}
                 </React.Fragment>
@@ -668,6 +677,86 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
         onClose={closeModal}
         event={selectedEvent}
       />
+
+      {/* Rachel Coming Soon Modal */}
+      {showRachelComingSoon && (
+        <div style={{
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          zIndex: 9999999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}
+        onClick={() => setShowRachelComingSoon(false)}
+        >
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '40px',
+            maxWidth: '500px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative',
+            border: '4px solid #00b388',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+            textAlign: 'center'
+          }}
+          onClick={e => e.stopPropagation()}
+          >
+            <div style={{ marginBottom: '20px' }}>
+              <img 
+                src={rachelChatbotIcon} 
+                alt="Rachel Chatbot" 
+                style={{ 
+                  width: '120px', 
+                  height: '120px', 
+                  margin: '0 auto 20px',
+                  display: 'block'
+                }} 
+              />
+            </div>
+            <h2 style={{ color: '#00b388', marginBottom: '15px', fontSize: '2rem' }}>
+              Rachel
+            </h2>
+            <h3 style={{ color: '#333', marginBottom: '20px', fontSize: '1.5rem' }}>
+              Coming Soon
+            </h3>
+            <p style={{ 
+              color: '#666', 
+              fontSize: '1.1rem', 
+              lineHeight: '1.6',
+              marginBottom: '30px'
+            }}>
+              Rachel, your AI assistant, is currently under development. 
+              She'll be here soon to help answer your questions about programs and events!
+            </p>
+            <button
+              onClick={() => setShowRachelComingSoon(false)}
+              style={{
+                background: '#00b388',
+                color: 'white',
+                padding: '12px 30px',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                transition: 'background 0.3s ease'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#009973'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#00b388'}
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

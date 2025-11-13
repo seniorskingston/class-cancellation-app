@@ -51,6 +51,45 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Chatbot icon button - same size as home button */
+.rachel-chatbot-button {
+  background: white;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+  margin-left: 10px;
+  transition: all 0.3s ease;
+  height: 61px;
+  width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rachel-chatbot-icon {
+  height: 48px;
+  width: 48px;
+  object-fit: contain;
+}
+
+.rachel-chatbot-button:hover {
+  background: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .rachel-chatbot-button {
+    height: 60px;
+    width: 60px;
+    margin-left: 10px;
+  }
+}
+
 .calendar-header {
   text-align: center;
   margin-bottom: 30px;

@@ -7,6 +7,7 @@ import AdminPanel from './AdminPanel';
 import locationData from './locations.json';
 import UserGuide from './UserGuide';
 import analytics from './analytics';
+import rachelChatbotIcon from './assets/rachel-chatbot-icon.svg';
 
 type Cancellation = {
   sheet: string;
@@ -136,6 +137,7 @@ function App() {
   const [showFloatingQR, setShowFloatingQR] = useState(true);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
   const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'admin'>('main');
+  const [showRachelComingSoon, setShowRachelComingSoon] = useState(false);
 
   // Check for admin access via URL parameter
   useEffect(() => {
@@ -653,6 +655,13 @@ function App() {
               data-tooltip="View Event Schedule"
             >
               <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="mobile-events-schedule-image" />
+            </button>
+            <button 
+              onClick={() => setShowRachelComingSoon(true)} 
+              className="mobile-rachel-chatbot-button custom-tooltip"
+              data-tooltip="Chat with Rachel (Coming Soon)"
+            >
+              <img src={rachelChatbotIcon} alt="Rachel Chatbot" className="mobile-rachel-chatbot-icon" />
             </button>
           </div>
           <h1>Program Schedule Update (Beta)</h1>
@@ -1304,6 +1313,13 @@ function App() {
             data-tooltip="View Event Schedule"
           >
             <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="events-schedule-image" />
+          </button>
+          <button 
+            onClick={() => setShowRachelComingSoon(true)} 
+            className="rachel-chatbot-button custom-tooltip"
+            data-tooltip="Chat with Rachel (Coming Soon)"
+          >
+            <img src={rachelChatbotIcon} alt="Rachel Chatbot" className="rachel-chatbot-icon" />
           </button>
         </div>
         <h1>Program Schedule Update (Beta)</h1>
@@ -2185,6 +2201,86 @@ function App() {
                 Send Message
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rachel Coming Soon Modal */}
+      {showRachelComingSoon && (
+        <div style={{
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          zIndex: 9999999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}
+        onClick={() => setShowRachelComingSoon(false)}
+        >
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '40px',
+            maxWidth: '500px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative',
+            border: '4px solid #00b388',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+            textAlign: 'center'
+          }}
+          onClick={e => e.stopPropagation()}
+          >
+            <div style={{ marginBottom: '20px' }}>
+              <img 
+                src={rachelChatbotIcon} 
+                alt="Rachel Chatbot" 
+                style={{ 
+                  width: '120px', 
+                  height: '120px', 
+                  margin: '0 auto 20px',
+                  display: 'block'
+                }} 
+              />
+            </div>
+            <h2 style={{ color: '#00b388', marginBottom: '15px', fontSize: '2rem' }}>
+              Rachel
+            </h2>
+            <h3 style={{ color: '#333', marginBottom: '20px', fontSize: '1.5rem' }}>
+              Coming Soon
+            </h3>
+            <p style={{ 
+              color: '#666', 
+              fontSize: '1.1rem', 
+              lineHeight: '1.6',
+              marginBottom: '30px'
+            }}>
+              Rachel, your AI assistant, is currently under development. 
+              She'll be here soon to help answer your questions about programs and events!
+            </p>
+            <button
+              onClick={() => setShowRachelComingSoon(false)}
+              style={{
+                background: '#00b388',
+                color: 'white',
+                padding: '12px 30px',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                transition: 'background 0.3s ease'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#009973'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#00b388'}
+            >
+              Got it!
+            </button>
           </div>
         </div>
       )}
