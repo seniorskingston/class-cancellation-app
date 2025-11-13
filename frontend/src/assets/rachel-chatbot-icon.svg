@@ -1,0 +1,35 @@
+<svg width="62" height="62" viewBox="0 0 62 62" xmlns="http://www.w3.org/2000/svg">
+  <!-- Speech bubble background (teal) -->
+  <path d="M31 5 C20 5, 10 10, 10 20 L10 35 C10 40, 12 42, 15 42 L20 42 L20 50 L28 42 L45 42 C50 42, 52 40, 52 35 L52 20 C52 10, 42 5, 31 5 Z" fill="#00b388" stroke="none"/>
+  
+  <!-- Chatbot head (white) -->
+  <ellipse cx="31" cy="22" rx="12" ry="10" fill="white"/>
+  
+  <!-- Face area (black rectangle) -->
+  <rect x="23" y="18" width="16" height="6" rx="1" fill="#000"/>
+  
+  <!-- Left eye (teal ring with black pupil) -->
+  <circle cx="27" cy="21" r="3" fill="#000"/>
+  <circle cx="27" cy="21" r="2" fill="#00b388"/>
+  <circle cx="27" cy="21" r="1.2" fill="#000"/>
+  
+  <!-- Right eye (teal ring with black pupil) -->
+  <circle cx="35" cy="21" r="3" fill="#000"/>
+  <circle cx="35" cy="21" r="2" fill="#00b388"/>
+  <circle cx="35" cy="21" r="1.2" fill="#000"/>
+  
+  <!-- Smile -->
+  <path d="M 25 24 Q 31 27, 37 24" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Antenna -->
+  <ellipse cx="31" cy="12" rx="1.5" ry="1.5" fill="white"/>
+  <line x1="31" y1="12" x2="31" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Body (white, partially visible) -->
+  <ellipse cx="31" cy="30" rx="8" ry="6" fill="white"/>
+  
+  <!-- Waving arm (white) -->
+  <ellipse cx="20" cy="28" rx="3" ry="4" fill="white" transform="rotate(-20 20 28)"/>
+  <ellipse cx="18" cy="30" rx="2" ry="2.5" fill="white"/>
+</svg>
+
