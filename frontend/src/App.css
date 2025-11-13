@@ -260,7 +260,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Chatbot icon button - same as mobile program page (transparent like event button) */
+/* Chatbot icon button - same as event page (transparent like event button) */
 .rachel-chatbot-button {
   background: transparent;
   border: none;
@@ -275,17 +275,31 @@
   padding: 0;
 }
 
-.rachel-chatbot-button:hover {
-  transform: scale(1.05);
-  filter: brightness(1.1);
-}
-
 .rachel-chatbot-icon {
   height: 62px;
   width: 62px;
   object-fit: contain;
   border-radius: 8px;
   vertical-align: top;
+}
+
+.rachel-chatbot-button:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+@media (max-width: 768px) {
+  .rachel-chatbot-button {
+    height: 63px;
+    width: 63px;
+    margin-left: 0;
+  }
+  
+  .rachel-chatbot-icon {
+    height: 63px;
+    width: 63px;
+    border-radius: 6px;
+  }
 }
 
 
