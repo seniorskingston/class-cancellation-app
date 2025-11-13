@@ -717,6 +717,9 @@ tr:last-child td {
   width: 63px;
   margin: 0;
   padding: 0;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
 }
 
 .mobile-rachel-chatbot-icon {
@@ -726,6 +729,7 @@ tr:last-child td {
   border-radius: 6px;
   vertical-align: top;
   align-self: center;
+  pointer-events: none;
 }
 
 
