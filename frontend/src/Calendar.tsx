@@ -374,7 +374,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           <button 
             onClick={() => setShowRachelComingSoon(true)} 
             className="rachel-chatbot-button custom-tooltip"
-            data-tooltip="Chat with Rachel (Coming Soon)"
+            data-tooltip="Chat with Rachel"
           >
             <img src={rachelChatbotIcon} alt="Rachel Chatbot" className="rachel-chatbot-icon" />
           </button>

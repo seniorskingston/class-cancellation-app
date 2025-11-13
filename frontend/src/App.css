@@ -1484,12 +1484,14 @@ td.custom-tooltip:hover::before,
   }
 }
 
-/* Event button tooltip - position to the right to avoid mobile button overlap */
+/* Event button tooltip - position above to avoid chatbot icon overlap */
 .events-schedule-image-button.custom-tooltip:hover::after {
-  top: 50%;
-  left: 100%;
-  transform: translateY(-50%);
-  margin-left: 10px;
+  top: auto;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  margin-left: 0;
   margin-top: 0;
   background: #f0f0f0 !important;
   color: black !important;
@@ -1512,13 +1514,15 @@ td.custom-tooltip:hover::before,
 .events-schedule-image-button.custom-tooltip:hover::before {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 100%;
-  transform: translateY(-50%) translateX(-100%);
-  margin-left: 10px;
+  top: auto;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  margin-bottom: 8px;
+  margin-left: 0;
   margin-top: 0;
   border: 6px solid transparent;
-  border-right-color: #f0f0f0 !important;
+  border-top-color: #f0f0f0 !important;
   z-index: 99999999 !important;
   pointer-events: none;
   display: block !important;
