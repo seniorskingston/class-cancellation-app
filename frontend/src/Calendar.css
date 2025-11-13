@@ -51,42 +51,45 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Chatbot icon button - same size as home button */
+/* Chatbot icon button - same as mobile program page (transparent like event button) */
 .rachel-chatbot-button {
-  background: white;
-  color: white;
+  background: transparent;
   border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-weight: bold;
   cursor: pointer;
-  font-size: 16px;
-  margin-left: 10px;
   transition: all 0.3s ease;
-  height: 61px;
-  width: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 62px;
+  width: 62px;
+  margin: 0;
+  padding: 0;
 }
 
 .rachel-chatbot-icon {
-  height: 48px;
-  width: 48px;
+  height: 62px;
+  width: 62px;
   object-fit: contain;
+  border-radius: 8px;
+  vertical-align: top;
 }
 
 .rachel-chatbot-button:hover {
-  background: #f8f9fa;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+  filter: brightness(1.1);
 }
 
 @media (max-width: 768px) {
   .rachel-chatbot-button {
-    height: 60px;
-    width: 60px;
-    margin-left: 10px;
+    height: 63px;
+    width: 63px;
+    margin-left: 0;
+  }
+  
+  .rachel-chatbot-icon {
+    height: 63px;
+    width: 63px;
+    border-radius: 6px;
   }
 }
 
