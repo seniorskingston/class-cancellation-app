@@ -706,7 +706,7 @@ tr:last-child td {
 
 /* Mobile chatbot icon button */
 .mobile-rachel-chatbot-button {
-  background: transparent;
+  background: white;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
@@ -717,6 +717,7 @@ tr:last-child td {
   width: 63px;
   margin: 0;
   padding: 0;
+  border-radius: 6px;
 }
 
 .mobile-rachel-chatbot-icon {
@@ -1484,15 +1485,15 @@ td.custom-tooltip:hover::before,
   }
 }
 
-/* Event button tooltip - position above to avoid chatbot icon overlap */
+/* Event button tooltip - position below to match program icon tooltips */
 .events-schedule-image-button.custom-tooltip:hover::after {
-  top: auto;
-  bottom: 100%;
+  top: 100%;
+  bottom: auto;
   left: 50%;
   transform: translateX(-50%);
-  margin-bottom: 8px;
+  margin-top: 8px;
   margin-left: 0;
-  margin-top: 0;
+  margin-bottom: 0;
   background: #f0f0f0 !important;
   color: black !important;
   font-weight: bold;
@@ -1514,15 +1515,15 @@ td.custom-tooltip:hover::before,
 .events-schedule-image-button.custom-tooltip:hover::before {
   content: '';
   position: absolute;
-  top: auto;
-  bottom: 100%;
+  top: 100%;
+  bottom: auto;
   left: 50%;
-  transform: translateX(-50%) translateY(100%);
-  margin-bottom: 8px;
+  transform: translateX(-50%) translateY(-100%);
+  margin-top: 8px;
   margin-left: 0;
-  margin-top: 0;
+  margin-bottom: 0;
   border: 6px solid transparent;
-  border-top-color: #f0f0f0 !important;
+  border-bottom-color: #f0f0f0 !important;
   z-index: 99999999 !important;
   pointer-events: none;
   display: block !important;
