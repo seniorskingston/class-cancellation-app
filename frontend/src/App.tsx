@@ -657,9 +657,18 @@ function App() {
               <img src={require('./assets/event-schedule-banner.png')} alt="Event Schedule" className="mobile-events-schedule-image" />
             </button>
             <button 
-              onClick={() => setShowRachelComingSoon(true)} 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Chatbot button clicked!');
+                setShowRachelComingSoon(true);
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+              }}
               className="mobile-rachel-chatbot-button custom-tooltip"
               data-tooltip="Chat with Rachel"
+              type="button"
             >
               <img src={rachelChatbotIcon} alt="Rachel Chatbot" className="mobile-rachel-chatbot-icon" />
             </button>
