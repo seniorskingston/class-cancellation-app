@@ -1,6 +1,6 @@
 <svg width="62" height="62" viewBox="0 0 62 62" xmlns="http://www.w3.org/2000/svg">
-  <!-- Speech bubble background (teal) - much larger, fills almost all space -->
-  <path d="M31 1 C15 1, 2 5, 2 15 L2 42 C2 49, 6 53, 11 53 L18 53 L18 59 L28 53 L46 53 C51 53, 55 49, 55 42 L55 15 C55 5, 47 1, 31 1 Z" fill="#00b388" stroke="none"/>
+  <!-- Speech bubble background (yellowish green) - much larger, fills almost all space -->
+  <path d="M31 1 C15 1, 2 5, 2 15 L2 42 C2 49, 6 53, 11 53 L18 53 L18 59 L28 53 L46 53 C51 53, 55 49, 55 42 L55 15 C55 5, 47 1, 31 1 Z" fill="#28a745" stroke="none"/>
   
   <!-- Chatbot head (white) - much bigger -->
   <ellipse cx="31" cy="26" rx="18" ry="15" fill="white"/>
@@ -8,14 +8,14 @@
   <!-- Face area (black rectangle) - much bigger -->
   <rect x="16" y="22" width="30" height="10" rx="1" fill="#000"/>
   
-  <!-- Left eye (teal ring with black pupil) - much bigger -->
+  <!-- Left eye (yellowish green ring with black pupil) - much bigger -->
   <circle cx="24" cy="27" r="4.5" fill="#000"/>
-  <circle cx="24" cy="27" r="3.5" fill="#00b388"/>
+  <circle cx="24" cy="27" r="3.5" fill="#28a745"/>
   <circle cx="24" cy="27" r="2" fill="#000"/>
   
-  <!-- Right eye (teal ring with black pupil) - much bigger -->
+  <!-- Right eye (yellowish green ring with black pupil) - much bigger -->
   <circle cx="38" cy="27" r="4.5" fill="#000"/>
-  <circle cx="38" cy="27" r="3.5" fill="#00b388"/>
+  <circle cx="38" cy="27" r="3.5" fill="#28a745"/>
   <circle cx="38" cy="27" r="2" fill="#000"/>
   
   <!-- Smile - much bigger -->
