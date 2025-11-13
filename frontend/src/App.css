@@ -260,32 +260,34 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Chatbot icon button - same size as event schedule button */
+/* Chatbot icon button - same styling as mobile event page */
 .rachel-chatbot-button {
-  background: transparent;
+  background: white;
   border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: bold;
   cursor: pointer;
+  font-size: 16px;
+  margin-left: 10px;
   transition: all 0.3s ease;
+  height: 61px;
+  width: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 62px;
-  width: 62px;
-  margin: 0;
-  padding: 0;
 }
 
 .rachel-chatbot-button:hover {
-  transform: scale(1.05);
-  filter: brightness(1.1);
+  background: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .rachel-chatbot-icon {
-  height: 62px;
-  width: 62px;
+  height: 48px;
+  width: 48px;
   object-fit: contain;
-  border-radius: 8px;
-  vertical-align: top;
 }
 
 
@@ -704,29 +706,34 @@ tr:last-child td {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Mobile chatbot icon button */
+/* Mobile chatbot icon button - same styling as mobile event page */
 .mobile-rachel-chatbot-button {
   background: white;
   border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s;
+  font-size: 16px;
+  margin-left: 10px;
+  transition: all 0.3s ease;
+  height: 60px;
+  width: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 63px;
-  width: 63px;
-  margin: 0;
-  padding: 0;
-  border-radius: 6px;
+}
+
+.mobile-rachel-chatbot-button:hover {
+  background: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .mobile-rachel-chatbot-icon {
-  height: 63px;
-  width: 63px;
+  height: 48px;
+  width: 48px;
   object-fit: contain;
-  border-radius: 6px;
-  vertical-align: top;
-  align-self: center;
 }
 
 
