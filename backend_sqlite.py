@@ -583,14 +583,44 @@ def get_programs_from_db(
     
     # CRITICAL FIX: Auto-load Excel fallback when database is empty
     if not programs or len(programs) == 0:
-        print("⚠️ No Excel programs found in database - loading fallback data...")
+        print("⚠️ No Excel programs found in database - attempting to restore from fallback...")
         fallback_programs = get_excel_fallback_data()
         if fallback_programs and len(fallback_programs) > 0:
-            print(f"✅ Loaded {len(fallback_programs)} programs from Excel fallback")
-            programs = fallback_programs
-            # Optionally re-import fallback programs to database
-            # This would require the Excel import function, which we can add later if needed
-            print(f"💡 Note: Fallback programs loaded from file - consider re-uploading Excel to restore database")
+            print(f"✅ Found {len(fallback_programs)} programs in fallback data")
+            # CRITICAL: Restore fallback programs to database, not just return them
+            restore_success = restore_fallback_programs_to_database()
+            if restore_success:
+                print(f"✅ Restored {len(fallback_programs)} programs from fallback to database")
+                # Re-query database to get restored programs
+                conn = sqlite3.connect(DB_PATH)
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM programs")
+                rows = cursor.fetchall()
+                programs = []
+                for row in rows:
+                    programs.append({
+                        'sheet': row[1],
+                        'program': row[2],
+                        'program_id': row[3],
+                        'date_range': row[4],
+                        'time': row[5],
+                        'location': row[6],
+                        'class_room': row[7],
+                        'instructor': row[8],
+                        'program_status': row[9],
+                        'class_cancellation': row[10],
+                        'note': row[11],
+                        'withdrawal': row[12],
+                        'description': row[13],
+                        'fee': row[14]
+                    })
+                conn.close()
+            else:
+                # If restore failed, at least return fallback data for display
+                print(f"⚠️ Restore to database failed, but returning fallback data for display")
+                programs = fallback_programs
+        else:
+            print("❌ No fallback data available")
     
     return programs
 
@@ -1195,7 +1225,75 @@ def get_excel_fallback_data():
         
     except Exception as e:
         print(f"❌ Error loading Excel fallback data: {e}")
+        import traceback
+        traceback.print_exc()
         return []
+
+def restore_fallback_programs_to_database():
+    """Restore fallback programs to database - CRITICAL RECOVERY FUNCTION"""
+    try:
+        print("🔄 Attempting to restore programs from fallback data...")
+        fallback_programs = get_excel_fallback_data()
+        
+        if not fallback_programs or len(fallback_programs) == 0:
+            print("❌ No fallback programs found to restore")
+            return False
+        
+        print(f"📦 Found {len(fallback_programs)} programs in fallback data")
+        
+        # Connect to database
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Clear existing data
+        cursor.execute("DELETE FROM programs")
+        print("🗑️ Cleared existing database data")
+        
+        # Restore programs to database
+        restored_count = 0
+        for prog in fallback_programs:
+            try:
+                # Map fallback data structure to database schema
+                # Fallback may have different field names, so we need to handle both
+                sheet = prog.get('sheet', '')
+                program = prog.get('program', '')
+                program_id = prog.get('program_id', '')
+                date_range = prog.get('date_range', '')
+                time = prog.get('time', '')
+                location = prog.get('location', '')
+                class_room = prog.get('class_room', '')
+                instructor = prog.get('instructor', '')
+                program_status = prog.get('program_status', 'Active')
+                class_cancellation = prog.get('class_cancellation', '')
+                note = prog.get('note', prog.get('additional_information', ''))
+                withdrawal = prog.get('withdrawal', prog.get('refund', ''))
+                description = prog.get('description', '')
+                fee = prog.get('fee', '')
+                
+                # Insert into database
+                cursor.execute('''
+                    INSERT INTO programs (sheet, program, program_id, date_range, time, location, 
+                                       class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (sheet, program, program_id, date_range, time, location, 
+                      class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee))
+                
+                restored_count += 1
+            except Exception as e:
+                print(f"⚠️ Error restoring program {prog.get('program', 'Unknown')}: {e}")
+                continue
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Successfully restored {restored_count} programs from fallback to database")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error restoring fallback programs to database: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 def get_comprehensive_november_events():
     """SMART EVENTS FALLBACK - Try saved fallback first, then use real events data"""
@@ -3636,8 +3734,24 @@ async def get_fallback_status():
                 "file_exists": False,
                 "total_programs": 0,
                 "last_updated": None
+            },
+            "database_status": {
+                "total_programs": 0,
+                "is_empty": True
             }
         }
+        
+        # Check database status
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM programs")
+            db_count = cursor.fetchone()[0]
+            conn.close()
+            status["database_status"]["total_programs"] = db_count
+            status["database_status"]["is_empty"] = (db_count == 0)
+        except Exception as e:
+            print(f"⚠️ Error checking database status: {e}")
         
         # Check events fallback
         events_fallback_file = "/tmp/events_fallback_data.json" if os.getenv('RENDER') else "events_fallback_data.json"
@@ -3648,8 +3762,8 @@ async def get_fallback_status():
                 status["events_fallback"]["file_exists"] = True
                 status["events_fallback"]["total_events"] = events_data.get("metadata", {}).get("total_events", 0)
                 status["events_fallback"]["last_updated"] = events_data.get("metadata", {}).get("last_updated", "Unknown")
-            except:
-                pass
+            except Exception as e:
+                print(f"⚠️ Error reading events fallback: {e}")
         
         # Check Excel fallback
         excel_fallback_file = "/tmp/excel_fallback_data.json" if os.getenv('RENDER') else "excel_fallback_data.json"
@@ -3660,13 +3774,73 @@ async def get_fallback_status():
                 status["excel_fallback"]["file_exists"] = True
                 status["excel_fallback"]["total_programs"] = excel_data.get("metadata", {}).get("total_programs", 0)
                 status["excel_fallback"]["last_updated"] = excel_data.get("metadata", {}).get("last_updated", "Unknown")
-            except:
-                pass
+            except Exception as e:
+                print(f"⚠️ Error reading Excel fallback: {e}")
         
         return status
         
     except Exception as e:
         print(f"❌ Error getting fallback status: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/fallback/restore-excel")
+async def restore_excel_from_fallback():
+    """CRITICAL: Force restore Excel data from fallback file to database"""
+    try:
+        print("🔄 Manual restore from fallback requested...")
+        
+        # Check if fallback exists
+        fallback_file = "/tmp/excel_fallback_data.json" if os.getenv('RENDER') else "excel_fallback_data.json"
+        if not os.path.exists(fallback_file):
+            return {
+                "success": False,
+                "error": "Fallback file not found",
+                "fallback_file": fallback_file
+            }
+        
+        # Get fallback data info
+        with open(fallback_file, 'r', encoding='utf-8') as f:
+            fallback_data = json.load(f)
+        
+        fallback_programs = fallback_data.get('programs', [])
+        if not fallback_programs or len(fallback_programs) == 0:
+            return {
+                "success": False,
+                "error": "Fallback file exists but contains no programs",
+                "fallback_file": fallback_file
+            }
+        
+        # Restore to database
+        restore_success = restore_fallback_programs_to_database()
+        
+        if restore_success:
+            # Verify restore
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM programs")
+            restored_count = cursor.fetchone()[0]
+            conn.close()
+            
+            return {
+                "success": True,
+                "message": f"Successfully restored {restored_count} programs from fallback to database",
+                "restored_count": restored_count,
+                "fallback_count": len(fallback_programs),
+                "last_updated": fallback_data.get('metadata', {}).get('last_updated', 'Unknown')
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to restore programs to database",
+                "fallback_count": len(fallback_programs)
+            }
+        
+    except Exception as e:
+        print(f"❌ Error restoring from fallback: {e}")
+        import traceback
+        traceback.print_exc()
         return {"success": False, "error": str(e)}
 
 @app.get("/api/events/export")
@@ -3806,7 +3980,17 @@ async def scrape_events_endpoint():
             # Track counts and details
             added_count = 0
             skipped_count = 0
+            updated_count = 0
+            updated_details = []
             skipped_details = []
+
+            def find_existing(primary_key, secondary_key):
+                if primary_key in existing_events_dict:
+                    return existing_events_dict[primary_key]
+                for existing in existing_events_dict.values():
+                    if existing['secondary_key'] == secondary_key:
+                        return existing
+                return None
             
             # Add only completely new events (no duplicates)
             for new_event in scraped_events:
@@ -3818,23 +4002,52 @@ async def scrape_events_endpoint():
                 primary_key = (new_title, new_start_date)
                 secondary_key = (new_title, new_location)
                 
-                is_duplicate = False
-                duplicate_reason = ""
-                
-                # Check primary key (title + date)
-                if primary_key in existing_events_dict:
-                    is_duplicate = True
-                    duplicate_reason = f"Same title '{new_event.get('title', '')}' and date '{new_start_date}'"
-                
-                # Check secondary key (title + location) if primary doesn't match
-                elif any(existing['secondary_key'] == secondary_key for existing in existing_events_dict.values()):
-                    is_duplicate = True
-                    duplicate_reason = f"Same title '{new_event.get('title', '')}' and location '{new_event.get('location', '')}'"
-                
-                if is_duplicate:
-                    skipped_count += 1
-                    skipped_details.append(f"⚠️ Skipped: {duplicate_reason}")
-                    print(f"⚠️ Skipping duplicate event: {new_event.get('title', 'Unknown')} - {duplicate_reason}")
+                existing_match = find_existing(primary_key, secondary_key)
+
+                if existing_match:
+                    existing_event = existing_match['event']
+                    existing_index = existing_match['index']
+                    fields_to_check = [
+                        'image_url',
+                        'description',
+                        'dateStr',
+                        'timeStr',
+                        'location',
+                        'price',
+                        'instructor',
+                        'registration',
+                        'startDate',
+                        'endDate'
+                    ]
+
+                    changed_fields = []
+                    for field in fields_to_check:
+                        new_value = new_event.get(field)
+                        if new_value and new_value != existing_event.get(field):
+                            existing_event[field] = new_value
+                            changed_fields.append(field)
+
+                    if changed_fields:
+                        stored_events[existing_index] = existing_event
+                        existing_events_dict[primary_key] = {
+                            'event': existing_event,
+                            'index': existing_index,
+                            'secondary_key': secondary_key
+                        }
+                        updated_count += 1
+                        updated_details.append(
+                            f"🔄 Updated {new_event.get('title', 'Unknown')} ({', '.join(changed_fields)})"
+                        )
+                        print(f"🔄 Updated existing event: {new_event.get('title', 'Unknown')} - fields changed: {changed_fields}")
+                    else:
+                        skipped_count += 1
+                        skipped_details.append(
+                            f"⚠️ Skipped (no changes): {new_event.get('title', 'Unknown')}"
+                        )
+                        print(f"⚠️ Skipping event (no changes detected): {new_event.get('title', 'Unknown')}")
+                    continue
+
+                    # no explicit else since continue
                 else:
                     # Add new event
                     stored_events.append(new_event)
@@ -3848,7 +4061,8 @@ async def scrape_events_endpoint():
             
             print(f"✅ SAFE MERGE COMPLETE:")
             print(f"   📊 Added {added_count} new events")
-            print(f"   🚫 Skipped {skipped_count} duplicates")
+            print(f"   🔄 Updated {updated_count} existing events")
+            print(f"   🚫 Skipped {skipped_count} duplicates/no-change events")
             print(f"   📈 Total events now: {len(stored_events)}")
             print(f"   🔒 Existing events preserved (no overwrites)")
             
@@ -3860,9 +4074,11 @@ async def scrape_events_endpoint():
                 "message": f"✅ Safe merge complete! Added {added_count} new events, skipped {skipped_count} duplicates. Your existing events are preserved.",
                 "events_count": len(stored_events),
                 "added": added_count,
+                "updated": updated_count,
                 "skipped": skipped_count,
                 "preserved": len(stored_events) - added_count,
                 "skipped_details": skipped_details[:5],  # Show first 5 skipped details
+                "updated_details": updated_details[:5],
                 "events": stored_events[:5]  # Return first 5 events as sample
             }
         else:
@@ -5313,6 +5529,35 @@ async def import_excel(file: UploadFile = File(...)):
         
         if success:
             print(f"✅ Excel file imported successfully")
+            
+            # CRITICAL: Automatically save to fallback after successful import
+            try:
+                print("💾 Auto-saving imported data to fallback file...")
+                programs = get_programs_from_db()
+                if programs and len(programs) > 0:
+                    fallback_data = {
+                        "metadata": {
+                            "created_at": datetime.now().isoformat(),
+                            "description": "Auto-saved fallback Excel data after import",
+                            "total_programs": len(programs),
+                            "last_updated": datetime.now().isoformat(),
+                            "source": "auto_save_after_import",
+                            "excel_file": file.filename
+                        },
+                        "programs": programs
+                    }
+                    
+                    fallback_file = "/tmp/excel_fallback_data.json" if os.getenv('RENDER') else "excel_fallback_data.json"
+                    with open(fallback_file, 'w', encoding='utf-8') as f:
+                        json.dump(fallback_data, f, indent=2, ensure_ascii=False)
+                    
+                    print(f"✅ Auto-saved {len(programs)} programs to fallback file")
+                else:
+                    print("⚠️ No programs found to save to fallback")
+            except Exception as fallback_error:
+                print(f"⚠️ Error auto-saving to fallback: {fallback_error}")
+                # Don't fail the import if fallback save fails
+            
             return {"message": "Excel file imported successfully", "status": "success"}
         else:
             print(f"❌ Failed to import Excel file")
