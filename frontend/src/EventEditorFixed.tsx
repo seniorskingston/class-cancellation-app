@@ -342,7 +342,86 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
               onClick={async () => {
                 try {
                   setLoading(true);
-                  setMessage('📥 Downloading scraped events file...');
+                  setMessage('🔄 Scraping events from website and preparing download...');
+                  setMessageType('');
+                  
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events/download');
+                  
+                  if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                  }
+                  
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  
+                  // Check if it's an error file or success file
+                  const contentDisposition = response.headers.get('Content-Disposition') || '';
+                  const filename = contentDisposition.includes('scraped_events_for_upload.json') 
+                    ? 'scraped_events_for_upload.json' 
+                    : 'scraping_result.json';
+                  
+                  a.download = filename;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
+                  
+                  // Try to read the file to check if it's an error
+                  const text = await blob.text();
+                  try {
+                    const data = JSON.parse(text);
+                    if (data.success === false || data.error) {
+                      setMessage(`⚠️ ${data.message || data.error || 'Scraping failed. Please run the script locally: python create_uploadable_events_file.py'}`);
+                      setMessageType('error');
+                    } else {
+                      setMessage(`✅ Successfully scraped ${data.total_events || 0} events! File downloaded. You can now upload it to replace existing events.`);
+                      setMessageType('success');
+                    }
+                  } catch {
+                    // If we can't parse it, assume it's the events file
+                    setMessage('✅ Events file downloaded! You can now upload it to replace existing events.');
+                    setMessageType('success');
+                  }
+                  
+                  setTimeout(() => {
+                    setMessage('');
+                    setMessageType('');
+                  }, 8000);
+                } catch (error) {
+                  setMessage(`❌ Download failed: ${error instanceof Error ? error.message : 'Unknown error'}. Try running the script locally: python create_uploadable_events_file.py`);
+                  setMessageType('error');
+                  setTimeout(() => {
+                    setMessage('');
+                    setMessageType('');
+                  }, 8000);
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+              style={{
+                background: '#ff9800',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                opacity: loading ? 0.7 : 1,
+                boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)'
+              }}
+            >
+              {loading ? '🔄 Scraping & Downloading...' : '🌐 Scrape & Download Events File'}
+            </button>
+            
+            <button 
+              onClick={async () => {
+                try {
+                  setLoading(true);
+                  setMessage('📥 Downloading current events file...');
                   setMessageType('');
                   
                   const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/export');
@@ -350,13 +429,13 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
                   const url = window.URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
-                  a.download = 'scraped_events.json';
+                  a.download = 'current_events_export.json';
                   document.body.appendChild(a);
                   a.click();
                   window.URL.revokeObjectURL(url);
                   document.body.removeChild(a);
                   
-                  setMessage('✅ Events file downloaded! You can edit it locally and upload it back.');
+                  setMessage('✅ Current events file downloaded! You can edit it locally and upload it back.');
                   setMessageType('success');
                   
                   setTimeout(() => {
@@ -388,7 +467,7 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
                 boxShadow: '0 2px 8px rgba(40, 167, 69, 0.3)'
               }}
             >
-              📥 Download Events File
+              📥 Download Current Events
             </button>
           </div>
           
@@ -401,7 +480,12 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             fontSize: '0.9rem',
             color: '#856404'
           }}>
-            <strong>💡 Safe Workflow:</strong> 1) Scrape events from website (only adds NEW events, never overwrites existing) → 2) Download the JSON file → 3) Edit events locally → 4) Upload back to app (same as Excel workflow)
+            <strong>💡 Workflow:</strong><br/>
+            1) Click "🌐 Scrape & Download Events File" to scrape from website and download JSON file<br/>
+            2) (Optional) Edit the JSON file locally if needed<br/>
+            3) Click "📤 Upload Events JSON" to upload the file and replace all events<br/>
+            <br/>
+            <strong>⚠️ Note:</strong> Scraping may not work on cloud servers. If it fails, run <code>python create_uploadable_events_file.py</code> locally, then upload the file.
           </div>
         </div>
 
