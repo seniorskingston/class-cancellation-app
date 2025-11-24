@@ -90,19 +90,19 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
         body: JSON.stringify({ events }),
       });
 
-      const result = await response.json();
+        const result = await response.json();
       
       if (response.ok && result.success) {
         const message = result.message || `✅ Successfully saved ${result.new_count || events.length} events!`;
         setMessage(`${message}\n📊 Total events: ${result.total_count || events.length}\n💾 Saved to: ${result.saved_to || 'backend'}`);
-        setMessageType('success');
+          setMessageType('success');
         
         // Reload events to verify they were saved
         setTimeout(async () => {
           console.log('🔄 Reloading events to verify save...');
           await loadEvents();
         }, 1000);
-      } else {
+        } else {
         const errorMsg = result.error || result.message || 'Unknown error';
         const warningMsg = result.warning ? `\n⚠️ Warning: ${result.warning}` : '';
         throw new Error(`${errorMsg}${warningMsg}`);
@@ -253,11 +253,14 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
           border: '2px solid #2196f3'
         }}>
           <h3 style={{ color: '#1976d2', marginBottom: '15px', fontSize: '1.3rem' }}>
-            🌐 Scrape Events from Seniors Kingston Website
+            🌐 Scrape & Replace Events from Seniors Kingston Website
           </h3>
           <p style={{ color: '#424242', marginBottom: '15px', fontSize: '1rem' }}>
-            Click the button below to scrape the latest events from the Seniors Kingston website. 
+            Click the button below to scrape the latest events from the Seniors Kingston website and <strong>replace all existing events</strong> with the newly scraped ones. 
             The events will be loaded into the editor below for you to review and edit.
+          </p>
+          <p style={{ color: '#d32f2f', marginBottom: '15px', fontSize: '0.9rem', fontStyle: 'italic' }}>
+            ⚠️ <strong>Note:</strong> This will replace ALL existing events with the scraped events. Make sure you want to do this!
           </p>
           
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -265,10 +268,11 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
               onClick={async () => {
                 try {
                   setLoading(true);
-                  setMessage('🔄 Scraping events from Seniors Kingston website...');
+                  setMessage('🔄 Scraping events from Seniors Kingston website and replacing all existing events...');
                   setMessageType('');
                   
-                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events', {
+                  // Use replace=true to replace all old events with new scraped ones
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events?replace=true', {
                     method: 'POST'
                   });
                   
@@ -277,8 +281,10 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
                   if (result.success) {
                     let messageText = result.message;
                     
-                    // Show detailed results if available
-                    if (result.added !== undefined) {
+                    // Show replacement results
+                    if (result.replaced) {
+                      messageText = `✅ Successfully replaced all events! Now showing ${result.new_count} scraped events (replaced ${result.old_count} old events).`;
+                    } else if (result.added !== undefined) {
                       messageText = `✅ Scraping complete! Added ${result.added} new events, skipped ${result.skipped} duplicates. Total events: ${result.events_count}`;
                       
                       if (result.skipped_details && result.skipped_details.length > 0) {
@@ -297,7 +303,7 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
                       setMessageType('');
                     }, 8000); // Show longer to read the details
                   } else {
-                    setMessage(`❌ Scraping failed: ${result.error}`);
+                    setMessage(`❌ Scraping failed: ${result.error || 'Unknown error'}`);
                     setMessageType('error');
                     setTimeout(() => {
                       setMessage('');
@@ -329,7 +335,7 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
                 boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)'
               }}
             >
-              {loading ? '🔄 Scraping...' : '🌐 Scrape Events from Website'}
+              {loading ? '🔄 Scraping & Replacing...' : '🌐 Scrape & Replace Events'}
             </button>
             
             <button 
@@ -474,8 +480,8 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 style={{ margin: 0, color: '#333' }}>
-              {editingIndex !== null ? '✏️ Edit Event' : '➕ Add New Event'}
-            </h3>
+            {editingIndex !== null ? '✏️ Edit Event' : '➕ Add New Event'}
+          </h3>
             <button
               onClick={() => {
                 const templateEvent = {
@@ -526,18 +532,18 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             <h4 style={{ margin: '0 0 15px 0', color: '#495057', fontSize: '1.1rem' }}>
               📝 Basic Event Information
             </h4>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-              <div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+            <div>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#dc3545' }}>
                   🎯 Event Title *
                 </label>
-                <input
-                  type="text"
-                  value={newEvent.title}
-                  onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
-                  style={{
-                    width: '100%',
+              <input
+                type="text"
+                value={newEvent.title}
+                onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                style={{
+                  width: '100%',
                     padding: '10px',
                     border: '2px solid #dc3545',
                     borderRadius: '6px',
@@ -545,21 +551,21 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
                     fontSize: '1rem',
                     fontWeight: 'bold',
                     backgroundColor: 'white'
-                  }}
+                }}
                   placeholder="e.g., Holiday Artisan Fair, Carole's Dance Party"
-                />
-              </div>
-              
-              <div>
+              />
+            </div>
+            
+            <div>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#28a745' }}>
                   📍 Location/Venue
                 </label>
-                <input
-                  type="text"
-                  value={newEvent.location || ''}
-                  onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
-                  style={{
-                    width: '100%',
+              <input
+                type="text"
+                value={newEvent.location || ''}
+                onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                style={{
+                  width: '100%',
                     padding: '10px',
                     border: '2px solid #28a745',
                     borderRadius: '6px',
@@ -761,66 +767,66 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             <h4 style={{ margin: '0 0 15px 0', color: '#1976d2', fontSize: '1.1rem' }}>
               📋 Event Details
             </h4>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
-              <div>
+            <div>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#1976d2' }}>
                   💰 Price/Cost
                 </label>
-                <input
-                  type="text"
-                  value={newEvent.price || ''}
-                  onChange={(e) => setNewEvent({...newEvent, price: e.target.value})}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
+              <input
+                type="text"
+                value={newEvent.price || ''}
+                onChange={(e) => setNewEvent({...newEvent, price: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '8px',
                     border: '2px solid #2196f3',
-                    borderRadius: '4px',
+                  borderRadius: '4px',
                     boxSizing: 'border-box',
                     backgroundColor: 'white'
-                  }}
+                }}
                   placeholder="e.g., $10, Free, $25/person"
-                />
-              </div>
-              
-              <div>
+              />
+            </div>
+            
+            <div>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#1976d2' }}>
                   👨‍🏫 Instructor/Leader
                 </label>
-                <input
-                  type="text"
-                  value={newEvent.instructor || ''}
-                  onChange={(e) => setNewEvent({...newEvent, instructor: e.target.value})}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
+              <input
+                type="text"
+                value={newEvent.instructor || ''}
+                onChange={(e) => setNewEvent({...newEvent, instructor: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '8px',
                     border: '2px solid #2196f3',
-                    borderRadius: '4px',
+                  borderRadius: '4px',
                     boxSizing: 'border-box',
                     backgroundColor: 'white'
-                  }}
+                }}
                   placeholder="e.g., John Smith, Staff Member"
-                />
-              </div>
-              
-              <div>
+              />
+            </div>
+            
+            <div>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#1976d2' }}>
                   📝 Registration Info
                 </label>
-                <input
-                  type="text"
-                  value={newEvent.registration || ''}
-                  onChange={(e) => setNewEvent({...newEvent, registration: e.target.value})}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
+              <input
+                type="text"
+                value={newEvent.registration || ''}
+                onChange={(e) => setNewEvent({...newEvent, registration: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '8px',
                     border: '2px solid #2196f3',
-                    borderRadius: '4px',
+                  borderRadius: '4px',
                     boxSizing: 'border-box',
                     backgroundColor: 'white'
-                  }}
+                }}
                   placeholder="e.g., Call 613-123-4567, Online only"
-                />
+              />
               </div>
             </div>
           </div>
