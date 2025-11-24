@@ -812,7 +812,7 @@ def scrape_with_working_selenium():
                 
                 # Wait for the page to load
                 print("⏳ Waiting for page to load...")
-                time.sleep(15)  # Wait 15 seconds for JavaScript to load
+                time.sleep(10)  # Wait 10 seconds for JavaScript to load (reduced from 15)
                 
                 # Wait for any content to load
                 try:
@@ -3963,17 +3963,17 @@ async def export_events():
         print(f"❌ Error exporting events: {e}")
         return {"success": False, "error": str(e)}
 
-@app.get("/api/scrape-events/download")
-async def scrape_and_download_events():
-    """Scrape events from website and return as downloadable JSON file"""
+@app.post("/api/scrape-events/save-file")
+async def scrape_and_save_file_locally():
+    """Scrape events from website and save to local file (works when backend runs locally)"""
     try:
-        print("🔄 Scraping events for download...")
+        print("🔄 Scraping events and saving to local file...")
         
         # Scrape events from website
         scraped_events = scrape_seniors_kingston_events()
         
         if scraped_events and len(scraped_events) > 0:
-            # Format for download (same format as export)
+            # Format for save (same format as export)
             export_data = {
                 "export_date": datetime.now().isoformat(),
                 "total_events": len(scraped_events),
@@ -3982,47 +3982,50 @@ async def scrape_and_download_events():
                 "scraped_at": datetime.now().isoformat()
             }
             
-            print(f"✅ Scraped {len(scraped_events)} events, preparing download...")
+            # Save to local file
+            filename = "scraped_events_for_upload.json"
+            filepath = filename  # Save in current directory (where backend runs)
             
-            return Response(
-                content=json.dumps(export_data, indent=2, ensure_ascii=False),
-                media_type="application/json",
-                headers={
-                    "Content-Disposition": "attachment; filename=scraped_events_for_upload.json",
-                    "Content-Type": "application/json; charset=utf-8"
+            try:
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    json.dump(export_data, f, indent=2, ensure_ascii=False)
+                
+                print(f"✅ Scraped {len(scraped_events)} events and saved to {filepath}")
+                
+                return {
+                    "success": True,
+                    "message": f"✅ Successfully scraped {len(scraped_events)} events and saved to {filename}! The file is ready in your project folder.",
+                    "total_events": len(scraped_events),
+                    "filename": filename,
+                    "filepath": filepath,
+                    "events": scraped_events[:3]  # Return first 3 as preview
                 }
-            )
+            except Exception as save_error:
+                print(f"❌ Error saving file: {save_error}")
+                return {
+                    "success": False,
+                    "error": f"Scraping worked but failed to save file: {save_error}",
+                    "message": f"Scraped {len(scraped_events)} events but couldn't save to file. Check file permissions."
+                }
         else:
             # Scraping failed (likely on cloud environment)
-            error_data = {
+            return {
                 "success": False,
                 "error": "Scraping failed - no events found",
-                "message": "Scraping doesn't work on cloud environments (like Render) because Selenium requires a browser. Please run the scraping script locally: python create_uploadable_events_file.py",
-                "suggestion": "Run 'python create_uploadable_events_file.py' on your local computer to create the file, then upload it through the admin panel."
+                "message": "Scraping doesn't work on cloud environments (like Render) because Selenium requires a browser. Make sure you're running the backend locally on your computer.",
+                "suggestion": "This button only works when the backend is running locally on your computer (not on Render)."
             }
-            
-            return Response(
-                content=json.dumps(error_data, indent=2),
-                media_type="application/json",
-                headers={"Content-Disposition": "attachment; filename=scraping_error.json"}
-            )
         
     except Exception as e:
-        print(f"❌ Error scraping for download: {e}")
+        print(f"❌ Error scraping and saving: {e}")
         import traceback
         traceback.print_exc()
         
-        error_data = {
+        return {
             "success": False,
             "error": str(e),
-            "message": "An error occurred while scraping. Please try running the script locally: python create_uploadable_events_file.py"
+            "message": f"An error occurred while scraping: {e}. Make sure you're running the backend locally and have Chrome installed."
         }
-        
-        return Response(
-            content=json.dumps(error_data, indent=2),
-            media_type="application/json",
-            headers={"Content-Disposition": "attachment; filename=scraping_error.json"}
-        )
 
 @app.post("/api/events/import")
 async def import_events(file: UploadFile = File(...)):
