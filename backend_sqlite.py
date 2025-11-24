@@ -3963,6 +3963,67 @@ async def export_events():
         print(f"❌ Error exporting events: {e}")
         return {"success": False, "error": str(e)}
 
+@app.get("/api/scrape-events/download")
+async def scrape_and_download_events():
+    """Scrape events from website and return as downloadable JSON file"""
+    try:
+        print("🔄 Scraping events for download...")
+        
+        # Scrape events from website
+        scraped_events = scrape_seniors_kingston_events()
+        
+        if scraped_events and len(scraped_events) > 0:
+            # Format for download (same format as export)
+            export_data = {
+                "export_date": datetime.now().isoformat(),
+                "total_events": len(scraped_events),
+                "events": scraped_events,
+                "source": "scraped_from_website",
+                "scraped_at": datetime.now().isoformat()
+            }
+            
+            print(f"✅ Scraped {len(scraped_events)} events, preparing download...")
+            
+            return Response(
+                content=json.dumps(export_data, indent=2, ensure_ascii=False),
+                media_type="application/json",
+                headers={
+                    "Content-Disposition": "attachment; filename=scraped_events_for_upload.json",
+                    "Content-Type": "application/json; charset=utf-8"
+                }
+            )
+        else:
+            # Scraping failed (likely on cloud environment)
+            error_data = {
+                "success": False,
+                "error": "Scraping failed - no events found",
+                "message": "Scraping doesn't work on cloud environments (like Render) because Selenium requires a browser. Please run the scraping script locally: python create_uploadable_events_file.py",
+                "suggestion": "Run 'python create_uploadable_events_file.py' on your local computer to create the file, then upload it through the admin panel."
+            }
+            
+            return Response(
+                content=json.dumps(error_data, indent=2),
+                media_type="application/json",
+                headers={"Content-Disposition": "attachment; filename=scraping_error.json"}
+            )
+        
+    except Exception as e:
+        print(f"❌ Error scraping for download: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        error_data = {
+            "success": False,
+            "error": str(e),
+            "message": "An error occurred while scraping. Please try running the script locally: python create_uploadable_events_file.py"
+        }
+        
+        return Response(
+            content=json.dumps(error_data, indent=2),
+            media_type="application/json",
+            headers={"Content-Disposition": "attachment; filename=scraping_error.json"}
+        )
+
 @app.post("/api/events/import")
 async def import_events(file: UploadFile = File(...)):
     """Import events from JSON file"""
@@ -4042,7 +4103,7 @@ async def remove_duplicates_endpoint():
         }
 
 @app.post("/api/scrape-events")
-async def scrape_events_endpoint(replace: bool = False):
+async def scrape_events_endpoint(request: Request, replace: bool = Query(False)):
     """Manually trigger event scraping from Seniors Kingston website
     
     Args:
@@ -4050,26 +4111,38 @@ async def scrape_events_endpoint(replace: bool = False):
                  If False (default), merge scraped events with existing ones.
     """
     try:
+        # Also check query parameters in case they're passed that way
+        query_replace = request.query_params.get('replace', 'false').lower() == 'true'
+        replace = replace or query_replace
+        
         print(f"🔄 Manual event scraping requested (replace={replace})")
+        print(f"   Query params: {request.query_params}")
+        print(f"   Replace parameter: {replace}")
         
         # Scrape events from website
         scraped_events = scrape_seniors_kingston_events()
         
         if scraped_events and len(scraped_events) > 0:
             global stored_events
+            old_count = len(stored_events) if stored_events else 0
             
             # If replace=True, replace all events
             if replace:
-                print(f"🔄 REPLACING all {len(stored_events)} existing events with {len(scraped_events)} scraped events")
-                stored_events = scraped_events
+                print(f"🔄 REPLACING all {old_count} existing events with {len(scraped_events)} scraped events")
+                stored_events = scraped_events.copy()  # Make a copy to avoid reference issues
                 save_stored_events()
+                
+                # Verify the save worked
+                print(f"✅ Saved {len(stored_events)} events. Verifying...")
+                load_stored_events()  # Reload to verify
+                print(f"✅ Verified: {len(stored_events)} events in stored_events after save")
                 
                 return {
                     "success": True,
-                    "message": f"✅ Successfully replaced all events! Now showing {len(scraped_events)} scraped events.",
+                    "message": f"✅ Successfully replaced all events! Replaced {old_count} old events with {len(scraped_events)} scraped events.",
                     "events_count": len(scraped_events),
                     "replaced": True,
-                    "old_count": len(stored_events) if stored_events else 0,
+                    "old_count": old_count,
                     "new_count": len(scraped_events)
                 }
             
@@ -4202,14 +4275,34 @@ async def scrape_events_endpoint(replace: bool = False):
                 "events": stored_events[:5]  # Return first 5 events as sample
             }
         else:
-            print("📅 No events found during scraping - this is normal for JavaScript-heavy sites")
-            return {
-                "success": True,
-                "message": "Scraping completed - no new events found (this is normal for JavaScript-heavy sites). You can add events manually.",
-                "events_count": len(stored_events),
-                "added": 0,
-                "skipped": 0
-            }
+            # Scraping returned 0 events - this happens on cloud environments where Selenium doesn't work
+            print(f"📅 No events found during scraping (replace={replace})")
+            
+            if replace:
+                # Even if scraping failed, if replace=True, we should clear events
+                # But only if user explicitly wants to replace (don't clear on accident)
+                print(f"⚠️ Scraping failed but replace=True was requested")
+                print(f"   Current stored events: {len(stored_events)}")
+                print(f"   ⚠️ NOT clearing events because scraping returned 0 events")
+                print(f"   💡 Suggestion: Scraping may not work on cloud. Try using the bulk-update endpoint with a JSON file instead.")
+                
+                return {
+                    "success": False,
+                    "error": "Scraping failed - no events found. This is normal on cloud environments where Selenium doesn't work. Please use the bulk-update endpoint with a JSON file instead, or scrape locally and upload the results.",
+                    "events_count": len(stored_events),
+                    "added": 0,
+                    "skipped": 0,
+                    "replaced": False,
+                    "suggestion": "Use /api/events/bulk-update endpoint with scraped events JSON file"
+                }
+            else:
+                return {
+                    "success": True,
+                    "message": "Scraping completed - no new events found (this is normal for JavaScript-heavy sites or cloud environments). You can add events manually.",
+                    "events_count": len(stored_events),
+                    "added": 0,
+                    "skipped": 0
+                }
             
     except Exception as e:
         print(f"❌ Error in manual scraping: {e}")
