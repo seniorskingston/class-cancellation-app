@@ -42,6 +42,11 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
     registration: ''
   });
 
+  // Determine API URL - use localhost when running locally
+  const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8000'
+    : 'https://class-cancellation-backend.onrender.com';
+
   // Auto-load events when editor opens
   useEffect(() => {
     if (isOpen) {
@@ -53,7 +58,7 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
   const loadEvents = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events');
+      const response = await fetch(`${API_BASE_URL}/api/events`);
       if (response.ok) {
         const data = await response.json();
         const backendEvents = data.events || [];
@@ -82,7 +87,7 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
     try {
       console.log(`💾 Saving ${events.length} events to backend...`);
       
-      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/bulk-update', {
+      const response = await fetch(`${API_BASE_URL}/api/events/bulk-update`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -253,14 +258,15 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
           border: '2px solid #2196f3'
         }}>
           <h3 style={{ color: '#1976d2', marginBottom: '15px', fontSize: '1.3rem' }}>
-            🌐 Scrape & Replace Events from Seniors Kingston Website
+            🌐 Scrape Events & Save File Locally
           </h3>
           <p style={{ color: '#424242', marginBottom: '15px', fontSize: '1rem' }}>
-            Click the button below to scrape the latest events from the Seniors Kingston website and <strong>replace all existing events</strong> with the newly scraped ones. 
-            The events will be loaded into the editor below for you to review and edit.
+            Click the button below to scrape the latest events from the Seniors Kingston website and <strong>save them to a file on your computer</strong>. 
+            Then upload the file to replace all existing events.
           </p>
           <p style={{ color: '#d32f2f', marginBottom: '15px', fontSize: '0.9rem', fontStyle: 'italic' }}>
-            ⚠️ <strong>Note:</strong> This will replace ALL existing events with the scraped events. Make sure you want to do this!
+            ⚠️ <strong>Important:</strong> This button only works when your backend is running <strong>locally on your computer</strong> (not on Render). 
+            The file will be saved in your project folder: <code>scraped_events_for_upload.json</code>
           </p>
           
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -268,134 +274,38 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
               onClick={async () => {
                 try {
                   setLoading(true);
-                  setMessage('🔄 Scraping events from Seniors Kingston website and replacing all existing events...');
+                  setMessage('🔄 Scraping events from website and saving to local file...');
                   setMessageType('');
                   
-                  // Use replace=true to replace all old events with new scraped ones
-                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events?replace=true', {
+                  const response = await fetch(`${API_BASE_URL}/api/scrape-events/save-file`, {
                     method: 'POST'
                   });
                   
                   const result = await response.json();
                   
                   if (result.success) {
-                    let messageText = result.message;
-                    
-                    // Show replacement results
-                    if (result.replaced) {
-                      messageText = `✅ Successfully replaced all events! Now showing ${result.new_count} scraped events (replaced ${result.old_count} old events).`;
-                    } else if (result.added !== undefined) {
-                      messageText = `✅ Scraping complete! Added ${result.added} new events, skipped ${result.skipped} duplicates. Total events: ${result.events_count}`;
-                      
-                      if (result.skipped_details && result.skipped_details.length > 0) {
-                        messageText += `\n\nSkipped duplicates:\n${result.skipped_details.join('\n')}`;
-                      }
-                    }
-                    
-                    setMessage(messageText);
+                    setMessage(`✅ ${result.message}\n\n📁 File saved: ${result.filename}\n📊 Contains ${result.total_events} events\n\nYou can now upload this file using the "Upload Events JSON" button below.`);
                     setMessageType('success');
-                    
-                    // Reload events to show the updated list
-                    await loadEvents();
                     
                     setTimeout(() => {
                       setMessage('');
                       setMessageType('');
-                    }, 8000); // Show longer to read the details
+                    }, 10000); // Show longer
                   } else {
-                    setMessage(`❌ Scraping failed: ${result.error || 'Unknown error'}`);
+                    setMessage(`❌ ${result.message || result.error || 'Scraping failed'}\n\n💡 Make sure your backend is running locally on your computer (not on Render).`);
                     setMessageType('error');
                     setTimeout(() => {
                       setMessage('');
                       setMessageType('');
-                    }, 5000);
+                    }, 10000);
                   }
                 } catch (error) {
-                  setMessage(`❌ Error scraping events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setMessage(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}\n\n💡 Make sure your backend is running locally on your computer.`);
                   setMessageType('error');
                   setTimeout(() => {
                     setMessage('');
                     setMessageType('');
-                  }, 5000);
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              disabled={loading}
-              style={{
-                background: '#2196f3',
-                color: 'white',
-                border: 'none',
-                padding: '12px 24px',
-                borderRadius: '8px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '1rem',
-                fontWeight: 'bold',
-                opacity: loading ? 0.7 : 1,
-                boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)'
-              }}
-            >
-              {loading ? '🔄 Scraping & Replacing...' : '🌐 Scrape & Replace Events'}
-            </button>
-            
-            <button 
-              onClick={async () => {
-                try {
-                  setLoading(true);
-                  setMessage('🔄 Scraping events from website and preparing download...');
-                  setMessageType('');
-                  
-                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/scrape-events/download');
-                  
-                  if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                  }
-                  
-                  const blob = await response.blob();
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  
-                  // Check if it's an error file or success file
-                  const contentDisposition = response.headers.get('Content-Disposition') || '';
-                  const filename = contentDisposition.includes('scraped_events_for_upload.json') 
-                    ? 'scraped_events_for_upload.json' 
-                    : 'scraping_result.json';
-                  
-                  a.download = filename;
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                  document.body.removeChild(a);
-                  
-                  // Try to read the file to check if it's an error
-                  const text = await blob.text();
-                  try {
-                    const data = JSON.parse(text);
-                    if (data.success === false || data.error) {
-                      setMessage(`⚠️ ${data.message || data.error || 'Scraping failed. Please run the script locally: python create_uploadable_events_file.py'}`);
-                      setMessageType('error');
-                    } else {
-                      setMessage(`✅ Successfully scraped ${data.total_events || 0} events! File downloaded. You can now upload it to replace existing events.`);
-                      setMessageType('success');
-                    }
-                  } catch {
-                    // If we can't parse it, assume it's the events file
-                    setMessage('✅ Events file downloaded! You can now upload it to replace existing events.');
-                    setMessageType('success');
-                  }
-                  
-                  setTimeout(() => {
-                    setMessage('');
-                    setMessageType('');
-                  }, 8000);
-                } catch (error) {
-                  setMessage(`❌ Download failed: ${error instanceof Error ? error.message : 'Unknown error'}. Try running the script locally: python create_uploadable_events_file.py`);
-                  setMessageType('error');
-                  setTimeout(() => {
-                    setMessage('');
-                    setMessageType('');
-                  }, 8000);
+                  }, 10000);
                 } finally {
                   setLoading(false);
                 }
@@ -414,78 +324,24 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
                 boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)'
               }}
             >
-              {loading ? '🔄 Scraping & Downloading...' : '🌐 Scrape & Download Events File'}
-            </button>
-            
-            <button 
-              onClick={async () => {
-                try {
-                  setLoading(true);
-                  setMessage('📥 Downloading current events file...');
-                  setMessageType('');
-                  
-                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/export');
-                  const blob = await response.blob();
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = 'current_events_export.json';
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                  document.body.removeChild(a);
-                  
-                  setMessage('✅ Current events file downloaded! You can edit it locally and upload it back.');
-                  setMessageType('success');
-                  
-                  setTimeout(() => {
-                    setMessage('');
-                    setMessageType('');
-                  }, 5000);
-                } catch (error) {
-                  setMessage(`❌ Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                  setMessageType('error');
-                  setTimeout(() => {
-                    setMessage('');
-                    setMessageType('');
-                  }, 5000);
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              disabled={loading}
-              style={{
-                background: '#28a745',
-                color: 'white',
-                border: 'none',
-                padding: '12px 24px',
-                borderRadius: '8px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '1rem',
-                fontWeight: 'bold',
-                opacity: loading ? 0.7 : 1,
-                boxShadow: '0 2px 8px rgba(40, 167, 69, 0.3)'
-              }}
-            >
-              📥 Download Current Events
+              {loading ? '🔄 Scraping & Saving...' : '🌐 Scrape & Save File Locally'}
             </button>
           </div>
           
           <div style={{ 
             marginTop: '15px', 
             padding: '10px', 
-            background: '#fff3cd', 
-            border: '1px solid #ffeaa7',
+            background: '#e3f2fd', 
+            border: '1px solid #90caf9',
             borderRadius: '8px',
             fontSize: '0.9rem',
-            color: '#856404'
+            color: '#1565c0'
           }}>
-            <strong>💡 Workflow:</strong><br/>
-            1) Click "🌐 Scrape & Download Events File" to scrape from website and download JSON file<br/>
-            2) (Optional) Edit the JSON file locally if needed<br/>
-            3) Click "📤 Upload Events JSON" to upload the file and replace all events<br/>
-            <br/>
-            <strong>⚠️ Note:</strong> Scraping may not work on cloud servers. If it fails, run <code>python create_uploadable_events_file.py</code> locally, then upload the file.
+            <strong>💡 Simple Workflow:</strong><br/>
+            1) Click "🌐 Scrape & Save File Locally" (works when backend runs locally)<br/>
+            2) File is saved: <code>scraped_events_for_upload.json</code><br/>
+            3) Click "📤 Upload Events JSON" button below to upload the file<br/>
+            4) All events will be replaced with the scraped ones
           </div>
         </div>
 
@@ -552,6 +408,83 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
             }}
           >
             {saving ? '⏳ Saving...' : '💾 Save All Events'}
+          </button>
+          
+          {/* Upload Events JSON Button */}
+          <input
+            type="file"
+            accept=".json"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              
+              try {
+                setLoading(true);
+                setMessage('📤 Uploading events file...');
+                setMessageType('');
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const response = await fetch(`${API_BASE_URL}/api/events/import`, {
+                  method: 'POST',
+                  body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                  setMessage(`✅ ${result.message}\n\n📊 Total events: ${result.total_events || 0}\n\n🔄 Reloading events...`);
+                  setMessageType('success');
+                  
+                  // Reload events after upload
+                  setTimeout(async () => {
+                    await loadEvents();
+                  }, 1000);
+                  
+                  setTimeout(() => {
+                    setMessage('');
+                    setMessageType('');
+                  }, 8000);
+                } else {
+                  setMessage(`❌ Upload failed: ${result.error || 'Unknown error'}`);
+                  setMessageType('error');
+                  setTimeout(() => {
+                    setMessage('');
+                    setMessageType('');
+                  }, 5000);
+                }
+              } catch (error) {
+                setMessage(`❌ Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                setMessageType('error');
+                setTimeout(() => {
+                  setMessage('');
+                  setMessageType('');
+                }, 5000);
+              } finally {
+                setLoading(false);
+                // Reset file input
+                e.target.value = '';
+              }
+            }}
+            style={{ display: 'none' }}
+            id="upload-events-json-input"
+          />
+          
+          <button
+            onClick={() => document.getElementById('upload-events-json-input')?.click()}
+            disabled={loading}
+            style={{
+              background: '#17a2b8',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '5px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1
+            }}
+          >
+            📤 Upload Events JSON
           </button>
         </div>
 

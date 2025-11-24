@@ -104,390 +104,63 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
           </button>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-          gap: '30px'
-        }}>
-          {/* Excel Upload Section */}
-          <div style={{
-            background: '#f8f9fa',
-            padding: '25px',
-            borderRadius: '15px',
-            border: '2px solid #e9ecef'
-          }}>
-            <h2 style={{ 
-              color: '#007bff', 
-              marginBottom: '20px',
-              fontSize: '1.5rem'
-            }}>
-              📊 Excel File Upload
-            </h2>
-            <p style={{ 
-              color: '#666', 
-              marginBottom: '20px',
-              lineHeight: '1.6'
-            }}>
-              Upload your Excel file to update the program schedule data.
-            </p>
-            <div style={{
-              border: '2px dashed #007bff',
-              borderRadius: '10px',
-              padding: '20px',
-              textAlign: 'center',
-              background: 'white'
-            }}>
-              <p style={{ color: '#666', marginBottom: '15px' }}>
-                Drag & drop your Excel file here or click to browse
-              </p>
-                      <input
-                        type="file"
-                        accept=".xlsx,.xls"
-                        onChange={handleFileSelect}
-                        style={{
-                          margin: '10px 0',
-                          padding: '10px',
-                          border: '1px solid #ddd',
-                          borderRadius: '5px',
-                          width: '100%'
-                        }}
-                      />
-                      {uploadMessage && (
-                        <div style={{ marginTop: '10px' }}>
-                          <p style={{ 
-                            color: uploadMessage.includes('✅') ? '#28a745' : uploadMessage.includes('❌') ? '#dc3545' : '#666',
-                            margin: '0 0 10px 0',
-                            fontSize: '14px'
-                          }}>
-                            {uploadMessage}
-                          </p>
-                          <button 
-                            onClick={clearMessage}
-                            style={{
-                              background: '#6c757d',
-                              color: 'white',
-                              border: 'none',
-                              padding: '5px 10px',
-                              borderRadius: '4px',
-                              fontSize: '12px',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Clear Message
-                          </button>
-                        </div>
-                      )}
-                      <button 
-                        onClick={handleExcelUpload}
-                        disabled={!selectedFile}
-                        style={{
-                          background: selectedFile ? '#007bff' : '#6c757d',
-                          color: 'white',
-                          border: 'none',
-                          padding: '12px 24px',
-                          borderRadius: '8px',
-                          cursor: selectedFile ? 'pointer' : 'not-allowed',
-                          fontSize: '16px',
-                          marginTop: '10px'
-                        }}
-                      >
-                        Upload Excel File
-                      </button>
-            </div>
-          </div>
-
-          {/* Event Editor Section */}
-          <div style={{
-            background: '#f8f9fa',
-            padding: '25px',
-            borderRadius: '15px',
-            border: '2px solid #e9ecef'
-          }}>
-            <h2 style={{ 
-              color: '#28a745', 
-              marginBottom: '20px',
-              fontSize: '1.5rem'
-            }}>
-              📅 Event Management
-            </h2>
-            <p style={{ 
-              color: '#666', 
-              marginBottom: '20px',
-              lineHeight: '1.6'
-            }}>
-              Manage events, upload scraped data, and edit event details.
-            </p>
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '15px'
-            }}>
-              {/* Main Event Management Button */}
-              <button 
-                onClick={() => setShowEventEditor(true)}
-                style={{
-                  background: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  padding: '15px 20px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  boxShadow: '0 2px 8px rgba(0, 123, 255, 0.3)'
-                }}
-              >
-                🔄 Scrape & Edit Events
-              </button>
-              
-              {/* File Management Buttons */}
-              <div style={{
-                display: 'flex',
-                gap: '10px',
-                flexWrap: 'wrap'
-              }}>
-                <button 
-                  onClick={async () => {
-                    try {
-                      setUploadMessage('📥 Downloading events file...');
-                      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/export');
-                      const blob = await response.blob();
-                      const url = window.URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = 'events_export.json';
-                      document.body.appendChild(a);
-                      a.click();
-                      window.URL.revokeObjectURL(url);
-                      document.body.removeChild(a);
-                      setUploadMessage('✅ Events file downloaded successfully!');
-                      setTimeout(() => setUploadMessage(''), 3000);
-                    } catch (error) {
-                      setUploadMessage(`❌ Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                      setTimeout(() => setUploadMessage(''), 5000);
-                    }
-                  }}
-                  style={{
-                    background: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    padding: '12px 16px',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    flex: '1',
-                    minWidth: '150px'
-                  }}
-                >
-                  📥 Download Events
-                </button>
-                
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    
-                    try {
-                      setUploadMessage('📤 Uploading events file...');
-                      const formData = new FormData();
-                      formData.append('file', file);
-                      
-                      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/import', {
-                        method: 'POST',
-                        body: formData
-                      });
-                      
-                      const result = await response.json();
-                      
-                      if (result.success) {
-                        setUploadMessage(`✅ ${result.message}`);
-                        setTimeout(() => setUploadMessage(''), 5000);
-                      } else {
-                        setUploadMessage(`❌ Upload failed: ${result.error}`);
-                        setTimeout(() => setUploadMessage(''), 5000);
-                      }
-                    } catch (error) {
-                      setUploadMessage(`❌ Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                      setTimeout(() => setUploadMessage(''), 5000);
-                    }
-                    
-                    // Reset file input
-                    e.target.value = '';
-                  }}
-                  style={{ display: 'none' }}
-                  id="events-file-input"
-                />
-                
-                <button 
-                  onClick={() => document.getElementById('events-file-input')?.click()}
-                  style={{
-                    background: '#17a2b8',
-                    color: 'white',
-                    border: 'none',
-                    padding: '12px 16px',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    flex: '1',
-                    minWidth: '150px'
-                  }}
-                >
-                  📤 Upload Events
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Fallback Data Management Section */}
+        {/* Event Management Section */}
         <div style={{
           background: '#f8f9fa',
           padding: '25px',
           borderRadius: '15px',
           border: '2px solid #e9ecef',
-          marginTop: '30px'
+          maxWidth: '600px',
+          margin: '0 auto'
         }}>
           <h2 style={{ 
-            color: '#6f42c1', 
+            color: '#28a745', 
             marginBottom: '20px',
             fontSize: '1.5rem'
           }}>
-            💾 Fallback Data Management
+            📅 Event Management
           </h2>
           <p style={{ 
             color: '#666', 
             marginBottom: '20px',
             lineHeight: '1.6'
           }}>
-            Save current data as fallback. When scraping fails, the app will use this saved data instead of showing empty results.
+            Scrape events from the website, save them locally, and upload them to the app.
           </p>
           <div style={{
             display: 'flex',
-            gap: '10px',
-            flexWrap: 'wrap'
+            flexDirection: 'column',
+            gap: '15px'
           }}>
+            {/* Main Event Management Button */}
             <button 
-              onClick={async () => {
-                try {
-                  setUploadMessage('💾 Saving current events as fallback...');
-                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/fallback/save-events', {
-                    method: 'POST'
-                  });
-                  
-                  const result = await response.json();
-                  
-                  if (result.success) {
-                    setUploadMessage(`✅ ${result.message}`);
-                    setTimeout(() => setUploadMessage(''), 5000);
-                  } else {
-                    setUploadMessage(`❌ Failed to save events fallback: ${result.error}`);
-                    setTimeout(() => setUploadMessage(''), 5000);
-                  }
-                } catch (error) {
-                  setUploadMessage(`❌ Error saving events fallback: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                  setTimeout(() => setUploadMessage(''), 5000);
-                }
-              }}
+              onClick={() => setShowEventEditor(true)}
               style={{
-                background: '#6f42c1',
+                background: '#007bff',
                 color: 'white',
                 border: 'none',
-                padding: '12px 16px',
-                borderRadius: '6px',
+                padding: '15px 20px',
+                borderRadius: '8px',
                 cursor: 'pointer',
-                fontSize: '14px',
+                fontSize: '16px',
                 fontWeight: 'bold',
-                flex: '1',
-                minWidth: '180px'
+                boxShadow: '0 2px 8px rgba(0, 123, 255, 0.3)'
               }}
             >
-              💾 Save Events as Fallback
+              🔄 Scrape & Edit Events
             </button>
             
-            <button 
-              onClick={async () => {
-                try {
-                  setUploadMessage('💾 Saving current Excel data as fallback...');
-                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/fallback/save-excel', {
-                    method: 'POST'
-                  });
-                  
-                  const result = await response.json();
-                  
-                  if (result.success) {
-                    setUploadMessage(`✅ ${result.message}`);
-                    setTimeout(() => setUploadMessage(''), 5000);
-                  } else {
-                    setUploadMessage(`❌ Failed to save Excel fallback: ${result.error}`);
-                    setTimeout(() => setUploadMessage(''), 5000);
-                  }
-                } catch (error) {
-                  setUploadMessage(`❌ Error saving Excel fallback: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                  setTimeout(() => setUploadMessage(''), 5000);
-                }
-              }}
-              style={{
-                background: '#fd7e14',
-                color: 'white',
-                border: 'none',
-                padding: '12px 16px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                flex: '1',
-                minWidth: '180px'
-              }}
-            >
-              💾 Save Excel as Fallback
-            </button>
-            
-            <button 
-              onClick={async () => {
-                try {
-                  setUploadMessage('📊 Checking fallback status...');
-                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/fallback/status');
-                  const status = await response.json();
-                  
-                  let message = '📊 Fallback Status:\n';
-                  if (status.events_fallback.file_exists) {
-                    message += `✅ Events: ${status.events_fallback.total_events} events (${status.events_fallback.last_updated})\n`;
-                  } else {
-                    message += `❌ Events: No fallback data\n`;
-                  }
-                  
-                  if (status.excel_fallback.file_exists) {
-                    message += `✅ Excel: ${status.excel_fallback.total_programs} programs (${status.excel_fallback.last_updated})`;
-                  } else {
-                    message += `❌ Excel: No fallback data`;
-                  }
-                  
-                  setUploadMessage(message);
-                  setTimeout(() => setUploadMessage(''), 8000);
-                } catch (error) {
-                  setUploadMessage(`❌ Error checking fallback status: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                  setTimeout(() => setUploadMessage(''), 5000);
-                }
-              }}
-              style={{
-                background: '#20c997',
-                color: 'white',
-                border: 'none',
-                padding: '12px 16px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                flex: '1',
-                minWidth: '180px'
-              }}
-            >
-              📊 Check Fallback Status
-            </button>
+            <p style={{ 
+              color: '#666', 
+              fontSize: '0.9rem',
+              margin: '10px 0',
+              textAlign: 'center'
+            }}>
+              Click above to open the Event Editor where you can:<br/>
+              • Scrape events and save to local file<br/>
+              • Upload scraped events JSON file<br/>
+              • Edit and manage events
+            </p>
           </div>
         </div>
 
