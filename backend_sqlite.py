@@ -4042,17 +4042,39 @@ async def remove_duplicates_endpoint():
         }
 
 @app.post("/api/scrape-events")
-async def scrape_events_endpoint():
-    """Manually trigger event scraping from Seniors Kingston website"""
+async def scrape_events_endpoint(replace: bool = False):
+    """Manually trigger event scraping from Seniors Kingston website
+    
+    Args:
+        replace: If True, replace all existing events with scraped events.
+                 If False (default), merge scraped events with existing ones.
+    """
     try:
-        print("🔄 Manual event scraping requested")
+        print(f"🔄 Manual event scraping requested (replace={replace})")
         
         # Scrape events from website
         scraped_events = scrape_seniors_kingston_events()
         
         if scraped_events and len(scraped_events) > 0:
-            # SAFE MERGE: Only add new events, never overwrite existing ones
             global stored_events
+            
+            # If replace=True, replace all events
+            if replace:
+                print(f"🔄 REPLACING all {len(stored_events)} existing events with {len(scraped_events)} scraped events")
+                stored_events = scraped_events
+                save_stored_events()
+                
+                return {
+                    "success": True,
+                    "message": f"✅ Successfully replaced all events! Now showing {len(scraped_events)} scraped events.",
+                    "events_count": len(scraped_events),
+                    "replaced": True,
+                    "old_count": len(stored_events) if stored_events else 0,
+                    "new_count": len(scraped_events)
+                }
+            
+            # SAFE MERGE: Only add new events, never overwrite existing ones
+            print(f"🔍 Starting safe merge: {len(stored_events)} existing events, {len(scraped_events)} scraped events")
             
             print(f"🔍 Starting safe merge: {len(stored_events)} existing events, {len(scraped_events)} scraped events")
             
