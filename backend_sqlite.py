@@ -16,6 +16,7 @@ import pandas as pd
 import io
 import pytz
 import time
+import re
 from dateutil import parser
 from contextlib import asynccontextmanager
 from urllib.parse import urljoin
@@ -896,21 +897,118 @@ def scrape_with_working_selenium():
                                             # Use the first text element as title
                                             title = text_content[0] if text_content else img_alt
                                             
+                                            # Filter out non-event items
+                                            skip_keywords = [
+                                                'register today', 'upcoming events', 'list view', 'calendar view',
+                                                'programs', 'events', 'dining', 'quick links', 'about us',
+                                                'enhancing the quality', 'funded by', 'close x', 'advertisement',
+                                                '56 francis st', 'mon - fri', 'kingston', 'latest program guide',
+                                                'donate', 'volunteer', 'hatter\'s menu'
+                                            ]
+                                            
+                                            title_lower = title.lower()
+                                            if any(keyword in title_lower for keyword in skip_keywords):
+                                                continue  # Skip this item, it's not an actual event
+                                            
+                                            # Parse date and time from text content
+                                            date_str = "TBD"
+                                            time_str = "TBD"
+                                            start_date = datetime.now()
+                                            end_date = datetime.now()
+                                            
+                                            # Look for date/time patterns in text content
+                                            
+                                            # Combine all text content to search for date/time
+                                            full_text = ' '.join(text_content)
+                                            
+                                            # Look for date patterns like "November 24, 12:00 pm" or "Nov 24, 12:00 pm"
+                                            date_time_patterns = [
+                                                r'([A-Za-z]+\s+\d{1,2},\s+\d{1,2}:\d{2}\s+(?:am|pm|AM|PM))',  # "November 24, 12:00 pm"
+                                                r'([A-Za-z]+\s+\d{1,2},\s+\d{1,2}:\d{2})',  # "November 24, 12:00"
+                                                r'([A-Za-z]{3}\s+\d{1,2},\s+\d{1,2}:\d{2}\s+(?:am|pm|AM|PM))',  # "Nov 24, 12:00 pm"
+                                            ]
+                                            
+                                            for pattern in date_time_patterns:
+                                                match = re.search(pattern, full_text, re.IGNORECASE)
+                                                if match:
+                                                    date_time_str = match.group(1)
+                                                    # Try to parse the date/time
+                                                    try:
+                                                        # Parse date/time string
+                                                        parsed_dt = parser.parse(date_time_str, fuzzy=True)
+                                                        start_date = parsed_dt
+                                                        end_date = parsed_dt + timedelta(hours=1)
+                                                        
+                                                        # Extract date and time strings
+                                                        date_str = parsed_dt.strftime('%B %d, %Y')
+                                                        time_str = parsed_dt.strftime('%I:%M %p').lstrip('0')
+                                                        
+                                                        print(f"         Parsed date/time: {date_str} {time_str}")
+                                                        break
+                                                    except Exception as e:
+                                                        print(f"         Could not parse date/time: {e}")
+                                                        continue
+                                            
+                                            # If no date/time found, try to extract just date or time separately
+                                            if date_str == "TBD":
+                                                # Look for just date
+                                                date_patterns = [
+                                                    r'([A-Za-z]+\s+\d{1,2}(?:,\s+\d{4})?)',  # "November 24" or "November 24, 2025"
+                                                    r'([A-Za-z]{3}\s+\d{1,2}(?:,\s+\d{4})?)',  # "Nov 24" or "Nov 24, 2025"
+                                                ]
+                                                for pattern in date_patterns:
+                                                    match = re.search(pattern, full_text, re.IGNORECASE)
+                                                    if match:
+                                                        date_str = match.group(1)
+                                                        try:
+                                                            parsed_dt = parser.parse(date_str, fuzzy=True)
+                                                            start_date = parsed_dt
+                                                            end_date = parsed_dt + timedelta(hours=1)
+                                                            date_str = parsed_dt.strftime('%B %d, %Y')
+                                                        except:
+                                                            pass
+                                                        break
+                                            
+                                            if time_str == "TBD":
+                                                # Look for just time
+                                                time_pattern = r'(\d{1,2}:\d{2}\s*(?:am|pm|AM|PM))'
+                                                match = re.search(time_pattern, full_text, re.IGNORECASE)
+                                                if match:
+                                                    time_str = match.group(1)
+                                                    # Try to apply time to start_date if we have a date
+                                                    if date_str != "TBD":
+                                                        try:
+                                                            time_match = re.search(r'(\d{1,2}):(\d{2})\s*(am|pm|AM|PM)', time_str, re.IGNORECASE)
+                                                            if time_match:
+                                                                hour = int(time_match.group(1))
+                                                                minute = int(time_match.group(2))
+                                                                period = time_match.group(3).upper()
+                                                                
+                                                                if period == 'PM' and hour != 12:
+                                                                    hour += 12
+                                                                elif period == 'AM' and hour == 12:
+                                                                    hour = 0
+                                                                
+                                                                start_date = start_date.replace(hour=hour, minute=minute)
+                                                                end_date = start_date + timedelta(hours=1)
+                                                        except:
+                                                            pass
+                                            
                                             # Create event object
                                             event = {
                                                 "title": title,
-                                                "description": ' '.join(text_content[:3]),
+                                                "description": ' '.join(text_content[1:]) if len(text_content) > 1 else title,
                                                 "image_url": img_src,
-                                                "startDate": datetime.now().isoformat(),
-                                                "endDate": datetime.now().isoformat(),
+                                                "startDate": start_date.isoformat() + 'Z',
+                                                "endDate": end_date.isoformat() + 'Z',
                                                 "location": "Seniors Kingston",
-                                                "dateStr": "TBD",
-                                                "timeStr": "TBD"
+                                                "dateStr": date_str,
+                                                "timeStr": time_str
                                             }
                                             
                                             events_found.append(event)
                                             
-                                            print(f"         Event: {title}")
+                                            print(f"         Event: {title} - {date_str} {time_str}")
                                             print(f"         Banner: {img_src}")
                 
                 # Remove duplicates
