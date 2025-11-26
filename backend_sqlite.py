@@ -59,14 +59,40 @@ def get_gcs_client():
         if not GCS_AVAILABLE:
             print("⚠️ GCS library not available")
             return None
-            
-        # Check for credentials file path in environment
+        
+        # Method 1: Check for credentials JSON content in environment variable
+        # This is the recommended way for Render - paste the entire JSON as GCS_CREDENTIALS
+        gcs_creds_json = os.getenv('GCS_CREDENTIALS')
+        if gcs_creds_json:
+            try:
+                import tempfile
+                # Write the JSON to a temp file
+                creds_data = json.loads(gcs_creds_json)
+                
+                # Create a temp file for credentials
+                creds_file = "/tmp/gcs_credentials.json"
+                with open(creds_file, 'w') as f:
+                    json.dump(creds_data, f)
+                
+                # Set the environment variable to point to the file
+                os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = creds_file
+                
+                client = gcs_storage.Client()
+                print(f"✅ GCS client created from GCS_CREDENTIALS environment variable")
+                return client
+            except json.JSONDecodeError as e:
+                print(f"❌ Invalid JSON in GCS_CREDENTIALS: {e}")
+            except Exception as e:
+                print(f"❌ Error using GCS_CREDENTIALS: {e}")
+        
+        # Method 2: Check for credentials file path in environment
         creds_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
         if creds_path and os.path.exists(creds_path):
-            print(f"✅ Using GCS credentials from: {creds_path}")
-            return gcs_storage.Client()
+            print(f"✅ Using GCS credentials from file: {creds_path}")
+            client = gcs_storage.Client()
+            return client
         
-        # Try to use default credentials (works on GCP or with ADC)
+        # Method 3: Try to use default credentials (works on GCP or with ADC)
         try:
             client = gcs_storage.Client()
             print("✅ GCS client created with default credentials")
@@ -77,6 +103,7 @@ def get_gcs_client():
             
     except Exception as e:
         print(f"❌ Error creating GCS client: {e}")
+        traceback.print_exc()
         return None
 
 def upload_to_gcs(data: dict, filename: str) -> bool:
@@ -4098,19 +4125,57 @@ async def get_fallback_status():
 async def get_gcs_status():
     """Get Google Cloud Storage connection status and list files"""
     try:
+        # Check environment variables for debugging
+        gcs_creds_set = bool(os.getenv('GCS_CREDENTIALS'))
+        gcs_creds_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+        gcs_creds_path_exists = os.path.exists(gcs_creds_path) if gcs_creds_path else False
+        
+        debug_info = {
+            "GCS_CREDENTIALS_env_set": gcs_creds_set,
+            "GCS_CREDENTIALS_length": len(os.getenv('GCS_CREDENTIALS', '')) if gcs_creds_set else 0,
+            "GOOGLE_APPLICATION_CREDENTIALS": gcs_creds_path,
+            "GOOGLE_APPLICATION_CREDENTIALS_file_exists": gcs_creds_path_exists,
+            "GCS_BUCKET_NAME": GCS_BUCKET_NAME,
+            "GCS_AVAILABLE_library": GCS_AVAILABLE
+        }
+        
         client = get_gcs_client()
         
         if not client:
+            error_msg = "Google Cloud Storage client not available.\n\n"
+            if not GCS_AVAILABLE:
+                error_msg += "❌ google-cloud-storage library not installed.\n"
+            if not gcs_creds_set and not gcs_creds_path_exists:
+                error_msg += "❌ No credentials found. Please set GCS_CREDENTIALS environment variable on Render.\n"
+                error_msg += "\n📋 Instructions:\n"
+                error_msg += "1. Go to Render Dashboard → Your Service → Environment\n"
+                error_msg += "2. Add new environment variable:\n"
+                error_msg += "   Name: GCS_CREDENTIALS\n"
+                error_msg += "   Value: (paste the ENTIRE content of your service account JSON key file)\n"
+                error_msg += "3. Also add: GCS_BUCKET_NAME = your-bucket-name\n"
+                error_msg += "4. Click Save and redeploy"
+            
             return {
                 "success": False,
                 "connected": False,
-                "error": "Google Cloud Storage client not available. Check if credentials are configured.",
+                "error": error_msg,
                 "bucket_name": GCS_BUCKET_NAME,
-                "gcs_available": GCS_AVAILABLE
+                "gcs_available": GCS_AVAILABLE,
+                "debug": debug_info
             }
         
         # Try to list files in the bucket
-        files = list_gcs_files()
+        try:
+            files = list_gcs_files()
+        except Exception as list_error:
+            return {
+                "success": False,
+                "connected": True,
+                "error": f"Connected but cannot list files: {str(list_error)}. Check bucket name and permissions.",
+                "bucket_name": GCS_BUCKET_NAME,
+                "gcs_available": GCS_AVAILABLE,
+                "debug": debug_info
+            }
         
         # Check for our specific files
         events_file_exists = any(f['name'] == GCS_EVENTS_FILE for f in files)
@@ -4126,7 +4191,8 @@ async def get_gcs_status():
             "files_count": len(files),
             "events_file_exists": events_file_exists,
             "excel_file_exists": excel_file_exists,
-            "excel_original_exists": excel_original_exists
+            "excel_original_exists": excel_original_exists,
+            "debug": debug_info
         }
         
     except Exception as e:
@@ -4136,7 +4202,11 @@ async def get_gcs_status():
             "success": False,
             "connected": False,
             "error": str(e),
-            "bucket_name": GCS_BUCKET_NAME
+            "bucket_name": GCS_BUCKET_NAME,
+            "debug": {
+                "exception": str(e),
+                "GCS_AVAILABLE": GCS_AVAILABLE
+            }
         }
 
 @app.post("/api/gcs/upload-events")
