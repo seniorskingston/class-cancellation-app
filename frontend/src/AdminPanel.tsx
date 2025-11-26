@@ -685,9 +685,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                     
                     setUploadMessage(message);
                   } else {
-                    setUploadMessage(`❌ GCS not connected: ${status.error || 'Unknown error'}\n\n💡 Make sure GCS credentials are configured on Render.`);
+                    let errorMsg = `❌ GCS not connected\n\n`;
+                    errorMsg += status.error || 'Unknown error';
+                    
+                    if (status.debug) {
+                      errorMsg += `\n\n🔍 Debug Info:\n`;
+                      errorMsg += `• GCS_CREDENTIALS set: ${status.debug.GCS_CREDENTIALS_env_set ? 'Yes' : 'No'}\n`;
+                      errorMsg += `• Credentials length: ${status.debug.GCS_CREDENTIALS_length || 0} chars\n`;
+                      errorMsg += `• Bucket name: ${status.debug.GCS_BUCKET_NAME || 'Not set'}\n`;
+                      errorMsg += `• Library available: ${status.debug.GCS_AVAILABLE_library ? 'Yes' : 'No'}`;
+                    }
+                    
+                    setUploadMessage(errorMsg);
                   }
-                  setTimeout(() => setUploadMessage(''), 12000);
+                  setTimeout(() => setUploadMessage(''), 15000);
                 } catch (error) {
                   setUploadMessage(`❌ Error checking GCS status: ${error instanceof Error ? error.message : 'Unknown error'}`);
                   setTimeout(() => setUploadMessage(''), 5000);
@@ -710,15 +721,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
             </button>
           </div>
           
-          <p style={{ 
-            color: '#1b5e20', 
-            marginTop: '15px',
-            fontSize: '0.85rem',
-            fontStyle: 'italic'
+          <div style={{ 
+            marginTop: '20px',
+            padding: '15px',
+            background: '#fff8e1',
+            border: '1px solid #ffcc02',
+            borderRadius: '8px',
+            fontSize: '0.85rem'
           }}>
-            💡 <strong>Tip:</strong> After uploading new Excel or Events data, click "Upload to GCS" to save permanently. 
-            When the app restarts, click "Sync ALL from GCS" to restore your data.
-          </p>
+            <strong>📋 Setup Instructions for Render:</strong>
+            <ol style={{ margin: '10px 0 0 0', paddingLeft: '20px' }}>
+              <li>Go to Render Dashboard → Your Backend Service → Environment</li>
+              <li>Add environment variable: <code>GCS_BUCKET_NAME</code> = your-bucket-name</li>
+              <li>Add environment variable: <code>GCS_CREDENTIALS</code> = (paste the ENTIRE content of your Google service account JSON key file)</li>
+              <li>Save and wait for redeploy</li>
+              <li>Click "Check GCS Status" to verify connection</li>
+            </ol>
+          </div>
         </div>
 
         {uploadMessage && (
