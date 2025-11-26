@@ -20,6 +20,16 @@ import re
 from dateutil import parser
 from contextlib import asynccontextmanager
 from urllib.parse import urljoin
+import traceback
+
+# Google Cloud Storage imports
+try:
+    from google.cloud import storage as gcs_storage
+    GCS_AVAILABLE = True
+    print("✅ Google Cloud Storage library loaded successfully")
+except ImportError:
+    GCS_AVAILABLE = False
+    print("⚠️ Google Cloud Storage library not available - using local storage")
 
 # Use environment variable for port, default to 8000 (Render uses PORT env var)
 PORT = int(os.environ.get("PORT", 8000))
@@ -32,59 +42,257 @@ DB_PATH = "/tmp/class_cancellations.db" if os.getenv('RENDER') else "class_cance
 KINGSTON_TZ = pytz.timezone('America/Toronto')
 utc = pytz.UTC
 
+# ============================================
+# GOOGLE CLOUD STORAGE CONFIGURATION
+# ============================================
+# Set your GCS bucket name here (or use environment variable)
+GCS_BUCKET_NAME = os.getenv('GCS_BUCKET_NAME', 'seniors-kingston-data')
+
+# File names in GCS
+GCS_EVENTS_FILE = "stored_events.json"
+GCS_EXCEL_FILE = "excel_data.json"
+GCS_EXCEL_ORIGINAL_FILE = "Class_Cancellation_App.xlsx"
+
+def get_gcs_client():
+    """Get Google Cloud Storage client"""
+    try:
+        if not GCS_AVAILABLE:
+            print("⚠️ GCS library not available")
+            return None
+            
+        # Check for credentials file path in environment
+        creds_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+        if creds_path and os.path.exists(creds_path):
+            print(f"✅ Using GCS credentials from: {creds_path}")
+            return gcs_storage.Client()
+        
+        # Try to use default credentials (works on GCP or with ADC)
+        try:
+            client = gcs_storage.Client()
+            print("✅ GCS client created with default credentials")
+            return client
+        except Exception as e:
+            print(f"⚠️ Could not create GCS client with default credentials: {e}")
+            return None
+            
+    except Exception as e:
+        print(f"❌ Error creating GCS client: {e}")
+        return None
+
+def upload_to_gcs(data: dict, filename: str) -> bool:
+    """Upload JSON data to Google Cloud Storage"""
+    try:
+        client = get_gcs_client()
+        if not client:
+            print(f"⚠️ GCS client not available, cannot upload {filename}")
+            return False
+        
+        bucket = client.bucket(GCS_BUCKET_NAME)
+        blob = bucket.blob(filename)
+        
+        # Convert data to JSON string
+        json_data = json.dumps(data, indent=2, ensure_ascii=False)
+        
+        # Upload to GCS
+        blob.upload_from_string(json_data, content_type='application/json')
+        
+        print(f"✅ Successfully uploaded {filename} to GCS bucket {GCS_BUCKET_NAME}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error uploading {filename} to GCS: {e}")
+        traceback.print_exc()
+        return False
+
+def download_from_gcs(filename: str) -> dict:
+    """Download JSON data from Google Cloud Storage"""
+    try:
+        client = get_gcs_client()
+        if not client:
+            print(f"⚠️ GCS client not available, cannot download {filename}")
+            return None
+        
+        bucket = client.bucket(GCS_BUCKET_NAME)
+        blob = bucket.blob(filename)
+        
+        if not blob.exists():
+            print(f"📝 File {filename} does not exist in GCS bucket {GCS_BUCKET_NAME}")
+            return None
+        
+        # Download and parse JSON
+        json_data = blob.download_as_text()
+        data = json.loads(json_data)
+        
+        print(f"✅ Successfully downloaded {filename} from GCS bucket {GCS_BUCKET_NAME}")
+        return data
+        
+    except Exception as e:
+        print(f"❌ Error downloading {filename} from GCS: {e}")
+        traceback.print_exc()
+        return None
+
+def upload_file_to_gcs(file_content: bytes, filename: str, content_type: str = 'application/octet-stream') -> bool:
+    """Upload binary file to Google Cloud Storage"""
+    try:
+        client = get_gcs_client()
+        if not client:
+            print(f"⚠️ GCS client not available, cannot upload {filename}")
+            return False
+        
+        bucket = client.bucket(GCS_BUCKET_NAME)
+        blob = bucket.blob(filename)
+        
+        # Upload to GCS
+        blob.upload_from_string(file_content, content_type=content_type)
+        
+        print(f"✅ Successfully uploaded {filename} to GCS bucket {GCS_BUCKET_NAME}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error uploading file {filename} to GCS: {e}")
+        traceback.print_exc()
+        return False
+
+def download_file_from_gcs(filename: str) -> bytes:
+    """Download binary file from Google Cloud Storage"""
+    try:
+        client = get_gcs_client()
+        if not client:
+            print(f"⚠️ GCS client not available, cannot download {filename}")
+            return None
+        
+        bucket = client.bucket(GCS_BUCKET_NAME)
+        blob = bucket.blob(filename)
+        
+        if not blob.exists():
+            print(f"📝 File {filename} does not exist in GCS bucket {GCS_BUCKET_NAME}")
+            return None
+        
+        # Download file content
+        file_content = blob.download_as_bytes()
+        
+        print(f"✅ Successfully downloaded {filename} from GCS bucket {GCS_BUCKET_NAME}")
+        return file_content
+        
+    except Exception as e:
+        print(f"❌ Error downloading file {filename} from GCS: {e}")
+        traceback.print_exc()
+        return None
+
+def list_gcs_files() -> list:
+    """List all files in the GCS bucket"""
+    try:
+        client = get_gcs_client()
+        if not client:
+            return []
+        
+        bucket = client.bucket(GCS_BUCKET_NAME)
+        blobs = bucket.list_blobs()
+        
+        files = []
+        for blob in blobs:
+            files.append({
+                "name": blob.name,
+                "size": blob.size,
+                "updated": blob.updated.isoformat() if blob.updated else None,
+                "content_type": blob.content_type
+            })
+        
+        return files
+        
+    except Exception as e:
+        print(f"❌ Error listing GCS files: {e}")
+        return []
+
+# ============================================
+# END GOOGLE CLOUD STORAGE CONFIGURATION
+# ============================================
+
 # Global variable to store uploaded events
 stored_events = []
 
-# File to persist stored_events across restarts
+# File to persist stored_events across restarts (local backup)
 STORED_EVENTS_FILE = "/tmp/stored_events.json" if os.getenv('RENDER') else "stored_events.json"
 
 def load_stored_events():
-    """Load stored events from file if it exists"""
+    """Load stored events - try GCS first, then local file"""
     global stored_events
+    
+    # Try to load from Google Cloud Storage first
+    print("🔄 Loading events - trying GCS first...")
+    try:
+        gcs_data = download_from_gcs(GCS_EVENTS_FILE)
+        if gcs_data:
+            # GCS data might be wrapped in metadata or be a list directly
+            if isinstance(gcs_data, list):
+                stored_events = gcs_data
+            elif isinstance(gcs_data, dict) and 'events' in gcs_data:
+                stored_events = gcs_data['events']
+            else:
+                stored_events = gcs_data if isinstance(gcs_data, list) else []
+            
+            print(f"✅ Loaded {len(stored_events)} events from Google Cloud Storage")
+            
+            # Also save locally as backup
+            try:
+                with open(STORED_EVENTS_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(stored_events, f, ensure_ascii=False, indent=2)
+                print(f"💾 Also saved local backup to {STORED_EVENTS_FILE}")
+            except Exception as local_e:
+                print(f"⚠️ Could not save local backup: {local_e}")
+            
+            return
+    except Exception as e:
+        print(f"⚠️ Could not load from GCS: {e}")
+    
+    # Fall back to local file
+    print("📂 Falling back to local file...")
     try:
         if os.path.exists(STORED_EVENTS_FILE):
             with open(STORED_EVENTS_FILE, 'r', encoding='utf-8') as f:
                 stored_events = json.load(f)
-            print(f"✅ Loaded {len(stored_events)} events from {STORED_EVENTS_FILE}")
+            print(f"✅ Loaded {len(stored_events)} events from local file {STORED_EVENTS_FILE}")
         else:
             stored_events = []
             print("📝 No stored events file found, starting fresh")
     except Exception as e:
-        print(f"⚠️ Error loading stored events: {e}")
+        print(f"⚠️ Error loading stored events from local file: {e}")
         stored_events = []
 
 def save_stored_events():
-    """Save stored events to file with verification"""
+    """Save stored events to GCS and local file"""
     global stored_events
     try:
         # Make a copy to avoid any reference issues
         events_to_save = stored_events.copy() if isinstance(stored_events, list) else list(stored_events)
         
-        # Save to file
+        # Save to Google Cloud Storage first (primary storage)
+        gcs_data = {
+            "metadata": {
+                "updated_at": datetime.now().isoformat(),
+                "total_events": len(events_to_save),
+                "source": "backend_save"
+            },
+            "events": events_to_save
+        }
+        
+        gcs_success = upload_to_gcs(gcs_data, GCS_EVENTS_FILE)
+        if gcs_success:
+            print(f"☁️ Saved {len(events_to_save)} events to Google Cloud Storage")
+        else:
+            print(f"⚠️ Could not save to GCS, using local file only")
+        
+        # Also save to local file as backup
         with open(STORED_EVENTS_FILE, 'w', encoding='utf-8') as f:
             json.dump(events_to_save, f, ensure_ascii=False, indent=2)
         
-        # Verify the save worked by reading it back
+        # Verify the local save worked
         if os.path.exists(STORED_EVENTS_FILE):
             file_size = os.path.getsize(STORED_EVENTS_FILE)
-            print(f"💾 Saved {len(events_to_save)} events to {STORED_EVENTS_FILE} (file size: {file_size} bytes)")
-            
-            # Verify contents
-            try:
-                with open(STORED_EVENTS_FILE, 'r', encoding='utf-8') as f:
-                    saved_data = json.load(f)
-                if len(saved_data) == len(events_to_save):
-                    print(f"✅ Verified: File contains {len(saved_data)} events (matches saved count)")
-                else:
-                    print(f"⚠️ WARNING: File contains {len(saved_data)} events but we saved {len(events_to_save)}")
-            except Exception as verify_error:
-                print(f"⚠️ Could not verify saved file: {verify_error}")
-        else:
-            print(f"❌ ERROR: File {STORED_EVENTS_FILE} was not created!")
+            print(f"💾 Saved {len(events_to_save)} events to local file {STORED_EVENTS_FILE} (file size: {file_size} bytes)")
             
     except Exception as e:
         print(f"❌ ERROR saving stored events: {e}")
-        import traceback
         traceback.print_exc()
         raise  # Re-raise so caller knows save failed
 
@@ -3879,9 +4087,374 @@ async def get_fallback_status():
         
     except Exception as e:
         print(f"❌ Error getting fallback status: {e}")
-        import traceback
         traceback.print_exc()
         return {"success": False, "error": str(e)}
+
+# ============================================
+# GOOGLE CLOUD STORAGE API ENDPOINTS
+# ============================================
+
+@app.get("/api/gcs/status")
+async def get_gcs_status():
+    """Get Google Cloud Storage connection status and list files"""
+    try:
+        client = get_gcs_client()
+        
+        if not client:
+            return {
+                "success": False,
+                "connected": False,
+                "error": "Google Cloud Storage client not available. Check if credentials are configured.",
+                "bucket_name": GCS_BUCKET_NAME,
+                "gcs_available": GCS_AVAILABLE
+            }
+        
+        # Try to list files in the bucket
+        files = list_gcs_files()
+        
+        # Check for our specific files
+        events_file_exists = any(f['name'] == GCS_EVENTS_FILE for f in files)
+        excel_file_exists = any(f['name'] == GCS_EXCEL_FILE for f in files)
+        excel_original_exists = any(f['name'] == GCS_EXCEL_ORIGINAL_FILE for f in files)
+        
+        return {
+            "success": True,
+            "connected": True,
+            "bucket_name": GCS_BUCKET_NAME,
+            "gcs_available": GCS_AVAILABLE,
+            "files": files,
+            "files_count": len(files),
+            "events_file_exists": events_file_exists,
+            "excel_file_exists": excel_file_exists,
+            "excel_original_exists": excel_original_exists
+        }
+        
+    except Exception as e:
+        print(f"❌ Error checking GCS status: {e}")
+        traceback.print_exc()
+        return {
+            "success": False,
+            "connected": False,
+            "error": str(e),
+            "bucket_name": GCS_BUCKET_NAME
+        }
+
+@app.post("/api/gcs/upload-events")
+async def upload_events_to_gcs():
+    """Upload current stored events to Google Cloud Storage"""
+    try:
+        global stored_events
+        
+        if not stored_events:
+            return {"success": False, "error": "No events to upload"}
+        
+        # Create data structure with metadata
+        gcs_data = {
+            "metadata": {
+                "uploaded_at": datetime.now().isoformat(),
+                "total_events": len(stored_events),
+                "source": "admin_panel_upload",
+                "description": "Events data uploaded from admin panel"
+            },
+            "events": stored_events
+        }
+        
+        # Upload to GCS
+        success = upload_to_gcs(gcs_data, GCS_EVENTS_FILE)
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"Successfully uploaded {len(stored_events)} events to Google Cloud Storage",
+                "total_events": len(stored_events),
+                "bucket": GCS_BUCKET_NAME,
+                "filename": GCS_EVENTS_FILE
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to upload to Google Cloud Storage. Check credentials and bucket configuration."
+            }
+        
+    except Exception as e:
+        print(f"❌ Error uploading events to GCS: {e}")
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/gcs/download-events")
+async def download_events_from_gcs():
+    """Download events from Google Cloud Storage and update local storage"""
+    try:
+        global stored_events
+        
+        # Download from GCS
+        gcs_data = download_from_gcs(GCS_EVENTS_FILE)
+        
+        if not gcs_data:
+            return {
+                "success": False,
+                "error": f"No events file found in Google Cloud Storage (bucket: {GCS_BUCKET_NAME}, file: {GCS_EVENTS_FILE})"
+            }
+        
+        # Extract events from data
+        if isinstance(gcs_data, list):
+            events = gcs_data
+        elif isinstance(gcs_data, dict) and 'events' in gcs_data:
+            events = gcs_data['events']
+        else:
+            return {
+                "success": False,
+                "error": "Invalid data format in GCS file"
+            }
+        
+        # Update stored events
+        stored_events = events
+        
+        # Also save to local file as backup
+        save_stored_events()
+        
+        return {
+            "success": True,
+            "message": f"Successfully downloaded {len(stored_events)} events from Google Cloud Storage",
+            "total_events": len(stored_events),
+            "bucket": GCS_BUCKET_NAME,
+            "filename": GCS_EVENTS_FILE,
+            "metadata": gcs_data.get('metadata', {}) if isinstance(gcs_data, dict) else None
+        }
+        
+    except Exception as e:
+        print(f"❌ Error downloading events from GCS: {e}")
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/gcs/upload-excel")
+async def upload_excel_to_gcs():
+    """Upload current Excel/program data to Google Cloud Storage"""
+    try:
+        # Get current programs from database
+        programs = get_programs_from_db()
+        
+        if not programs:
+            return {"success": False, "error": "No Excel/program data to upload"}
+        
+        # Create data structure with metadata
+        gcs_data = {
+            "metadata": {
+                "uploaded_at": datetime.now().isoformat(),
+                "total_programs": len(programs),
+                "source": "admin_panel_upload",
+                "description": "Excel/program data uploaded from admin panel"
+            },
+            "programs": programs
+        }
+        
+        # Upload to GCS
+        success = upload_to_gcs(gcs_data, GCS_EXCEL_FILE)
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"Successfully uploaded {len(programs)} programs to Google Cloud Storage",
+                "total_programs": len(programs),
+                "bucket": GCS_BUCKET_NAME,
+                "filename": GCS_EXCEL_FILE
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to upload to Google Cloud Storage. Check credentials and bucket configuration."
+            }
+        
+    except Exception as e:
+        print(f"❌ Error uploading Excel to GCS: {e}")
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/gcs/download-excel")
+async def download_excel_from_gcs():
+    """Download Excel/program data from Google Cloud Storage and restore to database"""
+    try:
+        # Download from GCS
+        gcs_data = download_from_gcs(GCS_EXCEL_FILE)
+        
+        if not gcs_data:
+            return {
+                "success": False,
+                "error": f"No Excel file found in Google Cloud Storage (bucket: {GCS_BUCKET_NAME}, file: {GCS_EXCEL_FILE})"
+            }
+        
+        # Extract programs from data
+        programs = gcs_data.get('programs', [])
+        
+        if not programs:
+            return {
+                "success": False,
+                "error": "No programs found in GCS Excel file"
+            }
+        
+        # Restore programs to database
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Clear existing programs
+        cursor.execute("DELETE FROM programs")
+        
+        # Insert programs
+        for program in programs:
+            cursor.execute("""
+                INSERT INTO programs (name, day, times, instructor, category)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
+                program.get('name', ''),
+                program.get('day', ''),
+                program.get('times', ''),
+                program.get('instructor', ''),
+                program.get('category', '')
+            ))
+        
+        conn.commit()
+        conn.close()
+        
+        return {
+            "success": True,
+            "message": f"Successfully downloaded and restored {len(programs)} programs from Google Cloud Storage",
+            "total_programs": len(programs),
+            "bucket": GCS_BUCKET_NAME,
+            "filename": GCS_EXCEL_FILE,
+            "metadata": gcs_data.get('metadata', {})
+        }
+        
+    except Exception as e:
+        print(f"❌ Error downloading Excel from GCS: {e}")
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/gcs/upload-excel-file")
+async def upload_excel_file_to_gcs(file: UploadFile = File(...)):
+    """Upload an Excel file directly to Google Cloud Storage"""
+    try:
+        # Read file content
+        file_content = await file.read()
+        
+        # Upload to GCS
+        filename = file.filename or GCS_EXCEL_ORIGINAL_FILE
+        success = upload_file_to_gcs(
+            file_content, 
+            filename,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        
+        if success:
+            # Also process and save as JSON
+            try:
+                # Read Excel content
+                excel_io = io.BytesIO(file_content)
+                df = pd.read_excel(excel_io)
+                
+                # Convert to programs list
+                programs = []
+                for _, row in df.iterrows():
+                    program = {}
+                    for col in df.columns:
+                        val = row[col]
+                        if pd.notna(val):
+                            program[col.lower().replace(' ', '_')] = str(val)
+                    if program:
+                        programs.append(program)
+                
+                # Upload JSON version too
+                if programs:
+                    gcs_data = {
+                        "metadata": {
+                            "uploaded_at": datetime.now().isoformat(),
+                            "total_programs": len(programs),
+                            "source_file": filename,
+                            "description": "Excel data converted to JSON and uploaded"
+                        },
+                        "programs": programs
+                    }
+                    upload_to_gcs(gcs_data, GCS_EXCEL_FILE)
+                    
+                    # Also restore to database
+                    conn = sqlite3.connect(DB_PATH)
+                    cursor = conn.cursor()
+                    cursor.execute("DELETE FROM programs")
+                    for program in programs:
+                        cursor.execute("""
+                            INSERT INTO programs (name, day, times, instructor, category)
+                            VALUES (?, ?, ?, ?, ?)
+                        """, (
+                            program.get('name', program.get('program', '')),
+                            program.get('day', ''),
+                            program.get('times', program.get('time', '')),
+                            program.get('instructor', ''),
+                            program.get('category', '')
+                        ))
+                    conn.commit()
+                    conn.close()
+            except Exception as parse_error:
+                print(f"⚠️ Could not parse Excel for JSON conversion: {parse_error}")
+            
+            return {
+                "success": True,
+                "message": f"Successfully uploaded {filename} to Google Cloud Storage",
+                "filename": filename,
+                "bucket": GCS_BUCKET_NAME,
+                "size": len(file_content)
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to upload file to Google Cloud Storage"
+            }
+        
+    except Exception as e:
+        print(f"❌ Error uploading Excel file to GCS: {e}")
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/gcs/sync-all")
+async def sync_all_data_from_gcs():
+    """Sync all data (events and Excel) from Google Cloud Storage"""
+    try:
+        results = {
+            "events": None,
+            "excel": None
+        }
+        
+        # Sync events
+        try:
+            events_result = await download_events_from_gcs()
+            results["events"] = events_result
+        except Exception as e:
+            results["events"] = {"success": False, "error": str(e)}
+        
+        # Sync Excel
+        try:
+            excel_result = await download_excel_from_gcs()
+            results["excel"] = excel_result
+        except Exception as e:
+            results["excel"] = {"success": False, "error": str(e)}
+        
+        overall_success = (
+            results["events"].get("success", False) or 
+            results["excel"].get("success", False)
+        )
+        
+        return {
+            "success": overall_success,
+            "message": "Sync completed" if overall_success else "Sync failed",
+            "results": results
+        }
+        
+    except Exception as e:
+        print(f"❌ Error syncing from GCS: {e}")
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+# ============================================
+# END GOOGLE CLOUD STORAGE API ENDPOINTS
+# ============================================
 
 @app.post("/api/fallback/restore-excel")
 async def restore_excel_from_fallback():
