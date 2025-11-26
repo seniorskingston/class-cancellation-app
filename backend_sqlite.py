@@ -4628,28 +4628,29 @@ async def scrape_and_save_file_locally():
             # Save to local file
             filename = "scraped_events_for_upload.json"
             filepath = filename  # Save in current directory (where backend runs)
+            file_saved = False
             
             try:
                 with open(filepath, 'w', encoding='utf-8') as f:
                     json.dump(export_data, f, indent=2, ensure_ascii=False)
                 
                 print(f"✅ Scraped {len(scraped_events)} events and saved to {filepath}")
-                
-                return {
-                    "success": True,
-                    "message": f"✅ Successfully scraped {len(scraped_events)} events and saved to {filename}! The file is ready in your project folder.",
-                    "total_events": len(scraped_events),
-                    "filename": filename,
-                    "filepath": filepath,
-                    "events": scraped_events[:3]  # Return first 3 as preview
-                }
+                file_saved = True
             except Exception as save_error:
-                print(f"❌ Error saving file: {save_error}")
-                return {
-                    "success": False,
-                    "error": f"Scraping worked but failed to save file: {save_error}",
-                    "message": f"Scraped {len(scraped_events)} events but couldn't save to file. Check file permissions."
-                }
+                print(f"⚠️ Could not save file locally: {save_error}")
+                file_saved = False
+            
+            # Return success with full data for download
+            return {
+                "success": True,
+                "message": f"✅ Successfully scraped {len(scraped_events)} events!" + (f" File saved to {filename}." if file_saved else " Use 'Download' to save the file."),
+                "total_events": len(scraped_events),
+                "filename": filename,
+                "filepath": filepath if file_saved else None,
+                "file_saved": file_saved,
+                "events": scraped_events,  # Return ALL events for download
+                "export_data": export_data  # Return full export data for download
+            }
         else:
             # Scraping failed (likely on cloud environment)
             return {
@@ -4661,7 +4662,6 @@ async def scrape_and_save_file_locally():
         
     except Exception as e:
         print(f"❌ Error scraping and saving: {e}")
-        import traceback
         traceback.print_exc()
         
         return {
