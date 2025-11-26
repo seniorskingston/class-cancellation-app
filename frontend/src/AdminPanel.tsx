@@ -407,6 +407,320 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
           </div>
         </div>
 
+        {/* Google Cloud Storage Section */}
+        <div style={{
+          background: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)',
+          padding: '25px',
+          borderRadius: '15px',
+          border: '2px solid #4caf50',
+          marginTop: '30px'
+        }}>
+          <h2 style={{ 
+            color: '#2e7d32', 
+            marginBottom: '20px',
+            fontSize: '1.5rem'
+          }}>
+            ☁️ Google Cloud Storage (Permanent Storage)
+          </h2>
+          <p style={{ 
+            color: '#1b5e20', 
+            marginBottom: '20px',
+            lineHeight: '1.6'
+          }}>
+            <strong>🔒 Most Reliable Storage:</strong> Upload your data to Google Cloud Storage for permanent, reliable storage. 
+            Data stored here will <strong>NEVER disappear</strong> - even if the app restarts or Render resets. 
+            Click "Sync from GCS" to load the latest data from Google Cloud.
+          </p>
+          
+          <div style={{
+            display: 'flex',
+            gap: '10px',
+            flexWrap: 'wrap',
+            marginBottom: '15px'
+          }}>
+            {/* Upload Events to GCS */}
+            <button 
+              onClick={async () => {
+                try {
+                  setUploadMessage('☁️ Uploading events to Google Cloud Storage...');
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/upload-events', {
+                    method: 'POST'
+                  });
+                  
+                  const result = await response.json();
+                  
+                  if (result.success) {
+                    setUploadMessage(`✅ ${result.message}\n\n☁️ Bucket: ${result.bucket}\n📁 File: ${result.filename}\n📊 Total events: ${result.total_events}`);
+                    setTimeout(() => setUploadMessage(''), 8000);
+                  } else {
+                    setUploadMessage(`❌ Failed to upload events to GCS: ${result.error}`);
+                    setTimeout(() => setUploadMessage(''), 5000);
+                  }
+                } catch (error) {
+                  setUploadMessage(`❌ Error uploading to GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setTimeout(() => setUploadMessage(''), 5000);
+                }
+              }}
+              style={{
+                background: '#4caf50',
+                color: 'white',
+                border: 'none',
+                padding: '12px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                flex: '1',
+                minWidth: '180px'
+              }}
+            >
+              ☁️ Upload Events to GCS
+            </button>
+            
+            {/* Upload Excel to GCS */}
+            <button 
+              onClick={async () => {
+                try {
+                  setUploadMessage('☁️ Uploading Excel data to Google Cloud Storage...');
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/upload-excel', {
+                    method: 'POST'
+                  });
+                  
+                  const result = await response.json();
+                  
+                  if (result.success) {
+                    setUploadMessage(`✅ ${result.message}\n\n☁️ Bucket: ${result.bucket}\n📁 File: ${result.filename}\n📊 Total programs: ${result.total_programs}`);
+                    setTimeout(() => setUploadMessage(''), 8000);
+                  } else {
+                    setUploadMessage(`❌ Failed to upload Excel to GCS: ${result.error}`);
+                    setTimeout(() => setUploadMessage(''), 5000);
+                  }
+                } catch (error) {
+                  setUploadMessage(`❌ Error uploading to GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setTimeout(() => setUploadMessage(''), 5000);
+                }
+              }}
+              style={{
+                background: '#ff9800',
+                color: 'white',
+                border: 'none',
+                padding: '12px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                flex: '1',
+                minWidth: '180px'
+              }}
+            >
+              ☁️ Upload Excel to GCS
+            </button>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            gap: '10px',
+            flexWrap: 'wrap',
+            marginBottom: '15px'
+          }}>
+            {/* Download Events from GCS */}
+            <button 
+              onClick={async () => {
+                try {
+                  setUploadMessage('☁️ Downloading events from Google Cloud Storage...');
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/download-events', {
+                    method: 'POST'
+                  });
+                  
+                  const result = await response.json();
+                  
+                  if (result.success) {
+                    setUploadMessage(`✅ ${result.message}\n\n☁️ Downloaded from: ${result.bucket}/${result.filename}\n📊 Total events: ${result.total_events}`);
+                    setTimeout(() => setUploadMessage(''), 8000);
+                  } else {
+                    setUploadMessage(`❌ Failed to download events from GCS: ${result.error}`);
+                    setTimeout(() => setUploadMessage(''), 5000);
+                  }
+                } catch (error) {
+                  setUploadMessage(`❌ Error downloading from GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setTimeout(() => setUploadMessage(''), 5000);
+                }
+              }}
+              style={{
+                background: '#2196f3',
+                color: 'white',
+                border: 'none',
+                padding: '12px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                flex: '1',
+                minWidth: '180px'
+              }}
+            >
+              📥 Download Events from GCS
+            </button>
+            
+            {/* Download Excel from GCS */}
+            <button 
+              onClick={async () => {
+                try {
+                  setUploadMessage('☁️ Downloading Excel data from Google Cloud Storage...');
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/download-excel', {
+                    method: 'POST'
+                  });
+                  
+                  const result = await response.json();
+                  
+                  if (result.success) {
+                    setUploadMessage(`✅ ${result.message}\n\n☁️ Downloaded from: ${result.bucket}/${result.filename}\n📊 Total programs: ${result.total_programs}`);
+                    setTimeout(() => setUploadMessage(''), 8000);
+                  } else {
+                    setUploadMessage(`❌ Failed to download Excel from GCS: ${result.error}`);
+                    setTimeout(() => setUploadMessage(''), 5000);
+                  }
+                } catch (error) {
+                  setUploadMessage(`❌ Error downloading from GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setTimeout(() => setUploadMessage(''), 5000);
+                }
+              }}
+              style={{
+                background: '#9c27b0',
+                color: 'white',
+                border: 'none',
+                padding: '12px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                flex: '1',
+                minWidth: '180px'
+              }}
+            >
+              📥 Download Excel from GCS
+            </button>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            gap: '10px',
+            flexWrap: 'wrap'
+          }}>
+            {/* Sync All from GCS */}
+            <button 
+              onClick={async () => {
+                try {
+                  setUploadMessage('☁️ Syncing ALL data from Google Cloud Storage...');
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/sync-all', {
+                    method: 'POST'
+                  });
+                  
+                  const result = await response.json();
+                  
+                  if (result.success) {
+                    let message = '✅ Sync completed!\n\n';
+                    if (result.results?.events?.success) {
+                      message += `📅 Events: ${result.results.events.total_events} events loaded\n`;
+                    } else {
+                      message += `📅 Events: ${result.results?.events?.error || 'Failed'}\n`;
+                    }
+                    if (result.results?.excel?.success) {
+                      message += `📊 Excel: ${result.results.excel.total_programs} programs loaded`;
+                    } else {
+                      message += `📊 Excel: ${result.results?.excel?.error || 'Failed'}`;
+                    }
+                    setUploadMessage(message);
+                    setTimeout(() => setUploadMessage(''), 10000);
+                  } else {
+                    setUploadMessage(`❌ Sync failed: ${result.error}`);
+                    setTimeout(() => setUploadMessage(''), 5000);
+                  }
+                } catch (error) {
+                  setUploadMessage(`❌ Error syncing from GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setTimeout(() => setUploadMessage(''), 5000);
+                }
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '15px 24px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                flex: '1',
+                minWidth: '200px',
+                boxShadow: '0 4px 15px rgba(76, 175, 80, 0.4)'
+              }}
+            >
+              🔄 Sync ALL Data from GCS
+            </button>
+            
+            {/* Check GCS Status */}
+            <button 
+              onClick={async () => {
+                try {
+                  setUploadMessage('☁️ Checking Google Cloud Storage status...');
+                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/status');
+                  const status = await response.json();
+                  
+                  if (status.success && status.connected) {
+                    let message = '☁️ Google Cloud Storage Status:\n\n';
+                    message += `✅ Connected to bucket: ${status.bucket_name}\n\n`;
+                    message += `📁 Files in bucket: ${status.files_count}\n`;
+                    message += `📅 Events file: ${status.events_file_exists ? '✅ Exists' : '❌ Not found'}\n`;
+                    message += `📊 Excel file: ${status.excel_file_exists ? '✅ Exists' : '❌ Not found'}\n`;
+                    
+                    if (status.files && status.files.length > 0) {
+                      message += '\n📋 Files:\n';
+                      status.files.slice(0, 5).forEach((file: any) => {
+                        message += `  • ${file.name} (${file.size} bytes)\n`;
+                      });
+                      if (status.files.length > 5) {
+                        message += `  ... and ${status.files.length - 5} more files`;
+                      }
+                    }
+                    
+                    setUploadMessage(message);
+                  } else {
+                    setUploadMessage(`❌ GCS not connected: ${status.error || 'Unknown error'}\n\n💡 Make sure GCS credentials are configured on Render.`);
+                  }
+                  setTimeout(() => setUploadMessage(''), 12000);
+                } catch (error) {
+                  setUploadMessage(`❌ Error checking GCS status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  setTimeout(() => setUploadMessage(''), 5000);
+                }
+              }}
+              style={{
+                background: '#607d8b',
+                color: 'white',
+                border: 'none',
+                padding: '12px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                flex: '1',
+                minWidth: '180px'
+              }}
+            >
+              📊 Check GCS Status
+            </button>
+          </div>
+          
+          <p style={{ 
+            color: '#1b5e20', 
+            marginTop: '15px',
+            fontSize: '0.85rem',
+            fontStyle: 'italic'
+          }}>
+            💡 <strong>Tip:</strong> After uploading new Excel or Events data, click "Upload to GCS" to save permanently. 
+            When the app restarts, click "Sync ALL from GCS" to restore your data.
+          </p>
+        </div>
+
         {uploadMessage && (
           <div style={{
             marginTop: '20px',
