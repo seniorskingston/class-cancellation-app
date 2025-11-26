@@ -11,27 +11,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
   
   const [selectedEventsFile, setSelectedEventsFile] = useState<File | null>(null);
   const [eventsMessage, setEventsMessage] = useState('');
-  const [scrapedEventsData, setScrapedEventsData] = useState<any>(null); // Store scraped data for download
   
   const [gcsMessage, setGcsMessage] = useState('');
-
-  // Download scraped events as file
-  const downloadScrapedEvents = () => {
-    if (!scrapedEventsData) return;
-    
-    const dataStr = JSON.stringify(scrapedEventsData, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'scraped_events_for_upload.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    setEventsMessage(prev => prev + '\n\n✅ File downloaded! Now select it below and click "Upload JSON File".');
-  };
 
   // Excel file handlers
   const handleExcelFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,115 +258,35 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
             }}>
               📅 Events File Upload
             </h2>
-            <p style={{ 
-              color: '#666', 
-              marginBottom: '20px',
-              lineHeight: '1.6'
-            }}>
-              Scrape events from the website, or upload a scraped events JSON file.
-            </p>
             
-            {/* Scrape Button - Works when backend runs locally */}
+            {/* Manual Scraping Instructions */}
             <div style={{
-              background: '#fff3cd',
-              border: '2px solid #ffc107',
+              background: '#e3f2fd',
+              border: '2px solid #2196f3',
               borderRadius: '10px',
               padding: '15px',
-              marginBottom: '15px'
+              marginBottom: '20px'
             }}>
-              <p style={{ color: '#856404', marginBottom: '10px', fontSize: '14px' }}>
-                <strong>🌐 Scrape Events:</strong> Click below to scrape events from Seniors Kingston website. 
-                <br/><span style={{ fontSize: '12px' }}>⚠️ Only works when backend runs locally (not on Render)</span>
+              <p style={{ color: '#1565c0', marginBottom: '10px', fontSize: '14px', fontWeight: 'bold' }}>
+                📋 How to Scrape Events (Manual Steps):
               </p>
-              <button 
-                onClick={async () => {
-                  try {
-                    setEventsMessage('🔄 Scraping events from website... (this may take a minute)');
-                    setScrapedEventsData(null); // Clear previous data
-                    
-                    // Try local backend first, then Render
-                    const localUrl = 'http://localhost:8000/api/scrape-events/save-file';
-                    const renderUrl = 'https://class-cancellation-backend.onrender.com/api/scrape-events/save-file';
-                    
-                    let response;
-                    let usedLocal = false;
-                    
-                    try {
-                      // Try local first
-                      response = await fetch(localUrl, { method: 'POST' });
-                      usedLocal = true;
-                    } catch {
-                      // Fall back to Render
-                      response = await fetch(renderUrl, { method: 'POST' });
-                    }
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                      // Store the scraped data for download
-                      if (result.export_data) {
-                        setScrapedEventsData(result.export_data);
-                      }
-                      
-                      let message = `✅ Successfully scraped ${result.total_events} events!`;
-                      if (result.file_saved) {
-                        message += `\n\n📁 File saved: ${result.filename}`;
-                        message += `\n💡 The file is in your project folder.`;
-                      } else {
-                        message += `\n\n📥 Click "Download Scraped Events" below to save the file.`;
-                      }
-                      message += `\n\n➡️ Next: Upload the file below, then click "Upload Events to GCS".`;
-                      
-                      setEventsMessage(message);
-                    } else {
-                      let errorMsg = `❌ Scraping failed: ${result.error || result.message || 'Unknown error'}`;
-                      if (!usedLocal) {
-                        errorMsg += '\n\n💡 Tip: Scraping works best when running the backend locally.\nRun: python backend_sqlite.py\nThen try again.';
-                      }
-                      setEventsMessage(errorMsg);
-                      setScrapedEventsData(null);
-                    }
-                  } catch (error) {
-                    setEventsMessage(`❌ Error: ${error instanceof Error ? error.message : 'Could not connect to backend'}\n\n💡 Make sure your backend is running locally:\n1. Open terminal in project folder\n2. Run: python backend_sqlite.py\n3. Try clicking this button again`);
-                    setScrapedEventsData(null);
-                  }
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, #ffc107 0%, #ff9800 100%)',
-                  color: '#333',
-                  border: 'none',
-                  padding: '12px 24px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  width: '100%',
-                  boxShadow: '0 2px 8px rgba(255, 193, 7, 0.4)'
-                }}
-              >
-                🌐 Scrape Events from Website
-              </button>
-              
-              {/* Download button - shows after successful scrape */}
-              {scrapedEventsData && (
-                <button 
-                  onClick={downloadScrapedEvents}
-                  style={{
-                    background: '#17a2b8',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    width: '100%',
-                    marginTop: '10px'
-                  }}
-                >
-                  📥 Download Scraped Events ({scrapedEventsData.total_events} events)
-                </button>
-              )}
+              <ol style={{ 
+                color: '#1565c0', 
+                margin: '0', 
+                paddingLeft: '20px',
+                fontSize: '13px',
+                lineHeight: '1.8'
+              }}>
+                <li>Open <strong>Command Prompt</strong> or <strong>Terminal</strong> on your computer</li>
+                <li>Navigate to your project folder:<br/>
+                  <code style={{ background: '#bbdefb', padding: '2px 6px', borderRadius: '3px' }}>cd "S:\Rebecca\Class Cancellation app"</code>
+                </li>
+                <li>Run the scraping script:<br/>
+                  <code style={{ background: '#bbdefb', padding: '2px 6px', borderRadius: '3px' }}>python create_uploadable_events_file.py</code>
+                </li>
+                <li>Wait for scraping to complete (creates <code>scraped_events_for_upload.json</code>)</li>
+                <li>Upload the file below</li>
+              </ol>
             </div>
             
             {/* File Upload Section */}
@@ -397,7 +298,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
               background: 'white'
             }}>
               <p style={{ color: '#666', marginBottom: '15px' }}>
-                Or select your Events JSON file (.json)
+                Select <code>scraped_events_for_upload.json</code> file
               </p>
               <input
                 type="file"
@@ -429,6 +330,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
                 Upload JSON File
               </button>
             </div>
+            
+            <p style={{ 
+              color: '#666', 
+              fontSize: '12px',
+              marginTop: '15px',
+              textAlign: 'center'
+            }}>
+              💡 After uploading, click <strong>"Upload Events to GCS"</strong> in the Google Cloud section below to save permanently.
+            </p>
             
             {/* Events Status Message */}
             {eventsMessage && (
@@ -485,163 +395,180 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
             lineHeight: '1.6'
           }}>
             <strong>🔒 Permanent Storage:</strong> After uploading Excel or Events files above, click the buttons below to save them to Google Cloud Storage. 
-            Data stored here will <strong>NEVER disappear</strong>. When the app restarts, click "Sync ALL from GCS" to restore your data.
+            Data stored here will <strong>NEVER disappear</strong>.
           </p>
           
-          {/* Upload Buttons Row */}
+          {/* Two Column Layout - Excel Left, Events Right */}
           <div style={{
-            display: 'flex',
-            gap: '10px',
-            flexWrap: 'wrap',
-            marginBottom: '15px'
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '15px',
+            marginBottom: '20px'
           }}>
-            <button 
-              onClick={async () => {
-                try {
-                  setGcsMessage('☁️ Uploading events to Google Cloud Storage...');
-                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/upload-events', {
-                    method: 'POST'
-                  });
-                  
-                  const result = await response.json();
-                  
-                  if (result.success) {
-                    setGcsMessage(`✅ ${result.message}\n\n☁️ Bucket: ${result.bucket}\n📁 File: ${result.filename}\n📊 Total events: ${result.total_events}`);
-                  } else {
-                    setGcsMessage(`❌ Failed to upload events to GCS: ${result.error}`);
-                  }
-                } catch (error) {
-                  setGcsMessage(`❌ Error uploading to GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                }
-              }}
-              style={{
-                background: '#4caf50',
-                color: 'white',
-                border: 'none',
-                padding: '12px 16px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                flex: '1',
-                minWidth: '180px'
-              }}
-            >
-              ☁️ Upload Events to GCS
-            </button>
+            {/* Excel Column - LEFT */}
+            <div style={{
+              background: 'rgba(255,255,255,0.7)',
+              padding: '15px',
+              borderRadius: '10px',
+              border: '1px solid #ff9800'
+            }}>
+              <h4 style={{ color: '#e65100', marginBottom: '10px', fontSize: '14px' }}>📊 Excel Data</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <button 
+                  onClick={async () => {
+                    try {
+                      setGcsMessage('☁️ Uploading Excel data to Google Cloud Storage...');
+                      const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/upload-excel', {
+                        method: 'POST'
+                      });
+                      const result = await response.json();
+                      if (result.success) {
+                        setGcsMessage(`✅ ${result.message}\n\n☁️ Bucket: ${result.bucket}\n📁 File: ${result.filename}\n📊 Total programs: ${result.total_programs}`);
+                      } else {
+                        setGcsMessage(`❌ Failed to upload Excel to GCS: ${result.error}`);
+                      }
+                    } catch (error) {
+                      setGcsMessage(`❌ Error uploading to GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
+                  }}
+                  style={{
+                    background: '#ff9800',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 16px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    width: '100%'
+                  }}
+                >
+                  ☁️ Upload Excel to GCS
+                </button>
+                
+                <button 
+                  onClick={async () => {
+                    try {
+                      setGcsMessage('☁️ Downloading Excel data from Google Cloud Storage...');
+                      const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/download-excel', {
+                        method: 'POST'
+                      });
+                      const result = await response.json();
+                      if (result.success) {
+                        setGcsMessage(`✅ ${result.message}\n\n☁️ Downloaded from: ${result.bucket}/${result.filename}\n📊 Total programs: ${result.total_programs}`);
+                      } else {
+                        setGcsMessage(`❌ Failed to download Excel from GCS: ${result.error}`);
+                      }
+                    } catch (error) {
+                      setGcsMessage(`❌ Error downloading from GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
+                  }}
+                  style={{
+                    background: '#9c27b0',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 16px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    width: '100%'
+                  }}
+                >
+                  📥 Download Excel from GCS
+                </button>
+              </div>
+            </div>
             
-            <button 
-              onClick={async () => {
-                try {
-                  setGcsMessage('☁️ Uploading Excel data to Google Cloud Storage...');
-                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/upload-excel', {
-                    method: 'POST'
-                  });
-                  
-                  const result = await response.json();
-                  
-                  if (result.success) {
-                    setGcsMessage(`✅ ${result.message}\n\n☁️ Bucket: ${result.bucket}\n📁 File: ${result.filename}\n📊 Total programs: ${result.total_programs}`);
-                  } else {
-                    setGcsMessage(`❌ Failed to upload Excel to GCS: ${result.error}`);
-                  }
-                } catch (error) {
-                  setGcsMessage(`❌ Error uploading to GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                }
-              }}
-              style={{
-                background: '#ff9800',
-                color: 'white',
-                border: 'none',
-                padding: '12px 16px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                flex: '1',
-                minWidth: '180px'
-              }}
-            >
-              ☁️ Upload Excel to GCS
-            </button>
+            {/* Events Column - RIGHT */}
+            <div style={{
+              background: 'rgba(255,255,255,0.7)',
+              padding: '15px',
+              borderRadius: '10px',
+              border: '1px solid #4caf50'
+            }}>
+              <h4 style={{ color: '#2e7d32', marginBottom: '10px', fontSize: '14px' }}>📅 Events Data</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <button 
+                  onClick={async () => {
+                    try {
+                      setGcsMessage('☁️ Uploading events to Google Cloud Storage...');
+                      const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/upload-events', {
+                        method: 'POST'
+                      });
+                      const result = await response.json();
+                      if (result.success) {
+                        setGcsMessage(`✅ ${result.message}\n\n☁️ Bucket: ${result.bucket}\n📁 File: ${result.filename}\n📊 Total events: ${result.total_events}`);
+                      } else {
+                        setGcsMessage(`❌ Failed to upload events to GCS: ${result.error}`);
+                      }
+                    } catch (error) {
+                      setGcsMessage(`❌ Error uploading to GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
+                  }}
+                  style={{
+                    background: '#4caf50',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 16px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    width: '100%'
+                  }}
+                >
+                  ☁️ Upload Events to GCS
+                </button>
+                
+                <button 
+                  onClick={async () => {
+                    try {
+                      setGcsMessage('☁️ Downloading events from Google Cloud Storage...');
+                      const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/download-events', {
+                        method: 'POST'
+                      });
+                      const result = await response.json();
+                      if (result.success) {
+                        setGcsMessage(`✅ ${result.message}\n\n☁️ Downloaded from: ${result.bucket}/${result.filename}\n📊 Total events: ${result.total_events}`);
+                      } else {
+                        setGcsMessage(`❌ Failed to download events from GCS: ${result.error}`);
+                      }
+                    } catch (error) {
+                      setGcsMessage(`❌ Error downloading from GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
+                  }}
+                  style={{
+                    background: '#2196f3',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 16px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    width: '100%'
+                  }}
+                >
+                  📥 Download Events from GCS
+                </button>
+              </div>
+            </div>
           </div>
           
-          {/* Download Buttons Row */}
+          {/* Sync All - When to use explanation */}
           <div style={{
-            display: 'flex',
-            gap: '10px',
-            flexWrap: 'wrap',
+            background: '#fff8e1',
+            border: '1px solid #ffc107',
+            borderRadius: '8px',
+            padding: '12px',
             marginBottom: '15px'
           }}>
-            <button 
-              onClick={async () => {
-                try {
-                  setGcsMessage('☁️ Downloading events from Google Cloud Storage...');
-                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/download-events', {
-                    method: 'POST'
-                  });
-                  
-                  const result = await response.json();
-                  
-                  if (result.success) {
-                    setGcsMessage(`✅ ${result.message}\n\n☁️ Downloaded from: ${result.bucket}/${result.filename}\n📊 Total events: ${result.total_events}`);
-                  } else {
-                    setGcsMessage(`❌ Failed to download events from GCS: ${result.error}`);
-                  }
-                } catch (error) {
-                  setGcsMessage(`❌ Error downloading from GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                }
-              }}
-              style={{
-                background: '#2196f3',
-                color: 'white',
-                border: 'none',
-                padding: '12px 16px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                flex: '1',
-                minWidth: '180px'
-              }}
-            >
-              📥 Download Events from GCS
-            </button>
-            
-            <button 
-              onClick={async () => {
-                try {
-                  setGcsMessage('☁️ Downloading Excel data from Google Cloud Storage...');
-                  const response = await fetch('https://class-cancellation-backend.onrender.com/api/gcs/download-excel', {
-                    method: 'POST'
-                  });
-                  
-                  const result = await response.json();
-                  
-                  if (result.success) {
-                    setGcsMessage(`✅ ${result.message}\n\n☁️ Downloaded from: ${result.bucket}/${result.filename}\n📊 Total programs: ${result.total_programs}`);
-                  } else {
-                    setGcsMessage(`❌ Failed to download Excel from GCS: ${result.error}`);
-                  }
-                } catch (error) {
-                  setGcsMessage(`❌ Error downloading from GCS: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                }
-              }}
-              style={{
-                background: '#9c27b0',
-                color: 'white',
-                border: 'none',
-                padding: '12px 16px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                flex: '1',
-                minWidth: '180px'
-              }}
-            >
-              📥 Download Excel from GCS
-            </button>
+            <p style={{ color: '#856404', margin: 0, fontSize: '13px' }}>
+              <strong>🔄 When to use "Sync ALL Data from GCS":</strong><br/>
+              Use this button when the app <strong>restarts</strong> or when data appears <strong>missing/empty</strong>. 
+              It loads both Excel and Events data from Google Cloud back into the app.
+            </p>
           </div>
           
           {/* Sync and Status Row */}
