@@ -320,24 +320,28 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             break-inside: avoid;
           }
           
-          /* Cover page styling - exactly letter size, centered */
+          /* Cover page styling - full letter size, no margins */
           .cover-page {
             margin: 0 !important;
-            padding: 40px 30px !important;
+            padding: 0 !important;
             height: 11in;
             width: 8.5in;
             page-break-after: always;
             box-sizing: border-box;
+            position: relative !important;
+          }
+          
+          /* Content inside cover page - positioned within safe area for binding */
+          .cover-page > div:first-of-type {
+            position: absolute !important;
+            top: 10mm !important;
+            left: 20mm !important;
+            right: 5mm !important;
+            bottom: 8mm !important;
             display: flex !important;
             flex-direction: column !important;
             justify-content: center !important;
             align-items: center !important;
-            position: relative !important;
-          }
-          
-          /* Ensure parent container doesn't affect centering */
-          body > div {
-            margin: 0 auto;
           }
           
           /* Hide page header completely - no duplicate cover page */
@@ -425,23 +429,25 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         alignItems: 'center',
         background: 'linear-gradient(135deg, #00bcd4 0%, #0097a7 100%)',
         margin: '0',
-        padding: '40px 30px',
+        padding: '0',
         position: 'relative',
         overflow: 'hidden',
         boxSizing: 'border-box'
       }}>
-        {/* Content */}
+        {/* Content - positioned within safe area (20mm left, 5mm right, 10mm top, 8mm bottom) */}
         <div style={{
-          position: 'relative',
-          zIndex: 2,
-          textAlign: 'center',
-          color: 'white',
-          width: '100%',
-          maxWidth: '6.5in',
-          margin: '0 auto',
+          position: 'absolute',
+          top: '10mm',
+          left: '20mm',
+          right: '5mm',
+          bottom: '8mm',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center'
+          justifyContent: 'center',
+          alignItems: 'center',
+          textAlign: 'center',
+          color: 'white',
+          zIndex: 2
         }}>
           {/* Top text */}
           <div style={{
