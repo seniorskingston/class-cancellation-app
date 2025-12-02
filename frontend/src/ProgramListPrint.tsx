@@ -168,14 +168,15 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
   const { grouped, allDays } = groupProgramsByDay(programs);
 
   return (
-    <div className="page-number" style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in', margin: '0 auto', padding: '20px' }}>
+    <div className="page-number" style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in', width: '8.5in', margin: '0 auto', padding: '20px' }}>
       <style>{`
         @page {
-          size: letter;
-          margin: 0.75in;
+          size: letter portrait;
+          margin: 0.5in;
         }
         
         @page:first {
+          size: letter portrait;
           margin: 0;
         }
         
@@ -188,7 +189,9 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           body {
             margin: 0;
             padding: 0;
+            width: 8.5in;
           }
+          
           .no-print {
             display: none !important;
           }
@@ -203,19 +206,17 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             break-inside: avoid;
           }
           
-          /* Cover page styling */
+          /* Cover page styling - exactly letter size */
           .cover-page {
             margin: 0 !important;
-            padding: 60px 40px !important;
+            padding: 40px 30px !important;
+            height: 11in;
+            width: 8.5in;
             page-break-after: always;
+            box-sizing: border-box;
           }
           
-          /* Cover page forces page break, so header will be on page 2 */
-          .cover-page {
-            page-break-after: always;
-          }
-          
-          /* Page number using CSS counter - skip first page */
+          /* Page number using CSS counter - fixed at bottom of each page */
           body {
             counter-reset: page;
           }
@@ -224,13 +225,15 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             counter-increment: page;
             content: "Page " counter(page);
             position: fixed;
-            bottom: 0.5in;
+            bottom: 0.25in;
             left: 0;
             right: 0;
+            width: 100%;
             text-align: center;
-            font-size: 10px;
+            font-size: 9px;
             color: #666;
             font-family: Arial, sans-serif;
+            z-index: 1000;
           }
           
           /* Don't show page number on cover page */
@@ -584,8 +587,8 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           </a>
           {' '}or scan
         </p>
-        {qrCodeDataURL && (
-          <div style={{ marginTop: '10px', marginBottom: '10px' }}>
+        {qrCodeDataURL ? (
+          <div style={{ marginTop: '10px', marginBottom: '10px', textAlign: 'center' }}>
             <img 
               src={qrCodeDataURL} 
               alt="App QR Code" 
@@ -595,14 +598,16 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
                 border: '2px solid #ddd',
                 borderRadius: '4px',
                 padding: '5px',
-                background: 'white'
+                background: 'white',
+                display: 'inline-block'
               }} 
             />
           </div>
+        ) : (
+          <div style={{ marginTop: '10px', marginBottom: '10px', textAlign: 'center', color: '#999', fontSize: '9px' }}>
+            Loading QR code...
+          </div>
         )}
-        <p style={{ marginTop: '10px', fontSize: '9px', color: '#999' }}>
-          This document was generated automatically from the program database
-        </p>
       </div>
 
     </div>
