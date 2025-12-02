@@ -346,6 +346,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           margin: 0 auto !important;
         }
         
+        /* Regular pages - keep existing margins */
         @page {
           size: letter portrait;
           margin: 10mm 5mm 8mm 20mm; /* top right bottom left */
@@ -357,9 +358,10 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           }
         }
         
+        /* Cover page only - full letter size with no margins */
         @page:first {
-          size: letter portrait;
-          margin: 0 !important;
+          size: 8.5in 11in;
+          margin: 0;
           @bottom-right {
             content: "";
           }
