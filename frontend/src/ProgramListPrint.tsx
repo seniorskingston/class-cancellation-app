@@ -339,6 +339,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in', width: '8.5in', margin: '0 auto', padding: '20px', position: 'relative' }} className="print-container">
+      {/* Cover page must be first and isolated */}
       <style>{`
         /* Screen view - center the container */
         .print-container {
@@ -358,8 +359,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         
         @page:first {
           size: letter portrait;
-          margin: 0 !important;
-          padding: 0 !important;
+          margin: 0;
           @bottom-right {
             content: "";
           }
@@ -380,13 +380,27 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           }
           
           /* Main container - no margins in print to prevent white bars */
-          body > div,
+          body > div {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 8.5in !important;
+            max-width: 8.5in !important;
+          }
+          
           .print-container {
             margin: 0 !important;
             padding: 0 !important;
             width: 8.5in !important;
             max-width: 8.5in !important;
-            min-width: 8.5in !important;
+          }
+          
+          /* Cover page must break out of container padding */
+          .cover-page-new {
+            margin-left: -20px !important;
+            margin-right: -20px !important;
+            margin-top: -20px !important;
+            width: 8.5in !important;
+            position: relative !important;
           }
           
           /* Content wrapper - ensure it shows after cover page */
@@ -410,40 +424,30 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             break-inside: avoid;
           }
           
-          /* New cover page - completely rebuilt */
+          /* Cover page - exact settings from working version */
           .cover-page-new {
             margin: 0 !important;
             padding: 0 !important;
             height: 11in !important;
             width: 8.5in !important;
-            min-width: 8.5in !important;
-            max-width: 8.5in !important;
-            min-height: 11in !important;
-            max-height: 11in !important;
             page-break-after: always;
-            box-sizing: border-box !important;
-            position: relative !important;
-            overflow: hidden !important;
-            left: 0 !important;
-            right: 0 !important;
-            top: 0 !important;
-            transform: none !important;
-            border: none !important;
-            outline: none !important;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
           }
           
-          /* Content safe area - exactly as specified */
+          /* Content safe area - exactly as specified (20mm left, 5mm right, 10mm top, 8mm bottom) */
           .cover-content-safe-area {
-            position: absolute !important;
-            top: 10mm !important;
-            left: 20mm !important;
-            right: 5mm !important;
-            bottom: 8mm !important;
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: center !important;
-            align-items: center !important;
-            text-align: center !important;
+            position: absolute;
+            top: 10mm;
+            left: 20mm;
+            right: 5mm;
+            bottom: 8mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
           }
           
           /* Content wrapper after cover page - ensure it's visible */
@@ -527,13 +531,13 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         </span>
       </div>
 
-      {/* Cover Page - Completely rebuilt with correct settings */}
+      {/* Cover Page - Using working settings */}
       <div className="cover-page-new" style={{
         width: '8.5in',
         height: '11in',
         background: 'linear-gradient(135deg, #00bcd4 0%, #0097a7 100%)',
-        margin: 0,
-        padding: 0,
+        margin: '0',
+        padding: '0',
         position: 'relative',
         boxSizing: 'border-box',
         overflow: 'hidden'
