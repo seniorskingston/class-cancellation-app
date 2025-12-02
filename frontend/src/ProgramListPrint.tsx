@@ -261,7 +261,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
   const { grouped, allDays } = groupProgramsByDay(programs);
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in', width: '8.5in', margin: '0 auto', padding: '0', position: 'relative' }}>
+    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in', width: '8.5in', margin: '0', padding: '0', position: 'relative' }}>
       <style>{`
         @page {
           size: letter portrait;
@@ -288,16 +288,20 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             print-color-adjust: exact;
           }
           
-          body {
-            margin: 0;
-            padding: 0;
-            width: 8.5in;
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 8.5in !important;
+            height: 11in !important;
+            overflow: hidden;
           }
           
-          /* Center the main container */
+          /* Main container - no margins to prevent white bars */
           body > div {
-            margin: 0 auto;
-            width: 8.5in;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 8.5in !important;
+            max-width: 8.5in !important;
           }
           
           /* Cover page should be full width and centered */
@@ -320,15 +324,20 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             break-inside: avoid;
           }
           
-          /* Cover page styling - full letter size, no margins */
+          /* Cover page styling - full letter size, no margins, no white space */
           .cover-page {
             margin: 0 !important;
             padding: 0 !important;
-            height: 11in;
-            width: 8.5in;
+            height: 11in !important;
+            width: 8.5in !important;
             page-break-after: always;
             box-sizing: border-box;
             position: relative !important;
+            overflow: hidden !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: 0 !important;
+            bottom: 0 !important;
           }
           
           /* Content inside cover page - positioned within safe area for binding */
