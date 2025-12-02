@@ -42,6 +42,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
       const qrDataURL = await QRCode.toDataURL(appURL, {
         width: qrSize,
         margin: 2,
+        errorCorrectionLevel: 'H', // High error correction to allow logo overlay
         color: {
           dark: '#000000',
           light: '#FFFFFF'
@@ -76,13 +77,13 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
       await new Promise((resolve, reject) => {
         logoImg.onload = () => {
           try {
-            // Calculate logo size (about 30% of QR code size)
-            const logoSize = qrSize * 0.3;
+            // Calculate logo size (about 20% of QR code size - smaller for better scanning)
+            const logoSize = qrSize * 0.2;
             const logoX = (qrSize - logoSize) / 2;
             const logoY = (qrSize - logoSize) / 2;
             
             // Draw white background square for logo (with padding)
-            const padding = 5;
+            const padding = 4;
             ctx.fillStyle = '#FFFFFF';
             ctx.fillRect(logoX - padding, logoY - padding, logoSize + (padding * 2), logoSize + (padding * 2));
             
@@ -97,7 +98,12 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             reject(err);
           }
         };
-        logoImg.onerror = reject;
+        logoImg.onerror = (err) => {
+          console.error('Logo load error:', err);
+          // If logo fails to load, use QR code without logo
+          setQrCodeDataURL(qrDataURL);
+          resolve(null);
+        };
         logoImg.src = logo;
       });
     } catch (err) {
@@ -108,6 +114,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         const qrDataURL = await QRCode.toDataURL(appURL, {
           width: 150,
           margin: 1,
+          errorCorrectionLevel: 'H',
           color: {
             dark: '#000000',
             light: '#FFFFFF'
@@ -403,8 +410,8 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             break-inside: avoid;
           }
           
-          /* Cover page styling - full letter size, no margins, no white space */
-          .cover-page {
+          /* New cover page - completely rebuilt */
+          .cover-page-new {
             margin: 0 !important;
             padding: 0 !important;
             height: 11in !important;
@@ -425,20 +432,8 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             outline: none !important;
           }
           
-          /* Ensure cover page background extends to all edges */
-          .cover-page::before,
-          .cover-page::after {
-            display: none !important;
-          }
-          
-          /* Content wrapper after cover page - ensure it's visible */
-          .content-wrapper {
-            display: block !important;
-            padding: 20px !important;
-          }
-          
-          /* Content inside cover page - positioned within safe area for binding */
-          .cover-page > div:first-of-type {
+          /* Content safe area - exactly as specified */
+          .cover-content-safe-area {
             position: absolute !important;
             top: 10mm !important;
             left: 20mm !important;
@@ -448,6 +443,13 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             flex-direction: column !important;
             justify-content: center !important;
             align-items: center !important;
+            text-align: center !important;
+          }
+          
+          /* Content wrapper after cover page - ensure it's visible */
+          .content-wrapper {
+            display: block !important;
+            padding: 20px !important;
           }
           
           /* Hide page header completely - no duplicate cover page */
@@ -525,30 +527,19 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         </span>
       </div>
 
-      {/* Cover Page - First Page Only */}
-      <div className="cover-page" style={{
-        height: '11in',
+      {/* Cover Page - Completely rebuilt with correct settings */}
+      <div className="cover-page-new" style={{
         width: '8.5in',
-        minWidth: '8.5in',
-        maxWidth: '8.5in',
-        minHeight: '11in',
-        maxHeight: '11in',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
+        height: '11in',
         background: 'linear-gradient(135deg, #00bcd4 0%, #0097a7 100%)',
-        margin: '0',
-        padding: '0',
+        margin: 0,
+        padding: 0,
         position: 'relative',
-        overflow: 'hidden',
         boxSizing: 'border-box',
-        left: '0',
-        right: '0',
-        top: '0'
+        overflow: 'hidden'
       }}>
-        {/* Content - positioned within safe area (20mm left, 5mm right, 10mm top, 8mm bottom) */}
-        <div style={{
+        {/* Content container - positioned within safe area (20mm left, 5mm right, 10mm top, 8mm bottom) */}
+        <div className="cover-content-safe-area" style={{
           position: 'absolute',
           top: '10mm',
           left: '20mm',
@@ -559,8 +550,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           justifyContent: 'center',
           alignItems: 'center',
           textAlign: 'center',
-          color: 'white',
-          zIndex: 2
+          color: 'white'
         }}>
           {/* Top text */}
           <div style={{
