@@ -352,7 +352,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           margin: 10mm 5mm 8mm 20mm; /* top right bottom left */
           @bottom-right {
             content: "Page " counter(page) " of " counter(pages);
-            font-size: 9px;
+            font-size: 7px;
             color: #666;
             font-family: Arial, sans-serif;
           }
