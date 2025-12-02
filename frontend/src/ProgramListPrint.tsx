@@ -530,76 +530,75 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         color: 'white',
         padding: '0'
       }}>
-          {/* Top text */}
-          <div style={{
-            fontSize: '24px',
+        {/* Top text */}
+        <div style={{
+          fontSize: '24px',
+          fontWeight: 'bold',
+          letterSpacing: '1.5px',
+          marginBottom: '25px',
+          textTransform: 'uppercase'
+        }}>
+          SENIORS ASSOCIATION
+        </div>
+        
+        {/* Main title with overlapping effect */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '12px',
+          marginBottom: '30px',
+          flexWrap: 'wrap'
+        }}>
+          <h1 style={{
+            fontSize: '56px',
             fontWeight: 'bold',
-            letterSpacing: '1.5px',
-            marginBottom: '25px',
-            textTransform: 'uppercase'
+            margin: 0,
+            color: 'white',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+            lineHeight: '1'
           }}>
-            SENIORS ASSOCIATION
-          </div>
-          
-          {/* Main title with overlapping effect */}
+            PROGRAM
+          </h1>
           <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '12px',
-            marginBottom: '30px',
-            flexWrap: 'wrap'
+            position: 'relative',
+            background: '#8bc34a',
+            padding: '0 20px',
+            borderRadius: '6px',
+            transform: 'rotate(-2deg)',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
           }}>
             <h1 style={{
               fontSize: '56px',
               fontWeight: 'bold',
               margin: 0,
-              color: 'white',
-              textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+              color: '#1565c0',
               lineHeight: '1'
             }}>
-              PROGRAM
+              GUIDE
             </h1>
-            <div style={{
-              position: 'relative',
-              background: '#8bc34a',
-              padding: '0 20px',
-              borderRadius: '6px',
-              transform: 'rotate(-2deg)',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
-            }}>
-              <h1 style={{
-                fontSize: '56px',
-                fontWeight: 'bold',
-                margin: 0,
-                color: '#1565c0',
-                lineHeight: '1'
-              }}>
-                GUIDE
-              </h1>
-            </div>
           </div>
-          
-          {/* Subtitle on green stripe */}
-          <div style={{
-            background: '#8bc34a',
-            padding: '10px 30px',
-            borderRadius: '6px',
-            display: 'inline-block',
-            marginTop: '15px',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
+        </div>
+        
+        {/* Subtitle on green stripe */}
+        <div style={{
+          background: '#8bc34a',
+          padding: '10px 30px',
+          borderRadius: '6px',
+          display: 'inline-block',
+          marginTop: '15px',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
+        }}>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            margin: 0,
+            color: 'white',
+            textTransform: 'uppercase',
+            letterSpacing: '1px'
           }}>
-            <h2 style={{
-              fontSize: '24px',
-              fontWeight: 'bold',
-              margin: 0,
-              color: 'white',
-              textTransform: 'uppercase',
-              letterSpacing: '1px'
-            }}>
-              WINTER 2025
-            </h2>
-          </div>
+            WINTER 2025
+          </h2>
         </div>
       </div>
 
