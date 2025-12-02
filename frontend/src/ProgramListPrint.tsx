@@ -261,16 +261,25 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
   const { grouped, allDays } = groupProgramsByDay(programs);
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in', width: '8.5in', margin: '0 auto', padding: '0' }}>
+    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in', width: '8.5in', margin: '0 auto', padding: '0', position: 'relative' }}>
       <style>{`
         @page {
           size: letter portrait;
-          margin: 0.5in;
+          margin: 10mm 5mm 8mm 20mm; /* top right bottom left */
+          @bottom-right {
+            content: "Page " counter(page) " of " counter(pages);
+            font-size: 9px;
+            color: #666;
+            font-family: Arial, sans-serif;
+          }
         }
         
         @page:first {
           size: letter portrait;
           margin: 0;
+          @bottom-right {
+            content: "";
+          }
         }
         
         @media print {
@@ -311,59 +320,28 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             flex-direction: column !important;
             justify-content: center !important;
             align-items: center !important;
+            position: relative !important;
           }
           
-          /* Show page header starting from page 2 (after cover page) */
-          .cover-page ~ div .page-header {
-            display: flex !important;
-          }
-          
-          /* Page numbers - simple fixed position at bottom */
-          body {
-            counter-reset: page;
-          }
-          
-          /* Page number footer - appears at bottom of every page */
-          .page-number-footer {
-            position: fixed;
-            bottom: 0.25in;
-            left: 0;
-            right: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 9px;
-            color: #666;
-            font-family: Arial, sans-serif;
-            z-index: 1000;
-            pointer-events: none;
-          }
-          
-          /* Show page number footer on all pages after cover */
-          .cover-page ~ div .page-number-footer {
-            display: block !important;
-          }
-          
-          /* Hide page number on cover page */
-          .cover-page .page-number-footer {
+          /* Hide page header completely - no duplicate cover page */
+          .page-header {
             display: none !important;
           }
           
-          /* Use CSS counter for page numbers */
-          .page-number-footer::before {
-            counter-increment: page;
-            content: "Page " counter(page);
-          }
-          
-          /* Start counting from page 2 (cover is page 1, no number) */
-          .cover-page {
-            counter-increment: page;
-          }
-          
-          /* Remove any old page number styles that might interfere */
+          /* Remove all page numbers completely */
+          .page-number-footer,
           .page-number::after,
+          .page-number-footer::before,
+          .page-number-footer::after {
+            display: none !important;
+            content: none !important;
+          }
+          
+          /* Remove any page numbers from other elements */
           .program-card::after,
           .program-day-section::after,
-          .day-header::after {
+          .day-header::after,
+          .page-header::after {
             display: none !important;
             content: none !important;
           }
@@ -525,29 +503,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           {/* Page number will be inserted by CSS counter */}
         </div>
         
-        {/* Document Header - For subsequent pages (hidden on first page) */}
-        <div className="page-header" style={{
-          display: 'none', // Hidden by default, shown in print CSS
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '15px',
-          marginBottom: '15px',
-          borderBottom: '2px solid #2e7d32',
-          paddingBottom: '10px'
-        }}>
-          <div style={{ width: '50px' }}></div> {/* Spacer for centering */}
-          <div style={{ textAlign: 'center', flex: 1 }}>
-            <h1 style={{ color: '#2e7d32', margin: 0, fontSize: '22px', fontWeight: 'bold' }}>
-              Program Guide Winter 2025, Session 2
-            </h1>
-            <p style={{ color: '#666', margin: '5px 0 0 0', fontSize: '14px', fontWeight: '500' }}>
-              December, 2025
-            </p>
-          </div>
-          <div style={{ width: '50px' }}></div> {/* Spacer for centering */}
-        </div>
-
-      {/* Programs by Day */}
+        {/* Programs by Day */}
       {allDays.map((day, dayIndex) => {
         const dayPrograms = grouped[day];
         if (!dayPrograms || dayPrograms.length === 0) return null;
