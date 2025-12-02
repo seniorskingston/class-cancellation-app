@@ -359,7 +359,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         
         @page:first {
           size: letter portrait;
-          margin: 0;
+          margin: 0 !important;
           @bottom-right {
             content: "";
           }
@@ -394,13 +394,13 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             max-width: 8.5in !important;
           }
           
-          /* Cover page must break out of container padding */
-          .cover-page-new {
+          /* Cover page must break out of container padding completely */
+          .print-container > .cover-page-new:first-child {
             margin-left: -20px !important;
             margin-right: -20px !important;
             margin-top: -20px !important;
-            width: 8.5in !important;
-            position: relative !important;
+            width: calc(8.5in + 40px) !important;
+            max-width: calc(8.5in + 40px) !important;
           }
           
           /* Content wrapper - ensure it shows after cover page */
@@ -424,30 +424,47 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             break-inside: avoid;
           }
           
-          /* Cover page - exact settings from working version */
+          /* Cover page - must fill entire page with no white bars */
           .cover-page-new {
             margin: 0 !important;
             padding: 0 !important;
             height: 11in !important;
             width: 8.5in !important;
+            min-width: 8.5in !important;
+            max-width: 8.5in !important;
+            min-height: 11in !important;
+            max-height: 11in !important;
             page-break-after: always;
-            box-sizing: border-box;
-            position: relative;
-            overflow: hidden;
+            box-sizing: border-box !important;
+            position: relative !important;
+            overflow: hidden !important;
+            display: block !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: 0 !important;
+            border: none !important;
+            outline: none !important;
+          }
+          
+          /* Break out of parent container padding */
+          .print-container > .cover-page-new:first-child {
+            margin-left: -20px !important;
+            margin-right: -20px !important;
+            margin-top: -20px !important;
           }
           
           /* Content safe area - exactly as specified (20mm left, 5mm right, 10mm top, 8mm bottom) */
           .cover-content-safe-area {
-            position: absolute;
-            top: 10mm;
-            left: 20mm;
-            right: 5mm;
-            bottom: 8mm;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
+            position: absolute !important;
+            top: 10mm !important;
+            left: 20mm !important;
+            right: 5mm !important;
+            bottom: 8mm !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
           }
           
           /* Content wrapper after cover page - ensure it's visible */
@@ -531,7 +548,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         </span>
       </div>
 
-      {/* Cover Page - Using working settings */}
+      {/* Cover Page - Fixed to fill entire page */}
       <div className="cover-page-new" style={{
         width: '8.5in',
         height: '11in',
@@ -540,7 +557,8 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         padding: '0',
         position: 'relative',
         boxSizing: 'border-box',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        display: 'block'
       }}>
         {/* Content container - positioned within safe area (20mm left, 5mm right, 10mm top, 8mm bottom) */}
         <div className="cover-content-safe-area" style={{
