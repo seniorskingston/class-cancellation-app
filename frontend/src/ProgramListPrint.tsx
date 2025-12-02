@@ -346,7 +346,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           margin: 0 auto !important;
         }
         
-        /* Regular pages - keep existing margins */
+        /* All pages including cover - same margins */
         @page {
           size: letter portrait;
           margin: 10mm 5mm 8mm 20mm; /* top right bottom left */
@@ -358,10 +358,10 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           }
         }
         
-        /* Cover page only - full letter size with no margins */
+        /* Cover page - no page number */
         @page:first {
-          size: 8.5in 11in;
-          margin: 0;
+          size: letter portrait;
+          margin: 10mm 5mm 8mm 20mm; /* same margins as other pages */
           @bottom-right {
             content: "";
           }
@@ -426,47 +426,21 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             break-inside: avoid;
           }
           
-          /* Cover page - must fill entire page with no white bars */
+          /* New cover page - uses same margins as other pages */
           .cover-page-new {
-            margin: 0 !important;
-            padding: 0 !important;
-            height: 11in !important;
-            width: 8.5in !important;
-            min-width: 8.5in !important;
-            max-width: 8.5in !important;
-            min-height: 11in !important;
-            max-height: 11in !important;
+            margin: 0;
+            padding: 0;
+            min-height: calc(11in - 10mm - 8mm); /* Full height minus top and bottom margins */
+            width: 100%;
             page-break-after: always;
-            box-sizing: border-box !important;
-            position: relative !important;
-            overflow: hidden !important;
-            display: block !important;
-            left: 0 !important;
-            right: 0 !important;
-            top: 0 !important;
-            border: none !important;
-            outline: none !important;
-          }
-          
-          /* Break out of parent container padding */
-          .print-container > .cover-page-new:first-child {
-            margin-left: -20px !important;
-            margin-right: -20px !important;
-            margin-top: -20px !important;
-          }
-          
-          /* Content safe area - exactly as specified (20mm left, 5mm right, 10mm top, 8mm bottom) */
-          .cover-content-safe-area {
-            position: absolute !important;
-            top: 10mm !important;
-            left: 20mm !important;
-            right: 5mm !important;
-            bottom: 8mm !important;
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: center !important;
-            align-items: center !important;
-            text-align: center !important;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
           }
           
           /* Content wrapper after cover page - ensure it's visible */
@@ -550,32 +524,12 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         </span>
       </div>
 
-      {/* Cover Page - Fixed to fill entire page */}
+      {/* New Cover Page - uses same margins as other pages */}
       <div className="cover-page-new" style={{
-        width: '8.5in',
-        height: '11in',
         background: 'linear-gradient(135deg, #00bcd4 0%, #0097a7 100%)',
-        margin: '0',
-        padding: '0',
-        position: 'relative',
-        boxSizing: 'border-box',
-        overflow: 'hidden',
-        display: 'block'
+        color: 'white',
+        padding: '0'
       }}>
-        {/* Content container - positioned within safe area (20mm left, 5mm right, 10mm top, 8mm bottom) */}
-        <div className="cover-content-safe-area" style={{
-          position: 'absolute',
-          top: '10mm',
-          left: '20mm',
-          right: '5mm',
-          bottom: '8mm',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          textAlign: 'center',
-          color: 'white'
-        }}>
           {/* Top text */}
           <div style={{
             fontSize: '24px',
