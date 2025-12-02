@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import QRCode from 'qrcode';
 import logo from './logo.png';
 
 interface Program {
@@ -25,10 +26,29 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
 
   useEffect(() => {
     fetchPrograms();
+    generateQRCode();
   }, []);
+
+  const generateQRCode = async () => {
+    try {
+      const appURL = 'https://class-cancellation-frontend.onrender.com/';
+      const qrDataURL = await QRCode.toDataURL(appURL, {
+        width: 150,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      setQrCodeDataURL(qrDataURL);
+    } catch (err) {
+      console.error('Error generating QR code:', err);
+    }
+  };
 
   const fetchPrograms = async () => {
     try {
@@ -272,29 +292,18 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
 
       {/* Cover Page - First Page Only */}
       <div className="cover-page" style={{
-        minHeight: '11in',
+        height: '11in',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         background: 'linear-gradient(135deg, #00bcd4 0%, #0097a7 100%)',
-        margin: '-20px -20px 40px -20px',
-        padding: '60px 40px',
-        pageBreakAfter: 'always',
+        margin: '-20px -20px 20px -20px',
+        padding: '40px 30px',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        boxSizing: 'border-box'
       }}>
-        {/* Decorative elements */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '120px',
-          background: '#8bc34a',
-          zIndex: 1
-        }}></div>
-        
         {/* Content */}
         <div style={{
           position: 'relative',
@@ -302,14 +311,14 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           textAlign: 'center',
           color: 'white',
           width: '100%',
-          maxWidth: '7in'
+          maxWidth: '6.5in'
         }}>
           {/* Top text */}
           <div style={{
-            fontSize: '18px',
+            fontSize: '14px',
             fontWeight: 'bold',
-            letterSpacing: '2px',
-            marginBottom: '20px',
+            letterSpacing: '1.5px',
+            marginBottom: '25px',
             textTransform: 'uppercase'
           }}>
             SENIORS ASSOCIATION
@@ -320,12 +329,12 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            gap: '10px',
+            gap: '12px',
             marginBottom: '30px',
             flexWrap: 'wrap'
           }}>
             <h1 style={{
-              fontSize: '72px',
+              fontSize: '56px',
               fontWeight: 'bold',
               margin: 0,
               color: 'white',
@@ -337,13 +346,13 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             <div style={{
               position: 'relative',
               background: '#8bc34a',
-              padding: '0 30px',
-              borderRadius: '8px',
+              padding: '0 20px',
+              borderRadius: '6px',
               transform: 'rotate(-2deg)',
               boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
             }}>
               <h1 style={{
-                fontSize: '72px',
+                fontSize: '56px',
                 fontWeight: 'bold',
                 margin: 0,
                 color: '#1565c0',
@@ -357,14 +366,14 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           {/* Subtitle on green stripe */}
           <div style={{
             background: '#8bc34a',
-            padding: '15px 40px',
-            borderRadius: '8px',
+            padding: '10px 30px',
+            borderRadius: '6px',
             display: 'inline-block',
-            marginTop: '20px',
+            marginTop: '15px',
             boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
           }}>
             <h2 style={{
-              fontSize: '32px',
+              fontSize: '24px',
               fontWeight: 'bold',
               margin: 0,
               color: 'white',
@@ -379,32 +388,24 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
 
       {/* Document Header - For subsequent pages */}
       <div className="page-header" style={{
-        display: 'flex', // Show on screen, will be on page 2 when printing
+        display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '20px',
-        marginBottom: '20px',
-        borderBottom: '3px solid #2e7d32',
-        paddingBottom: '15px'
+        gap: '15px',
+        marginBottom: '15px',
+        borderBottom: '2px solid #2e7d32',
+        paddingBottom: '10px'
       }}>
-        <img 
-          src={logo} 
-          alt="Company Logo" 
-          style={{ 
-            height: '60px', 
-            width: 'auto',
-            objectFit: 'contain'
-          }} 
-        />
+        <div style={{ width: '50px' }}></div> {/* Spacer for centering */}
         <div style={{ textAlign: 'center', flex: 1 }}>
-          <h1 style={{ color: '#2e7d32', margin: 0, fontSize: '28px', fontWeight: 'bold' }}>
+          <h1 style={{ color: '#2e7d32', margin: 0, fontSize: '22px', fontWeight: 'bold' }}>
             Program Guide Winter 2025, Session 2
           </h1>
-          <p style={{ color: '#666', margin: '8px 0 0 0', fontSize: '16px', fontWeight: '500' }}>
+          <p style={{ color: '#666', margin: '5px 0 0 0', fontSize: '14px', fontWeight: '500' }}>
             December, 2025
           </p>
         </div>
-        <div style={{ width: '60px' }}></div> {/* Spacer for centering */}
+        <div style={{ width: '50px' }}></div> {/* Spacer for centering */}
       </div>
 
       {/* Programs by Day */}
@@ -417,16 +418,16 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             key={day}
             className="program-day-section"
             style={{
-              marginBottom: '30px'
+              marginBottom: '20px'
             }}
           >
             {/* Day Header */}
             <div style={{
               background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
               color: 'white',
-              padding: '12px 20px',
-              borderRadius: '8px 8px 0 0',
-              fontSize: '20px',
+              padding: '8px 15px',
+              borderRadius: '6px 6px 0 0',
+              fontSize: '18px',
               fontWeight: 'bold',
               marginBottom: 0
             }}>
@@ -442,18 +443,18 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
                   background: 'white',
                   border: '1px solid #ddd',
                   borderTop: 'none',
-                  padding: '15px 20px',
+                  padding: '12px 15px',
                   marginBottom: 0
                 }}
               >
                 {/* Program Title */}
                 <div style={{
-                  fontSize: '18px',
+                  fontSize: '16px',
                   fontWeight: 'bold',
                   color: '#2e7d32',
-                  marginBottom: '12px',
+                  marginBottom: '10px',
                   borderBottom: '2px solid #e8f5e9',
-                  paddingBottom: '8px'
+                  paddingBottom: '6px'
                 }}>
                   {program.program || 'N/A'}
                 </div>
@@ -462,70 +463,70 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: '1fr 1fr',
-                  gap: '12px',
-                  marginBottom: '15px'
+                  gap: '8px',
+                  marginBottom: '10px'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '120px', fontSize: '13px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '100px', fontSize: '11px' }}>
                       Program ID:
                     </span>
-                    <span style={{ color: '#333', flex: 1, fontSize: '13px' }}>
+                    <span style={{ color: '#333', flex: 1, fontSize: '11px' }}>
                       {program.program_id || 'N/A'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '120px', fontSize: '13px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '100px', fontSize: '11px' }}>
                       Date Range:
                     </span>
-                    <span style={{ color: '#333', flex: 1, fontSize: '13px' }}>
+                    <span style={{ color: '#333', flex: 1, fontSize: '11px' }}>
                       {program.date_range || 'N/A'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '120px', fontSize: '13px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '100px', fontSize: '11px' }}>
                       Time:
                     </span>
-                    <span style={{ color: '#333', flex: 1, fontSize: '13px' }}>
+                    <span style={{ color: '#333', flex: 1, fontSize: '11px' }}>
                       {program.time || 'N/A'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '120px', fontSize: '13px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '100px', fontSize: '11px' }}>
                       Location:
                     </span>
-                    <span style={{ color: '#333', flex: 1, fontSize: '13px' }}>
+                    <span style={{ color: '#333', flex: 1, fontSize: '11px' }}>
                       {program.location || 'N/A'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '120px', fontSize: '13px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '100px', fontSize: '11px' }}>
                       Class Room:
                     </span>
-                    <span style={{ color: '#333', flex: 1, fontSize: '13px' }}>
+                    <span style={{ color: '#333', flex: 1, fontSize: '11px' }}>
                       {program.class_room || 'N/A'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '120px', fontSize: '13px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '100px', fontSize: '11px' }}>
                       Instructor:
                     </span>
-                    <span style={{ color: '#333', flex: 1, fontSize: '13px' }}>
+                    <span style={{ color: '#333', flex: 1, fontSize: '11px' }}>
                       {program.instructor || 'N/A'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '120px', fontSize: '13px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '100px', fontSize: '11px' }}>
                       Fee:
                     </span>
-                    <span style={{ color: '#333', flex: 1, fontSize: '13px' }}>
+                    <span style={{ color: '#333', flex: 1, fontSize: '11px' }}>
                       {program.fee || 'N/A'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '120px', fontSize: '13px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#555', minWidth: '100px', fontSize: '11px' }}>
                       Program Status:
                     </span>
-                    <span style={{ color: '#333', flex: 1, fontSize: '13px' }}>
+                    <span style={{ color: '#333', flex: 1, fontSize: '11px' }}>
                       {program.program_status || 'N/A'}
                     </span>
                   </div>
@@ -535,23 +536,23 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
                 {program.description && (
                   <div style={{
                     background: '#f9f9f9',
-                    borderLeft: '4px solid #4caf50',
-                    padding: '12px',
-                    marginTop: '15px',
+                    borderLeft: '3px solid #4caf50',
+                    padding: '10px',
+                    marginTop: '10px',
                     borderRadius: '4px'
                   }}>
                     <div style={{
                       fontWeight: 'bold',
                       color: '#2e7d32',
-                      marginBottom: '8px',
-                      fontSize: '14px'
+                      marginBottom: '6px',
+                      fontSize: '12px'
                     }}>
                       Description:
                     </div>
                     <div style={{
                       color: '#555',
-                      lineHeight: '1.6',
-                      fontSize: '13px'
+                      lineHeight: '1.5',
+                      fontSize: '11px'
                     }}>
                       {program.description}
                     </div>
@@ -566,15 +567,42 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
       {/* Footer - only on last page */}
       <div style={{
         textAlign: 'center',
-        marginTop: '30px',
-        paddingTop: '20px',
+        marginTop: '20px',
+        paddingTop: '15px',
         borderTop: '2px solid #ddd',
         color: '#666',
-        fontSize: '12px',
+        fontSize: '10px',
         pageBreakInside: 'avoid'
       }}>
-        <p>For more information, visit our website or contact the Seniors Association Kingston</p>
-        <p>This document was generated automatically from the program database</p>
+        <p style={{ marginBottom: '10px' }}>
+          For more information, visit the Program/Event App{' '}
+          <a 
+            href="https://class-cancellation-frontend.onrender.com/" 
+            style={{ color: '#2e7d32', textDecoration: 'none' }}
+          >
+            https://class-cancellation-frontend.onrender.com/
+          </a>
+          {' '}or scan
+        </p>
+        {qrCodeDataURL && (
+          <div style={{ marginTop: '10px', marginBottom: '10px' }}>
+            <img 
+              src={qrCodeDataURL} 
+              alt="App QR Code" 
+              style={{ 
+                width: '120px', 
+                height: '120px',
+                border: '2px solid #ddd',
+                borderRadius: '4px',
+                padding: '5px',
+                background: 'white'
+              }} 
+            />
+          </div>
+        )}
+        <p style={{ marginTop: '10px', fontSize: '9px', color: '#999' }}>
+          This document was generated automatically from the program database
+        </p>
       </div>
 
     </div>
