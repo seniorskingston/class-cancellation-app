@@ -346,10 +346,10 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           margin: 0 auto !important;
         }
         
-        /* All pages including cover - same margins */
-        @page {
+        /* Odd pages (1, 3, 5...) - binding on left, so left margin is larger */
+        @page:right {
           size: letter portrait;
-          margin: 10mm 5mm 10mm 20mm; /* top right bottom left - increased bottom from 8mm to 10mm for page numbers */
+          margin: 10mm 5mm 10mm 20mm; /* top right bottom left - left margin 20mm for binding */
           @bottom-right {
             content: "Page " counter(page) " of " counter(pages);
             font-size: 7px;
@@ -359,10 +359,23 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           }
         }
         
-        /* Cover page - no page number */
+        /* Even pages (2, 4, 6...) - binding on right, so right margin is larger */
+        @page:left {
+          size: letter portrait;
+          margin: 10mm 20mm 10mm 5mm; /* top right bottom left - right margin 20mm for binding */
+          @bottom-left {
+            content: "Page " counter(page) " of " counter(pages);
+            font-size: 7px;
+            color: #666;
+            font-family: Arial, sans-serif;
+            vertical-align: top;
+          }
+        }
+        
+        /* Cover page (page 1) - odd page, no page number */
         @page:first {
           size: letter portrait;
-          margin: 10mm 5mm 10mm 20mm; /* same margins as other pages */
+          margin: 10mm 5mm 10mm 20mm; /* same as odd pages - left margin 20mm */
           @bottom-right {
             content: "";
           }
