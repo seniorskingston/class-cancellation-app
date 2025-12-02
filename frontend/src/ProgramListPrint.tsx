@@ -261,7 +261,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
   const { grouped, allDays } = groupProgramsByDay(programs);
 
   return (
-    <div className="page-number" style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in', width: '8.5in', margin: '0 auto', padding: '20px' }}>
+    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in', width: '8.5in', margin: '0 auto', padding: '0' }}>
       <style>{`
         @page {
           size: letter portrait;
@@ -313,14 +313,18 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             align-items: center !important;
           }
           
-          /* Page number using CSS counter - fixed at bottom of each page */
+          /* Show page header starting from page 2 (after cover page) */
+          .cover-page ~ div .page-header {
+            display: flex !important;
+          }
+          
+          /* Page numbers - simple fixed position at bottom */
           body {
             counter-reset: page;
           }
           
-          .page-number::after {
-            counter-increment: page;
-            content: "Page " counter(page);
+          /* Page number footer - appears at bottom of every page */
+          .page-number-footer {
             position: fixed;
             bottom: 0.25in;
             left: 0;
@@ -331,10 +335,36 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             color: #666;
             font-family: Arial, sans-serif;
             z-index: 1000;
+            pointer-events: none;
           }
           
-          /* Don't show page number on cover page */
-          .cover-page::after {
+          /* Show page number footer on all pages after cover */
+          .cover-page ~ div .page-number-footer {
+            display: block !important;
+          }
+          
+          /* Hide page number on cover page */
+          .cover-page .page-number-footer {
+            display: none !important;
+          }
+          
+          /* Use CSS counter for page numbers */
+          .page-number-footer::before {
+            counter-increment: page;
+            content: "Page " counter(page);
+          }
+          
+          /* Start counting from page 2 (cover is page 1, no number) */
+          .cover-page {
+            counter-increment: page;
+          }
+          
+          /* Remove any old page number styles that might interfere */
+          .page-number::after,
+          .program-card::after,
+          .program-day-section::after,
+          .day-header::after {
+            display: none !important;
             content: none !important;
           }
         }
@@ -399,7 +429,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         justifyContent: 'center',
         alignItems: 'center',
         background: 'linear-gradient(135deg, #00bcd4 0%, #0097a7 100%)',
-        margin: '-20px auto 20px auto',
+        margin: '0 auto 20px auto',
         padding: '40px 30px',
         position: 'relative',
         overflow: 'hidden',
@@ -488,27 +518,34 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         </div>
       </div>
 
-      {/* Document Header - For subsequent pages */}
-      <div className="page-header" style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '15px',
-        marginBottom: '15px',
-        borderBottom: '2px solid #2e7d32',
-        paddingBottom: '10px'
-      }}>
-        <div style={{ width: '50px' }}></div> {/* Spacer for centering */}
-        <div style={{ textAlign: 'center', flex: 1 }}>
-          <h1 style={{ color: '#2e7d32', margin: 0, fontSize: '22px', fontWeight: 'bold' }}>
-            Program Guide Winter 2025, Session 2
-          </h1>
-          <p style={{ color: '#666', margin: '5px 0 0 0', fontSize: '14px', fontWeight: '500' }}>
-            December, 2025
-          </p>
+      {/* Content wrapper for pages after cover - with padding */}
+      <div style={{ padding: '20px' }}>
+        {/* Page number footer - appears at bottom of each page (except cover) */}
+        <div className="page-number-footer" style={{ display: 'none' }}>
+          {/* Page number will be inserted by CSS counter */}
         </div>
-        <div style={{ width: '50px' }}></div> {/* Spacer for centering */}
-      </div>
+        
+        {/* Document Header - For subsequent pages (hidden on first page) */}
+        <div className="page-header" style={{
+          display: 'none', // Hidden by default, shown in print CSS
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '15px',
+          marginBottom: '15px',
+          borderBottom: '2px solid #2e7d32',
+          paddingBottom: '10px'
+        }}>
+          <div style={{ width: '50px' }}></div> {/* Spacer for centering */}
+          <div style={{ textAlign: 'center', flex: 1 }}>
+            <h1 style={{ color: '#2e7d32', margin: 0, fontSize: '22px', fontWeight: 'bold' }}>
+              Program Guide Winter 2025, Session 2
+            </h1>
+            <p style={{ color: '#666', margin: '5px 0 0 0', fontSize: '14px', fontWeight: '500' }}>
+              December, 2025
+            </p>
+          </div>
+          <div style={{ width: '50px' }}></div> {/* Spacer for centering */}
+        </div>
 
       {/* Programs by Day */}
       {allDays.map((day, dayIndex) => {
@@ -666,8 +703,8 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         );
       })}
 
-      {/* Footer - only on last page */}
-      <div style={{
+        {/* Footer - only on last page */}
+        <div style={{
         textAlign: 'center',
         marginTop: '20px',
         paddingTop: '15px',
@@ -707,6 +744,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             Loading QR code...
           </div>
         )}
+        </div>
       </div>
 
     </div>
