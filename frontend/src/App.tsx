@@ -4,6 +4,7 @@ import logo from "./logo.png";
 import QRCode from 'qrcode';
 import Calendar from './Calendar';
 import AdminPanel from './AdminPanel';
+import ProgramListPrint from './ProgramListPrint';
 import locationData from './locations.json';
 import UserGuide from './UserGuide';
 import analytics from './analytics';
@@ -136,7 +137,7 @@ function App() {
   const [showQRCode, setShowQRCode] = useState(false);
   const [showFloatingQR, setShowFloatingQR] = useState(true);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
-  const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'admin'>('main');
+  const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'admin' | 'print'>('main');
   const [showRachelComingSoon, setShowRachelComingSoon] = useState(false);
 
   // Check for admin access via URL parameter
@@ -630,7 +631,15 @@ function App() {
 
         // Admin view
         if (currentView === 'admin') {
-          return <AdminPanel onBackToMain={() => setCurrentView('main')} />;
+          return <AdminPanel 
+            onBackToMain={() => setCurrentView('main')} 
+            onViewPrintList={() => setCurrentView('print')}
+          />;
+        }
+
+        // Print Program List view
+        if (currentView === 'print') {
+          return <ProgramListPrint onBackToMain={() => setCurrentView('main')} />;
         }
 
   // Mobile view
@@ -740,6 +749,24 @@ function App() {
               🔍
             </button>
           </div>
+          <button 
+            onClick={() => setCurrentView('print')} 
+            style={{ 
+              background: "#4caf50", 
+              color: "white", 
+              fontSize: "0.75rem", 
+              padding: "0.5rem 1rem",
+              border: "none",
+              borderRadius: "6px",
+              marginTop: "10px",
+              width: "100%",
+              cursor: "pointer"
+            }}
+            className="custom-tooltip"
+            data-tooltip="Print Program List"
+          >
+            🖨️ Print Program List
+          </button>
         </div>
 
 
@@ -1416,6 +1443,14 @@ function App() {
           data-tooltip="Switch to Mobile View"
         >
           📱 Mobile
+        </button>
+        <button 
+          onClick={() => setCurrentView('print')} 
+          style={{ background: "#4caf50", color: "white", fontSize: "0.75rem", padding: "0.3rem 0.6rem" }}
+          className="custom-tooltip"
+          data-tooltip="Print Program List"
+        >
+          🖨️ Print List
         </button>
         <input
           name="program"

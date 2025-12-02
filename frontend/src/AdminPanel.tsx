@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 
 interface AdminPanelProps {
   onBackToMain: () => void;
+  onViewPrintList?: () => void;
 }
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }) => {
   // Separate state for each section
   const [selectedExcelFile, setSelectedExcelFile] = useState<File | null>(null);
   const [excelMessage, setExcelMessage] = useState('');
@@ -126,20 +127,39 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain }) => {
           }}>
             🔧 Admin Panel
           </h1>
-          <button
-            onClick={onBackToMain}
-            style={{
-              background: '#6c757d',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '16px'
-            }}
-          >
-            ← Back to App
-          </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {onViewPrintList && (
+              <button
+                onClick={onViewPrintList}
+                style={{
+                  background: '#4caf50',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                🖨️ Print Program List
+              </button>
+            )}
+            <button
+              onClick={onBackToMain}
+              style={{
+                background: '#6c757d',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '16px'
+              }}
+            >
+              ← Back to App
+            </button>
+          </div>
         </div>
 
         {/* Two Column Layout for Excel and Events */}
