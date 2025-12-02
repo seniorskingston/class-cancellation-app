@@ -53,15 +53,36 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
   const fetchPrograms = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch(`${API_URL}/api/cancellations`);
-      const data = await response.json();
       
-      if (data.data && Array.isArray(data.data)) {
-        setPrograms(data.data);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('ProgramListPrint - Received data:', data);
+      
+      // Handle both response formats: {data: [...]} or direct array
+      let programsList = [];
+      if (Array.isArray(data)) {
+        programsList = data;
+      } else if (data.data && Array.isArray(data.data)) {
+        programsList = data.data;
       } else {
-        setError('No program data found');
+        console.error('Unexpected data format:', data);
+        setError('No program data found in response');
+        return;
+      }
+      
+      console.log(`ProgramListPrint - Loaded ${programsList.length} programs`);
+      setPrograms(programsList);
+      
+      if (programsList.length === 0) {
+        setError('No programs found. Please make sure programs are uploaded in the Admin Panel.');
       }
     } catch (err) {
+      console.error('Error fetching programs:', err);
       setError(err instanceof Error ? err.message : 'Failed to load programs');
     } finally {
       setLoading(false);
@@ -157,9 +178,81 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
   if (error) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
-        <p style={{ color: 'red' }}>Error: {error}</p>
-        <button onClick={onBackToMain} style={{ marginTop: '20px', padding: '10px 20px' }}>
-          Back to Main
+        <p style={{ color: 'red', fontSize: '18px', marginBottom: '10px' }}>❌ Error: {error}</p>
+        <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>
+          Please make sure:
+          <br />1. Programs are uploaded in the Admin Panel
+          <br />2. The backend API is running
+          <br />3. Check browser console for more details
+        </p>
+        <button 
+          onClick={fetchPrograms} 
+          style={{ 
+            marginRight: '10px',
+            marginTop: '20px', 
+            padding: '10px 20px',
+            background: '#2196f3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}
+        >
+          🔄 Try Again
+        </button>
+        <button 
+          onClick={onBackToMain} 
+          style={{ 
+            marginTop: '20px', 
+            padding: '10px 20px',
+            background: '#6c757d',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}
+        >
+          ← Back to Main
+        </button>
+      </div>
+    );
+  }
+  
+  if (programs.length === 0 && !loading) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <p style={{ color: '#ff9800', fontSize: '18px', marginBottom: '10px' }}>⚠️ No Programs Found</p>
+        <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>
+          No programs are available. Please upload programs in the Admin Panel first.
+        </p>
+        <button 
+          onClick={fetchPrograms} 
+          style={{ 
+            marginRight: '10px',
+            marginTop: '20px', 
+            padding: '10px 20px',
+            background: '#2196f3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}
+        >
+          🔄 Refresh
+        </button>
+        <button 
+          onClick={onBackToMain} 
+          style={{ 
+            marginTop: '20px', 
+            padding: '10px 20px',
+            background: '#6c757d',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}
+        >
+          ← Back to Main
         </button>
       </div>
     );
@@ -206,14 +299,18 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             break-inside: avoid;
           }
           
-          /* Cover page styling - exactly letter size */
+          /* Cover page styling - exactly letter size, centered */
           .cover-page {
-            margin: 0 !important;
+            margin: 0 auto !important;
             padding: 40px 30px !important;
             height: 11in;
             width: 8.5in;
             page-break-after: always;
             box-sizing: border-box;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
           }
           
           /* Page number using CSS counter - fixed at bottom of each page */
@@ -296,12 +393,13 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
       {/* Cover Page - First Page Only */}
       <div className="cover-page" style={{
         height: '11in',
+        width: '8.5in',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         background: 'linear-gradient(135deg, #00bcd4 0%, #0097a7 100%)',
-        margin: '-20px -20px 20px -20px',
+        margin: '-20px auto 20px auto',
         padding: '40px 30px',
         position: 'relative',
         overflow: 'hidden',
@@ -314,11 +412,12 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           textAlign: 'center',
           color: 'white',
           width: '100%',
-          maxWidth: '6.5in'
+          maxWidth: '6.5in',
+          margin: '0 auto'
         }}>
           {/* Top text */}
           <div style={{
-            fontSize: '14px',
+            fontSize: '24px',
             fontWeight: 'bold',
             letterSpacing: '1.5px',
             marginBottom: '25px',
