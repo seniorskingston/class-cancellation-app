@@ -294,6 +294,18 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             width: 8.5in;
           }
           
+          /* Center the main container */
+          body > div {
+            margin: 0 auto;
+            width: 8.5in;
+          }
+          
+          /* Cover page should be full width and centered */
+          .cover-page {
+            margin-left: auto !important;
+            margin-right: auto !important;
+          }
+          
           .no-print {
             display: none !important;
           }
@@ -310,7 +322,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           
           /* Cover page styling - exactly letter size, centered */
           .cover-page {
-            margin: 0 auto !important;
+            margin: 0 !important;
             padding: 40px 30px !important;
             height: 11in;
             width: 8.5in;
@@ -321,6 +333,11 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             justify-content: center !important;
             align-items: center !important;
             position: relative !important;
+          }
+          
+          /* Ensure parent container doesn't affect centering */
+          body > div {
+            margin: 0 auto;
           }
           
           /* Hide page header completely - no duplicate cover page */
@@ -407,7 +424,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         justifyContent: 'center',
         alignItems: 'center',
         background: 'linear-gradient(135deg, #00bcd4 0%, #0097a7 100%)',
-        margin: '0 auto 20px auto',
+        margin: '0',
         padding: '40px 30px',
         position: 'relative',
         overflow: 'hidden',
@@ -421,7 +438,10 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           color: 'white',
           width: '100%',
           maxWidth: '6.5in',
-          margin: '0 auto'
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
         }}>
           {/* Top text */}
           <div style={{
