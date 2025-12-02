@@ -261,8 +261,13 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
   const { grouped, allDays } = groupProgramsByDay(programs);
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in', width: '8.5in', margin: '0', padding: '0', position: 'relative' }}>
+    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in', width: '8.5in', margin: '0 auto', padding: '20px', position: 'relative' }} className="print-container">
       <style>{`
+        /* Screen view - center the container */
+        .print-container {
+          margin: 0 auto !important;
+        }
+        
         @page {
           size: letter portrait;
           margin: 10mm 5mm 8mm 20mm; /* top right bottom left */
@@ -292,22 +297,22 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             margin: 0 !important;
             padding: 0 !important;
             width: 8.5in !important;
-            height: 11in !important;
-            overflow: hidden;
           }
           
-          /* Main container - no margins to prevent white bars */
-          body > div {
+          /* Main container - no margins in print to prevent white bars */
+          body > div,
+          .print-container {
             margin: 0 !important;
             padding: 0 !important;
             width: 8.5in !important;
             max-width: 8.5in !important;
           }
           
-          /* Cover page should be full width and centered */
-          .cover-page {
-            margin-left: auto !important;
-            margin-right: auto !important;
+          /* Content wrapper - ensure it shows after cover page */
+          .content-wrapper {
+            display: block !important;
+            padding: 20px !important;
+            visibility: visible !important;
           }
           
           .no-print {
@@ -334,10 +339,12 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             box-sizing: border-box;
             position: relative !important;
             overflow: hidden !important;
-            left: 0 !important;
-            right: 0 !important;
-            top: 0 !important;
-            bottom: 0 !important;
+          }
+          
+          /* Content wrapper after cover page - ensure it's visible */
+          .content-wrapper {
+            display: block !important;
+            padding: 20px !important;
           }
           
           /* Content inside cover page - positioned within safe area for binding */
@@ -532,7 +539,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
       </div>
 
       {/* Content wrapper for pages after cover - with padding */}
-      <div style={{ padding: '20px' }}>
+      <div className="content-wrapper" style={{ padding: '20px' }}>
         {/* Page number footer - appears at bottom of each page (except cover) */}
         <div className="page-number-footer" style={{ display: 'none' }}>
           {/* Page number will be inserted by CSS counter */}
