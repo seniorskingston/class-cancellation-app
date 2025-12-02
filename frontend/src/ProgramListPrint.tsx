@@ -36,17 +36,87 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
   const generateQRCode = async () => {
     try {
       const appURL = 'https://class-cancellation-frontend.onrender.com/';
+      const qrSize = 200;
+      
+      // Generate QR code as data URL first
       const qrDataURL = await QRCode.toDataURL(appURL, {
-        width: 150,
-        margin: 1,
+        width: qrSize,
+        margin: 2,
         color: {
           dark: '#000000',
           light: '#FFFFFF'
         }
       });
-      setQrCodeDataURL(qrDataURL);
+      
+      // Create a new canvas to combine QR code and logo
+      const combinedCanvas = document.createElement('canvas');
+      const ctx = combinedCanvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
+      }
+      
+      // Set canvas size
+      combinedCanvas.width = qrSize;
+      combinedCanvas.height = qrSize;
+      
+      // Load QR code as image
+      const qrImg = new Image();
+      await new Promise((resolve, reject) => {
+        qrImg.onload = resolve;
+        qrImg.onerror = reject;
+        qrImg.src = qrDataURL;
+      });
+      
+      // Draw QR code on canvas
+      ctx.drawImage(qrImg, 0, 0, qrSize, qrSize);
+      
+      // Load and draw logo in center
+      const logoImg = new Image();
+      
+      await new Promise((resolve, reject) => {
+        logoImg.onload = () => {
+          try {
+            // Calculate logo size (about 30% of QR code size)
+            const logoSize = qrSize * 0.3;
+            const logoX = (qrSize - logoSize) / 2;
+            const logoY = (qrSize - logoSize) / 2;
+            
+            // Draw white background square for logo (with padding)
+            const padding = 5;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(logoX - padding, logoY - padding, logoSize + (padding * 2), logoSize + (padding * 2));
+            
+            // Draw logo
+            ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+            
+            // Convert to data URL
+            const finalDataURL = combinedCanvas.toDataURL('image/png');
+            setQrCodeDataURL(finalDataURL);
+            resolve(null);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        logoImg.onerror = reject;
+        logoImg.src = logo;
+      });
     } catch (err) {
-      console.error('Error generating QR code:', err);
+      console.error('Error generating QR code with logo:', err);
+      // Fallback: generate QR code without logo
+      try {
+        const appURL = 'https://class-cancellation-frontend.onrender.com/';
+        const qrDataURL = await QRCode.toDataURL(appURL, {
+          width: 150,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        });
+        setQrCodeDataURL(qrDataURL);
+      } catch (fallbackErr) {
+        console.error('Fallback QR code generation failed:', fallbackErr);
+      }
     }
   };
 
@@ -739,7 +809,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         pageBreakInside: 'avoid'
       }}>
         <p style={{ marginBottom: '10px' }}>
-          For more information, visit the Program/Event App{' '}
+          For more information, visit the Seniors Kingston website or the Program/Event App{' '}
           <a 
             href="https://class-cancellation-frontend.onrender.com/" 
             style={{ color: '#2e7d32', textDecoration: 'none' }}
