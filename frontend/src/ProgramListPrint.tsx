@@ -349,19 +349,20 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         /* All pages including cover - same margins */
         @page {
           size: letter portrait;
-          margin: 10mm 5mm 8mm 20mm; /* top right bottom left */
+          margin: 10mm 5mm 10mm 20mm; /* top right bottom left - increased bottom from 8mm to 10mm for page numbers */
           @bottom-right {
             content: "Page " counter(page) " of " counter(pages);
             font-size: 7px;
             color: #666;
             font-family: Arial, sans-serif;
+            vertical-align: top;
           }
         }
         
         /* Cover page - no page number */
         @page:first {
           size: letter portrait;
-          margin: 10mm 5mm 8mm 20mm; /* same margins as other pages */
+          margin: 10mm 5mm 10mm 20mm; /* same margins as other pages */
           @bottom-right {
             content: "";
           }
