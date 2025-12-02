@@ -281,7 +281,8 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         
         @page:first {
           size: letter portrait;
-          margin: 0;
+          margin: 0 !important;
+          padding: 0 !important;
           @bottom-right {
             content: "";
           }
@@ -297,6 +298,8 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             margin: 0 !important;
             padding: 0 !important;
             width: 8.5in !important;
+            height: auto !important;
+            overflow: visible !important;
           }
           
           /* Main container - no margins in print to prevent white bars */
@@ -306,6 +309,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             padding: 0 !important;
             width: 8.5in !important;
             max-width: 8.5in !important;
+            min-width: 8.5in !important;
           }
           
           /* Content wrapper - ensure it shows after cover page */
@@ -335,10 +339,26 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             padding: 0 !important;
             height: 11in !important;
             width: 8.5in !important;
+            min-width: 8.5in !important;
+            max-width: 8.5in !important;
+            min-height: 11in !important;
+            max-height: 11in !important;
             page-break-after: always;
-            box-sizing: border-box;
+            box-sizing: border-box !important;
             position: relative !important;
             overflow: hidden !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: 0 !important;
+            transform: none !important;
+            border: none !important;
+            outline: none !important;
+          }
+          
+          /* Ensure cover page background extends to all edges */
+          .cover-page::before,
+          .cover-page::after {
+            display: none !important;
           }
           
           /* Content wrapper after cover page - ensure it's visible */
@@ -439,6 +459,10 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
       <div className="cover-page" style={{
         height: '11in',
         width: '8.5in',
+        minWidth: '8.5in',
+        maxWidth: '8.5in',
+        minHeight: '11in',
+        maxHeight: '11in',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -448,7 +472,10 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         padding: '0',
         position: 'relative',
         overflow: 'hidden',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        left: '0',
+        right: '0',
+        top: '0'
       }}>
         {/* Content - positioned within safe area (20mm left, 5mm right, 10mm top, 8mm bottom) */}
         <div style={{
