@@ -763,9 +763,9 @@ function App() {
               cursor: "pointer"
             }}
             className="custom-tooltip"
-            data-tooltip="Print Program List"
+            data-tooltip="Print Program Guide"
           >
-            🖨️ Print Program List
+            🖨️ Print Program Guide
           </button>
         </div>
 
@@ -1448,9 +1448,9 @@ function App() {
           onClick={() => setCurrentView('print')} 
           style={{ background: "#4caf50", color: "white", fontSize: "0.75rem", padding: "0.3rem 0.6rem" }}
           className="custom-tooltip"
-          data-tooltip="Print Program List"
+          data-tooltip="Print Program Guide"
         >
-          🖨️ Print List
+          🖨️ Print Program Guide
         </button>
         <input
           name="program"

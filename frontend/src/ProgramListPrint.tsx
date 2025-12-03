@@ -517,7 +517,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             fontWeight: 'bold'
           }}
         >
-          🖨️ Print Program List
+          🖨️ Print Program Guide
         </button>
         <button
           onClick={fetchPrograms}

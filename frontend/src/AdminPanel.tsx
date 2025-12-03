@@ -142,7 +142,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
                   fontWeight: 'bold'
                 }}
               >
-                🖨️ Print Program List
+                🖨️ Print Program Guide
               </button>
             )}
             <button
