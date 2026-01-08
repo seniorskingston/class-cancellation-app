@@ -60,10 +60,11 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
       if (response.ok) {
         const data = await response.json();
         const backendEvents = data.events || [];
-        // Ensure all events have image URLs
+        // Ensure all events have image URLs and map priceStr to price
         const eventsWithImages = backendEvents.map((event: any) => ({
           ...event,
-          image_url: event.image_url || '/event-schedule-banner.png'
+          image_url: event.image_url || '/event-schedule-banner.png',
+          price: event.price || event.priceStr || event.price
         }));
         setEvents(eventsWithImages);
         console.log('Events loaded:', eventsWithImages.length, eventsWithImages);
@@ -102,7 +103,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             dateStr: event.dateStr || '',
             timeStr: event.timeStr || '',
             image_url: event.image_url || '/logo192.png',
-            price: event.price || '',
+            price: event.price || event.priceStr || '',
             instructor: event.instructor || '',
             registration: event.registration || ''
           }));
@@ -715,9 +716,9 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
         {message && (
           <div className={`event-editor-message ${messageType}`}>
             {message}
-          </div>
+            </div>
         )}
-
+            
         {/* Image Editor Test Button */}
         <div style={{ 
           textAlign: 'center', 
@@ -727,27 +728,27 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
           border: '2px solid #ff0000',
           borderRadius: '10px'
         }}>
-          <button 
-            onClick={() => {
+            <button 
+              onClick={() => {
               setNewEvent({ ...newEvent, image_url: '/event-schedule-banner.png' });
               setMessage('✅ Test image URL set! Check the image editor below.');
-              setMessageType('success');
-            }}
-            style={{
+                setMessageType('success');
+              }}
+              style={{
               background: '#ff0000',
               color: 'white',
-              padding: '15px 30px',
+                padding: '15px 30px',
               border: 'none',
               borderRadius: '8px',
               fontSize: '1.1rem',
-              fontWeight: 'bold',
+                fontWeight: 'bold',
               cursor: 'pointer',
               boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
-            }}
-          >
+              }}
+            >
             🧪 TEST IMAGE EDITOR - Click to set test image
-          </button>
-        </div>
+            </button>
+              </div>
 
         {/* Controls */}
         <div className="event-editor-controls">
@@ -894,10 +895,10 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
             }}>
               🖼️ EVENT BANNER/IMAGE URL 🖼️
             </label>
-            <input
-              type="text"
-              value={newEvent.image_url || ''}
-              onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
+              <input
+                type="text"
+                value={newEvent.image_url || ''}
+                onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
               placeholder="Enter image URL: /event-schedule-banner.png or https://example.com/image.jpg"
               style={{ 
                 width: '100%', 
@@ -1135,7 +1136,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
               ))}
             </div>
           )}
-        </div>
+              </div>
       </div>
     </div>
   );
