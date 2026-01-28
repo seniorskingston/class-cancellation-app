@@ -741,6 +741,7 @@ def get_programs_from_db(
     date: Optional[str] = None,
     day: Optional[str] = None,
     location: Optional[str] = None,
+    session: Optional[str] = None,
     program_status: Optional[str] = None,
     has_cancellation: Optional[bool] = False
 ):
@@ -800,6 +801,10 @@ def get_programs_from_db(
     if location:
         query += " AND location LIKE ?"
         params.append(f"%{location}%")
+    
+    if session:
+        query += " AND session = ?"
+        params.append(session)
     
     if program_status:
         query += " AND program_status = ?"
@@ -6759,6 +6764,7 @@ def get_cancellations(
     date: Optional[str] = Query(None),
     day: Optional[str] = Query(None),
     location: Optional[str] = Query(None),
+    session: Optional[str] = Query(None),
     program_status: Optional[str] = Query(None),
     has_cancellation: Optional[bool] = Query(False),
 ):
@@ -6785,12 +6791,25 @@ def get_cancellations(
         date=date,
         day=day,
         location=location,
+        session=session,
         program_status=program_status,
         has_cancellation=has_cancellation
     )
     
+    # Get all unique sessions from database for filter dropdown
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT session FROM programs WHERE session IS NOT NULL AND session != '' ORDER BY CAST(session AS INTEGER)")
+    session_rows = cursor.fetchall()
+    all_sessions = [str(row[0]) for row in session_rows if row[0] and str(row[0]).strip() != '']
+    conn.close()
+    
     print(f"📈 Returning {len(programs)} results")
-    return {"data": programs, "last_loaded": datetime.now(KINGSTON_TZ).isoformat()}
+    return {
+        "data": programs, 
+        "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
+        "all_sessions": all_sessions
+    }
 
 @app.post("/api/refresh")
 async def refresh_data():
