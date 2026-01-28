@@ -503,11 +503,27 @@ function App() {
       // Trigger search immediately for program search
       await fetchCancellations(newFilters);
     } else {
-      // For all other filters, start from base filters so each search is independent
-      const newFilters: Filters = { 
-        ...baseFilters,
-        [name]: value,
-      };
+      // For other filters:
+      // - If this filter was empty before, COMBINE with existing filters (allow multi-filter search)
+      // - If this filter already had a value and user is changing it, RESET others (start a new search)
+      const previousValue = (filters as any)[name] as string | undefined;
+      const isChangingSameFilter = !!previousValue && previousValue !== value;
+
+      let newFilters: Filters;
+      if (isChangingSameFilter) {
+        // Start fresh for this filter only
+        newFilters = {
+          ...baseFilters,
+          [name]: value,
+        } as Filters;
+      } else {
+        // Combine with current filters
+        newFilters = {
+          ...filters,
+          [name]: value,
+        } as Filters;
+      }
+
       setFilters(newFilters);
       
       // Trigger search immediately to ensure it works every time
