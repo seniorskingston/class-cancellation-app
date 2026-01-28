@@ -28,8 +28,6 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
-  const [seasonText, setSeasonText] = useState<string>('WINTER 2025');
-  const [isEditingSeason, setIsEditingSeason] = useState<boolean>(false);
 
   useEffect(() => {
     fetchPrograms();
@@ -216,7 +214,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
       grouped[day].push(program);
     });
 
-    // Sort programs within each day: first by session number (2, 3, 4), then alphabetically by name, then by time
+    // Sort programs within each day: first by session number (2, 3, 4), then alphabetically by name within each session
     Object.keys(grouped).forEach(day => {
       grouped[day].sort((a, b) => {
         // First sort by session number (2, 3, 4)
@@ -229,16 +227,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
         // If same session, sort by program name alphabetically
         const nameA = (a.program || '').toLowerCase();
         const nameB = (b.program || '').toLowerCase();
-        const nameCompare = nameA.localeCompare(nameB);
-        
-        if (nameCompare !== 0) {
-          return nameCompare;
-        }
-        
-        // If same name, sort by time (morning to night)
-        const timeA = parseTimeToMinutes(a.time || '');
-        const timeB = parseTimeToMinutes(b.time || '');
-        return timeA - timeB;
+        return nameA.localeCompare(nameB);
       });
     });
 
@@ -527,7 +516,7 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
             fontWeight: 'bold'
           }}
         >
-          📋 Program Guide View
+          🖨️ Print the program guide
         </button>
         <button
           onClick={fetchPrograms}
@@ -604,59 +593,6 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
           </div>
         </div>
         
-        {/* Subtitle on green stripe */}
-        <div style={{
-          background: '#8bc34a',
-          padding: '10px 30px',
-          borderRadius: '6px',
-          display: 'inline-block',
-          marginTop: '15px',
-          boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
-        }}>
-          {isEditingSeason ? (
-            <input
-              type="text"
-              value={seasonText}
-              onChange={(e) => setSeasonText(e.target.value)}
-              onBlur={() => setIsEditingSeason(false)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  setIsEditingSeason(false);
-                }
-              }}
-              style={{
-                fontSize: '24px',
-                fontWeight: 'bold',
-                color: 'white',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                background: 'rgba(255, 255, 255, 0.2)',
-                border: '2px solid white',
-                borderRadius: '4px',
-                padding: '8px 15px',
-                textAlign: 'center',
-                width: '200px'
-              }}
-              autoFocus
-            />
-          ) : (
-            <h2 
-              style={{
-                fontSize: '24px',
-                fontWeight: 'bold',
-                margin: 0,
-                color: 'white',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                cursor: 'pointer'
-              }}
-              onClick={() => setIsEditingSeason(true)}
-              title="Click to edit"
-            >
-              {seasonText}
-            </h2>
-          )}
-        </div>
       </div>
 
       {/* Content wrapper for pages after cover - with padding */}
@@ -718,12 +654,12 @@ const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => 
                   alignItems: 'center'
                 }}>
                   <span>{program.program || 'N/A'}</span>
-                  {program.session && (
+                  {program.session && program.session.trim() !== '' && (
                     <span style={{
                       fontSize: '14px',
                       fontWeight: 'normal',
                       color: '#666',
-                      marginLeft: '10px'
+                      marginLeft: 'auto'
                     }}>
                       Session {program.session}
                     </span>
