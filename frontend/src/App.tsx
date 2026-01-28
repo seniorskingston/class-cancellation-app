@@ -117,6 +117,9 @@ function App() {
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageProgram, setMessageProgram] = useState<Cancellation | null>(null);
   const [messageText, setMessageText] = useState("");
+  const [senderName, setSenderName] = useState("");
+  const [senderPhone, setSenderPhone] = useState("");
+  const [senderEmail, setSenderEmail] = useState("");
 
   // Debug: Log modal state changes
   useEffect(() => {
@@ -398,8 +401,12 @@ function App() {
     setCancellations(data.data);
     setLastLoaded(data.last_loaded);
       
-      // Extract unique locations for filter dropdown
-      const uniqueLocations = Array.from(new Set(data.data.map((item: any) => item.location).filter((loc: any) => loc && loc !== ''))).sort() as string[];
+      // Extract unique locations for filter dropdown - use all locations from locations.json, not just those with cancellations
+      // This ensures "All Locations" always shows all available locations
+      const allLocationsFromJson = Object.keys(locationData);
+      const locationsFromData = Array.from(new Set(data.data.map((item: any) => item.location).filter((loc: any) => loc && loc !== ''))) as string[];
+      // Combine both sources and remove duplicates
+      const uniqueLocations = Array.from(new Set([...allLocationsFromJson, ...locationsFromData])).sort() as string[];
       setLocations(uniqueLocations);
     } catch (error) {
       console.error("Error fetching cancellations:", error);
@@ -505,7 +512,10 @@ function App() {
           message: message,
           program_name: program.program,
           program_id: program.program_id.split('.')[0],
-          instructor: program.instructor
+          instructor: program.instructor,
+          sender_name: senderName,
+          sender_phone: senderPhone,
+          sender_email: senderEmail
         })
       });
 
@@ -522,6 +532,9 @@ function App() {
         setShowMessageModal(false);
         setMessageText("");
         setMessageProgram(null);
+        setSenderName("");
+        setSenderPhone("");
+        setSenderEmail("");
         // Track successful message sent
         analytics.trackMessageSent();
       } else {
@@ -763,9 +776,9 @@ function App() {
               cursor: "pointer"
             }}
             className="custom-tooltip"
-            data-tooltip="Print Program Guide"
+            data-tooltip="Program Guide View"
           >
-            🖨️ Print Program Guide
+            📋 Program Guide View
           </button>
         </div>
 
@@ -1237,6 +1250,53 @@ function App() {
                 <strong>ID:</strong> {messageProgram.program_id.split('.')[0]}<br/>
                 <strong>Instructor:</strong> {messageProgram.instructor}
               </div>
+              
+              {/* Sender Information Fields */}
+              <div style={{ marginBottom: '15px' }}>
+                <input
+                  type="text"
+                  value={senderName}
+                  onChange={(e) => setSenderName(e.target.value)}
+                  placeholder="Sender's Name"
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    marginBottom: '10px'
+                  }}
+                />
+                <input
+                  type="tel"
+                  value={senderPhone}
+                  onChange={(e) => setSenderPhone(e.target.value)}
+                  placeholder="Sender's Phone Number"
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    marginBottom: '10px'
+                  }}
+                />
+                <input
+                  type="email"
+                  value={senderEmail}
+                  onChange={(e) => setSenderEmail(e.target.value)}
+                  placeholder="Sender's Email"
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    marginBottom: '10px'
+                  }}
+                />
+              </div>
+              
               <textarea
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
@@ -1259,6 +1319,9 @@ function App() {
                     setShowMessageModal(false);
                     setMessageText("");
                     setMessageProgram(null);
+                    setSenderName("");
+                    setSenderPhone("");
+                    setSenderEmail("");
                   }}
                   style={{
                     background: '#6c757d',
@@ -1450,7 +1513,7 @@ function App() {
           className="custom-tooltip"
           data-tooltip="Print Program Guide"
         >
-          🖨️ Print Program Guide
+          📋 Program Guide View
         </button>
         <input
           name="program"
@@ -2159,6 +2222,53 @@ function App() {
               <strong>ID:</strong> {messageProgram.program_id.split('.')[0]}<br/>
               <strong>Instructor:</strong> {messageProgram.instructor}
             </div>
+            
+            {/* Sender Information Fields */}
+            <div style={{ marginBottom: '15px' }}>
+              <input
+                type="text"
+                value={senderName}
+                onChange={(e) => setSenderName(e.target.value)}
+                placeholder="Sender's Name"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  marginBottom: '10px'
+                }}
+              />
+              <input
+                type="tel"
+                value={senderPhone}
+                onChange={(e) => setSenderPhone(e.target.value)}
+                placeholder="Sender's Phone Number"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  marginBottom: '10px'
+                }}
+              />
+              <input
+                type="email"
+                value={senderEmail}
+                onChange={(e) => setSenderEmail(e.target.value)}
+                placeholder="Sender's Email"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  marginBottom: '10px'
+                }}
+              />
+            </div>
+            
             <textarea
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
@@ -2181,6 +2291,9 @@ function App() {
                   setShowMessageModal(false);
                   setMessageText("");
                   setMessageProgram(null);
+                  setSenderName("");
+                  setSenderPhone("");
+                  setSenderEmail("");
                 }}
                 style={{
                   padding: '10px 20px',
@@ -2242,7 +2355,14 @@ function App() {
           justifyContent: 'center',
           padding: '20px'
         }}
-        onClick={() => setShowMessageModal(false)}
+        onClick={() => {
+          setShowMessageModal(false);
+          setMessageText("");
+          setMessageProgram(null);
+          setSenderName("");
+          setSenderPhone("");
+          setSenderEmail("");
+        }}
         >
           <div style={{
             backgroundColor: 'white',
@@ -2264,6 +2384,53 @@ function App() {
               <strong>ID:</strong> {messageProgram.program_id.split('.')[0]}<br/>
               <strong>Instructor:</strong> {messageProgram.instructor}
             </div>
+            
+            {/* Sender Information Fields */}
+            <div style={{ marginBottom: '15px' }}>
+              <input
+                type="text"
+                value={senderName}
+                onChange={(e) => setSenderName(e.target.value)}
+                placeholder="Sender's Name"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  marginBottom: '10px'
+                }}
+              />
+              <input
+                type="tel"
+                value={senderPhone}
+                onChange={(e) => setSenderPhone(e.target.value)}
+                placeholder="Sender's Phone Number"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  marginBottom: '10px'
+                }}
+              />
+              <input
+                type="email"
+                value={senderEmail}
+                onChange={(e) => setSenderEmail(e.target.value)}
+                placeholder="Sender's Email"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  marginBottom: '10px'
+                }}
+              />
+            </div>
+            
             <textarea
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
@@ -2286,6 +2453,9 @@ function App() {
                   setShowMessageModal(false);
                   setMessageText("");
                   setMessageProgram(null);
+                  setSenderName("");
+                  setSenderPhone("");
+                  setSenderEmail("");
                 }}
                 style={{
                   background: '#6c757d',
