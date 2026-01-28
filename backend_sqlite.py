@@ -627,6 +627,7 @@ def import_excel_data(file_path_or_content):
                 withdrawal TEXT,
                 description TEXT,
                 fee TEXT,
+                session TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
@@ -677,9 +678,10 @@ def import_excel_data(file_path_or_content):
                 # Calculate withdrawal eligibility
                 withdrawal = calculate_withdrawal(date_range, class_cancellation)
                 
-                # Extract description and fee from Excel
+                # Extract description, fee, and session from Excel
                 description = safe_str(row.get('Description', row.get('description', '')))
                 fee = safe_str(row.get('Fees', row.get('Fee', row.get('fee', row.get('fees', '')))))
+                session = safe_str(row.get('Session', row.get('session', '')))
                 
                 # Debug: Print available columns and values for ALL rows
                 print(f"🔍 Debug for {program} (ID: {program_id}):")
@@ -702,10 +704,10 @@ def import_excel_data(file_path_or_content):
                 # Insert into database with sheet name
                 cursor.execute('''
                     INSERT INTO programs (sheet, program, program_id, date_range, time, location, 
-                                       class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                       class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee, session)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (sheet_name, program, program_id, date_range, time, location, 
-                      class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee))
+                      class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee, session))
                 
                 total_records += 1
         
@@ -812,7 +814,8 @@ def get_programs_from_db(
             'note': row[11],
             'withdrawal': row[12],
             'description': row[13],  # Added description column
-            'fee': row[14]          # Added fee column
+            'fee': row[14],          # Added fee column
+            'session': row[15] if len(row) > 15 else ''  # Added session column
         })
     
     conn.close()
@@ -848,7 +851,8 @@ def get_programs_from_db(
                         'note': row[11],
                         'withdrawal': row[12],
                         'description': row[13],
-                        'fee': row[14]
+                        'fee': row[14],
+                        'session': row[15] if len(row) > 15 else ''
                     })
                 conn.close()
             else:
@@ -1057,7 +1061,149 @@ def scrape_with_working_selenium():
                 except:
                     print("⚠️ Timeout waiting for page to load")
                 
-                # Get page source after JavaScript execution
+                # Handle pagination - click "Load More" buttons until no more events
+                print("🔄 Handling pagination to load all events...")
+                max_pagination_attempts = 30  # Increased maximum attempts
+                pagination_attempts = 0
+                previous_event_count = 0
+                no_change_count = 0
+                
+                # Use JavaScript to force-load all content
+                print("   🔧 Using JavaScript to force-load all content...")
+                driver.execute_script("""
+                    // Scroll to bottom multiple times
+                    function scrollToBottom() {
+                        window.scrollTo(0, document.body.scrollHeight);
+                    }
+                    // Trigger any lazy loading
+                    var event = new Event('scroll');
+                    window.dispatchEvent(event);
+                """)
+                
+                while pagination_attempts < max_pagination_attempts:
+                    # Aggressive scrolling - scroll in increments to trigger lazy loading
+                    print(f"   📜 Scrolling (attempt {pagination_attempts + 1}/{max_pagination_attempts})...")
+                    for scroll_step in range(5):
+                        scroll_position = (scroll_step + 1) * 1000
+                        driver.execute_script(f"window.scrollTo(0, {scroll_position});")
+                        time.sleep(1)
+                    
+                    # Scroll to absolute bottom
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(3)  # Wait longer for content to load
+                    
+                    # Try JavaScript click on load more buttons (more reliable)
+                    try:
+                        load_more_clicked_js = driver.execute_script("""
+                            var buttons = document.querySelectorAll('button, a');
+                            for (var i = 0; i < buttons.length; i++) {
+                                var btn = buttons[i];
+                                var text = btn.textContent || btn.innerText || '';
+                                var className = btn.className || '';
+                                var id = btn.id || '';
+                                
+                                if ((text.toLowerCase().includes('load more') || 
+                                     text.toLowerCase().includes('show more') ||
+                                     text.toLowerCase().includes('more events') ||
+                                     className.toLowerCase().includes('load') ||
+                                     className.toLowerCase().includes('more') ||
+                                     id.toLowerCase().includes('load') ||
+                                     id.toLowerCase().includes('more')) &&
+                                    btn.offsetParent !== null) {
+                                    btn.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                    setTimeout(function() { btn.click(); }, 500);
+                                    return true;
+                                }
+                            }
+                            return false;
+                        """)
+                        if load_more_clicked_js:
+                            print("   ✅ Clicked load more button via JavaScript")
+                            time.sleep(4)  # Wait for new content
+                    except Exception as e:
+                        pass
+                    
+                    # Also try Selenium click method
+                    load_more_clicked = False
+                    load_more_selectors = [
+                        "//button[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'load more')]",
+                        "//button[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'show more')]",
+                        "//a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'load more')]",
+                        "//a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'show more')]",
+                        "button[class*='load']",
+                        "button[class*='more']",
+                        "a[class*='load']",
+                        "a[class*='more']",
+                        "[data-action='load-more']",
+                        "[id*='load']",
+                        "[id*='more']",
+                        ".load-more",
+                        ".show-more"
+                    ]
+                    
+                    for selector in load_more_selectors:
+                        try:
+                            if selector.startswith("//"):
+                                buttons = driver.find_elements(By.XPATH, selector)
+                            else:
+                                buttons = driver.find_elements(By.CSS_SELECTOR, selector)
+                            
+                            for button in buttons:
+                                try:
+                                    if button.is_displayed() and button.is_enabled():
+                                        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", button)
+                                        time.sleep(1)
+                                        button.click()
+                                        load_more_clicked = True
+                                        print(f"   ✅ Clicked load more button: {selector}")
+                                        time.sleep(4)  # Wait longer for content
+                                        break
+                                except:
+                                    continue
+                            
+                            if load_more_clicked:
+                                break
+                        except:
+                            continue
+                    
+                    # Check if new events were loaded
+                    current_page_source = driver.page_source
+                    soup_temp = BeautifulSoup(current_page_source, 'html.parser')
+                    
+                    # Count events more comprehensively
+                    event_containers_temp = soup_temp.select('div[class*="event"], div[class*="card"], article, div[class*="post"], div[class*="item"], div[class*="entry"]')
+                    # Also count by looking for date patterns in text
+                    all_text = soup_temp.get_text()
+                    date_matches = len(re.findall(r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}', all_text, re.IGNORECASE))
+                    current_event_count = max(len(event_containers_temp), date_matches // 2)  # Use higher count
+                    
+                    if current_event_count > previous_event_count:
+                        print(f"   📊 Loaded more events: {previous_event_count} → {current_event_count}")
+                        previous_event_count = current_event_count
+                        no_change_count = 0
+                        pagination_attempts = 0  # Reset if we found new events
+                    else:
+                        no_change_count += 1
+                        pagination_attempts += 1
+                        if not load_more_clicked and no_change_count >= 5:  # 5 attempts with no change
+                            print(f"   ⏸️ No more events to load after {no_change_count} attempts")
+                            break
+                
+                # Final aggressive scroll to ensure ALL content is loaded
+                print("📜 Final aggressive scroll to ensure ALL content is loaded...")
+                for i in range(10):  # More scrolls
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(1)
+                    # Scroll back up a bit to trigger any lazy loading
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight - 2000);")
+                    time.sleep(1)
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(1)
+                
+                # One more wait for any final lazy loading
+                time.sleep(5)
+                
+                # Get page source after all pagination
                 page_source = driver.page_source
                 
                 # Save the rendered HTML for debugging
@@ -1075,7 +1221,7 @@ def scrape_with_working_selenium():
                 # Look for event containers
                 print("🔍 Looking for event containers...")
                 
-                # Try different selectors for events (same as working method)
+                # Try different selectors for events - expanded list
                 event_selectors = [
                     'div[class*="event"]',
                     'div[class*="card"]',
@@ -1090,17 +1236,26 @@ def scrape_with_working_selenium():
                     'div[class*="grid"]',
                     'div[class*="list"]',
                     'div[class*="program"]',
-                    'div[class*="activity"]'
+                    'div[class*="activity"]',
+                    'div[class*="tile"]',
+                    'div[class*="block"]',
+                    'div[class*="panel"]',
+                    'div[class*="section"]',
+                    '[data-event]',
+                    '[data-type="event"]'
                 ]
                 
                 events_found = []
+                seen_event_keys = set()  # Track seen events to avoid duplicates
                 
+                # First pass: Use selectors
                 for selector in event_selectors:
                     containers = soup.select(selector)
                     if containers:
                         print(f"   Found {len(containers)} elements with selector: {selector}")
                         
-                        for i, container in enumerate(containers[:20]):  # Check first 20
+                        # Check ALL containers
+                        for i, container in enumerate(containers):
                             # Look for images in this container
                             images = container.find_all('img')
                             if images:
@@ -1171,6 +1326,15 @@ def scrape_with_working_selenium():
                                                     try:
                                                         # Parse date/time string
                                                         parsed_dt = parser.parse(date_time_str, fuzzy=True)
+                                                        
+                                                        # Fix year if we're in December and date is in January (year transition)
+                                                        current_date = datetime.now()
+                                                        if current_date.month == 12 and parsed_dt.month == 1:
+                                                            # If we're in December and the parsed date is January, it should be next year
+                                                            if parsed_dt.year == current_date.year:
+                                                                parsed_dt = parsed_dt.replace(year=current_date.year + 1)
+                                                                print(f"         Fixed year: {current_date.year} → {parsed_dt.year} (January event)")
+                                                        
                                                         start_date = parsed_dt
                                                         end_date = parsed_dt + timedelta(hours=1)
                                                         
@@ -1197,6 +1361,15 @@ def scrape_with_working_selenium():
                                                         date_str = match.group(1)
                                                         try:
                                                             parsed_dt = parser.parse(date_str, fuzzy=True)
+                                                            
+                                                            # Fix year if we're in December and date is in January (year transition)
+                                                            current_date = datetime.now()
+                                                            if current_date.month == 12 and parsed_dt.month == 1:
+                                                                # If we're in December and the parsed date is January, it should be next year
+                                                                if parsed_dt.year == current_date.year:
+                                                                    parsed_dt = parsed_dt.replace(year=current_date.year + 1)
+                                                                    print(f"         Fixed year: {current_date.year} → {parsed_dt.year} (January event)")
+                                                            
                                                             start_date = parsed_dt
                                                             end_date = parsed_dt + timedelta(hours=1)
                                                             date_str = parsed_dt.strftime('%B %d, %Y')
@@ -1241,19 +1414,330 @@ def scrape_with_working_selenium():
                                                 "timeStr": time_str
                                             }
                                             
-                                            events_found.append(event)
-                                            
-                                            print(f"         Event: {title} - {date_str} {time_str}")
-                                            print(f"         Banner: {img_src}")
+                                            # Use title + date as unique key to avoid duplicates
+                                            event_key = f"{title.lower().strip()}_{date_str}_{time_str}"
+                                            if event_key not in seen_event_keys:
+                                                events_found.append(event)
+                                                seen_event_keys.add(event_key)
+                                                print(f"         Event: {title} - {date_str} {time_str}")
+                                                print(f"         Banner: {img_src}")
+                                            else:
+                                                print(f"         ⏭️ Skipped duplicate: {title}")
                 
-                # Remove duplicates
+                # Helper function to check if an event is already found (fuzzy matching)
+                def is_duplicate_event(title, date_str, time_str):
+                    """Check if this event is already in the found events (fuzzy match)"""
+                    title_lower = title.lower().strip()
+                    for existing_event in events_found:
+                        existing_title = existing_event.get('title', '').lower().strip()
+                        existing_date = existing_event.get('dateStr', '')
+                        existing_time = existing_event.get('timeStr', '')
+                        
+                        # Check if title is similar (one contains the other or very similar)
+                        title_similar = (title_lower in existing_title or existing_title in title_lower) and len(title_lower) > 5
+                        date_similar = date_str in existing_date or existing_date in date_str
+                        time_similar = (not time_str or not existing_time or time_str == existing_time or time_str in existing_time or existing_time in time_str)
+                        
+                        if title_similar and date_similar:
+                            return True
+                    return False
+                
+                # Helper function to extract clean event title from text
+                def extract_clean_title(text, date_str):
+                    """Extract a clean event title from text, avoiding descriptions"""
+                    # Known event titles to look for
+                    known_titles = [
+                        'Fresh Food Market', 'Legal Advice', 'Legal Clinic', 'E-Resources at the Library',
+                        'Cafe Franglish', "Tuesday at Tom's", '500 years', '500 Years'
+                    ]
+                    
+                    # First, check if any known title is in the text
+                    for known_title in known_titles:
+                        if known_title.lower() in text.lower():
+                            return known_title
+                    
+                    # Split by common separators
+                    lines = [l.strip() for l in text.split('\n') if l.strip()]
+                    sentences = [s.strip() for s in text.split('.') if s.strip()]
+                    
+                    # Look for short, title-like text (not descriptions)
+                    for line in lines[:3]:  # Check first 3 lines
+                        line = line.strip()
+                        # Skip if it's too long (likely a description)
+                        if len(line) > 80:
+                            continue
+                        # Skip if it contains common description words
+                        if any(word in line.lower() for word in ['brings', 'provides', 'learn', 'join', 'register', 'call', 'appointment']):
+                            continue
+                        # Skip if it's just a time or date
+                        if re.match(r'^\d{1,2}:\d{2}', line):
+                            continue
+                        # Good candidate for title
+                        if 5 < len(line) < 80:
+                            return line
+                    
+                    # Fallback: first sentence if short enough
+                    if sentences and len(sentences[0]) < 80:
+                        return sentences[0]
+                    
+                    # Last resort: first line
+                    return lines[0] if lines else text[:80]
+                
+                # Second pass: Look for events by date patterns in all text (catch any missed events)
+                print("🔍 Second pass: Looking for events by date patterns in all text...")
+                all_text_elements = soup.find_all(['div', 'article', 'section', 'li', 'p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+                
+                # Also search in the full page text for specific event patterns
+                full_page_text = soup.get_text()
+                
+                # Look for ALL date patterns (not just specific January dates) to catch all events including February and recurring events
+                # Find all date patterns in the text: "January 20", "February 5", "Jan 20", "Feb 5", etc.
+                all_date_patterns = re.findall(r'(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}', full_page_text, re.IGNORECASE)
+                # Remove duplicates while preserving order
+                seen_dates = set()
+                unique_dates = []
+                for date_match in all_date_patterns:
+                    if date_match not in seen_dates:
+                        seen_dates.add(date_match)
+                        unique_dates.append(date_match)
+                
+                print(f"   📅 Found {len(unique_dates)} unique date patterns in page text")
+                
+                for date_str in unique_dates:
+                    # Find all occurrences of this date in the text - look for pattern: Date, Time, Title
+                    pattern = re.escape(date_str) + r'[,\s]+(\d{1,2}:\d{2}\s*(?:am|pm|AM|PM))?[,\s]*(.+?)(?=(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}|$)'
+                    matches = re.finditer(pattern, full_page_text, re.IGNORECASE | re.DOTALL)
+                    for match in matches:
+                        time_str_match = match.group(1) if match.group(1) else None
+                        event_text = match.group(2) if match.group(2) else match.group(3) if len(match.groups()) > 2 else ''
+                        
+                        if event_text and len(event_text.strip()) > 5:
+                            # Extract clean event title (not description)
+                            potential_title = extract_clean_title(event_text, date_str)
+                            
+                            # Skip if title is too long or looks like a description
+                            if len(potential_title) > 80 or any(word in potential_title.lower() for word in ['brings', 'provides', 'learn about', 'join in', 'register call']):
+                                continue
+                            
+                            # Skip common non-event text
+                            skip_patterns = ['close', 'advertisement', 'register today', 'upcoming events', 'click here']
+                            if any(skip in potential_title.lower() for skip in skip_patterns):
+                                continue
+                            
+                            # Check if this is a duplicate of an existing event
+                            if is_duplicate_event(potential_title, date_str, time_str_match or ''):
+                                print(f"         ⏭️ Skipped duplicate: {potential_title} on {date_str}")
+                                continue
+                            
+                            # Create unique key
+                            event_key = f"{potential_title.lower().strip()}_{date_str}_{time_str_match or ''}"
+                            
+                            if event_key not in seen_event_keys:
+                                    # Parse date
+                                    try:
+                                        parsed_dt = parser.parse(date_str, fuzzy=True)
+                                        current_date = datetime.now()
+                                        # Fix year for January events when we're in December (year transition)
+                                        if current_date.month == 12 and parsed_dt.month == 1:
+                                            if parsed_dt.year == current_date.year:
+                                                parsed_dt = parsed_dt.replace(year=current_date.year + 1)
+                                        # Fix year for February+ events when we're in January (should be same year)
+                                        elif current_date.month == 1 and parsed_dt.month >= 2:
+                                            if parsed_dt.year < current_date.year:
+                                                parsed_dt = parsed_dt.replace(year=current_date.year)
+                                        
+                                        # Parse time
+                                        if time_str_match:
+                                            time_match = re.search(r'(\d{1,2}):(\d{2})\s*(am|pm|AM|PM)', time_str_match, re.IGNORECASE)
+                                            if time_match:
+                                                hour = int(time_match.group(1))
+                                                minute = int(time_match.group(2))
+                                                period = time_match.group(3).upper()
+                                                if period == 'PM' and hour != 12:
+                                                    hour += 12
+                                                elif period == 'AM' and hour == 12:
+                                                    hour = 0
+                                                parsed_dt = parsed_dt.replace(hour=hour, minute=minute)
+                                        else:
+                                            # Default time if not found (try to find in event_text)
+                                            time_in_text = re.search(r'(\d{1,2}):(\d{2})\s*(am|pm|AM|PM)', event_text, re.IGNORECASE)
+                                            if time_in_text:
+                                                hour = int(time_in_text.group(1))
+                                                minute = int(time_in_text.group(2))
+                                                period = time_in_text.group(3).upper()
+                                                if period == 'PM' and hour != 12:
+                                                    hour += 12
+                                                elif period == 'AM' and hour == 12:
+                                                    hour = 0
+                                                parsed_dt = parsed_dt.replace(hour=hour, minute=minute)
+                                        
+                                        # Look for image - search in nearby elements
+                                        img_src = None
+                                        # Try to find image by searching for elements containing this text
+                                        for elem in all_text_elements:
+                                            if date_str.lower() in elem.get_text().lower() and potential_title.lower() in elem.get_text().lower():
+                                                img_elem = elem.find('img')
+                                                if not img_elem:
+                                                    # Check parent
+                                                    parent = elem.find_parent()
+                                                    if parent:
+                                                        img_elem = parent.find('img')
+                                                
+                                                if img_elem:
+                                                    img_src = img_elem.get('src', '')
+                                                    if img_src:
+                                                        if not img_src.startswith('http'):
+                                                            if img_src.startswith('/'):
+                                                                img_src = f"https://seniorskingston.ca{img_src}"
+                                                            else:
+                                                                img_src = f"https://seniorskingston.ca/{img_src}"
+                                                        break
+                                        
+                                        # Default image for known events
+                                        if not img_src:
+                                            if 'Fresh Food Market' in potential_title:
+                                                img_src = "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh Food Market.jpg"
+                                            elif 'Legal Advice' in potential_title:
+                                                img_src = "https://cms.seniorskingston.ca/assets/ff281879-79a3-45e3-ab4c-b54f69a2e371/Legal Advice.JPG"
+                                        
+                                        # Get description (everything after title, but limit length)
+                                        description_lines = [l.strip() for l in event_text.split('\n') if l.strip() and l.strip() != potential_title]
+                                        description = ' '.join(description_lines[:3])[:500] if description_lines else potential_title
+                                        
+                                        event = {
+                                            "title": potential_title,
+                                            "description": description,
+                                            "image_url": img_src or "/logo192.png",
+                                            "startDate": parsed_dt.isoformat() + 'Z',
+                                            "endDate": (parsed_dt + timedelta(hours=1)).isoformat() + 'Z',
+                                            "location": "Seniors Kingston",
+                                            "dateStr": parsed_dt.strftime('%B %d, %Y'),
+                                            "timeStr": parsed_dt.strftime('%I:%M %p').lstrip('0') if parsed_dt.hour != 0 or parsed_dt.minute != 0 else "TBD"
+                                        }
+                                        
+                                        events_found.append(event)
+                                        seen_event_keys.add(event_key)
+                                        print(f"         ✅ Found by date pattern: {potential_title} - {parsed_dt.strftime('%B %d, %Y')} {event['timeStr']}")
+                                    except Exception as e:
+                                        print(f"         ⚠️ Error parsing date pattern {date_str}: {e}")
+                                        continue
+                
+                # Third pass: Look for events in all elements more comprehensively (only for truly missing events)
+                print("🔍 Third pass: Comprehensive search in all elements (skip if already found)...")
+                for elem in all_text_elements:
+                    text = elem.get_text(strip=True)
+                    if not text or len(text) < 20:
+                        continue
+                    
+                    # Look for date patterns like "January 20" or "Jan 20" or "January 27"
+                    date_pattern = re.search(r'(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}', text, re.IGNORECASE)
+                    if date_pattern:
+                        date_str = date_pattern.group(0)
+                        
+                        # Check if this is a duplicate first
+                        # Extract potential title
+                        lines = [l.strip() for l in text.split('\n') if l.strip()]
+                        if not lines:
+                            continue
+                        
+                        potential_title = extract_clean_title(text, date_str)
+                        
+                        # Skip if this looks like a duplicate
+                        time_match = re.search(r'(\d{1,2}:\d{2}\s*(?:am|pm|AM|PM))', text, re.IGNORECASE)
+                        time_str = time_match.group(1) if time_match else ""
+                        
+                        if is_duplicate_event(potential_title, date_str, time_str):
+                            continue
+                        
+                        # Check if this looks like an event (has time, title, etc.)
+                        has_time = bool(time_match)
+                        has_title = len(potential_title) > 5 and len(potential_title) < 80
+                        
+                        # Also check for known event keywords
+                        has_event_keywords = any(keyword in text.lower() for keyword in [
+                            'fresh food market', 'legal advice', 'legal clinic', 'e-resources', '500 years', 
+                            'workshop', 'meeting', 'class', 'event', 'program', 'seminar', 'lecture', 'session'
+                        ])
+                        
+                        if (has_time or has_event_keywords) and has_title:
+                            event_key = f"{potential_title.lower().strip()}_{date_str}_{time_str}"
+                            
+                            if event_key not in seen_event_keys:
+                                # Look for image in parent or nearby
+                                img_elem = elem.find('img') or (elem.find_parent().find('img') if elem.find_parent() else None)
+                                img_src = None
+                                if img_elem:
+                                    img_src = img_elem.get('src', '')
+                                    if img_src and not img_src.startswith('http'):
+                                        if img_src.startswith('/'):
+                                            img_src = f"https://seniorskingston.ca{img_src}"
+                                        else:
+                                            img_src = f"https://seniorskingston.ca/{img_src}"
+                                
+                                # Default images for known events
+                                if not img_src:
+                                    if 'Fresh Food Market' in potential_title:
+                                        img_src = "https://cms.seniorskingston.ca/assets/6d7e0dd8-63c7-45ff-916d-67280d4f9966/Fresh Food Market.jpg"
+                                    elif 'Legal Advice' in potential_title:
+                                        img_src = "https://cms.seniorskingston.ca/assets/ff281879-79a3-45e3-ab4c-b54f69a2e371/Legal Advice.JPG"
+                                
+                                # Parse date
+                                try:
+                                    parsed_dt = parser.parse(date_str, fuzzy=True)
+                                    current_date = datetime.now()
+                                    # Fix year for January events when we're in December (year transition)
+                                    if current_date.month == 12 and parsed_dt.month == 1:
+                                        if parsed_dt.year == current_date.year:
+                                            parsed_dt = parsed_dt.replace(year=current_date.year + 1)
+                                    # Fix year for February+ events when we're in January (should be same year)
+                                    elif current_date.month == 1 and parsed_dt.month >= 2:
+                                        if parsed_dt.year < current_date.year:
+                                            parsed_dt = parsed_dt.replace(year=current_date.year)
+                                    
+                                    if time_match:
+                                        hour = int(time_match.group(1))
+                                        minute = int(time_match.group(2))
+                                        period = time_match.group(3).upper() if len(time_match.groups()) > 2 else 'AM'
+                                        if period == 'PM' and hour != 12:
+                                            hour += 12
+                                        elif period == 'AM' and hour == 12:
+                                            hour = 0
+                                        parsed_dt = parsed_dt.replace(hour=hour, minute=minute)
+                                    
+                                    # Get description (everything after title)
+                                    description_lines = [l.strip() for l in lines if l.strip() != potential_title and not re.match(r'^\d{1,2}:\d{2}', l)]
+                                    description = ' '.join(description_lines[:3])[:500] if description_lines else potential_title
+                                    
+                                    event = {
+                                        "title": potential_title,
+                                        "description": description,
+                                        "image_url": img_src or "/logo192.png",
+                                        "startDate": parsed_dt.isoformat() + 'Z',
+                                        "endDate": (parsed_dt + timedelta(hours=1)).isoformat() + 'Z',
+                                        "location": "Seniors Kingston",
+                                        "dateStr": parsed_dt.strftime('%B %d, %Y'),
+                                        "timeStr": parsed_dt.strftime('%I:%M %p').lstrip('0') if parsed_dt.hour != 0 or parsed_dt.minute != 0 else "TBD"
+                                    }
+                                    
+                                    events_found.append(event)
+                                    seen_event_keys.add(event_key)
+                                    print(f"         ✅ Found in comprehensive search: {potential_title} - {parsed_dt.strftime('%B %d, %Y')} {event['timeStr']}")
+                                except Exception as e:
+                                    print(f"         ⚠️ Error parsing: {e}")
+                                    pass
+                
+                # Remove duplicates based on title + date + time (not just title, to allow same event on different dates)
                 unique_events = []
-                seen_titles = set()
+                seen_event_keys_final = set()
                 for event in events_found:
-                    title = event['title']
-                    if title not in seen_titles and len(title) > 5:
+                    title = event.get('title', '')
+                    date_str = event.get('dateStr', '')
+                    time_str = event.get('timeStr', '')
+                    # Use title + date + time as unique key to allow same event on different dates
+                    event_key_final = f"{title.lower().strip()}_{date_str}_{time_str}"
+                    if event_key_final not in seen_event_keys_final and len(title) > 5:
                         unique_events.append(event)
-                        seen_titles.add(title)
+                        seen_event_keys_final.add(event_key_final)
                 
                 print(f"\n📊 Found {len(unique_events)} unique events with banners")
                 
@@ -1604,12 +2088,13 @@ def restore_fallback_programs_to_database():
                 fee = prog.get('fee', '')
                 
                 # Insert into database
+                session = safe_str(prog.get('session', ''))
                 cursor.execute('''
                     INSERT INTO programs (sheet, program, program_id, date_range, time, location, 
-                                       class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                       class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee, session)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (sheet, program, program_id, date_range, time, location, 
-                      class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee))
+                      class_room, instructor, program_status, class_cancellation, note, withdrawal, description, fee, session))
                 
                 restored_count += 1
             except Exception as e:
@@ -6728,6 +7213,9 @@ def send_message(message_data: dict):
         program_name = message_data.get('program_name', 'Unknown')
         program_id = message_data.get('program_id', 'Unknown')
         instructor = message_data.get('instructor', 'Unknown')
+        sender_name = message_data.get('sender_name', '')
+        sender_phone = message_data.get('sender_phone', '')
+        sender_email = message_data.get('sender_email', '')
         
         # Create email content
         email_subject = f"Program Inquiry: {subject}"
@@ -6738,6 +7226,12 @@ Program Inquiry Details:
 Program Name: {program_name}
 Program ID: {program_id}
 Instructor: {instructor}
+
+Sender Information:
+-------------------
+Name: {sender_name if sender_name else 'Not provided'}
+Phone: {sender_phone if sender_phone else 'Not provided'}
+Email: {sender_email if sender_email else 'Not provided'}
 
 Message:
 --------
