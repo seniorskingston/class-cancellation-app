@@ -452,8 +452,12 @@ function App() {
       // This ensures "All Locations" always shows all available locations
       const allLocationsFromJson = Object.keys(locationData);
       const locationsFromData = Array.from(new Set(allData.map((item: any) => item.location).filter((loc: any) => loc && loc !== ''))) as string[];
-      // Combine both sources and remove duplicates
-      const uniqueLocations = Array.from(new Set([...allLocationsFromJson, ...locationsFromData])).sort() as string[];
+      // Combine both sources, remove duplicates, and filter out any locations with "Center" (American spelling)
+      // Only keep locations with "Centre" (British spelling) or locations that don't contain "Center"
+      const allLocations = [...allLocationsFromJson, ...locationsFromData];
+      const uniqueLocations = Array.from(new Set(allLocations))
+        .filter((loc: string) => !loc.includes("Center")) // Remove all locations with "Center"
+        .sort() as string[];
       setLocations(uniqueLocations);
       
       // Extract unique sessions for filter dropdown - use all data
