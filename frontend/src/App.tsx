@@ -125,6 +125,17 @@ function App() {
   const [senderPhone, setSenderPhone] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
 
+  // Helper: base (empty) filters for new searches
+  const baseFilters: Filters = {
+    program: "",
+    program_id: "",
+    day: "",
+    location: "",
+    session: "",
+    program_status: "",
+    view_type: "all",
+  };
+
   // Debug: Log modal state changes
   useEffect(() => {
     console.log('📱 Modal state changed:', { 
@@ -452,7 +463,7 @@ function App() {
     if (name === "program") {
       // For unified search, set both program and program_id
       const newFilters = { 
-        ...filters, 
+        ...baseFilters,
         program: value, 
         program_id: value,
         view_type: "all" // Always search all cancellations to show pinned classes
@@ -462,8 +473,11 @@ function App() {
       // Trigger search immediately for program search
       await fetchCancellations(newFilters);
     } else {
-      // For all other filters, update state and trigger fetch
-      const newFilters = { ...filters, [name]: value };
+      // For all other filters, start from base filters so each search is independent
+      const newFilters: Filters = { 
+        ...baseFilters,
+        [name]: value,
+      };
       setFilters(newFilters);
       
       // Trigger search immediately to ensure it works every time
