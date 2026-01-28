@@ -432,12 +432,19 @@ function App() {
   };
 
   useEffect(() => {
+    // Initial load - fetch all data
     fetchCancellations();
     fetchAllcancellations(); // Also fetch all cancellations for pinned items
-    const interval = setInterval(() => fetchCancellations(), 5 * 60 * 1000); // 5 min
+    const interval = setInterval(() => {
+      // Auto-refresh every 5 minutes (only when no active filters)
+      const hasActiveFilters = filters.program || filters.day || filters.location || filters.session || filters.program_status;
+      if (!hasActiveFilters) {
+        fetchCancellations();
+      }
+    }, 5 * 60 * 1000); // 5 min
     return () => clearInterval(interval);
     // eslint-disable-next-line
-  }, [filters, isMobileView]);
+  }, [isMobileView]); // Only re-run when mobile view changes, not on filter changes
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -455,7 +462,12 @@ function App() {
       // Trigger search immediately for program search
       await fetchCancellations(newFilters);
     } else {
-      setFilters({ ...filters, [name]: value });
+      // For all other filters, update state and trigger fetch
+      const newFilters = { ...filters, [name]: value };
+      setFilters(newFilters);
+      
+      // Trigger search immediately to ensure it works every time
+      await fetchCancellations(newFilters);
     }
   };
 
@@ -835,7 +847,7 @@ function App() {
         <div className="mobile-data">
           {sortedCancellations.length === 0 ? (
             <div className="mobile-no-data">
-              No class cancellations found.
+              No programs found.
             </div>
           ) : (
             sortedCancellations.map((c, i) => {
@@ -1622,7 +1634,7 @@ function App() {
             {sortedCancellations.length === 0 && (
               <tr>
                 <td colSpan={14} style={{ textAlign: "center" }}>
-                  No cancellations found.
+                  No programs found.
                 </td>
               </tr>
             )}
