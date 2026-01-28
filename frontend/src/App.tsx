@@ -25,6 +25,7 @@ type Cancellation = {
   withdrawal: string;
   description: string;  // Description column
   fee: string;         // Fee column
+  session?: string;    // Session column
   is_favorite?: boolean;  // Favorite status
 };
 
@@ -33,6 +34,7 @@ type Filters = {
   program_id: string;
   day: string;
   location: string;
+  session: string;
   program_status: string;
   view_type: string;
 };
@@ -105,6 +107,7 @@ function App() {
     program_id: "",
     day: "",
     location: "",
+    session: "",
     program_status: "",
     view_type: "all", // New: "cancellations" or "all"
   });
@@ -112,6 +115,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [locations, setLocations] = useState<string[]>([]);
+  const [sessions, setSessions] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<Cancellation | null>(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
@@ -408,6 +412,17 @@ function App() {
       // Combine both sources and remove duplicates
       const uniqueLocations = Array.from(new Set([...allLocationsFromJson, ...locationsFromData])).sort() as string[];
       setLocations(uniqueLocations);
+      
+      // Extract unique sessions for filter dropdown - use all_sessions from API response (always shows all sessions)
+      const allSessionsFromAPI = data.all_sessions || [];
+      const sessionsFromData = Array.from(new Set(data.data.map((item: any) => item.session).filter((sess: any) => sess && sess !== '' && sess.trim() !== ''))) as string[];
+      // Combine both sources and remove duplicates, then sort numerically
+      const uniqueSessions = Array.from(new Set([...allSessionsFromAPI, ...sessionsFromData])).sort((a, b) => {
+        const numA = parseInt(a) || 0;
+        const numB = parseInt(b) || 0;
+        return numA - numB;
+      });
+      setSessions(uniqueSessions);
     } catch (error) {
       console.error("Error fetching cancellations:", error);
       setCancellations([]);
@@ -1530,6 +1545,12 @@ function App() {
           <option>Friday</option>
           <option>Saturday</option>
         </select>
+        <select name="session" value={filters.session} onChange={handleInputChange}>
+          <option value="">All Sessions</option>
+          {sessions.map((session, index) => (
+            <option key={index} value={session}>Session {session}</option>
+          ))}
+        </select>
           <select name="location" value={filters.location} onChange={handleInputChange}>
             <option value="">All Locations</option>
             {locations.map((location, index) => (
@@ -1583,6 +1604,7 @@ function App() {
             <tr>
               <th>☆</th>
               <th>Day</th>
+              <th>Session</th>
               <th>Program</th>
               <th>Program ID</th>
               <th>Date Range</th>
@@ -1599,7 +1621,7 @@ function App() {
           <tbody>
             {sortedCancellations.length === 0 && (
               <tr>
-                <td colSpan={13} style={{ textAlign: "center" }}>
+                <td colSpan={14} style={{ textAlign: "center" }}>
                   No cancellations found.
                 </td>
               </tr>
@@ -1618,6 +1640,7 @@ function App() {
                     </span>
                   </td>
                 <td>{c.sheet}</td>
+                <td>{c.session && c.session.trim() !== '' ? `Session ${c.session}` : ''}</td>
                 <td
                   onClick={() => setSelectedProgram(c)}
                   data-tooltip="More information about this program"
