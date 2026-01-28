@@ -639,6 +639,10 @@ def import_excel_data(file_path_or_content):
         for sheet_name, df in excel_data.items():
             print(f"Processing sheet: {sheet_name}")
             print(f"Rows in {sheet_name}: {len(df)}")
+            print(f"Columns in {sheet_name}: {list(df.columns)}")
+            
+            # Get the first column name (Session column)
+            first_col_name = df.columns[0] if len(df.columns) > 0 else None
             
             # Process each row in the sheet
             for _, row in df.iterrows():
@@ -681,7 +685,18 @@ def import_excel_data(file_path_or_content):
                 # Extract description, fee, and session from Excel
                 description = safe_str(row.get('Description', row.get('description', '')))
                 fee = safe_str(row.get('Fees', row.get('Fee', row.get('fee', row.get('fees', '')))))
+                # Session is the first column - try by name first, then by first column name, then by index
                 session = safe_str(row.get('Session', row.get('session', '')))
+                if not session or session == '':
+                    # Try to get from first column by its actual name
+                    if first_col_name:
+                        session = safe_str(row.get(first_col_name, ''))
+                    # If still empty, try by index (first column = index 0)
+                    if not session or session == '':
+                        try:
+                            session = safe_str(row.iloc[0]) if hasattr(row, 'iloc') else ''
+                        except:
+                            session = ''
                 
                 # Debug: Print available columns and values for ALL rows
                 print(f"🔍 Debug for {program} (ID: {program_id}):")
