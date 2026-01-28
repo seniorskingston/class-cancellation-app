@@ -384,51 +384,81 @@ function App() {
     }
   };
 
+  const applyFiltersToData = (data: Cancellation[], filtersToUse: Filters): Cancellation[] => {
+    return data.filter((item) => {
+      // Program / Program ID unified search
+      if (filtersToUse.program) {
+        const term = filtersToUse.program.toLowerCase();
+        if (
+          !item.program.toLowerCase().includes(term) &&
+          !item.program_id.toLowerCase().includes(term)
+        ) {
+          return false;
+        }
+      }
+
+      if (filtersToUse.day && item.sheet !== filtersToUse.day) {
+        return false;
+      }
+
+      if (filtersToUse.location && item.location !== filtersToUse.location) {
+        return false;
+      }
+
+      if (filtersToUse.session && (item.session || "").toString() !== filtersToUse.session.toString()) {
+        return false;
+      }
+
+      if (filtersToUse.program_status && item.program_status !== filtersToUse.program_status) {
+        return false;
+      }
+
+      // view_type: "cancellations" means only rows with class_cancellation
+      if (filtersToUse.view_type === "cancellations") {
+        if (!item.class_cancellation || item.class_cancellation.trim() === "") {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
   const fetchCancellations = async (customFilters: Filters | null = null) => {
     setLoading(true);
     try {
-    const params = new URLSearchParams();
-      
-      // Use custom filters if provided, otherwise use current filters
-      const filtersToUse = customFilters || filters;
-      Object.entries(filtersToUse).forEach(([key, value]) => {
-      if (value) params.append(key, value);
-    });
-      if (filtersToUse.view_type === "cancellations") params.append("has_cancellation", "true");
-      
-      const url = `${API_URL}/api/cancellations?${params.toString()}`;
-      console.log("Fetching from:", url);
-      console.log("Filters being used:", filtersToUse);
-      console.log("URL parameters:", params.toString());
-      
-      const res = await fetch(url);
+      // Always fetch all programs from backend; apply filters on frontend
+      const res = await fetch(`${API_URL}/api/cancellations`);
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       
-    const data = await res.json();
+      const data = await res.json();
       console.log("Received data:", data);
       console.log("Data count:", data.data ? data.data.length : 0);
       console.log("Is mobile view:", isMobileView);
-      console.log("API URL:", url);
       
-    setCancellations(data.data);
-    setLastLoaded(data.last_loaded);
+      const allData: Cancellation[] = data.data || [];
+
+      // Use custom filters if provided, otherwise current filters
+      const filtersToUse = customFilters || filters;
+      const filtered = applyFiltersToData(allData, filtersToUse);
+
+      setCancellations(filtered);
+      setLastLoaded(data.last_loaded);
       
       // Extract unique locations for filter dropdown - use all locations from locations.json, not just those with cancellations
       // This ensures "All Locations" always shows all available locations
       const allLocationsFromJson = Object.keys(locationData);
-      const locationsFromData = Array.from(new Set(data.data.map((item: any) => item.location).filter((loc: any) => loc && loc !== ''))) as string[];
+      const locationsFromData = Array.from(new Set(allData.map((item: any) => item.location).filter((loc: any) => loc && loc !== ''))) as string[];
       // Combine both sources and remove duplicates
       const uniqueLocations = Array.from(new Set([...allLocationsFromJson, ...locationsFromData])).sort() as string[];
       setLocations(uniqueLocations);
       
-      // Extract unique sessions for filter dropdown - use all_sessions from API response (always shows all sessions)
-      const allSessionsFromAPI = data.all_sessions || [];
-      const sessionsFromData = Array.from(new Set(data.data.map((item: any) => item.session).filter((sess: any) => sess && sess !== '' && sess.trim() !== ''))) as string[];
-      // Combine both sources and remove duplicates, then sort numerically
-      const uniqueSessions = Array.from(new Set([...allSessionsFromAPI, ...sessionsFromData])).sort((a, b) => {
+      // Extract unique sessions for filter dropdown - use all data
+      const sessionsFromData = Array.from(new Set(allData.map((item: any) => item.session).filter((sess: any) => sess && sess !== '' && sess.toString().trim() !== ''))) as string[];
+      const uniqueSessions = sessionsFromData.sort((a, b) => {
         const numA = parseInt(a) || 0;
         const numB = parseInt(b) || 0;
         return numA - numB;
@@ -438,7 +468,7 @@ function App() {
       console.error("Error fetching cancellations:", error);
       setCancellations([]);
     } finally {
-    setLoading(false);
+      setLoading(false);
     }
   };
 
