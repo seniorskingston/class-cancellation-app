@@ -491,39 +491,34 @@ function App() {
     const { name, value } = e.target;
     
     if (name === "program") {
-      // For unified search, set both program and program_id
-      const newFilters = { 
-        ...baseFilters,
+      // Unified search: program text filters both program and program_id
+      const newFilters: Filters = { 
+        ...filters,
         program: value, 
         program_id: value,
-        view_type: "all" // Always search all cancellations to show pinned classes
       };
       setFilters(newFilters);
       
       // Trigger search immediately for program search
       await fetchCancellations(newFilters);
+    } else if (name === "view_type" && value === "all") {
+      // "Show All Programs" – reset all filters to default and show everything
+      const newFilters = { 
+        ...baseFilters,
+        view_type: "all" // Always search all cancellations to show pinned classes
+      };
+      setFilters(newFilters);
+      
+      // Trigger search immediately for full program list
+      await fetchCancellations(newFilters);
     } else {
-      // For other filters:
-      // - If this filter was empty before, COMBINE with existing filters (allow multi-filter search)
-      // - If this filter already had a value and user is changing it, RESET others (start a new search)
-      const previousValue = (filters as any)[name] as string | undefined;
-      const isChangingSameFilter = !!previousValue && previousValue !== value;
-
-      let newFilters: Filters;
-      if (isChangingSameFilter) {
-        // Start fresh for this filter only
-        newFilters = {
-          ...baseFilters,
-          [name]: value,
-        } as Filters;
-      } else {
-        // Combine with current filters
-        newFilters = {
-          ...filters,
-          [name]: value,
-        } as Filters;
-      }
-
+      // All other filters:
+      // - combine with existing filters (AND logic across Day, Location, Status, Session)
+      // - empty value ("") means "All ___" (do not filter on that field)
+      const newFilters: Filters = {
+        ...filters,
+        [name]: value,
+      };
       setFilters(newFilters);
       
       // Trigger search immediately to ensure it works every time
