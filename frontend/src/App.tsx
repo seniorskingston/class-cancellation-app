@@ -42,58 +42,77 @@ type Filters = {
       const API_URL = "https://class-cancellation-backend.onrender.com";
 
 // Helper function to get full address from location
+// Function to normalize location names from database to match locations.json keys
+const normalizeLocationName = (location: string): string => {
+  if (!location) return "";
+  
+  const cleanLocation = location.trim();
+  
+  // Remove any "Center" (American spelling) locations - they should not be used
+  if (cleanLocation.includes("Center")) {
+    return "";
+  }
+  
+  // Direct mappings for known variations (only for locations that exist in locations.json)
+  const directMappings: { [key: string]: string } = {
+    "SCW – Seniors Centre West": "SCW - Seniors Centre West",
+    "SCW - Seniors Centre West": "SCW - Seniors Centre West",
+    "SCG - Seniors Centre Saint George's": "SCG - Seniors Centre Saint George's",
+    "SCL - Seniors Centre Loyalist Amherstview": "SCLA - Seniors Centre Loyalist Amherstview"
+  };
+  
+  // Try direct mapping first
+  if (directMappings[cleanLocation]) {
+    return directMappings[cleanLocation];
+  }
+  
+  // Try exact match with locations.json keys
+  if (locationData && (locationData as any)[cleanLocation]) {
+    return cleanLocation;
+  }
+  
+  // Try case-insensitive exact match
+  if (locationData) {
+    const lowerLocationCode = cleanLocation.toLowerCase();
+    for (const key of Object.keys(locationData)) {
+      if (key.toLowerCase() === lowerLocationCode) {
+        return key;
+      }
+    }
+  }
+  
+  // Try to match by first part (before dash)
+  const firstPart = cleanLocation.split(/[–-]/)[0].trim();
+  
+  if (locationData) {
+    for (const key of Object.keys(locationData)) {
+      const keyFirstPart = key.split(' - ')[0].trim();
+      
+      if (firstPart === keyFirstPart) {
+        return key;
+      }
+    }
+  }
+  
+  // If no match found, return original (will be filtered out)
+  return cleanLocation;
+};
+
 const getFullAddress = (locationCode: string): string => {
   if (!locationCode || !locationData) {
     return "Address not available";
   }
   
+  // Normalize the location code first
+  const normalizedLocation = normalizeLocationName(locationCode);
   
-  // Clean the location code
-  const cleanLocationCode = locationCode.trim();
-  
-  // Direct mapping for the specific cases you mentioned
-  const directMappings: { [key: string]: string } = {
-    "SCE – Seniors Centre East": "SCE - Seniors Center East",
-    "SCE - Seniors Centre East": "SCE - Seniors Center East", 
-    "SCW – Seniors Centre West": "SCW - Seniors Centre West",
-    "SCW - Seniors Centre West": "SCW - Seniors Centre West",
-    "SCG - Seniors Centre Saint George's": "SCG - Seniors Centre Saint George's",
-    "SCL - Seniors Centre Loyalist Amherstview": "SCLA - Seniors Centre Loyalist Amherstview",
-    "SCN – Seniors Centre North": "SCN - Seniors Center North",
-    "SCN - Seniors Centre North": "SCN - Seniors Center North"
-  };
-  
-  // Try direct mapping first
-  if (directMappings[cleanLocationCode]) {
-    const mappedKey = directMappings[cleanLocationCode];
-    const address = (locationData as any)[mappedKey];
-    if (address) {
-      return address;
-    }
+  if (!normalizedLocation) {
+    return "Address not available";
   }
   
   // Try exact match
-  if ((locationData as any)[cleanLocationCode]) {
-    return (locationData as any)[cleanLocationCode];
-  }
-  
-  // Try case-insensitive exact match
-  const lowerLocationCode = cleanLocationCode.toLowerCase();
-  for (const [key, value] of Object.entries(locationData)) {
-    if (key.toLowerCase() === lowerLocationCode) {
-      return value;
-    }
-  }
-  
-  // Try to match by first part (before dash)
-  const firstPart = cleanLocationCode.split(/[–-]/)[0].trim();
-  
-  for (const [key, value] of Object.entries(locationData)) {
-    const keyFirstPart = key.split(' - ')[0].trim();
-    
-    if (firstPart === keyFirstPart) {
-      return value;
-    }
+  if ((locationData as any)[normalizedLocation]) {
+    return (locationData as any)[normalizedLocation];
   }
   
   return "Address not available";
@@ -401,8 +420,20 @@ function App() {
         return false;
       }
 
-      if (filtersToUse.location && item.location !== filtersToUse.location) {
-        return false;
+      if (filtersToUse.location) {
+        // Normalize both the filter location and the item location for comparison
+        const normalizedFilterLocation = normalizeLocationName(filtersToUse.location);
+        const normalizedItemLocation = normalizeLocationName(item.location);
+        
+        // If either normalization fails (empty string), skip this item
+        if (!normalizedFilterLocation || !normalizedItemLocation) {
+          return false;
+        }
+        
+        // Compare normalized locations
+        if (normalizedItemLocation !== normalizedFilterLocation) {
+          return false;
+        }
       }
 
       if (filtersToUse.session && (item.session || "").toString() !== filtersToUse.session.toString()) {
@@ -448,15 +479,12 @@ function App() {
       setCancellations(filtered);
       setLastLoaded(data.last_loaded);
       
-      // Extract unique locations for filter dropdown - use all locations from locations.json, not just those with cancellations
-      // This ensures "All Locations" always shows all available locations
+      // Extract unique locations for filter dropdown - ONLY use locations from locations.json
+      // This ensures "All Locations" always shows all available locations and prevents duplicates
+      // Database locations may have variations, so we only use the canonical list from locations.json
       const allLocationsFromJson = Object.keys(locationData);
-      const locationsFromData = Array.from(new Set(allData.map((item: any) => item.location).filter((loc: any) => loc && loc !== ''))) as string[];
-      // Combine both sources, remove duplicates, and filter out any locations with "Center" (American spelling)
-      // Only keep locations with "Centre" (British spelling) or locations that don't contain "Center"
-      const allLocations = [...allLocationsFromJson, ...locationsFromData];
-      const uniqueLocations = Array.from(new Set(allLocations))
-        .filter((loc: string) => !loc.includes("Center")) // Remove all locations with "Center"
+      const uniqueLocations = allLocationsFromJson
+        .filter((loc: string) => !loc.includes("Center")) // Remove all locations with "Center" (American spelling)
         .sort() as string[];
       setLocations(uniqueLocations);
       
