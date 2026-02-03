@@ -55,6 +55,8 @@ const normalizeLocationName = (location: string): string => {
   
   // Direct mappings for known variations (only for locations that exist in locations.json)
   const directMappings: { [key: string]: string } = {
+    "SCE – Seniors Centre East": "SCE - Seniors Centre East",
+    "SCE - Seniors Centre East": "SCE - Seniors Centre East",
     "SCW – Seniors Centre West": "SCW - Seniors Centre West",
     "SCW - Seniors Centre West": "SCW - Seniors Centre West",
     "SCG - Seniors Centre Saint George's": "SCG - Seniors Centre Saint George's",
