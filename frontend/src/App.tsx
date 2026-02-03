@@ -57,6 +57,8 @@ const normalizeLocationName = (location: string): string => {
   const directMappings: { [key: string]: string } = {
     "SCE – Seniors Centre East": "SCE - Seniors Centre East",
     "SCE - Seniors Centre East": "SCE - Seniors Centre East",
+    "SCN – Seniors Centre North": "SCN - Seniors Centre North",
+    "SCN - Seniors Centre North": "SCN - Seniors Centre North",
     "SCW – Seniors Centre West": "SCW - Seniors Centre West",
     "SCW - Seniors Centre West": "SCW - Seniors Centre West",
     "SCG - Seniors Centre Saint George's": "SCG - Seniors Centre Saint George's",
