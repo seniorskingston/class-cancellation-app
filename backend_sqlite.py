@@ -22,6 +22,46 @@ from contextlib import asynccontextmanager
 from urllib.parse import urljoin
 import traceback
 
+
+def _get_event_year_month(event):
+    """Return (year, month) for an event from startDate or dateStr."""
+    start = event.get("startDate") or ""
+    if start:
+        m = re.match(r"(\d{4})-(\d{2})", start)
+        if m:
+            return (int(m.group(1)), int(m.group(2)))
+    date_str = event.get("dateStr") or ""
+    if not date_str:
+        return (0, 0)
+    months = {
+        "January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6,
+        "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12,
+        "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "Jun": 6, "Jul": 7, "Aug": 8,
+        "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12,
+    }
+    for name, num in months.items():
+        if name in date_str:
+            y = re.search(r"20\d{2}", date_str)
+            year = int(y.group(0)) if y else datetime.now().year
+            return (year, num)
+    return (0, 0)
+
+
+def _merge_events_by_month(existing_events, new_events):
+    """Keep all existing events. Add from new_events only (year, month) not in existing."""
+    existing_months = {_get_event_year_month(e) for e in existing_events}
+    existing_months.discard((0, 0))
+    merged = list(existing_events)
+    for e in new_events:
+        ym = _get_event_year_month(e)
+        if ym != (0, 0) and ym not in existing_months:
+            merged.append(e)
+    def _sort_key(ev):
+        s = ev.get("startDate") or ""
+        return (s[:19] if s else "9999-99-99") + (ev.get("title") or "")
+    merged.sort(key=_sort_key)
+    return merged
+
 # Google Cloud Storage imports
 try:
     from google.cloud import storage as gcs_storage
@@ -5121,40 +5161,52 @@ async def scrape_and_save_file_locally():
         scraped_events = scrape_seniors_kingston_events()
         
         if scraped_events and len(scraped_events) > 0:
-            # Format for save (same format as export)
-            export_data = {
-                "export_date": datetime.now().isoformat(),
-                "total_events": len(scraped_events),
-                "events": scraped_events,
-                "source": "scraped_from_website",
-                "scraped_at": datetime.now().isoformat()
-            }
-            
-            # Save to local file
             filename = "scraped_events_for_upload.json"
             filepath = filename  # Save in current directory (where backend runs)
             file_saved = False
+
+            # Merge by month: keep all events from existing file (previous months), add only new months from scrape
+            events_to_save = scraped_events
+            try:
+                if os.path.exists(filepath):
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        existing_data = json.load(f)
+                    existing_events = existing_data.get("events", [])
+                    if existing_events:
+                        events_to_save = _merge_events_by_month(existing_events, scraped_events)
+                        print(f"✅ Merged by month: kept {len(existing_events)} existing, added new months → {len(events_to_save)} total")
+            except Exception as merge_err:
+                print(f"⚠️ Could not merge with existing file: {merge_err}. Saving scrape only.")
+
+            # Format for save (same format as export)
+            export_data = {
+                "export_date": datetime.now().isoformat(),
+                "total_events": len(events_to_save),
+                "events": events_to_save,
+                "source": "scraped_from_website",
+                "scraped_at": datetime.now().isoformat()
+            }
             
             try:
                 with open(filepath, 'w', encoding='utf-8') as f:
                     json.dump(export_data, f, indent=2, ensure_ascii=False)
                 
-                print(f"✅ Scraped {len(scraped_events)} events and saved to {filepath}")
+                print(f"✅ Scraped {len(scraped_events)} events and saved to {filepath} (total: {len(events_to_save)})")
                 file_saved = True
             except Exception as save_error:
                 print(f"⚠️ Could not save file locally: {save_error}")
                 file_saved = False
             
-            # Return success with full data for download
+            # Return success with full data for download (merged list)
             return {
                 "success": True,
-                "message": f"✅ Successfully scraped {len(scraped_events)} events!" + (f" File saved to {filename}." if file_saved else " Use 'Download' to save the file."),
-                "total_events": len(scraped_events),
+                "message": f"✅ Successfully scraped {len(scraped_events)} events!" + (f" File saved to {filename} ({len(events_to_save)} total)." if file_saved else " Use 'Download' to save the file."),
+                "total_events": len(events_to_save),
                 "filename": filename,
                 "filepath": filepath if file_saved else None,
                 "file_saved": file_saved,
-                "events": scraped_events,  # Return ALL events for download
-                "export_data": export_data  # Return full export data for download
+                "events": events_to_save,
+                "export_data": export_data
             }
         else:
             # Scraping failed (likely on cloud environment)
