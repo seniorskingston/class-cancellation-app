@@ -146,13 +146,14 @@ def get_gcs_client():
         traceback.print_exc()
         return None
 
-def upload_to_gcs(data: dict, filename: str) -> bool:
-    """Upload JSON data to Google Cloud Storage"""
+def upload_to_gcs(data: dict, filename: str):
+    """Upload JSON data to Google Cloud Storage. Returns (True, None) on success, (False, error_message) on failure."""
     try:
         client = get_gcs_client()
         if not client:
-            print(f"⚠️ GCS client not available, cannot upload {filename}")
-            return False
+            msg = "GCS client not available. Set GCS_CREDENTIALS (or GOOGLE_APPLICATION_CREDENTIALS) and ensure the bucket exists."
+            print(f"⚠️ {msg}")
+            return (False, msg)
         
         bucket = client.bucket(GCS_BUCKET_NAME)
         blob = bucket.blob(filename)
@@ -164,12 +165,13 @@ def upload_to_gcs(data: dict, filename: str) -> bool:
         blob.upload_from_string(json_data, content_type='application/json')
         
         print(f"✅ Successfully uploaded {filename} to GCS bucket {GCS_BUCKET_NAME}")
-        return True
+        return (True, None)
         
     except Exception as e:
+        err = str(e)
         print(f"❌ Error uploading {filename} to GCS: {e}")
         traceback.print_exc()
-        return False
+        return (False, err)
 
 def download_from_gcs(filename: str) -> dict:
     """Download JSON data from Google Cloud Storage"""
@@ -343,11 +345,11 @@ def save_stored_events():
             "events": events_to_save
         }
         
-        gcs_success = upload_to_gcs(gcs_data, GCS_EVENTS_FILE)
-        if gcs_success:
+        gcs_ok, gcs_err = upload_to_gcs(gcs_data, GCS_EVENTS_FILE)
+        if gcs_ok:
             print(f"☁️ Saved {len(events_to_save)} events to Google Cloud Storage")
         else:
-            print(f"⚠️ Could not save to GCS, using local file only")
+            print(f"⚠️ Could not save to GCS: {gcs_err}; using local file only")
         
         # Also save to local file as backup
         with open(STORED_EVENTS_FILE, 'w', encoding='utf-8') as f:
@@ -4775,7 +4777,7 @@ async def upload_events_to_gcs():
         }
         
         # Upload to GCS
-        success = upload_to_gcs(gcs_data, GCS_EVENTS_FILE)
+        success, error_msg = upload_to_gcs(gcs_data, GCS_EVENTS_FILE)
         
         if success:
             return {
@@ -4788,7 +4790,7 @@ async def upload_events_to_gcs():
         else:
             return {
                 "success": False,
-                "error": "Failed to upload to Google Cloud Storage. Check credentials and bucket configuration."
+                "error": error_msg or "Failed to upload to Google Cloud Storage. Check credentials and bucket configuration."
             }
         
     except Exception as e:
@@ -4864,7 +4866,7 @@ async def upload_excel_to_gcs():
         }
         
         # Upload to GCS
-        success = upload_to_gcs(gcs_data, GCS_EXCEL_FILE)
+        success, error_msg = upload_to_gcs(gcs_data, GCS_EXCEL_FILE)
         
         if success:
             return {
@@ -4877,7 +4879,7 @@ async def upload_excel_to_gcs():
         else:
             return {
                 "success": False,
-                "error": "Failed to upload to Google Cloud Storage. Check credentials and bucket configuration."
+                "error": error_msg or "Failed to upload to Google Cloud Storage. Check credentials and bucket configuration."
             }
         
     except Exception as e:
@@ -4988,7 +4990,7 @@ async def upload_excel_file_to_gcs(file: UploadFile = File(...)):
                         },
                         "programs": programs
                     }
-                    upload_to_gcs(gcs_data, GCS_EXCEL_FILE)
+                    upload_to_gcs(gcs_data, GCS_EXCEL_FILE)  # (success, _) ignored; DB restore below is primary
                     
                     # Also restore to database
                     conn = sqlite3.connect(DB_PATH)
