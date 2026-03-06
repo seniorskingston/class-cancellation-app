@@ -62,7 +62,10 @@ const normalizeLocationName = (location: string): string => {
     "SCW – Seniors Centre West": "SCW - Seniors Centre West",
     "SCW - Seniors Centre West": "SCW - Seniors Centre West",
     "SCG - Seniors Centre Saint George's": "SCG - Seniors Centre Saint George's",
-    "SCL - Seniors Centre Loyalist Amherstview": "SCLA - Seniors Centre Loyalist Amherstview"
+    "SCL - Seniors Centre Loyalist Amherstview": "SCLA - Seniors Centre Loyalist Amherstview",
+    "OL": "OL - Online",
+    "OL - Online": "OL - Online",
+    "Online": "OL - Online"
   };
   
   // Try direct mapping first
