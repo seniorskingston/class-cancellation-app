@@ -1040,6 +1040,13 @@ def scrape_seniors_kingston_events():
     try:
         print("🌐 Starting REAL scraping with Selenium (the method that found 46 events with banners)...")
         
+        # First try parsing the server-rendered events list page.
+        # This path is fast and often more reliable than Selenium.
+        rendered_page_events = scrape_from_rendered_events_page()
+        if rendered_page_events:
+            print(f"✅ Rendered page scraping found {len(rendered_page_events)} events")
+            return rendered_page_events
+        
         # Use the WORKING Selenium method that found 46 events with banners
         selenium_events = scrape_with_working_selenium()
         if selenium_events:
@@ -1060,6 +1067,111 @@ def scrape_seniors_kingston_events():
         print(f"❌ Error in scraping: {e}")
         import traceback
         traceback.print_exc()
+        return []
+
+def scrape_from_rendered_events_page():
+    """Parse events from the server-rendered events listing page."""
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        import re
+
+        url = "https://seniorskingston.ca/events?_data=routes/events"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
+        response = requests.get(url, headers=headers, timeout=30)
+        if response.status_code != 200:
+            print(f"⚠️ Rendered page request failed: HTTP {response.status_code}")
+            return []
+
+        soup = BeautifulSoup(response.content, "html.parser")
+        links = soup.find_all("a", href=True)
+        print(f"🔍 Rendered page links found: {len(links)}")
+
+        month_pattern = r"(January|February|March|April|May|June|July|August|September|October|November|December)"
+        dt_pattern = re.compile(rf"{month_pattern}\s+\d{{1,2}},\s+\d{{1,2}}:\d{{2}}\s*(am|pm|AM|PM)")
+        events = []
+        seen = set()
+
+        for a in links:
+            href = (a.get("href") or "").strip()
+            if "/events/" not in href:
+                continue
+            # Keep only real event links, not the /events landing page itself.
+            if href.rstrip("/") in ["/events", "https://seniorskingston.ca/events"]:
+                continue
+
+            text = a.get_text(" ", strip=True)
+            if not text or len(text) < 8:
+                continue
+
+            # Inject missing space before month names, e.g. "Legal AdviceMarch 23..."
+            text = re.sub(rf"([a-z\)\]])({month_pattern})", r"\1 \2", text)
+
+            m = dt_pattern.search(text)
+            if not m:
+                continue
+
+            dt_text = m.group(0)
+            title = text[:m.start()].strip(" -:|")
+            details = text[m.end():].strip()
+
+            if not title or len(title) < 3:
+                continue
+            if title.lower() in {"register", "online", "click here"}:
+                continue
+
+            try:
+                parsed_dt = parser.parse(dt_text, fuzzy=True)
+                current_date = datetime.now()
+                if current_date.month == 12 and parsed_dt.month == 1 and parsed_dt.year == current_date.year:
+                    parsed_dt = parsed_dt.replace(year=current_date.year + 1)
+                elif current_date.month == 1 and parsed_dt.month >= 2 and parsed_dt.year < current_date.year:
+                    parsed_dt = parsed_dt.replace(year=current_date.year)
+            except Exception:
+                continue
+
+            # Try nearby image first
+            image_url = None
+            parent = a.find_parent()
+            if parent:
+                img = parent.find("img")
+                if img:
+                    image_url = img.get("src")
+            if image_url and not image_url.startswith("http"):
+                if image_url.startswith("/"):
+                    image_url = f"https://seniorskingston.ca{image_url}"
+                else:
+                    image_url = f"https://seniorskingston.ca/{image_url}"
+            if not image_url:
+                image_url = "/logo192.png"
+
+            date_str = parsed_dt.strftime("%B %d, %Y")
+            time_str = parsed_dt.strftime("%I:%M %p").lstrip("0")
+            key = f"{title.lower().strip()}_{date_str}_{time_str}"
+            if key in seen:
+                continue
+            seen.add(key)
+
+            event = {
+                "title": title,
+                "description": details[:800] if details else title,
+                "image_url": image_url,
+                "startDate": parsed_dt.isoformat() + "Z",
+                "endDate": (parsed_dt + timedelta(hours=1)).isoformat() + "Z",
+                "location": "Seniors Kingston",
+                "dateStr": date_str,
+                "timeStr": time_str,
+            }
+            events.append(event)
+
+        print(f"📊 Rendered page parser extracted {len(events)} events")
+        return events
+    except Exception as e:
+        print(f"❌ Error in rendered page scraping: {e}")
         return []
 
 def scrape_with_working_selenium():
@@ -4668,6 +4780,31 @@ async def get_fallback_status():
 # GOOGLE CLOUD STORAGE API ENDPOINTS
 # ============================================
 
+def _get_gcs_account_info():
+    """Return project_id and client_email from credentials (no secrets). Helps identify which Google Cloud account is in use."""
+    try:
+        creds_json = os.getenv('GCS_CREDENTIALS')
+        if creds_json:
+            data = json.loads(creds_json)
+            return {
+                "project_id": data.get("project_id"),
+                "client_email": data.get("client_email"),
+                "source": "GCS_CREDENTIALS env"
+            }
+        creds_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+        if creds_path and os.path.exists(creds_path):
+            with open(creds_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return {
+                "project_id": data.get("project_id"),
+                "client_email": data.get("client_email"),
+                "source": "file: " + creds_path
+            }
+    except Exception:
+        pass
+    return None
+
+
 @app.get("/api/gcs/status")
 async def get_gcs_status():
     """Get Google Cloud Storage connection status and list files"""
@@ -4677,13 +4814,18 @@ async def get_gcs_status():
         gcs_creds_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
         gcs_creds_path_exists = os.path.exists(gcs_creds_path) if gcs_creds_path else False
         
+        account_info = _get_gcs_account_info()
+        
         debug_info = {
             "GCS_CREDENTIALS_env_set": gcs_creds_set,
             "GCS_CREDENTIALS_length": len(os.getenv('GCS_CREDENTIALS', '')) if gcs_creds_set else 0,
             "GOOGLE_APPLICATION_CREDENTIALS": gcs_creds_path,
             "GOOGLE_APPLICATION_CREDENTIALS_file_exists": gcs_creds_path_exists,
             "GCS_BUCKET_NAME": GCS_BUCKET_NAME,
-            "GCS_AVAILABLE_library": GCS_AVAILABLE
+            "GCS_AVAILABLE_library": GCS_AVAILABLE,
+            "gcs_project_id": account_info.get("project_id") if account_info else None,
+            "gcs_client_email": account_info.get("client_email") if account_info else None,
+            "gcs_credentials_source": account_info.get("source") if account_info else None,
         }
         
         client = get_gcs_client()
@@ -4739,6 +4881,8 @@ async def get_gcs_status():
             "events_file_exists": events_file_exists,
             "excel_file_exists": excel_file_exists,
             "excel_original_exists": excel_original_exists,
+            "gcs_project_id": account_info.get("project_id") if account_info else None,
+            "gcs_client_email": account_info.get("client_email") if account_info else None,
             "debug": debug_info
         }
         
@@ -5378,8 +5522,6 @@ async def scrape_events_endpoint(request: Request, replace: bool = Query(False))
             # Track counts and details
             added_count = 0
             skipped_count = 0
-            updated_count = 0
-            updated_details = []
             skipped_details = []
 
             def find_existing(primary_key, secondary_key):
@@ -5403,46 +5545,12 @@ async def scrape_events_endpoint(request: Request, replace: bool = Query(False))
                 existing_match = find_existing(primary_key, secondary_key)
 
                 if existing_match:
-                    existing_event = existing_match['event']
-                    existing_index = existing_match['index']
-                    fields_to_check = [
-                        'image_url',
-                        'description',
-                        'dateStr',
-                        'timeStr',
-                        'location',
-                        'price',
-                        'instructor',
-                        'registration',
-                        'startDate',
-                        'endDate'
-                    ]
-
-                    changed_fields = []
-                    for field in fields_to_check:
-                        new_value = new_event.get(field)
-                        if new_value and new_value != existing_event.get(field):
-                            existing_event[field] = new_value
-                            changed_fields.append(field)
-
-                    if changed_fields:
-                        stored_events[existing_index] = existing_event
-                        existing_events_dict[primary_key] = {
-                            'event': existing_event,
-                            'index': existing_index,
-                            'secondary_key': secondary_key
-                        }
-                        updated_count += 1
-                        updated_details.append(
-                            f"🔄 Updated {new_event.get('title', 'Unknown')} ({', '.join(changed_fields)})"
-                        )
-                        print(f"🔄 Updated existing event: {new_event.get('title', 'Unknown')} - fields changed: {changed_fields}")
-                    else:
-                        skipped_count += 1
-                        skipped_details.append(
-                            f"⚠️ Skipped (no changes): {new_event.get('title', 'Unknown')}"
-                        )
-                        print(f"⚠️ Skipping event (no changes detected): {new_event.get('title', 'Unknown')}")
+                    # Never modify existing events; preserve them exactly as they are.
+                    skipped_count += 1
+                    skipped_details.append(
+                        f"⚠️ Skipped existing event: {new_event.get('title', 'Unknown')}"
+                    )
+                    print(f"⚠️ Skipping existing event (preserved): {new_event.get('title', 'Unknown')}")
                     continue
 
                     # no explicit else since continue
@@ -5459,8 +5567,7 @@ async def scrape_events_endpoint(request: Request, replace: bool = Query(False))
             
             print(f"✅ SAFE MERGE COMPLETE:")
             print(f"   📊 Added {added_count} new events")
-            print(f"   🔄 Updated {updated_count} existing events")
-            print(f"   🚫 Skipped {skipped_count} duplicates/no-change events")
+            print(f"   🚫 Skipped {skipped_count} existing/duplicate events")
             print(f"   📈 Total events now: {len(stored_events)}")
             print(f"   🔒 Existing events preserved (no overwrites)")
             
@@ -5469,14 +5576,12 @@ async def scrape_events_endpoint(request: Request, replace: bool = Query(False))
             
             return {
                 "success": True,
-                "message": f"✅ Safe merge complete! Added {added_count} new events, skipped {skipped_count} duplicates. Your existing events are preserved.",
+                "message": f"✅ Safe merge complete! Added {added_count} new events, skipped {skipped_count} existing/duplicate events. Your existing events are preserved.",
                 "events_count": len(stored_events),
                 "added": added_count,
-                "updated": updated_count,
                 "skipped": skipped_count,
                 "preserved": len(stored_events) - added_count,
                 "skipped_details": skipped_details[:5],  # Show first 5 skipped details
-                "updated_details": updated_details[:5],
                 "events": stored_events[:5]  # Return first 5 events as sample
             }
         else:
