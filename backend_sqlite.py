@@ -626,13 +626,40 @@ def init_database():
             withdrawal TEXT,
             description TEXT,
             fee TEXT,
+            session TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
     conn.commit()
     conn.close()
-    print("✅ Database recreated with new schema (including description and fee columns)")
+    print("✅ Database recreated with new schema (including description, fee, and session columns)")
+
+def ensure_programs_schema():
+    """Ensure required columns exist on existing deployments (non-destructive migration)."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # If table does not exist yet, create it with full schema.
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='programs'")
+        if not cursor.fetchone():
+            conn.close()
+            init_database()
+            return
+
+        # Check existing columns
+        cursor.execute("PRAGMA table_info(programs)")
+        columns = {row[1] for row in cursor.fetchall()}
+
+        if "session" not in columns:
+            cursor.execute("ALTER TABLE programs ADD COLUMN session TEXT")
+            print("✅ Added missing 'session' column to programs table")
+
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️ Schema migration warning: {e}")
 
 def import_excel_data(file_path_or_content):
     """Import data from Excel file into SQLite database"""
@@ -6929,6 +6956,7 @@ def get_cancellations(
 ):
     print(f"🌐 API call received from frontend")
     print(f"📊 Query params: {locals()}")
+    ensure_programs_schema()
     
     # Get total count first for debugging
     conn = sqlite3.connect(DB_PATH)
@@ -6958,8 +6986,14 @@ def get_cancellations(
     # Get all unique sessions from database for filter dropdown
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT DISTINCT session FROM programs WHERE session IS NOT NULL AND session != '' ORDER BY CAST(session AS INTEGER)")
-    session_rows = cursor.fetchall()
+    try:
+        cursor.execute("SELECT DISTINCT session FROM programs WHERE session IS NOT NULL AND session != '' ORDER BY CAST(session AS INTEGER)")
+        session_rows = cursor.fetchall()
+    except sqlite3.OperationalError:
+        # Backward-compatible fallback in case migration hasn't run yet.
+        ensure_programs_schema()
+        cursor.execute("SELECT DISTINCT session FROM programs WHERE session IS NOT NULL AND session != '' ORDER BY session")
+        session_rows = cursor.fetchall()
     all_sessions = [str(row[0]) for row in session_rows if row[0] and str(row[0]).strip() != '']
     conn.close()
     
