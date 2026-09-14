@@ -41,67 +41,89 @@ type Filters = {
 
       const API_URL = "https://class-cancellation-backend.onrender.com";
 
-// Helper function to get full address from location
+// Normalize punctuation/spelling so Excel, API, and dropdown names compare equal
+const canonicalizeLocationText = (location: string): string => {
+  return location
+    .trim()
+    .replace(/[\u2013\u2014\u2212]/g, "-") // en-dash, em-dash, minus → hyphen
+    .replace(/Center/gi, "Centre")
+    .replace(/\s*-\s*/g, " - ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const fuzzyLocationText = (location: string): string => {
+  return canonicalizeLocationText(location)
+    .toLowerCase()
+    .replace(/\bseniors\b/g, "senior")
+    .replace(/['’]/g, "");
+};
+
 // Function to normalize location names from database to match locations.json keys
 const normalizeLocationName = (location: string): string => {
   if (!location) return "";
-  
-  const cleanLocation = location.trim();
-  
-  // Remove any "Center" (American spelling) locations - they should not be used
-  if (cleanLocation.includes("Center")) {
-    return "";
-  }
-  
-  // Direct mappings for known variations (only for locations that exist in locations.json)
+
+  const cleanLocation = canonicalizeLocationText(location);
+  const locationKeys = locationData ? Object.keys(locationData) : [];
+
   const directMappings: { [key: string]: string } = {
-    "SCE – Seniors Centre East": "SCE - Seniors Centre East",
     "SCE - Seniors Centre East": "SCE - Seniors Centre East",
-    "SCN – Seniors Centre North": "SCN - Seniors Centre North",
+    "SCE - Senior Centre East": "SCE - Seniors Centre East",
     "SCN - Seniors Centre North": "SCN - Seniors Centre North",
-    "SCW – Seniors Centre West": "SCW - Seniors Centre West",
+    "SCN - Senior Centre North": "SCN - Seniors Centre North",
     "SCW - Seniors Centre West": "SCW - Seniors Centre West",
-    "SCG - Seniors Centre Saint George's": "SCG - Seniors Centre Saint George's",
+    "SCW - Senior Centre West": "SCW - Seniors Centre West",
+    "SCD - Seniors Centre Dome": "SCD - Seniors Centre Dome",
+    "SCD - Senior Centre Dome": "SCD - Seniors Centre Dome",
+    "SCG - Seniors Centre Saint George's": "SCG - Seniors Centre Saint George’s",
     "SCL - Seniors Centre Loyalist Amherstview": "SCLA - Seniors Centre Loyalist Amherstview",
     "OL": "OL - Online",
     "OL - Online": "OL - Online",
     "Online": "OL - Online"
   };
-  
-  // Try direct mapping first
+
   if (directMappings[cleanLocation]) {
     return directMappings[cleanLocation];
   }
-  
-  // Try exact match with locations.json keys
-  if (locationData && (locationData as any)[cleanLocation]) {
+
+  if ((locationData as any)?.[cleanLocation]) {
     return cleanLocation;
   }
-  
-  // Try case-insensitive exact match
-  if (locationData) {
-    const lowerLocationCode = cleanLocation.toLowerCase();
-    for (const key of Object.keys(locationData)) {
-      if (key.toLowerCase() === lowerLocationCode) {
-        return key;
-      }
+
+  const lowerLocationCode = cleanLocation.toLowerCase();
+  for (const key of locationKeys) {
+    if (canonicalizeLocationText(key).toLowerCase() === lowerLocationCode) {
+      return key;
     }
   }
-  
-  // Try to match by first part (before dash)
-  const firstPart = cleanLocation.split(/[–-]/)[0].trim();
-  
-  if (locationData) {
-    for (const key of Object.keys(locationData)) {
-      const keyFirstPart = key.split(' - ')[0].trim();
-      
-      if (firstPart === keyFirstPart) {
-        return key;
-      }
+
+  const fuzzyClean = fuzzyLocationText(cleanLocation);
+  for (const key of locationKeys) {
+    if (fuzzyLocationText(key) === fuzzyClean) {
+      return key;
     }
   }
-  
-  // If no match found, return original (will be filtered out)
+
+  const firstPart = cleanLocation.split("-")[0].trim().toUpperCase();
+  const prefixMatches = locationKeys.filter((key) => {
+    return canonicalizeLocationText(key).split("-")[0].trim().toUpperCase() === firstPart;
+  });
+
+  if (prefixMatches.length === 1) {
+    return prefixMatches[0];
+  }
+
+  if (prefixMatches.length > 1) {
+    const rest = cleanLocation.split("-").slice(1).join("-").trim().toLowerCase();
+    const restMatch = prefixMatches.find((key) => {
+      const keyRest = canonicalizeLocationText(key).split("-").slice(1).join("-").trim().toLowerCase();
+      return keyRest === rest || keyRest.includes(rest) || rest.includes(keyRest);
+    });
+    if (restMatch) {
+      return restMatch;
+    }
+  }
+
   return cleanLocation;
 };
 
@@ -415,10 +437,16 @@ function App() {
       // Program / Program ID unified search
       if (filtersToUse.program) {
         const term = filtersToUse.program.toLowerCase();
-        if (
-          !item.program.toLowerCase().includes(term) &&
-          !item.program_id.toLowerCase().includes(term)
-        ) {
+        const searchable = [
+          item.program,
+          item.program_id,
+          item.location,
+          item.class_room,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!searchable.includes(term)) {
           return false;
         }
       }
