@@ -1,0 +1,3 @@
+-- Intentionally empty.
+-- Local and production records stay out of Git.
+-- Import existing data later with a private process, not this seed file.
