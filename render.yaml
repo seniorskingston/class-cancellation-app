@@ -9,6 +9,10 @@ services:
     envVars:
       - key: EXCEL_PATH
         value: ./Class Cancellation App.xlsx
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
     healthCheckPath: /docs
 
   # Frontend Service (Static Site)

@@ -21,6 +21,7 @@ from dateutil import parser
 from contextlib import asynccontextmanager
 from urllib.parse import urljoin
 import traceback
+import supabase_store
 
 
 def _get_event_year_month(event):
@@ -284,8 +285,21 @@ stored_events = []
 STORED_EVENTS_FILE = "/tmp/stored_events.json" if os.getenv('RENDER') else "stored_events.json"
 
 def load_stored_events():
-    """Load stored events - try GCS first, then local file"""
+    """Load stored events. Supabase is the permanent copy when it is configured."""
     global stored_events
+
+    loaded_from_supabase = False
+    if supabase_store.enabled():
+        try:
+            remote_events = supabase_store.fetch_events()
+            loaded_from_supabase = True
+            if remote_events:
+                stored_events = remote_events
+                print(f"✅ Loaded {len(stored_events)} events from Supabase")
+                return
+            print("📝 Supabase has no events yet. Existing event files will be copied in.")
+        except Exception as supabase_error:
+            print(f"⚠️ Could not load events from Supabase: {supabase_error}")
     
     # Try to load from Google Cloud Storage first
     print("🔄 Loading events - trying GCS first...")
@@ -310,6 +324,7 @@ def load_stored_events():
             except Exception as local_e:
                 print(f"⚠️ Could not save local backup: {local_e}")
             
+            _copy_loaded_events_to_supabase(loaded_from_supabase)
             return
     except Exception as e:
         print(f"⚠️ Could not load from GCS: {e}")
@@ -328,8 +343,22 @@ def load_stored_events():
         print(f"⚠️ Error loading stored events from local file: {e}")
         stored_events = []
 
-def save_stored_events():
-    """Save stored events to GCS and local file"""
+    _copy_loaded_events_to_supabase(loaded_from_supabase)
+
+def _copy_loaded_events_to_supabase(loaded_from_supabase):
+    """Copy events that were loaded from an older store. That older store is left unchanged."""
+    global stored_events
+    if not loaded_from_supabase or not stored_events:
+        return
+    try:
+        saved = supabase_store.replace_events(stored_events)
+        stored_events = supabase_store.assign_event_ids(stored_events)
+        print(f"✅ Copied {saved} existing events into Supabase. Local files were kept.")
+    except Exception as supabase_error:
+        print(f"⚠️ Could not copy existing events into Supabase: {supabase_error}")
+
+def save_stored_events(allow_empty=False):
+    """Save stored events to Supabase, and keep the previous file copies as backups."""
     global stored_events
     try:
         # Make a copy to avoid any reference issues
@@ -345,6 +374,11 @@ def save_stored_events():
             "events": events_to_save
         }
         
+        if supabase_store.enabled():
+            saved = supabase_store.replace_events(events_to_save, allow_empty=allow_empty)
+            stored_events = supabase_store.assign_event_ids(events_to_save)
+            print(f"✅ Saved {saved} events to Supabase")
+
         gcs_ok, gcs_err = upload_to_gcs(gcs_data, GCS_EVENTS_FILE)
         if gcs_ok:
             print(f"☁️ Saved {len(events_to_save)} events to Google Cloud Storage")
@@ -363,7 +397,7 @@ def save_stored_events():
     except Exception as e:
         print(f"❌ ERROR saving stored events: {e}")
         traceback.print_exc()
-        raise  # Re-raise so caller knows save failed
+        raise
 
 # Load stored events on startup
 load_stored_events()
@@ -600,17 +634,11 @@ def calculate_withdrawal(date_range: str, class_cancellation: str) -> str:
         return "Unknown"
 
 def init_database():
-    """Initialize SQLite database with tables"""
+    """Create the SQLite programs table when it is missing. Existing rows are kept."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
-    # Drop existing table to ensure clean schema
-    cursor.execute('DROP TABLE IF EXISTS programs')
-    print("🗑️ Dropped existing programs table")
-    
-    # Create main table with new schema
     cursor.execute('''
-        CREATE TABLE programs (
+        CREATE TABLE IF NOT EXISTS programs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             sheet TEXT,
             program TEXT,
@@ -633,7 +661,7 @@ def init_database():
     
     conn.commit()
     conn.close()
-    print("✅ Database recreated with new schema (including description, fee, and session columns)")
+    print("✅ SQLite programs table is ready. Existing rows were kept.")
 
 def ensure_programs_schema():
     """Ensure required columns exist on existing deployments (non-destructive migration)."""
@@ -660,6 +688,55 @@ def ensure_programs_schema():
         conn.close()
     except Exception as e:
         print(f"⚠️ Schema migration warning: {e}")
+
+def _read_sqlite_programs():
+    ensure_programs_schema()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM programs")
+    programs = []
+    for row in cursor.fetchall():
+        programs.append({
+            'sheet': row[1] if len(row) > 1 else '',
+            'program': row[2] if len(row) > 2 else '',
+            'program_id': row[3] if len(row) > 3 else '',
+            'date_range': row[4] if len(row) > 4 else '',
+            'time': row[5] if len(row) > 5 else '',
+            'location': row[6] if len(row) > 6 else '',
+            'class_room': row[7] if len(row) > 7 else '',
+            'instructor': row[8] if len(row) > 8 else '',
+            'program_status': row[9] if len(row) > 9 else '',
+            'class_cancellation': row[10] if len(row) > 10 else '',
+            'note': row[11] if len(row) > 11 else '',
+            'withdrawal': row[12] if len(row) > 12 else '',
+            'description': row[13] if len(row) > 13 else '',
+            'fee': row[14] if len(row) > 14 else '',
+            'session': row[15] if len(row) > 15 else '',
+        })
+    conn.close()
+    return programs
+
+def _copy_programs_to_supabase_if_empty():
+    """Copy the current program source into Supabase. Local files and SQLite stay in place."""
+    if not supabase_store.enabled():
+        return None
+    remote = supabase_store.fetch_programs()
+    if remote:
+        return remote
+    local = _read_sqlite_programs()
+    source = "SQLite"
+    excel_path = "Class Cancellation App.xlsx"
+    if not local and os.path.exists(excel_path):
+        local = supabase_store.programs_from_excel(excel_path, calculate_withdrawal)
+        source = excel_path
+    if not local:
+        local = get_excel_fallback_data()
+        source = "excel fallback file"
+    if not local:
+        return []
+    saved = supabase_store.replace_programs(local)
+    print(f"✅ Copied {saved} programs from {source} into Supabase. The original source was kept.")
+    return local
 
 def import_excel_data(file_path_or_content):
     """Import data from Excel file into SQLite database"""
@@ -798,6 +875,9 @@ def import_excel_data(file_path_or_content):
         conn.commit()
         conn.close()
         print(f"✅ Imported {total_records} records to database")
+        if supabase_store.enabled() and total_records:
+            saved = supabase_store.replace_programs(_read_sqlite_programs())
+            print(f"✅ Saved {saved} programs to Supabase")
         return True
         
     except Exception as e:
@@ -814,7 +894,42 @@ def get_programs_from_db(
     program_status: Optional[str] = None,
     has_cancellation: Optional[bool] = False
 ):
-    """Get programs from SQLite database with filters"""
+    """Get programs from Supabase when it is configured, otherwise from SQLite."""
+    if supabase_store.enabled():
+        try:
+            remote_programs = _copy_programs_to_supabase_if_empty()
+            if remote_programs is not None:
+                filtered = []
+                for record in remote_programs:
+                    if program and program_id and program == program_id:
+                        term = program.lower()
+                        name = str(record.get('program') or '').lower()
+                        pid = str(record.get('program_id') or '').lower()
+                        normalized_id = (program_id.lstrip('0') or '0').lower()
+                        if not (term in name or program_id.lower() in pid or normalized_id in pid):
+                            continue
+                    else:
+                        if program and program.lower() not in str(record.get('program') or '').lower():
+                            continue
+                        if program_id:
+                            pid = str(record.get('program_id') or '').lower()
+                            normalized_id = (program_id.lstrip('0') or '0').lower()
+                            if program_id.lower() not in pid and normalized_id not in pid:
+                                continue
+                    if day and str(record.get('sheet') or '') != day:
+                        continue
+                    if location and location.lower() not in str(record.get('location') or '').lower():
+                        continue
+                    if session and str(record.get('session') or '') != session:
+                        continue
+                    if program_status and str(record.get('program_status') or '') != program_status:
+                        continue
+                    if has_cancellation and not str(record.get('class_cancellation') or '').strip():
+                        continue
+                    filtered.append(record)
+                return filtered
+        except Exception as supabase_error:
+            print(f"⚠️ Supabase program read failed, using the local database: {supabase_error}")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
@@ -4239,12 +4354,19 @@ def create_event(event_data: dict):
             'endDate': event_data.get('endDate'),
             'description': event_data.get('description', ''),
             'location': event_data.get('location', ''),
-            'dateStr': '',  # Will be formatted by frontend
-            'timeStr': ''   # Will be formatted by frontend
+            'dateStr': event_data.get('dateStr', ''),
+            'timeStr': event_data.get('timeStr', ''),
+            'image_url': event_data.get('image_url', ''),
+            'price': event_data.get('price', ''),
+            'instructor': event_data.get('instructor', ''),
+            'registration': event_data.get('registration', ''),
         }
         
-        # Store in editable events
+        # Store in editable events and in the saved event list
         editable_events[event_id] = event
+        global stored_events
+        stored_events.append(event)
+        save_stored_events()
         
         print(f"✅ Event created with ID: {event_id}")
         return {"success": True, "event": event, "message": "Event created successfully"}
@@ -4272,8 +4394,12 @@ def update_event(event_id: str, event_data: dict):
             })
             updated = True
         
-        # Check stored_events (by matching title and startDate if event_id is index-based)
         global stored_events
+        for event in stored_events:
+            if str(event.get('id')) == str(event_id):
+                event.update(event_data)
+                updated = True
+                break
         if event_id.startswith('stored_'):
             # Extract index from event_id like "stored_0", "stored_1", etc.
             try:
@@ -4286,6 +4412,8 @@ def update_event(event_id: str, event_data: dict):
         
         if not updated:
             return {"success": False, "error": "Event not found"}
+
+        save_stored_events()
         
         print(f"✅ Event updated with ID: {event_id}")
         return {"success": True, "message": "Event updated successfully"}
@@ -4309,9 +4437,13 @@ def delete_event(event_id: str):
             editable_events.pop(event_id)
             deleted = True
         else:
-            # Check stored_events by removing the event
             global stored_events
-            if event_id.startswith('stored_'):
+            for index, event in enumerate(stored_events):
+                if str(event.get('id')) == str(event_id):
+                    stored_events.pop(index)
+                    deleted = True
+                    break
+            if not deleted and event_id.startswith('stored_'):
                 try:
                     idx = int(event_id.replace('stored_', ''))
                     if 0 <= idx < len(stored_events):
@@ -4322,6 +4454,8 @@ def delete_event(event_id: str):
         
         if not deleted:
             return {"success": False, "error": "Event not found"}
+
+        save_stored_events()
         
         print(f"✅ Event deleted with ID: {event_id}")
         return {"success": True, "message": "Event deleted successfully"}
@@ -4359,7 +4493,7 @@ async def bulk_update_events(request: Request):
         # CRITICAL: Save to persistent storage with error handling
         save_error = None
         try:
-            save_stored_events()
+            save_stored_events(allow_empty=True)
             save_successful = True
         except Exception as e:
             save_error = str(e)
@@ -5444,6 +5578,7 @@ async def clear_events_endpoint():
     global stored_events
     count = len(stored_events)
     stored_events = []
+    save_stored_events(allow_empty=True)
     print(f"🗑️ Cleared {count} events")
     return {
         "success": True,
@@ -5468,6 +5603,7 @@ async def remove_duplicates_endpoint():
     
     duplicates_removed = original_count - len(unique_events)
     stored_events = unique_events
+    save_stored_events()
     
     print(f"✅ Removed {duplicates_removed} duplicate events")
     return {
@@ -6014,6 +6150,36 @@ analytics_data = {
     'last_reset': datetime.now().isoformat()
 }
 
+def _analytics_payload():
+    return {
+        'desktop_visits': analytics_data['desktop_visits'],
+        'mobile_visits': analytics_data['mobile_visits'],
+        'total_visits': analytics_data['total_visits'],
+        'last_reset': analytics_data['last_reset'],
+    }
+
+def _load_analytics_from_supabase():
+    global analytics_data
+    if not supabase_store.enabled():
+        return
+    try:
+        remote = supabase_store.fetch_setting('analytics')
+        if isinstance(remote, dict):
+            analytics_data.update(remote)
+            print(f"✅ Loaded analytics from Supabase: {analytics_data['total_visits']} visits")
+    except Exception as supabase_error:
+        print(f"⚠️ Could not load analytics from Supabase: {supabase_error}")
+
+def _save_analytics_to_supabase():
+    if not supabase_store.enabled():
+        return
+    try:
+        supabase_store.save_setting('analytics', _analytics_payload())
+    except Exception as supabase_error:
+        print(f"⚠️ Could not save analytics to Supabase: {supabase_error}")
+
+_load_analytics_from_supabase()
+
 def track_visit(user_agent: str):
     """Track a visit and determine if it's desktop or mobile"""
     global analytics_data
@@ -6027,6 +6193,7 @@ def track_visit(user_agent: str):
         analytics_data['mobile_visits'] += 1
     else:
         analytics_data['desktop_visits'] += 1
+    _save_analytics_to_supabase()
     
     print(f"📊 Visit tracked: {'Mobile' if is_mobile else 'Desktop'} - Total: {analytics_data['total_visits']}")
 
@@ -6572,6 +6739,7 @@ def reset_analytics():
         'total_visits': 0,
         'last_reset': datetime.now().isoformat()
     }
+    _save_analytics_to_supabase()
     
     return {
         "message": "Analytics data reset successfully",
@@ -6591,6 +6759,7 @@ def add_test_data():
     analytics_data['desktop_visits'] += desktop_add
     analytics_data['mobile_visits'] += mobile_add
     analytics_data['total_visits'] += desktop_add + mobile_add
+    _save_analytics_to_supabase()
     
     return {
         "message": f"Added {desktop_add} desktop and {mobile_add} mobile test visits",
@@ -6955,23 +7124,9 @@ def get_cancellations(
     has_cancellation: Optional[bool] = Query(False),
 ):
     print(f"🌐 API call received from frontend")
-    print(f"📊 Query params: {locals()}")
+    print(f"📊 Query params: program={program}, program_id={program_id}, day={day}, location={location}, session={session}, program_status={program_status}, has_cancellation={has_cancellation}")
     ensure_programs_schema()
-    
-    # Get total count first for debugging
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM programs")
-    total_count = cursor.fetchone()[0]
-    print(f"📈 Total data available: {total_count} rows")
-    
-    # Check if we have any cancellations
-    cursor.execute("SELECT COUNT(*) FROM programs WHERE class_cancellation != '' AND class_cancellation IS NOT NULL")
-    cancellation_count = cursor.fetchone()[0]
-    print(f"🚫 Cancellations found: {cancellation_count} rows")
-    
-    conn.close()
-    
+
     programs = get_programs_from_db(
         program=program,
         program_id=program_id,
@@ -6982,20 +7137,34 @@ def get_cancellations(
         program_status=program_status,
         has_cancellation=has_cancellation
     )
-    
-    # Get all unique sessions from database for filter dropdown
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT DISTINCT session FROM programs WHERE session IS NOT NULL AND session != '' ORDER BY CAST(session AS INTEGER)")
-        session_rows = cursor.fetchall()
-    except sqlite3.OperationalError:
-        # Backward-compatible fallback in case migration hasn't run yet.
-        ensure_programs_schema()
-        cursor.execute("SELECT DISTINCT session FROM programs WHERE session IS NOT NULL AND session != '' ORDER BY session")
-        session_rows = cursor.fetchall()
-    all_sessions = [str(row[0]) for row in session_rows if row[0] and str(row[0]).strip() != '']
-    conn.close()
+
+    if supabase_store.enabled():
+        try:
+            catalog = supabase_store.fetch_programs()
+        except Exception as supabase_error:
+            print(f"⚠️ Could not read Supabase sessions: {supabase_error}")
+            catalog = _read_sqlite_programs()
+    else:
+        catalog = _read_sqlite_programs()
+
+    total_count = len(catalog)
+    cancellation_count = sum(1 for row in catalog if str(row.get('class_cancellation') or '').strip())
+    print(f"📈 Total data available: {total_count} rows")
+    print(f"🚫 Cancellations found: {cancellation_count} rows")
+
+    session_values = {
+        str(row.get('session')).strip()
+        for row in catalog
+        if row.get('session') and str(row.get('session')).strip()
+    }
+
+    def _session_sort_key(value):
+        try:
+            return (0, int(float(value)))
+        except ValueError:
+            return (1, value)
+
+    all_sessions = sorted(session_values, key=_session_sort_key)
     
     print(f"📈 Returning {len(programs)} results")
     return {

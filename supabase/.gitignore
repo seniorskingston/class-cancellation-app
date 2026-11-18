@@ -1,0 +1,9 @@
+# Supabase
+.branches
+.temp
+
+# Local secrets. Never commit database credentials.
+.env
+.env.keys
+.env.local
+.env.*.local
