@@ -5,10 +5,14 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn backend:app --host 0.0.0.0 --port $PORT
+    startCommand: python -m uvicorn backend_sqlite:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: EXCEL_PATH
         value: ./Class Cancellation App.xlsx
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
     healthCheckPath: /docs
 
   # Frontend Service (Static Site)
