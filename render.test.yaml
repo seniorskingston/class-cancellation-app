@@ -1,0 +1,41 @@
+# Test site only. Create this as its own Render Blueprint.
+# Do not apply this file to the live class-cancellation services.
+# The live site keeps using render.yaml on the main branch.
+
+services:
+  - type: web
+    name: class-cancellation-backend-test
+    branch: development
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn backend_sqlite:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: test
+      - key: EMAILS_ENABLED
+        value: "false"
+      - key: SCHEDULED_ACTIONS_ENABLED
+        value: "false"
+      - key: FEATURE_NEW_FUNCTION
+        value: "false"
+      - key: EXCEL_PATH
+        value: ./Class Cancellation App.xlsx
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+    healthCheckPath: /api/environment
+
+  - type: web
+    name: class-cancellation-frontend-test
+    branch: development
+    env: static
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://class-cancellation-backend-test.onrender.com/api
+      - key: REACT_APP_FEATURE_NEW_FUNCTION
+        value: "false"

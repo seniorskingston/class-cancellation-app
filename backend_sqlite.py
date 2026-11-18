@@ -22,6 +22,9 @@ from contextlib import asynccontextmanager
 from urllib.parse import urljoin
 import traceback
 import supabase_store
+import app_environment
+
+app_environment.assert_test_database_is_separate()
 
 
 def _get_event_year_month(event):
@@ -1092,6 +1095,9 @@ def check_and_import_excel():
 
 def scheduled_daily_report():
     """Send daily analytics report (called by scheduler)"""
+    if not app_environment.scheduled_actions_enabled():
+        print("Test environment: daily report was not sent")
+        return
     try:
         # Send to your email
         recipient_email = "rebeccam@seniorskingston.ca"
@@ -1107,6 +1113,9 @@ def scheduled_daily_report():
 
 def scheduled_weekly_report():
     """Send weekly analytics report (called by scheduler)"""
+    if not app_environment.scheduled_actions_enabled():
+        print("Test environment: weekly report was not sent")
+        return
     try:
         # Send to your email
         recipient_email = "rebeccam@seniorskingston.ca"
@@ -1135,13 +1144,16 @@ async def lifespan_handler(app: FastAPI):
         # scheduler.add_job(check_and_import_excel, 'interval', seconds=30)
         print("⚠️ Auto-import scheduler disabled to prevent data reversion")
         
-        # Add scheduled analytics reports
-        # Daily report at 9:00 AM
-        scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
-        # Weekly report every Monday at 10:00 AM  
-        scheduler.add_job(scheduled_weekly_report, 'cron', day_of_week=0, hour=10, minute=0)
-        scheduler.start()
-        print("✅ Background scheduler started")
+        if app_environment.scheduled_actions_enabled():
+            # Daily report at 9:00 AM
+            scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
+            # Weekly report every Monday at 10:00 AM
+            scheduler.add_job(scheduled_weekly_report, 'cron', day_of_week=0, hour=10, minute=0)
+            scheduler.start()
+            print("✅ Background scheduler started")
+        else:
+            scheduler = None
+            print("Test environment: scheduled emails and automated jobs were not started")
     except Exception as e:
         print(f"⚠️ Failed to start scheduler: {e}")
         scheduler = None
@@ -1173,6 +1185,16 @@ app.add_middleware(
     allow_headers=["*"],
     allow_origin_regex=r"https://.*\.onrender\.com",
 )
+
+if app_environment.feature_enabled(app_environment.FEATURE_NEW_FUNCTION):
+    from features.new_function.router import router as new_function_router
+    app.include_router(new_function_router)
+
+
+@app.get("/api/environment")
+def environment_status():
+    """Shows whether this copy is the live site or the test site. No secrets."""
+    return app_environment.public_status()
 
 # In-memory storage for editable events (in production, this would be a database)
 editable_events = {}
@@ -7518,6 +7540,11 @@ def test_brevo_config():
 @app.get("/api/test-email")
 def test_email():
     """Test email configuration"""
+    if not app_environment.emails_enabled():
+        return {
+            "status": "blocked",
+            "message": "Test environment: no email was sent.",
+        }
     try:
         # Email configuration - Gmail Setup
         smtp_server = "smtp.gmail.com"
@@ -7571,6 +7598,9 @@ Test sent at: """ + datetime.now(KINGSTON_TZ).strftime('%Y-%m-%d %H:%M:%S')
 
 def send_email_via_brevo(to_email: str, subject: str, body: str):
     """Send email using Brevo (Sendinblue) API"""
+    if not app_environment.emails_enabled():
+        print(f"Test environment: email to {to_email} was not sent ({subject})")
+        return None
     brevo_api_key = os.environ.get("BREVO_API_KEY", "YOUR_BREVO_API_KEY_HERE")
     brevo_sender_email = os.environ.get("BREVO_SENDER_EMAIL", "")  # Email you verified in Brevo
     
@@ -7643,6 +7673,14 @@ Message:
 This message was sent from the Class Cancellation App.
         """
         
+        if not app_environment.emails_enabled():
+            print("Test environment: inquiry was not emailed")
+            return {
+                "status": "success",
+                "message": "Test environment: the message was not emailed.",
+                "email_subject": email_subject,
+            }
+
         # Try Brevo first, fallback to SMTP
         try:
             send_email_via_brevo("rebeccam@seniorskingston.ca", email_subject, email_body)
