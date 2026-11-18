@@ -7269,11 +7269,13 @@ async def import_excel(file: UploadFile = File(...)):
         
         if success:
             print(f"✅ Excel file imported successfully")
+            program_count = 0
             
             # CRITICAL: Automatically save to fallback after successful import
             try:
                 print("💾 Auto-saving imported data to fallback file...")
                 programs = get_programs_from_db()
+                program_count = len(programs) if programs else 0
                 if programs and len(programs) > 0:
                     fallback_data = {
                         "metadata": {
@@ -7298,7 +7300,11 @@ async def import_excel(file: UploadFile = File(...)):
                 print(f"⚠️ Error auto-saving to fallback: {fallback_error}")
                 # Don't fail the import if fallback save fails
             
-            return {"message": "Excel file imported successfully", "status": "success"}
+            return {
+                "message": f"Saved {program_count} programs to the database.",
+                "status": "success",
+                "total_programs": program_count,
+            }
         else:
             print(f"❌ Failed to import Excel file")
             return {"message": "Error importing Excel file", "status": "error"}
