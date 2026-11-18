@@ -1,6 +1,8 @@
 // Simple Analytics for Class Cancellation App
 // This will track user visits and show you clear numbers
 
+import { apiOrigin } from './apiOrigin';
+
 interface AnalyticsEvent {
   event: string;
   timestamp: number;
@@ -8,8 +10,6 @@ interface AnalyticsEvent {
   url: string;
   referrer: string;
 }
-
-import { apiOrigin } from './apiOrigin';
 
 class SimpleAnalytics {
   private apiUrl = apiOrigin();
