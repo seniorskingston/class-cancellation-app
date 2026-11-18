@@ -3,7 +3,7 @@ import sqlite3
 import uuid
 from fastapi import FastAPI, Query, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -23,6 +23,7 @@ from urllib.parse import urljoin
 import traceback
 import supabase_store
 import app_environment
+import perfectmind_sync
 
 app_environment.assert_test_database_is_separate()
 
@@ -1195,6 +1196,84 @@ if app_environment.feature_enabled(app_environment.FEATURE_NEW_FUNCTION):
 def environment_status():
     """Shows whether this copy is the live site or the test site. No secrets."""
     return app_environment.public_status()
+
+
+def _perfectmind_blocked():
+    """The live site keeps its current programs. This action exists on the test site only."""
+    if app_environment.is_test():
+        return None
+    return JSONResponse(
+        status_code=403,
+        content={
+            "status": "blocked",
+            "message": "Getting programs from PerfectMind is only available on the test site.",
+        },
+    )
+
+
+@app.get("/api/perfectmind/sync")
+def perfectmind_sync_status():
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    return perfectmind_sync.status()
+
+
+@app.post("/api/perfectmind/sync")
+def perfectmind_sync_request():
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    return perfectmind_sync.request_sync()
+
+
+@app.post("/api/perfectmind/sync/claim")
+def perfectmind_sync_claim():
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    return perfectmind_sync.claim()
+
+
+@app.post("/api/perfectmind/sync/progress")
+async def perfectmind_sync_progress(request: Request):
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    body = await request.json()
+    return perfectmind_sync.progress(str(body.get("message") or ""))
+
+
+@app.post("/api/perfectmind/sync/fail")
+async def perfectmind_sync_fail(request: Request):
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    body = await request.json()
+    return perfectmind_sync.fail(str(body.get("message") or "PerfectMind sync failed. The test list was not changed."))
+
+
+@app.post("/api/perfectmind/programs")
+async def perfectmind_save_programs(request: Request):
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    body = await request.json()
+    incoming = body.get("programs") or []
+    if not isinstance(incoming, list) or not incoming:
+        return perfectmind_sync.fail("PerfectMind returned no programs. The test list was not changed.")
+    if not supabase_store.enabled():
+        return perfectmind_sync.fail("The test database is not connected. The test list was not changed.")
+    try:
+        existing = supabase_store.fetch_programs()
+        merged = perfectmind_sync.merge_staff_fields(incoming, existing, calculate_withdrawal)
+        if not merged:
+            return perfectmind_sync.fail("None of the PerfectMind rows could be read. The test list was not changed.")
+        saved = supabase_store.replace_programs(merged)
+    except Exception as exc:
+        print(f"PerfectMind save failed: {exc}")
+        return perfectmind_sync.fail("The programs could not be saved. The test list was not changed.")
+    return perfectmind_sync.succeed(saved)
 
 # In-memory storage for editable events (in production, this would be a database)
 editable_events = {}

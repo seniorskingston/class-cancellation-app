@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { apiOrigin } from './apiOrigin';
 
 interface AdminPanelProps {
@@ -7,52 +7,68 @@ interface AdminPanelProps {
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }) => {
-  // Separate state for each section
-  const [selectedExcelFile, setSelectedExcelFile] = useState<File | null>(null);
-  const [excelMessage, setExcelMessage] = useState('');
-  
+  const [programMessage, setProgramMessage] = useState('');
+  const [programBusy, setProgramBusy] = useState(false);
   const [selectedEventsFile, setSelectedEventsFile] = useState<File | null>(null);
   const [eventsMessage, setEventsMessage] = useState('');
 
-  // Excel file handlers
-  const handleExcelFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedExcelFile(file);
-      setExcelMessage(`Selected: ${file.name}`);
-    }
-  };
-
-  const handleExcelUpload = async () => {
-    if (!selectedExcelFile) {
-      setExcelMessage('Please select a file first');
+  const showProgramStatus = (result: { status?: string; message?: string }) => {
+    const message = result.message || 'Waiting for PerfectMind.';
+    if (result.status === 'success') {
+      setProgramMessage(`✅ ${message}`);
+      setProgramBusy(false);
       return;
     }
+    if (result.status === 'error' || result.status === 'blocked') {
+      setProgramMessage(`❌ ${message}`);
+      setProgramBusy(false);
+      return;
+    }
+    setProgramMessage(message);
+    setProgramBusy(result.status === 'pending' || result.status === 'running');
+  };
 
-    setExcelMessage('📤 Uploading Excel file...');
-
-    try {
-      const formData = new FormData();
-      formData.append('file', selectedExcelFile);
-
-      const response = await fetch(`${apiOrigin()}/api/import-excel`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        if (result.status === 'success') {
-          setExcelMessage(`✅ Saved ${selectedExcelFile.name} to the database.\n${result.message || ''}\nThe program list now uses this file.`);
-        } else {
-          setExcelMessage(`❌ Upload failed: ${result.message || 'Unknown error'}`);
+  useEffect(() => {
+    let stopped = false;
+    let timer: number | undefined;
+    const watch = async () => {
+      try {
+        const response = await fetch(`${apiOrigin()}/api/perfectmind/sync`);
+        if (!response.ok || stopped) return;
+        const result = await response.json();
+        const active = result.status === 'pending' || result.status === 'running';
+        if (active || result.status === 'success' || result.status === 'error') {
+          showProgramStatus(result);
         }
-      } else {
-        setExcelMessage(`❌ Upload failed: ${response.statusText}`);
+        if (active && !stopped) {
+          timer = window.setTimeout(watch, 4000);
+        }
+      } catch {
+        if (!stopped) timer = window.setTimeout(watch, 8000);
       }
+    };
+    watch();
+    return () => {
+      stopped = true;
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [programBusy]);
+
+  const handleGetPrograms = async () => {
+    setProgramBusy(true);
+    setProgramMessage('Asking PerfectMind for the program list. A window will open on this computer.');
+    try {
+      const response = await fetch(`${apiOrigin()}/api/perfectmind/sync`, { method: 'POST' });
+      const result = await response.json();
+      if (!response.ok) {
+        setProgramMessage(`❌ ${result.message || 'The test site could not start PerfectMind.'}`);
+        setProgramBusy(false);
+        return;
+      }
+      showProgramStatus(result);
     } catch (error) {
-      setExcelMessage(`❌ Upload error: ${error}`);
+      setProgramMessage(`❌ Could not reach the test site: ${error}`);
+      setProgramBusy(false);
     }
   };
 
@@ -168,7 +184,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
           gap: '30px'
         }}>
           
-          {/* ==================== EXCEL FILE UPLOAD SECTION ==================== */}
+          {/* ==================== PERFECTMIND PROGRAMS ==================== */}
           <div style={{
             background: '#f8f9fa',
             padding: '25px',
@@ -180,14 +196,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               marginBottom: '20px',
               fontSize: '1.5rem'
             }}>
-              📊 Excel File Upload
+              Get programs from PerfectMind
             </h2>
             <p style={{ 
               color: '#666', 
               marginBottom: '20px',
               lineHeight: '1.6'
             }}>
-              Upload your Excel file to replace the program schedule. It is saved to the database as soon as the upload finishes.
+              This reads Session 1 and Session 2 for 2026 from PerfectMind and saves them on the test website. It does not use an Excel file, and it does not change the live website. Notes and cancellation dates already entered are kept.
             </p>
             <div style={{
               border: '2px dashed #007bff',
@@ -197,68 +213,39 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               background: 'white'
             }}>
               <p style={{ color: '#666', marginBottom: '15px' }}>
-                Select your Excel file (.xlsx, .xls)
+                A window opens on this computer. Stay nearby if PerfectMind asks you to check the login.
               </p>
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={handleExcelFileSelect}
-                style={{
-                  margin: '10px 0',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '5px',
-                  width: '100%'
-                }}
-              />
               <button 
-                onClick={handleExcelUpload}
-                disabled={!selectedExcelFile}
+                onClick={handleGetPrograms}
+                disabled={programBusy}
                 style={{
-                  background: selectedExcelFile ? '#007bff' : '#6c757d',
+                  background: programBusy ? '#6c757d' : '#007bff',
                   color: 'white',
                   border: 'none',
                   padding: '12px 24px',
                   borderRadius: '8px',
-                  cursor: selectedExcelFile ? 'pointer' : 'not-allowed',
+                  cursor: programBusy ? 'not-allowed' : 'pointer',
                   fontSize: '16px',
                   marginTop: '10px',
                   width: '100%'
                 }}
               >
-                Upload Excel File
+                {programBusy ? 'Getting programs...' : 'Get programs from PerfectMind'}
               </button>
             </div>
             
-            {/* Excel Status Message */}
-            {excelMessage && (
+            {programMessage && (
               <div style={{
                 marginTop: '15px',
                 padding: '12px',
-                background: excelMessage.includes('✅') ? '#d4edda' : excelMessage.includes('❌') ? '#f8d7da' : '#d1ecf1',
-                border: `1px solid ${excelMessage.includes('✅') ? '#c3e6cb' : excelMessage.includes('❌') ? '#f5c6cb' : '#bee5eb'}`,
+                background: programMessage.includes('✅') ? '#d4edda' : programMessage.includes('❌') ? '#f8d7da' : '#d1ecf1',
+                border: `1px solid ${programMessage.includes('✅') ? '#c3e6cb' : programMessage.includes('❌') ? '#f5c6cb' : '#bee5eb'}`,
                 borderRadius: '8px',
-                color: excelMessage.includes('✅') ? '#155724' : excelMessage.includes('❌') ? '#721c24' : '#0c5460',
+                color: programMessage.includes('✅') ? '#155724' : programMessage.includes('❌') ? '#721c24' : '#0c5460',
                 whiteSpace: 'pre-line',
                 fontSize: '14px'
               }}>
-                {excelMessage}
-                <button 
-                  onClick={() => setExcelMessage('')}
-                  style={{
-                    display: 'block',
-                    marginTop: '10px',
-                    background: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    padding: '5px 10px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Clear
-                </button>
+                {programMessage}
               </div>
             )}
           </div>
