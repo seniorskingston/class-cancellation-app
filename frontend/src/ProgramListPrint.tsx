@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import logo from './logo.png';
+import { apiOrigin } from './apiOrigin';
 
 interface Program {
   sheet: string;
@@ -21,7 +22,7 @@ interface ProgramListPrintProps {
   onBackToMain: () => void;
 }
 
-const API_URL = "https://class-cancellation-backend.onrender.com";
+const API_URL = apiOrigin();
 
 const ProgramListPrint: React.FC<ProgramListPrintProps> = ({ onBackToMain }) => {
   const [programs, setPrograms] = useState<Program[]>([]);

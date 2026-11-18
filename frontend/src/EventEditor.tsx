@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './EventEditor.css';
+import { apiOrigin } from './apiOrigin';
 
 interface Event {
   id?: string;
@@ -56,7 +57,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
   const loadEvents = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events');
+      const response = await fetch(`${apiOrigin()}/api/events`);
       if (response.ok) {
         const data = await response.json();
         const backendEvents = data.events || [];
@@ -87,7 +88,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
     setLoading(true);
     try {
       // Load events from the backend API (which includes all current events)
-      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events');
+      const response = await fetch(`${apiOrigin()}/api/events`);
       if (response.ok) {
         const data = await response.json();
         const backendEvents = data.events || [];
@@ -565,7 +566,7 @@ const EventEditor: React.FC<EventEditorProps> = ({ isOpen, onClose }) => {
   const saveEvents = async () => {
     setSaving(true);
     try {
-      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/bulk-update', {
+      const response = await fetch(`${apiOrigin()}/api/events/bulk-update`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

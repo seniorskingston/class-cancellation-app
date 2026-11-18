@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './EventEditor.css';
+import { apiOrigin } from './apiOrigin';
 
 interface Event {
   id?: string;
@@ -45,7 +46,7 @@ const EventEditorFixed: React.FC<EventEditorFixedProps> = ({ isOpen, onClose }) 
   // Determine API URL - use localhost when running locally
   const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:8000'
-    : 'https://class-cancellation-backend.onrender.com';
+    : apiOrigin();
 
   // Auto-load events when editor opens
   useEffect(() => {

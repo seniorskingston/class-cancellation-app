@@ -9,8 +9,10 @@ interface AnalyticsEvent {
   referrer: string;
 }
 
+import { apiOrigin } from './apiOrigin';
+
 class SimpleAnalytics {
-  private apiUrl = 'https://class-cancellation-backend.onrender.com';
+  private apiUrl = apiOrigin();
   private sessionId: string;
   private userId: string;
 

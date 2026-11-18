@@ -4,6 +4,7 @@ import logo from './logo.png';
 import homeIcon from './assets/home-icon.png';
 import rachelChatbotIcon from './assets/rachel-chatbot-icon.svg';
 import EventViewModal from './EventViewModal';
+import { apiOrigin } from './apiOrigin';
 
 interface Event {
   id?: string;
@@ -181,7 +182,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
   // Fetch events from Seniors Kingston iCal feed
   const getApiUrl = () => {
     return process.env.NODE_ENV === 'production' 
-      ? 'https://class-cancellation-backend.onrender.com/api'
+      ? `${apiOrigin()}/api`
       : 'http://localhost:8000/api';
   };
 

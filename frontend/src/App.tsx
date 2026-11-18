@@ -9,6 +9,7 @@ import locationData from './locations.json';
 import UserGuide from './UserGuide';
 import analytics from './analytics';
 import rachelChatbotIcon from './assets/rachel-chatbot-icon.svg';
+import { apiOrigin } from './apiOrigin';
 
 type Cancellation = {
   sheet: string;
@@ -39,7 +40,7 @@ type Filters = {
   view_type: string;
 };
 
-      const API_URL = "https://class-cancellation-backend.onrender.com";
+const API_URL = apiOrigin();
 
 // Normalize punctuation/spelling so Excel, API, and dropdown names compare equal
 const canonicalizeLocationText = (location: string): string => {

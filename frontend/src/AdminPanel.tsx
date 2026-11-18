@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiOrigin } from './apiOrigin';
 
 interface AdminPanelProps {
   onBackToMain: () => void;
@@ -34,7 +35,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
       const formData = new FormData();
       formData.append('file', selectedExcelFile);
 
-      const response = await fetch('https://class-cancellation-backend.onrender.com/api/import-excel', {
+      const response = await fetch(`${apiOrigin()}/api/import-excel`, {
         method: 'POST',
         body: formData,
       });
@@ -76,7 +77,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
       const formData = new FormData();
       formData.append('file', selectedEventsFile);
 
-      const response = await fetch('https://class-cancellation-backend.onrender.com/api/events/import', {
+      const response = await fetch(`${apiOrigin()}/api/events/import`, {
         method: 'POST',
         body: formData,
       });
