@@ -1220,11 +1220,22 @@ def perfectmind_sync_status():
 
 
 @app.post("/api/perfectmind/sync")
-def perfectmind_sync_request():
+async def perfectmind_sync_request(request: Request):
     blocked = _perfectmind_blocked()
     if blocked:
         return blocked
-    return perfectmind_sync.request_sync()
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    if "seasons" in body and not perfectmind_sync.normalize_seasons(body.get("seasons")):
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error", "message": "Choose at least one session."},
+        )
+    return perfectmind_sync.request_sync(body.get("seasons"))
 
 
 @app.post("/api/perfectmind/sync/claim")
@@ -1269,6 +1280,7 @@ async def perfectmind_save_programs(request: Request):
         merged = perfectmind_sync.merge_staff_fields(incoming, existing, calculate_withdrawal)
         if not merged:
             return perfectmind_sync.fail("None of the PerfectMind rows could be read. The test list was not changed.")
+        merged = perfectmind_sync.combine_with_other_sessions(existing, merged)
         saved = supabase_store.replace_programs(merged)
     except Exception as exc:
         print(f"PerfectMind save failed: {exc}")

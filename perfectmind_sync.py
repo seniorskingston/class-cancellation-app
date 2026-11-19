@@ -17,6 +17,7 @@ _job = {
     "message": "The test list still has the last saved programs.",
     "program_count": 0,
     "updated_at": "",
+    "seasons": [],
 }
 
 
@@ -29,7 +30,24 @@ def status() -> dict:
         return dict(_job)
 
 
-def request_sync() -> dict:
+def normalize_seasons(values) -> list[str]:
+    """Turn picked labels into Session 1-2026 style names."""
+    cleaned = []
+    seen = set()
+    for value in values or []:
+        match = re.search(r"session\s*(\d+)\D+(20\d{2})", str(value), re.I)
+        if not match:
+            continue
+        label = f"Session {int(match.group(1))}-{match.group(2)}"
+        if label.lower() in seen:
+            continue
+        seen.add(label.lower())
+        cleaned.append(label)
+    return cleaned
+
+
+def request_sync(seasons: list[str] | None = None) -> dict:
+    chosen = normalize_seasons(seasons) or ["Session 1-2026", "Session 2-2026"]
     with _lock:
         if _job["status"] in ("pending", "running"):
             return dict(_job)
@@ -38,6 +56,7 @@ def request_sync() -> dict:
             "message": "Waiting for this computer to open PerfectMind. Stay nearby if it asks you to check the login.",
             "program_count": 0,
             "updated_at": _stamp(),
+            "seasons": chosen,
         })
         return dict(_job)
 
@@ -153,3 +172,15 @@ def merge_staff_fields(incoming: list, existing: list, withdrawal_fn) -> list:
             item["withdrawal"] = ""
         merged.append(item)
     return merged
+
+
+def combine_with_other_sessions(existing: list, incoming: list) -> list:
+    """Replace only the sessions that were just read. Leave the other sessions in place."""
+    replaced = {session_number(row.get("session")) for row in incoming}
+    replaced.discard("")
+    combined = list(incoming)
+    for row in existing:
+        if session_number(row.get("session")) in replaced:
+            continue
+        combined.append(row)
+    return combined

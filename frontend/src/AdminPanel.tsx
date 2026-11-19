@@ -6,9 +6,22 @@ interface AdminPanelProps {
   onViewPrintList?: () => void;
 }
 
+const SESSION_CHOICES = [
+  'Session 1-2026',
+  'Session 2-2026',
+  'Session 3-2026',
+  'Session 4-2026',
+  'Session 5-2026',
+  'Session 1-2027',
+  'Session 2-2027',
+  'Session 3-2027',
+  'Session 4-2027',
+];
+
 const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }) => {
   const [programMessage, setProgramMessage] = useState('');
   const [programBusy, setProgramBusy] = useState(false);
+  const [chosenSessions, setChosenSessions] = useState<string[]>(['Session 1-2026', 'Session 2-2026']);
   const [selectedEventsFile, setSelectedEventsFile] = useState<File | null>(null);
   const [eventsMessage, setEventsMessage] = useState('');
 
@@ -54,11 +67,27 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
     };
   }, [programBusy]);
 
+  const toggleSession = (season: string) => {
+    setChosenSessions((current) => (
+      current.includes(season)
+        ? current.filter((item) => item !== season)
+        : [...current, season]
+    ));
+  };
+
   const handleGetPrograms = async () => {
+    if (chosenSessions.length === 0) {
+      setProgramMessage('❌ Choose at least one session.');
+      return;
+    }
     setProgramBusy(true);
     setProgramMessage('Asking PerfectMind for the program list. A window will open on this computer.');
     try {
-      const response = await fetch(`${apiOrigin()}/api/perfectmind/sync`, { method: 'POST' });
+      const response = await fetch(`${apiOrigin()}/api/perfectmind/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seasons: chosenSessions }),
+      });
       const result = await response.json();
       if (!response.ok) {
         setProgramMessage(`❌ ${result.message || 'The test site could not start PerfectMind.'}`);
@@ -203,18 +232,37 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               marginBottom: '20px',
               lineHeight: '1.6'
             }}>
-              This reads Session 1 and Session 2 for 2026 from PerfectMind and saves them on the test website. It does not use an Excel file, and it does not change the live website. Notes and cancellation dates already entered are kept.
+              Choose the sessions to read from PerfectMind. Cancelled activities are included. The programs are saved on the test website. Sessions you do not choose stay as they are. Notes and cancellation dates already entered are kept.
             </p>
             <div style={{
               border: '2px dashed #007bff',
               borderRadius: '10px',
               padding: '20px',
-              textAlign: 'center',
+              textAlign: 'left',
               background: 'white'
             }}>
-              <p style={{ color: '#666', marginBottom: '15px' }}>
+              <p style={{ color: '#666', marginBottom: '15px', textAlign: 'center' }}>
                 A window opens on this computer. Stay nearby if PerfectMind asks you to check the login.
               </p>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '8px 16px',
+                marginBottom: '16px'
+              }}>
+                {SESSION_CHOICES.map((season) => (
+                  <label key={season} style={{ color: '#333', fontSize: '15px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={chosenSessions.includes(season)}
+                      disabled={programBusy}
+                      onChange={() => toggleSession(season)}
+                      style={{ marginRight: '8px' }}
+                    />
+                    {season.replace('-', ' - ')}
+                  </label>
+                ))}
+              </div>
               <button 
                 onClick={handleGetPrograms}
                 disabled={programBusy}

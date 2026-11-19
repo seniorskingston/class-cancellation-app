@@ -43,6 +43,21 @@ class PerfectMindSyncTests(unittest.TestCase):
         self.assertEqual(merged[0]["program_status"], "Cancelled")
         self.assertEqual(merged[0]["withdrawal"], "Yes")
 
+    def test_picked_session_labels_are_cleaned(self):
+        self.assertEqual(
+            perfectmind_sync.normalize_seasons(["Session 2 - 2026", "session 2-2026", "Monday"]),
+            ["Session 2-2026"],
+        )
+
+    def test_other_sessions_stay_when_one_session_is_replaced(self):
+        existing = [
+            {"program_id": "1", "session": "1", "sheet": "Monday"},
+            {"program_id": "2", "session": "2", "sheet": "Monday"},
+        ]
+        incoming = [{"program_id": "9", "session": "2", "sheet": "Tuesday"}]
+        combined = perfectmind_sync.combine_with_other_sessions(existing, incoming)
+        self.assertEqual([row["program_id"] for row in combined], ["9", "1"])
+
 
 if __name__ == "__main__":
     unittest.main()
