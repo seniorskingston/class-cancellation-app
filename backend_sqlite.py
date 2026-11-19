@@ -1233,7 +1233,7 @@ async def perfectmind_sync_request(request: Request):
     if "seasons" in body and not perfectmind_sync.normalize_seasons(body.get("seasons")):
         return JSONResponse(
             status_code=400,
-            content={"status": "error", "message": "Choose at least one session."},
+            content={"status": "error", "message": "Type a session, such as Session 1-2028."},
         )
     return perfectmind_sync.request_sync(body.get("seasons"))
 
@@ -1284,7 +1284,7 @@ async def perfectmind_schedule_save(request: Request):
     if not perfectmind_sync.normalize_seasons(body.get("seasons")):
         return JSONResponse(
             status_code=400,
-            content={"status": "error", "message": "Choose at least one session."},
+            content={"status": "error", "message": "Type a session, such as Session 1-2028."},
         )
     current = _load_perfectmind_schedule()
     updated = perfectmind_sync.clean_schedule(body)

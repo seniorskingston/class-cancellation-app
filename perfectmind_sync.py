@@ -32,11 +32,11 @@ def status() -> dict:
 
 
 def normalize_seasons(values) -> list[str]:
-    """Turn picked labels into Session 1-2026 style names."""
+    """Turn typed labels such as Session 1-2028 into one clean name."""
     cleaned = []
     seen = set()
     for value in values or []:
-        match = re.search(r"session\s*(\d+)\D+(20\d{2})", str(value), re.I)
+        match = re.search(r"(?:session\s*)?(\d+)\s*[-/ ]\s*(20\d{2})", str(value), re.I)
         if not match:
             continue
         label = f"Session {int(match.group(1))}-{match.group(2)}"
@@ -188,7 +188,7 @@ def combine_with_other_sessions(existing: list, incoming: list) -> list:
 
 
 KINGSTON = ZoneInfo("America/Toronto")
-SCHEDULE_FREQUENCIES = ("off", "daily", "twice", "every2hours", "weekly")
+SCHEDULE_FREQUENCIES = ("off", "daily", "interval", "weekly")
 WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
 
@@ -209,19 +209,46 @@ def _clock_label(value: str) -> str:
     return f"{hour12}:{minute:02d} {suffix}"
 
 
+def _clocks(values, default: str) -> list[str]:
+    cleaned = []
+    for value in values or []:
+        clock = _clock(value, "")
+        if clock and clock not in cleaned:
+            cleaned.append(clock)
+    return cleaned or [default]
+
+
 def clean_schedule(raw) -> dict:
     raw = raw or {}
     frequency = str(raw.get("frequency") or "off").strip().lower()
+    if frequency == "twice":
+        frequency = "daily"
+    elif frequency == "every2hours":
+        frequency = "interval"
     if frequency not in SCHEDULE_FREQUENCIES:
         frequency = "off"
     weekday = str(raw.get("weekday") or "monday").strip().lower()
     if weekday not in WEEKDAYS:
         weekday = "monday"
+    entered_times = raw.get("times")
+    if not isinstance(entered_times, list) or not entered_times:
+        entered_times = [raw.get("time") or "08:00"]
+        if str(raw.get("frequency") or "").lower() == "twice" and raw.get("second_time"):
+            entered_times.append(raw.get("second_time"))
+    times = _clocks(entered_times, "08:00")
+    try:
+        hours = int(raw.get("interval_hours") or (2 if str(raw.get("frequency") or "").lower() == "every2hours" else 1))
+    except (TypeError, ValueError):
+        hours = 1
+    hours = min(24, max(1, hours))
     seasons = normalize_seasons(raw.get("seasons")) or ["Session 1-2026", "Session 2-2026"]
     return {
         "frequency": frequency,
-        "time": _clock(raw.get("time"), "08:00"),
-        "second_time": _clock(raw.get("second_time"), "13:00"),
+        "times": times,
+        "time": times[0],
+        "interval_hours": hours,
+        "window_start": _clock(raw.get("window_start"), "08:00"),
+        "window_end": _clock(raw.get("window_end"), "20:00"),
         "weekday": weekday,
         "seasons": seasons,
         "last_run_at": str(raw.get("last_run_at") or ""),
@@ -253,6 +280,13 @@ def _last_run(schedule: dict):
     return parsed.astimezone(KINGSTON)
 
 
+def _passed_slot(slots, current, last) -> bool:
+    passed = [slot for slot in slots if slot <= current]
+    if not passed:
+        return False
+    return last is None or last < max(passed)
+
+
 def schedule_is_due(raw, now=None) -> bool:
     schedule = clean_schedule(raw)
     current = _kingston_now(now)
@@ -260,23 +294,28 @@ def schedule_is_due(raw, now=None) -> bool:
     frequency = schedule["frequency"]
     if frequency == "off":
         return False
-    if frequency == "every2hours":
-        if current.hour < 8 or current.hour >= 18:
+    if frequency == "interval":
+        start_at = _at(current, schedule["window_start"])
+        end_at = _at(current, schedule["window_end"])
+        if end_at < start_at:
+            if current >= start_at:
+                end_at += timedelta(days=1)
+            else:
+                start_at -= timedelta(days=1)
+        if not (start_at <= current <= end_at):
             return False
-        slot_hour = current.hour - (current.hour % 2)
-        slot = current.replace(hour=slot_hour, minute=0, second=0, microsecond=0)
-        return last is None or last < slot
+        slots = []
+        slot = start_at
+        while slot <= end_at and len(slots) < 48:
+            slots.append(slot)
+            slot += timedelta(hours=schedule["interval_hours"])
+        return _passed_slot(slots, current, last)
     if frequency == "daily":
-        slot = _at(current, schedule["time"])
-        if current < slot:
+        slots = [_at(current, value) for value in schedule["times"]]
+        due_slots = [slot for slot in slots if slot <= current]
+        if not due_slots:
             return False
-        return last is None or last < slot
-    if frequency == "twice":
-        slots = [_at(current, schedule["time"]), _at(current, schedule["second_time"])]
-        slots = [slot for slot in slots if slot <= current]
-        if not slots:
-            return False
-        return last is None or last < max(slots)
+        return last is None or last < max(due_slots)
     if frequency == "weekly":
         wanted = WEEKDAYS.index(schedule["weekday"])
         slot = _at(current, schedule["time"])
@@ -293,14 +332,17 @@ def describe_schedule(raw) -> str:
     if frequency == "off":
         return "PerfectMind runs only when you click the button."
     if frequency == "daily":
-        return f"PerfectMind runs once a day at {_clock_label(schedule['time'])}."
-    if frequency == "twice":
+        labels = [_clock_label(value) for value in schedule["times"]]
+        if len(labels) == 1:
+            return f"PerfectMind runs every day at {labels[0]}."
+        return "PerfectMind runs every day at " + " and ".join(labels) + "."
+    if frequency == "interval":
+        hours = schedule["interval_hours"]
+        gap = "hour" if hours == 1 else f"{hours} hours"
         return (
-            f"PerfectMind runs twice a day at {_clock_label(schedule['time'])} "
-            f"and {_clock_label(schedule['second_time'])}."
+            f"PerfectMind runs every {gap} from {_clock_label(schedule['window_start'])} "
+            f"to {_clock_label(schedule['window_end'])}."
         )
-    if frequency == "every2hours":
-        return "PerfectMind runs every 2 hours from 8:00 AM to 4:00 PM."
     day = schedule["weekday"].title()
     return f"PerfectMind runs once a week on {day} at {_clock_label(schedule['time'])}."
 

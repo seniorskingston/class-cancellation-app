@@ -6,25 +6,15 @@ interface AdminPanelProps {
   onViewPrintList?: () => void;
 }
 
-const SESSION_CHOICES = [
-  'Session 1-2026',
-  'Session 2-2026',
-  'Session 3-2026',
-  'Session 4-2026',
-  'Session 5-2026',
-  'Session 1-2027',
-  'Session 2-2027',
-  'Session 3-2027',
-  'Session 4-2027',
-];
-
 const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }) => {
   const [programMessage, setProgramMessage] = useState('');
   const [programBusy, setProgramBusy] = useState(false);
-  const [chosenSessions, setChosenSessions] = useState<string[]>(['Session 1-2026', 'Session 2-2026']);
+  const [sessionInputs, setSessionInputs] = useState<string[]>(['Session 1-2026', 'Session 2-2026']);
   const [frequency, setFrequency] = useState('off');
-  const [scheduleTime, setScheduleTime] = useState('08:00');
-  const [secondTime, setSecondTime] = useState('13:00');
+  const [scheduleTimes, setScheduleTimes] = useState<string[]>(['08:00']);
+  const [intervalHours, setIntervalHours] = useState('1');
+  const [windowStart, setWindowStart] = useState('08:00');
+  const [windowEnd, setWindowEnd] = useState('20:00');
   const [weekday, setWeekday] = useState('monday');
   const [scheduleSummary, setScheduleSummary] = useState('PerfectMind runs only when you click the button.');
   const [selectedEventsFile, setSelectedEventsFile] = useState<File | null>(null);
@@ -79,11 +69,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
         if (!response.ok) return;
         const saved = await response.json();
         if (Array.isArray(saved.seasons) && saved.seasons.length) {
-          setChosenSessions(saved.seasons);
+          setSessionInputs(saved.seasons);
         }
         if (saved.frequency) setFrequency(saved.frequency);
-        if (saved.time) setScheduleTime(saved.time);
-        if (saved.second_time) setSecondTime(saved.second_time);
+        if (Array.isArray(saved.times) && saved.times.length) setScheduleTimes(saved.times);
+        if (saved.interval_hours) setIntervalHours(String(saved.interval_hours));
+        if (saved.window_start) setWindowStart(saved.window_start);
+        if (saved.window_end) setWindowEnd(saved.window_end);
         if (saved.weekday) setWeekday(saved.weekday);
         if (saved.summary) setScheduleSummary(saved.summary);
       } catch {
@@ -93,17 +85,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
     loadSchedule();
   }, []);
 
-  const toggleSession = (season: string) => {
-    setChosenSessions((current) => (
-      current.includes(season)
-        ? current.filter((item) => item !== season)
-        : [...current, season]
-    ));
-  };
+  const typedSessions = sessionInputs.map((value) => value.trim()).filter(Boolean);
 
   const handleSaveSchedule = async () => {
-    if (chosenSessions.length === 0) {
-      setProgramMessage('❌ Choose at least one session.');
+    if (typedSessions.length === 0) {
+      setProgramMessage('❌ Type a session, such as Session 1-2028.');
       return;
     }
     try {
@@ -112,10 +98,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           frequency,
-          time: scheduleTime,
-          second_time: secondTime,
+          times: scheduleTimes,
+          interval_hours: Number(intervalHours),
+          window_start: windowStart,
+          window_end: windowEnd,
           weekday,
-          seasons: chosenSessions,
+          seasons: typedSessions,
         }),
       });
       const result = await response.json();
@@ -131,8 +119,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   };
 
   const handleGetPrograms = async () => {
-    if (chosenSessions.length === 0) {
-      setProgramMessage('❌ Choose at least one session.');
+    if (typedSessions.length === 0) {
+      setProgramMessage('❌ Type a session, such as Session 1-2028.');
       return;
     }
     setProgramBusy(true);
@@ -141,7 +129,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
       const response = await fetch(`${apiOrigin()}/api/perfectmind/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seasons: chosenSessions }),
+        body: JSON.stringify({ seasons: typedSessions }),
       });
       const result = await response.json();
       if (!response.ok) {
@@ -287,7 +275,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               marginBottom: '20px',
               lineHeight: '1.6'
             }}>
-              Choose the sessions to read from PerfectMind. Cancelled activities are included. The programs are saved on the test website. Sessions you do not choose stay as they are. Notes and cancellation dates already entered are kept.
+              Type each session, such as Session 1-2026. Add another session when a new year starts, such as Session 1-2028. Cancelled activities are included. Sessions you leave out stay as they are. Notes and cancellation dates already entered are kept.
             </p>
             <div style={{
               border: '2px dashed #007bff',
@@ -299,25 +287,51 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               <p style={{ color: '#666', marginBottom: '15px', textAlign: 'center' }}>
                 A window opens on this computer. Stay nearby if PerfectMind asks you to check the login.
               </p>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '8px 16px',
-                marginBottom: '16px'
-              }}>
-                {SESSION_CHOICES.map((season) => (
-                  <label key={season} style={{ color: '#333', fontSize: '15px', cursor: 'pointer' }}>
+              {sessionInputs.map((value, index) => (
+                <label key={index} style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+                  {index === 0 ? 'Session' : `Session ${index + 1}`}
+                  <span style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
                     <input
-                      type="checkbox"
-                      checked={chosenSessions.includes(season)}
+                      type="text"
+                      value={value}
                       disabled={programBusy}
-                      onChange={() => toggleSession(season)}
-                      style={{ marginRight: '8px' }}
+                      placeholder="Session 1-2028"
+                      onChange={(event) => {
+                        const next = [...sessionInputs];
+                        next[index] = event.target.value;
+                        setSessionInputs(next);
+                      }}
+                      style={{ flex: 1, padding: '8px' }}
                     />
-                    {season.replace('-', ' - ')}
-                  </label>
-                ))}
-              </div>
+                    {sessionInputs.length > 1 && (
+                      <button
+                        type="button"
+                        disabled={programBusy}
+                        onClick={() => setSessionInputs(sessionInputs.filter((_, item) => item !== index))}
+                        style={{ padding: '8px 12px' }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </span>
+                </label>
+              ))}
+              <button
+                type="button"
+                disabled={programBusy}
+                onClick={() => setSessionInputs([...sessionInputs, ''])}
+                style={{
+                  background: 'white',
+                  color: '#007bff',
+                  border: '1px solid #007bff',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  cursor: programBusy ? 'not-allowed' : 'pointer',
+                  marginBottom: '16px'
+                }}
+              >
+                Add another session
+              </button>
               <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
                 Schedule
                 <select
@@ -327,9 +341,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
                   style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
                 >
                   <option value="off">Only when I click</option>
-                  <option value="daily">Once a day</option>
-                  <option value="twice">Twice a day</option>
-                  <option value="every2hours">Every 2 hours</option>
+                  <option value="daily">Every day at a time</option>
+                  <option value="interval">Every few hours</option>
                   <option value="weekly">Once a week</option>
                 </select>
               </label>
@@ -352,34 +365,90 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
                   </select>
                 </label>
               )}
-              {(frequency === 'daily' || frequency === 'twice' || frequency === 'weekly') && (
-                <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
-                  {frequency === 'twice' ? 'First time' : 'Time'}
-                  <input
-                    type="time"
-                    value={scheduleTime}
-                    disabled={programBusy}
-                    onChange={(event) => setScheduleTime(event.target.value)}
-                    style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
-                  />
+              {(frequency === 'daily' ? scheduleTimes : frequency === 'weekly' ? scheduleTimes.slice(0, 1) : []).map((value, index) => (
+                <label key={index} style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+                  {frequency === 'daily' && scheduleTimes.length > 1 ? `Time ${index + 1}` : 'Time'}
+                  <span style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                    <input
+                      type="time"
+                      value={value}
+                      disabled={programBusy}
+                      onChange={(event) => {
+                        const next = [...scheduleTimes];
+                        next[index] = event.target.value;
+                        setScheduleTimes(next);
+                      }}
+                      style={{ flex: 1, padding: '8px' }}
+                    />
+                    {frequency === 'daily' && scheduleTimes.length > 1 && (
+                      <button
+                        type="button"
+                        disabled={programBusy}
+                        onClick={() => setScheduleTimes(scheduleTimes.filter((_, item) => item !== index))}
+                        style={{ padding: '8px 12px' }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </span>
                 </label>
+              ))}
+              {frequency === 'daily' && (
+                <button
+                  type="button"
+                  disabled={programBusy}
+                  onClick={() => setScheduleTimes([...scheduleTimes, '13:00'])}
+                  style={{
+                    background: 'white',
+                    color: '#007bff',
+                    border: '1px solid #007bff',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    cursor: programBusy ? 'not-allowed' : 'pointer',
+                    marginBottom: '12px'
+                  }}
+                >
+                  Add another time
+                </button>
               )}
-              {frequency === 'twice' && (
-                <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
-                  Second time
-                  <input
-                    type="time"
-                    value={secondTime}
-                    disabled={programBusy}
-                    onChange={(event) => setSecondTime(event.target.value)}
-                    style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
-                  />
-                </label>
-              )}
-              {frequency === 'every2hours' && (
-                <p style={{ color: '#666', fontSize: '14px', margin: '0 0 8px' }}>
-                  This runs at 8:00 AM, 10:00 AM, 12:00 PM, 2:00 PM, and 4:00 PM.
-                </p>
+              {frequency === 'interval' && (
+                <div>
+                  <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+                    Every how many hours
+                    <input
+                      type="number"
+                      min={1}
+                      max={24}
+                      value={intervalHours}
+                      disabled={programBusy}
+                      onChange={(event) => setIntervalHours(event.target.value)}
+                      style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
+                    />
+                  </label>
+                  <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+                    From
+                    <input
+                      type="time"
+                      value={windowStart}
+                      disabled={programBusy}
+                      onChange={(event) => setWindowStart(event.target.value)}
+                      style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
+                    />
+                  </label>
+                  <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+                    Until
+                    <input
+                      type="time"
+                      value={windowEnd}
+                      disabled={programBusy}
+                      onChange={(event) => setWindowEnd(event.target.value)}
+                      style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
+                    />
+                  </label>
+                  <p style={{ color: '#666', fontSize: '14px', margin: '0 0 8px' }}>
+                    For example, every 12 hours from 8:00 AM until 8:00 PM runs at those two times. Every 1 hour runs once each hour between the times you set.
+                  </p>
+                </div>
               )}
               <p style={{ color: '#333', fontSize: '14px', margin: '8px 0 12px' }}>{scheduleSummary}</p>
               <button

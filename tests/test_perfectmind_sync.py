@@ -49,8 +49,8 @@ class PerfectMindSyncTests(unittest.TestCase):
 
     def test_picked_session_labels_are_cleaned(self):
         self.assertEqual(
-            perfectmind_sync.normalize_seasons(["Session 2 - 2026", "session 2-2026", "Monday"]),
-            ["Session 2-2026"],
+            perfectmind_sync.normalize_seasons(["Session 1-2028", "1-2028", "Monday"]),
+            ["Session 1-2028"],
         )
 
     def test_other_sessions_stay_when_one_session_is_replaced(self):
@@ -71,14 +71,22 @@ class PerfectMindSyncTests(unittest.TestCase):
         done = perfectmind_sync.mark_schedule_ran(schedule, afternoon)
         self.assertFalse(perfectmind_sync.schedule_is_due(done, afternoon))
 
-    def test_every_two_hours_stays_inside_the_daytime_slots(self):
-        early = datetime(2026, 11, 19, 7, 0, tzinfo=KINGSTON)
-        mid_morning = datetime(2026, 11, 19, 10, 15, tzinfo=KINGSTON)
-        evening = datetime(2026, 11, 19, 18, 30, tzinfo=KINGSTON)
-        schedule = {"frequency": "every2hours", "seasons": ["Session 1-2026"]}
-        self.assertFalse(perfectmind_sync.schedule_is_due(schedule, early))
-        self.assertTrue(perfectmind_sync.schedule_is_due(schedule, mid_morning))
-        self.assertFalse(perfectmind_sync.schedule_is_due(schedule, evening))
+    def test_every_twelve_hours_uses_the_times_entered(self):
+        before = datetime(2026, 11, 19, 7, 0, tzinfo=KINGSTON)
+        morning = datetime(2026, 11, 19, 8, 15, tzinfo=KINGSTON)
+        evening = datetime(2026, 11, 19, 20, 0, tzinfo=KINGSTON)
+        schedule = {
+            "frequency": "interval",
+            "interval_hours": 12,
+            "window_start": "08:00",
+            "window_end": "20:00",
+            "seasons": ["Session 1-2028"],
+        }
+        self.assertFalse(perfectmind_sync.schedule_is_due(schedule, before))
+        self.assertTrue(perfectmind_sync.schedule_is_due(schedule, morning))
+        ran = perfectmind_sync.mark_schedule_ran(schedule, morning)
+        self.assertFalse(perfectmind_sync.schedule_is_due(ran, morning))
+        self.assertTrue(perfectmind_sync.schedule_is_due(ran, evening))
 
     def test_weekly_schedule_matches_the_chosen_day(self):
         monday = datetime(2026, 11, 16, 8, 5, tzinfo=KINGSTON)
