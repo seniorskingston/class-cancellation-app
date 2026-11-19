@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import re
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 
 _lock = threading.Lock()
@@ -184,3 +185,134 @@ def combine_with_other_sessions(existing: list, incoming: list) -> list:
             continue
         combined.append(row)
     return combined
+
+
+KINGSTON = ZoneInfo("America/Toronto")
+SCHEDULE_FREQUENCIES = ("off", "daily", "twice", "every2hours", "weekly")
+WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+
+
+def _clock(value, default: str) -> str:
+    match = re.fullmatch(r"(\d{1,2}):(\d{2})", str(value or "").strip())
+    if not match:
+        return default
+    hour, minute = int(match.group(1)), int(match.group(2))
+    if hour > 23 or minute > 59:
+        return default
+    return f"{hour:02d}:{minute:02d}"
+
+
+def _clock_label(value: str) -> str:
+    hour, minute = [int(part) for part in value.split(":")]
+    suffix = "AM" if hour < 12 else "PM"
+    hour12 = hour % 12 or 12
+    return f"{hour12}:{minute:02d} {suffix}"
+
+
+def clean_schedule(raw) -> dict:
+    raw = raw or {}
+    frequency = str(raw.get("frequency") or "off").strip().lower()
+    if frequency not in SCHEDULE_FREQUENCIES:
+        frequency = "off"
+    weekday = str(raw.get("weekday") or "monday").strip().lower()
+    if weekday not in WEEKDAYS:
+        weekday = "monday"
+    seasons = normalize_seasons(raw.get("seasons")) or ["Session 1-2026", "Session 2-2026"]
+    return {
+        "frequency": frequency,
+        "time": _clock(raw.get("time"), "08:00"),
+        "second_time": _clock(raw.get("second_time"), "13:00"),
+        "weekday": weekday,
+        "seasons": seasons,
+        "last_run_at": str(raw.get("last_run_at") or ""),
+    }
+
+
+def _kingston_now(now=None) -> datetime:
+    current = now or datetime.now(KINGSTON)
+    if current.tzinfo is None:
+        return current.replace(tzinfo=KINGSTON)
+    return current.astimezone(KINGSTON)
+
+
+def _at(day: datetime, hhmm: str) -> datetime:
+    hour, minute = [int(part) for part in hhmm.split(":")]
+    return day.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+
+def _last_run(schedule: dict):
+    text = schedule.get("last_run_at") or ""
+    if not text:
+        return None
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=KINGSTON)
+    return parsed.astimezone(KINGSTON)
+
+
+def schedule_is_due(raw, now=None) -> bool:
+    schedule = clean_schedule(raw)
+    current = _kingston_now(now)
+    last = _last_run(schedule)
+    frequency = schedule["frequency"]
+    if frequency == "off":
+        return False
+    if frequency == "every2hours":
+        if current.hour < 8 or current.hour >= 18:
+            return False
+        slot_hour = current.hour - (current.hour % 2)
+        slot = current.replace(hour=slot_hour, minute=0, second=0, microsecond=0)
+        return last is None or last < slot
+    if frequency == "daily":
+        slot = _at(current, schedule["time"])
+        if current < slot:
+            return False
+        return last is None or last < slot
+    if frequency == "twice":
+        slots = [_at(current, schedule["time"]), _at(current, schedule["second_time"])]
+        slots = [slot for slot in slots if slot <= current]
+        if not slots:
+            return False
+        return last is None or last < max(slots)
+    if frequency == "weekly":
+        wanted = WEEKDAYS.index(schedule["weekday"])
+        slot = _at(current, schedule["time"])
+        slot = slot - timedelta(days=(current.weekday() - wanted) % 7)
+        if slot > current:
+            slot = slot - timedelta(days=7)
+        return last is None or last < slot
+    return False
+
+
+def describe_schedule(raw) -> str:
+    schedule = clean_schedule(raw)
+    frequency = schedule["frequency"]
+    if frequency == "off":
+        return "PerfectMind runs only when you click the button."
+    if frequency == "daily":
+        return f"PerfectMind runs once a day at {_clock_label(schedule['time'])}."
+    if frequency == "twice":
+        return (
+            f"PerfectMind runs twice a day at {_clock_label(schedule['time'])} "
+            f"and {_clock_label(schedule['second_time'])}."
+        )
+    if frequency == "every2hours":
+        return "PerfectMind runs every 2 hours from 8:00 AM to 4:00 PM."
+    day = schedule["weekday"].title()
+    return f"PerfectMind runs once a week on {day} at {_clock_label(schedule['time'])}."
+
+
+def mark_schedule_ran(raw, now=None) -> dict:
+    schedule = clean_schedule(raw)
+    schedule["last_run_at"] = _kingston_now(now).isoformat()
+    return schedule
+
+
+def public_schedule(raw, now=None) -> dict:
+    schedule = clean_schedule(raw)
+    schedule["due"] = schedule_is_due(schedule, now)
+    schedule["summary"] = describe_schedule(schedule)
+    return schedule

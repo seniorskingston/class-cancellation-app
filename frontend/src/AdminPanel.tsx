@@ -22,6 +22,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   const [programMessage, setProgramMessage] = useState('');
   const [programBusy, setProgramBusy] = useState(false);
   const [chosenSessions, setChosenSessions] = useState<string[]>(['Session 1-2026', 'Session 2-2026']);
+  const [frequency, setFrequency] = useState('off');
+  const [scheduleTime, setScheduleTime] = useState('08:00');
+  const [secondTime, setSecondTime] = useState('13:00');
+  const [weekday, setWeekday] = useState('monday');
+  const [scheduleSummary, setScheduleSummary] = useState('PerfectMind runs only when you click the button.');
   const [selectedEventsFile, setSelectedEventsFile] = useState<File | null>(null);
   const [eventsMessage, setEventsMessage] = useState('');
 
@@ -67,12 +72,62 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
     };
   }, [programBusy]);
 
+  useEffect(() => {
+    const loadSchedule = async () => {
+      try {
+        const response = await fetch(`${apiOrigin()}/api/perfectmind/schedule`);
+        if (!response.ok) return;
+        const saved = await response.json();
+        if (Array.isArray(saved.seasons) && saved.seasons.length) {
+          setChosenSessions(saved.seasons);
+        }
+        if (saved.frequency) setFrequency(saved.frequency);
+        if (saved.time) setScheduleTime(saved.time);
+        if (saved.second_time) setSecondTime(saved.second_time);
+        if (saved.weekday) setWeekday(saved.weekday);
+        if (saved.summary) setScheduleSummary(saved.summary);
+      } catch {
+        setScheduleSummary('The schedule will appear after the test site finishes updating.');
+      }
+    };
+    loadSchedule();
+  }, []);
+
   const toggleSession = (season: string) => {
     setChosenSessions((current) => (
       current.includes(season)
         ? current.filter((item) => item !== season)
         : [...current, season]
     ));
+  };
+
+  const handleSaveSchedule = async () => {
+    if (chosenSessions.length === 0) {
+      setProgramMessage('❌ Choose at least one session.');
+      return;
+    }
+    try {
+      const response = await fetch(`${apiOrigin()}/api/perfectmind/schedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          frequency,
+          time: scheduleTime,
+          second_time: secondTime,
+          weekday,
+          seasons: chosenSessions,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        setProgramMessage(`❌ ${result.message || 'The schedule was not saved.'}`);
+        return;
+      }
+      setScheduleSummary(result.summary || 'Schedule saved.');
+      setProgramMessage(`✅ ${result.summary}`);
+    } catch (error) {
+      setProgramMessage(`❌ Could not save the schedule: ${error}`);
+    }
   };
 
   const handleGetPrograms = async () => {
@@ -263,6 +318,87 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
                   </label>
                 ))}
               </div>
+              <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+                Schedule
+                <select
+                  value={frequency}
+                  disabled={programBusy}
+                  onChange={(event) => setFrequency(event.target.value)}
+                  style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
+                >
+                  <option value="off">Only when I click</option>
+                  <option value="daily">Once a day</option>
+                  <option value="twice">Twice a day</option>
+                  <option value="every2hours">Every 2 hours</option>
+                  <option value="weekly">Once a week</option>
+                </select>
+              </label>
+              {frequency === 'weekly' && (
+                <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+                  Day
+                  <select
+                    value={weekday}
+                    disabled={programBusy}
+                    onChange={(event) => setWeekday(event.target.value)}
+                    style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
+                  >
+                    <option value="monday">Monday</option>
+                    <option value="tuesday">Tuesday</option>
+                    <option value="wednesday">Wednesday</option>
+                    <option value="thursday">Thursday</option>
+                    <option value="friday">Friday</option>
+                    <option value="saturday">Saturday</option>
+                    <option value="sunday">Sunday</option>
+                  </select>
+                </label>
+              )}
+              {(frequency === 'daily' || frequency === 'twice' || frequency === 'weekly') && (
+                <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+                  {frequency === 'twice' ? 'First time' : 'Time'}
+                  <input
+                    type="time"
+                    value={scheduleTime}
+                    disabled={programBusy}
+                    onChange={(event) => setScheduleTime(event.target.value)}
+                    style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
+                  />
+                </label>
+              )}
+              {frequency === 'twice' && (
+                <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+                  Second time
+                  <input
+                    type="time"
+                    value={secondTime}
+                    disabled={programBusy}
+                    onChange={(event) => setSecondTime(event.target.value)}
+                    style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
+                  />
+                </label>
+              )}
+              {frequency === 'every2hours' && (
+                <p style={{ color: '#666', fontSize: '14px', margin: '0 0 8px' }}>
+                  This runs at 8:00 AM, 10:00 AM, 12:00 PM, 2:00 PM, and 4:00 PM.
+                </p>
+              )}
+              <p style={{ color: '#333', fontSize: '14px', margin: '8px 0 12px' }}>{scheduleSummary}</p>
+              <button
+                onClick={handleSaveSchedule}
+                disabled={programBusy}
+                style={{
+                  background: '#0072ce',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  cursor: programBusy ? 'not-allowed' : 'pointer',
+                  fontSize: '16px',
+                  width: '100%',
+                  marginBottom: '10px'
+                }}
+              >
+                Save schedule
+              </button>
               <button 
                 onClick={handleGetPrograms}
                 disabled={programBusy}

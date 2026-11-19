@@ -1238,6 +1238,82 @@ async def perfectmind_sync_request(request: Request):
     return perfectmind_sync.request_sync(body.get("seasons"))
 
 
+PERFECTMIND_SCHEDULE_KEY = "perfectmind_schedule"
+
+
+def _load_perfectmind_schedule() -> dict:
+    if supabase_store.enabled():
+        try:
+            saved = supabase_store.fetch_setting(PERFECTMIND_SCHEDULE_KEY)
+            if isinstance(saved, dict):
+                return saved
+        except Exception as exc:
+            print(f"Could not read the PerfectMind schedule: {exc}")
+    return getattr(app.state, "perfectmind_schedule", {}) or {}
+
+
+def _save_perfectmind_schedule(schedule: dict) -> None:
+    app.state.perfectmind_schedule = schedule
+    if not supabase_store.enabled():
+        return
+    try:
+        supabase_store.save_setting(PERFECTMIND_SCHEDULE_KEY, schedule)
+    except Exception as exc:
+        print(f"Could not save the PerfectMind schedule: {exc}")
+
+
+@app.get("/api/perfectmind/schedule")
+def perfectmind_schedule_status():
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    return perfectmind_sync.public_schedule(_load_perfectmind_schedule())
+
+
+@app.post("/api/perfectmind/schedule")
+async def perfectmind_schedule_save(request: Request):
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    if not perfectmind_sync.normalize_seasons(body.get("seasons")):
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error", "message": "Choose at least one session."},
+        )
+    current = _load_perfectmind_schedule()
+    updated = perfectmind_sync.clean_schedule(body)
+    if current.get("last_run_at"):
+        updated["last_run_at"] = str(current.get("last_run_at") or "")
+    else:
+        updated = perfectmind_sync.mark_schedule_ran(updated)
+    _save_perfectmind_schedule(updated)
+    return perfectmind_sync.public_schedule(updated)
+
+
+@app.post("/api/perfectmind/schedule/start")
+def perfectmind_schedule_start():
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    saved = _load_perfectmind_schedule()
+    if not perfectmind_sync.schedule_is_due(saved) or perfectmind_sync.status().get("status") in ("pending", "running"):
+        result = perfectmind_sync.public_schedule(saved)
+        result["started"] = False
+        return result
+    updated = perfectmind_sync.mark_schedule_ran(saved)
+    _save_perfectmind_schedule(updated)
+    perfectmind_sync.request_sync(updated["seasons"])
+    result = perfectmind_sync.public_schedule(updated)
+    result["started"] = True
+    return result
+
+
 @app.post("/api/perfectmind/sync/claim")
 def perfectmind_sync_claim():
     blocked = _perfectmind_blocked()
