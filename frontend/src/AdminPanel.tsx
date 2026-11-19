@@ -16,6 +16,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   const [windowStart, setWindowStart] = useState('08:00');
   const [windowEnd, setWindowEnd] = useState('20:00');
   const [weekday, setWeekday] = useState('monday');
+  const [skipWeekends, setSkipWeekends] = useState(false);
+  const [storedSessions, setStoredSessions] = useState<Array<{session: string; label: string; count: number; showing: boolean}>>([]);
   const [scheduleSummary, setScheduleSummary] = useState('PerfectMind runs only when you click the button.');
   const [selectedEventsFile, setSelectedEventsFile] = useState<File | null>(null);
   const [eventsMessage, setEventsMessage] = useState('');
@@ -25,6 +27,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
     if (result.status === 'success') {
       setProgramMessage(`✅ ${message}`);
       setProgramBusy(false);
+      loadStoredSessions();
       return;
     }
     if (result.status === 'error' || result.status === 'blocked') {
@@ -77,6 +80,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
         if (saved.window_start) setWindowStart(saved.window_start);
         if (saved.window_end) setWindowEnd(saved.window_end);
         if (saved.weekday) setWeekday(saved.weekday);
+        setSkipWeekends(Boolean(saved.skip_weekends));
         if (saved.summary) setScheduleSummary(saved.summary);
       } catch {
         setScheduleSummary('The schedule will appear after the test site finishes updating.');
@@ -103,6 +107,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
           window_start: windowStart,
           window_end: windowEnd,
           weekday,
+          skip_weekends: skipWeekends,
           seasons: typedSessions,
         }),
       });
@@ -113,8 +118,68 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
       }
       setScheduleSummary(result.summary || 'Schedule saved.');
       setProgramMessage(`✅ ${result.summary}`);
+      loadStoredSessions();
     } catch (error) {
       setProgramMessage(`❌ Could not save the schedule: ${error}`);
+    }
+  };
+
+  const loadStoredSessions = async () => {
+    try {
+      const response = await fetch(`${apiOrigin()}/api/perfectmind/stored-sessions`);
+      if (!response.ok) return;
+      const result = await response.json();
+      setStoredSessions(Array.isArray(result.sessions) ? result.sessions : []);
+    } catch {
+      setStoredSessions([]);
+    }
+  };
+
+  useEffect(() => {
+    loadStoredSessions();
+  }, []);
+
+  const handleDownloadSession = async (sessionName: string, label: string) => {
+    try {
+      const response = await fetch(`${apiOrigin()}/api/perfectmind/sessions/download?session=${encodeURIComponent(sessionName)}`);
+      if (!response.ok) {
+        setProgramMessage('❌ The session file could not be saved.');
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${label.replace(/\s+/g, '-')}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setProgramMessage(`✅ Saved ${label} to your computer.`);
+    } catch (error) {
+      setProgramMessage(`❌ Could not save the file: ${error}`);
+    }
+  };
+
+  const handleDeleteSession = async (sessionName: string, label: string) => {
+    if (!window.confirm(`Delete ${label} from the test database? Save it to your computer first if you still need it.`)) {
+      return;
+    }
+    try {
+      const response = await fetch(`${apiOrigin()}/api/perfectmind/sessions/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session: sessionName }),
+      });
+      const result = await response.json();
+      if (!response.ok || result.status === 'error') {
+        setProgramMessage(`❌ ${result.message || 'The session was not deleted.'}`);
+        return;
+      }
+      setProgramMessage(`✅ ${result.message}`);
+      loadStoredSessions();
+    } catch (error) {
+      setProgramMessage(`❌ Could not delete the session: ${error}`);
     }
   };
 
@@ -275,7 +340,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               marginBottom: '20px',
               lineHeight: '1.6'
             }}>
-              Type each session, such as Session 1-2026. Add another session when a new year starts, such as Session 1-2028. Cancelled activities are included. Sessions you leave out stay as they are. Notes and cancellation dates already entered are kept.
+              Type each session you want to show, such as Session 2-2026. Other sessions stay saved in the database and are hidden from the class list. You can save a hidden session to your computer, then delete it from the database.
             </p>
             <div style={{
               border: '2px dashed #007bff',
@@ -450,6 +515,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
                   </p>
                 </div>
               )}
+              <label style={{ display: 'block', color: '#333', fontSize: '15px', margin: '8px 0 12px' }}>
+                <input
+                  type="checkbox"
+                  checked={skipWeekends}
+                  disabled={programBusy}
+                  onChange={(event) => setSkipWeekends(event.target.checked)}
+                  style={{ marginRight: '8px' }}
+                />
+                Turn off Saturday and Sunday
+              </label>
               <p style={{ color: '#333', fontSize: '14px', margin: '8px 0 12px' }}>{scheduleSummary}</p>
               <button
                 onClick={handleSaveSchedule}
@@ -487,6 +562,44 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               </button>
             </div>
             
+            {storedSessions.length > 0 && (
+              <div style={{ marginTop: '20px' }}>
+                <h3 style={{ color: '#333', fontSize: '1.1rem', marginBottom: '10px' }}>Saved sessions</h3>
+                <p style={{ color: '#666', fontSize: '14px', marginTop: 0 }}>
+                  Showing means it is on the class list. Hidden sessions are still in the database.
+                </p>
+                {storedSessions.map((item) => (
+                  <div key={item.session} style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                    alignItems: 'center',
+                    marginBottom: '10px',
+                    padding: '10px',
+                    background: 'white',
+                    borderRadius: '8px'
+                  }}>
+                    <span style={{ flex: '1 1 180px', color: '#333' }}>
+                      {item.label} ({item.count}) {item.showing ? 'Showing' : 'Hidden'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadSession(item.session, item.label)}
+                      style={{ background: '#0072ce', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 12px', cursor: 'pointer' }}
+                    >
+                      Save to my computer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSession(item.session, item.label)}
+                      style={{ background: '#b42318', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 12px', cursor: 'pointer' }}
+                    >
+                      Delete from database
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             {programMessage && (
               <div style={{
                 marginTop: '15px',

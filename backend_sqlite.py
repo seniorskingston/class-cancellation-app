@@ -1235,6 +1235,7 @@ async def perfectmind_sync_request(request: Request):
             status_code=400,
             content={"status": "error", "message": "Type a session, such as Session 1-2028."},
         )
+    _show_only_these_sessions(body.get("seasons"))
     return perfectmind_sync.request_sync(body.get("seasons"))
 
 
@@ -1250,6 +1251,15 @@ def _load_perfectmind_schedule() -> dict:
         except Exception as exc:
             print(f"Could not read the PerfectMind schedule: {exc}")
     return getattr(app.state, "perfectmind_schedule", {}) or {}
+
+
+def _show_only_these_sessions(labels) -> None:
+    chosen = perfectmind_sync.normalize_seasons(labels)
+    if not chosen:
+        return
+    updated = perfectmind_sync.clean_schedule(_load_perfectmind_schedule())
+    updated["visible_seasons"] = chosen
+    _save_perfectmind_schedule(updated)
 
 
 def _save_perfectmind_schedule(schedule: dict) -> None:
@@ -1288,6 +1298,7 @@ async def perfectmind_schedule_save(request: Request):
         )
     current = _load_perfectmind_schedule()
     updated = perfectmind_sync.clean_schedule(body)
+    updated["visible_seasons"] = updated["seasons"]
     if current.get("last_run_at"):
         updated["last_run_at"] = str(current.get("last_run_at") or "")
     else:
@@ -1312,6 +1323,144 @@ def perfectmind_schedule_start():
     result = perfectmind_sync.public_schedule(updated)
     result["started"] = True
     return result
+
+
+def _all_saved_programs() -> list:
+    if supabase_store.enabled():
+        try:
+            return supabase_store.fetch_programs()
+        except Exception as exc:
+            print(f"Could not read saved programs: {exc}")
+    return _read_sqlite_programs()
+
+
+def _programs_for_session(session_name: str) -> list:
+    return [
+        row for row in _all_saved_programs()
+        if perfectmind_sync.session_matches(row.get("session"), [session_name])
+        or str(row.get("session") or "").strip().lower() == str(session_name or "").strip().lower()
+    ]
+
+
+def _session_workbook(programs: list) -> bytes:
+    order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    grouped = {name: [] for name in order}
+    extras = []
+    for row in programs:
+        day = str(row.get("sheet") or "").strip()
+        if day in grouped:
+            grouped[day].append(row)
+        else:
+            extras.append(row)
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        wrote = False
+        for day in order:
+            rows = grouped[day]
+            if not rows:
+                continue
+            pd.DataFrame([
+                {
+                    "Session": row.get("session") or "",
+                    "Course ID": row.get("program_id") or "",
+                    "Date": row.get("date_range") or "",
+                    "Days": day,
+                    "Description": row.get("description") or "",
+                    "Event": row.get("program") or "",
+                    "Facility": row.get("class_room") or "",
+                    "Fees": row.get("fee") or "",
+                    "Instructor": row.get("instructor") or "",
+                    "Location": row.get("location") or "",
+                    "Time": row.get("time") or "",
+                    "Status": row.get("program_status") or "",
+                    "Cancellation Date": row.get("class_cancellation") or "",
+                    "Note": row.get("note") or "",
+                }
+                for row in rows
+            ]).to_excel(writer, sheet_name=day, index=False)
+            wrote = True
+        if extras:
+            pd.DataFrame(extras).to_excel(writer, sheet_name="Other", index=False)
+            wrote = True
+        if not wrote:
+            pd.DataFrame([{"Session": ""}]).to_excel(writer, sheet_name="Programs", index=False)
+    return buffer.getvalue()
+
+
+@app.get("/api/perfectmind/stored-sessions")
+def perfectmind_stored_sessions():
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    catalog = _all_saved_programs()
+    visible = perfectmind_sync.clean_schedule(_load_perfectmind_schedule()).get("visible_seasons") or []
+    counts = {}
+    for row in catalog:
+        key = str(row.get("session") or "").strip()
+        if not key:
+            continue
+        counts[key] = counts.get(key, 0) + 1
+    sessions = []
+    for key, count in sorted(counts.items(), key=lambda item: perfectmind_sync.session_label(item[0]).lower()):
+        sessions.append({
+            "session": key,
+            "label": perfectmind_sync.session_label(key),
+            "count": count,
+            "showing": perfectmind_sync.session_matches(key, visible) if visible else True,
+        })
+    return {"sessions": sessions}
+
+
+@app.get("/api/perfectmind/sessions/download")
+def perfectmind_download_session(session: str = Query(...)):
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    rows = _programs_for_session(session)
+    if not rows:
+        return JSONResponse(status_code=404, content={"status": "error", "message": "That session is not in the test database."})
+    label = perfectmind_sync.session_label(rows[0].get("session") or session)
+    filename = label.replace(" ", "-") + ".xlsx"
+    return Response(
+        content=_session_workbook(rows),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.post("/api/perfectmind/sessions/delete")
+async def perfectmind_delete_session(request: Request):
+    blocked = _perfectmind_blocked()
+    if blocked:
+        return blocked
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    session_name = str((body or {}).get("session") or "").strip()
+    if not session_name:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "Choose a session to delete."})
+    catalog = _all_saved_programs()
+    remaining = [
+        row for row in catalog
+        if not (
+            perfectmind_sync.session_matches(row.get("session"), [session_name])
+            or str(row.get("session") or "").strip().lower() == session_name.lower()
+        )
+    ]
+    if len(remaining) == len(catalog):
+        return JSONResponse(status_code=404, content={"status": "error", "message": "That session is not in the test database."})
+    if not remaining:
+        return {"status": "error", "message": "That is the only saved session, so it was not deleted."}
+    if not supabase_store.enabled():
+        return {"status": "error", "message": "The test database is not connected. Nothing was deleted."}
+    try:
+        supabase_store.replace_programs(remaining)
+    except Exception as exc:
+        print(f"Could not delete the session: {exc}")
+        return {"status": "error", "message": "The session could not be deleted. The test database was not changed."}
+    label = perfectmind_sync.session_label(session_name)
+    return {"status": "success", "message": f"Deleted {label} from the test database. The file on your computer was not changed."}
 
 
 @app.post("/api/perfectmind/sync/claim")
@@ -7335,6 +7484,12 @@ def get_cancellations(
             catalog = _read_sqlite_programs()
     else:
         catalog = _read_sqlite_programs()
+
+    if app_environment.is_test():
+        visible = perfectmind_sync.clean_schedule(_load_perfectmind_schedule()).get("visible_seasons") or []
+        if visible:
+            programs = [row for row in programs if perfectmind_sync.session_matches(row.get("session"), visible)]
+            catalog = [row for row in catalog if perfectmind_sync.session_matches(row.get("session"), visible)]
 
     total_count = len(catalog)
     cancellation_count = sum(1 for row in catalog if str(row.get('class_cancellation') or '').strip())

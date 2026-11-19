@@ -88,6 +88,18 @@ class PerfectMindSyncTests(unittest.TestCase):
         self.assertFalse(perfectmind_sync.schedule_is_due(ran, morning))
         self.assertTrue(perfectmind_sync.schedule_is_due(ran, evening))
 
+    def test_weekend_can_be_turned_off(self):
+        saturday = datetime(2026, 11, 21, 8, 5, tzinfo=KINGSTON)
+        monday = datetime(2026, 11, 23, 8, 5, tzinfo=KINGSTON)
+        schedule = {"frequency": "daily", "time": "08:00", "skip_weekends": True, "seasons": ["Session 2-2026"]}
+        self.assertFalse(perfectmind_sync.schedule_is_due(schedule, saturday))
+        self.assertTrue(perfectmind_sync.schedule_is_due(schedule, monday))
+
+    def test_hidden_session_stays_out_of_the_chosen_list(self):
+        self.assertTrue(perfectmind_sync.session_matches("2", ["Session 2-2026"]))
+        self.assertFalse(perfectmind_sync.session_matches("1", ["Session 2-2026"]))
+        self.assertFalse(perfectmind_sync.session_matches("1-2026", ["Session 1-2028"]))
+
     def test_weekly_schedule_matches_the_chosen_day(self):
         monday = datetime(2026, 11, 16, 8, 5, tzinfo=KINGSTON)
         tuesday = datetime(2026, 11, 17, 8, 5, tzinfo=KINGSTON)

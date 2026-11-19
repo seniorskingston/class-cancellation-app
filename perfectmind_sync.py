@@ -251,6 +251,8 @@ def clean_schedule(raw) -> dict:
         "window_end": _clock(raw.get("window_end"), "20:00"),
         "weekday": weekday,
         "seasons": seasons,
+        "visible_seasons": normalize_seasons(raw.get("visible_seasons")) or seasons,
+        "skip_weekends": raw.get("skip_weekends") is True or str(raw.get("skip_weekends") or "").strip().lower() in ("1", "true", "yes", "on"),
         "last_run_at": str(raw.get("last_run_at") or ""),
     }
 
@@ -294,6 +296,8 @@ def schedule_is_due(raw, now=None) -> bool:
     frequency = schedule["frequency"]
     if frequency == "off":
         return False
+    if schedule.get("skip_weekends") and current.weekday() >= 5:
+        return False
     if frequency == "interval":
         start_at = _at(current, schedule["window_start"])
         end_at = _at(current, schedule["window_end"])
@@ -330,21 +334,55 @@ def describe_schedule(raw) -> str:
     schedule = clean_schedule(raw)
     frequency = schedule["frequency"]
     if frequency == "off":
-        return "PerfectMind runs only when you click the button."
-    if frequency == "daily":
+        summary = "PerfectMind runs only when you click the button."
+    elif frequency == "daily":
         labels = [_clock_label(value) for value in schedule["times"]]
         if len(labels) == 1:
-            return f"PerfectMind runs every day at {labels[0]}."
-        return "PerfectMind runs every day at " + " and ".join(labels) + "."
-    if frequency == "interval":
+            summary = f"PerfectMind runs every day at {labels[0]}."
+        else:
+            summary = "PerfectMind runs every day at " + " and ".join(labels) + "."
+    elif frequency == "interval":
         hours = schedule["interval_hours"]
         gap = "hour" if hours == 1 else f"{hours} hours"
-        return (
+        summary = (
             f"PerfectMind runs every {gap} from {_clock_label(schedule['window_start'])} "
             f"to {_clock_label(schedule['window_end'])}."
         )
-    day = schedule["weekday"].title()
-    return f"PerfectMind runs once a week on {day} at {_clock_label(schedule['time'])}."
+    else:
+        day = schedule["weekday"].title()
+        summary = f"PerfectMind runs once a week on {day} at {_clock_label(schedule['time'])}."
+    if schedule.get("skip_weekends"):
+        summary += " Saturday and Sunday are off."
+    return summary
+
+
+def session_matches(stored, labels) -> bool:
+    """True when a saved program belongs to one of the typed sessions."""
+    stored_text = str(stored or "").strip()
+    if not stored_text:
+        return False
+    stored_number = session_number(stored_text)
+    stored_year = re.search(r"20\d{2}", stored_text)
+    for label in normalize_seasons(labels):
+        if stored_text.lower() == label.lower():
+            return True
+        label_number = session_number(label)
+        label_year = re.search(r"20\d{2}", label)
+        if not stored_number or stored_number != label_number:
+            continue
+        if stored_year and label_year and stored_year.group() != label_year.group():
+            continue
+        return True
+    return False
+
+
+def session_label(stored) -> str:
+    text = str(stored or "").strip()
+    if not text:
+        return ""
+    if text.lower().startswith("session"):
+        return text
+    return f"Session {text}"
 
 
 def mark_schedule_ran(raw, now=None) -> dict:
