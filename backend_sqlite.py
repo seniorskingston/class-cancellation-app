@@ -24,6 +24,7 @@ import traceback
 import supabase_store
 import app_environment
 import perfectmind_sync
+import locations_admin
 
 app_environment.assert_test_database_is_separate()
 
@@ -1196,6 +1197,96 @@ if app_environment.feature_enabled(app_environment.FEATURE_NEW_FUNCTION):
 def environment_status():
     """Shows whether this copy is the live site or the test site. No secrets."""
     return app_environment.public_status()
+
+
+LOCATIONS_KEY = "extra_locations"
+
+
+def _builtin_locations() -> dict:
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend", "src", "locations.json")
+    try:
+        with open(path, encoding="utf-8") as handle:
+            data = json.load(handle)
+    except Exception as exc:
+        print(f"Could not read the location file: {exc}")
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {str(key): str(value) for key, value in data.items()}
+
+
+def _extra_locations() -> dict:
+    if supabase_store.enabled():
+        try:
+            saved = supabase_store.fetch_setting(LOCATIONS_KEY)
+            return locations_admin.clean_places(saved)
+        except Exception as exc:
+            print(f"Could not read added locations: {exc}")
+    return locations_admin.clean_places(getattr(app.state, "extra_locations", {}))
+
+
+def _save_extra_locations(places: dict) -> None:
+    app.state.extra_locations = places
+    if not supabase_store.enabled():
+        raise RuntimeError("The database is not connected.")
+    supabase_store.save_setting(LOCATIONS_KEY, {"places": places})
+
+
+def _location_payload() -> dict:
+    merged = _builtin_locations()
+    extra = _extra_locations()
+    merged.update(extra)
+    return {"locations": merged, "added": extra}
+
+
+@app.get("/api/locations")
+def list_locations():
+    return _location_payload()
+
+
+@app.post("/api/locations")
+async def add_location(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    updated, error = locations_admin.add_place(
+        _builtin_locations(),
+        _extra_locations(),
+        (body or {}).get("name"),
+        (body or {}).get("address"),
+    )
+    if error:
+        return JSONResponse(status_code=400, content={"status": "error", "message": error})
+    try:
+        _save_extra_locations(updated)
+    except Exception as exc:
+        print(f"Could not save the location: {exc}")
+        return {"status": "error", "message": "The location was not saved. The list was not changed."}
+    result = _location_payload()
+    result["status"] = "success"
+    result["message"] = "Location added. Refresh the class list to see it in the filter."
+    return result
+
+
+@app.post("/api/locations/delete")
+async def delete_added_location(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    updated, error = locations_admin.remove_place(_extra_locations(), (body or {}).get("name"))
+    if error:
+        return JSONResponse(status_code=400, content={"status": "error", "message": error})
+    try:
+        _save_extra_locations(updated)
+    except Exception as exc:
+        print(f"Could not remove the location: {exc}")
+        return {"status": "error", "message": "The location was not removed."}
+    result = _location_payload()
+    result["status"] = "success"
+    result["message"] = "Removed that location from the filter."
+    return result
 
 
 def _perfectmind_blocked():

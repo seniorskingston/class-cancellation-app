@@ -11,6 +11,13 @@ import analytics from './analytics';
 import rachelChatbotIcon from './assets/rachel-chatbot-icon.svg';
 import { apiOrigin } from './apiOrigin';
 
+const locationDirectory: { [key: string]: string } = { ...(locationData as { [key: string]: string }) };
+
+const locationChoices = (): string[] =>
+  Object.keys(locationDirectory)
+    .filter((loc) => !loc.includes("Center"))
+    .sort();
+
 type Cancellation = {
   sheet: string;
   program: string;
@@ -65,7 +72,7 @@ const normalizeLocationName = (location: string): string => {
   if (!location) return "";
 
   const cleanLocation = canonicalizeLocationText(location);
-  const locationKeys = locationData ? Object.keys(locationData) : [];
+  const locationKeys = Object.keys(locationDirectory);
 
   const directMappings: { [key: string]: string } = {
     "SCE - Seniors Centre East": "SCE - Seniors Centre East",
@@ -87,7 +94,7 @@ const normalizeLocationName = (location: string): string => {
     return directMappings[cleanLocation];
   }
 
-  if ((locationData as any)?.[cleanLocation]) {
+  if (locationDirectory[cleanLocation]) {
     return cleanLocation;
   }
 
@@ -129,7 +136,7 @@ const normalizeLocationName = (location: string): string => {
 };
 
 const getFullAddress = (locationCode: string): string => {
-  if (!locationCode || !locationData) {
+  if (!locationCode) {
     return "Address not available";
   }
   
@@ -141,8 +148,8 @@ const getFullAddress = (locationCode: string): string => {
   }
   
   // Try exact match
-  if ((locationData as any)[normalizedLocation]) {
-    return (locationData as any)[normalizedLocation];
+  if (locationDirectory[normalizedLocation]) {
+    return locationDirectory[normalizedLocation];
   }
   
   return "Address not available";
@@ -515,14 +522,7 @@ function App() {
       setCancellations(filtered);
       setLastLoaded(data.last_loaded);
       
-      // Extract unique locations for filter dropdown - ONLY use locations from locations.json
-      // This ensures "All Locations" always shows all available locations and prevents duplicates
-      // Database locations may have variations, so we only use the canonical list from locations.json
-      const allLocationsFromJson = Object.keys(locationData);
-      const uniqueLocations = allLocationsFromJson
-        .filter((loc: string) => !loc.includes("Center")) // Remove all locations with "Center" (American spelling)
-        .sort() as string[];
-      setLocations(uniqueLocations);
+      setLocations(locationChoices());
       
       // Extract unique sessions for filter dropdown - use all data
       const sessionsFromData = Array.from(new Set(allData.map((item: any) => item.session).filter((sess: any) => sess && sess !== '' && sess.toString().trim() !== ''))) as string[];
@@ -539,6 +539,25 @@ function App() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/locations`);
+        if (!response.ok) return;
+        const result = await response.json();
+        if (!result.locations || typeof result.locations !== "object") return;
+        Object.keys(locationDirectory).forEach((key) => {
+          delete locationDirectory[key];
+        });
+        Object.assign(locationDirectory, result.locations);
+        setLocations(locationChoices());
+      } catch (error) {
+        console.error("Could not load added locations:", error);
+      }
+    };
+    loadLocations();
+  }, []);
 
   useEffect(() => {
     // Initial load - fetch all data

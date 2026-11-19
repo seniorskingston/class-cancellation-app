@@ -21,6 +21,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   const [scheduleSummary, setScheduleSummary] = useState('PerfectMind runs only when you click the button.');
   const [selectedEventsFile, setSelectedEventsFile] = useState<File | null>(null);
   const [eventsMessage, setEventsMessage] = useState('');
+  const [locationName, setLocationName] = useState('');
+  const [locationAddress, setLocationAddress] = useState('');
+  const [addedLocations, setAddedLocations] = useState<Array<{ name: string; address: string }>>([]);
+  const [locationMessage, setLocationMessage] = useState('');
 
   const showProgramStatus = (result: { status?: string; message?: string }) => {
     const message = result.message || 'Waiting for PerfectMind.';
@@ -135,9 +139,65 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
     }
   };
 
+  const loadAddedLocations = async () => {
+    try {
+      const response = await fetch(`${apiOrigin()}/api/locations`);
+      if (!response.ok) return;
+      const result = await response.json();
+      const added = result.added && typeof result.added === 'object' ? result.added : {};
+      setAddedLocations(
+        Object.entries(added).map(([name, address]) => ({ name, address: String(address) }))
+      );
+    } catch {
+      setAddedLocations([]);
+    }
+  };
+
   useEffect(() => {
     loadStoredSessions();
+    loadAddedLocations();
   }, []);
+
+  const handleAddLocation = async () => {
+    try {
+      const response = await fetch(`${apiOrigin()}/api/locations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: locationName, address: locationAddress }),
+      });
+      const result = await response.json();
+      if (!response.ok || result.status === 'error') {
+        setLocationMessage(`❌ ${result.message || 'The location was not added.'}`);
+        return;
+      }
+      setLocationName('');
+      setLocationAddress('');
+      setLocationMessage(`✅ ${result.message}`);
+      loadAddedLocations();
+    } catch (error) {
+      setLocationMessage(`❌ Could not add the location: ${error}`);
+    }
+  };
+
+  const handleRemoveLocation = async (name: string) => {
+    if (!window.confirm(`Remove ${name} from the location list?`)) return;
+    try {
+      const response = await fetch(`${apiOrigin()}/api/locations/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      const result = await response.json();
+      if (!response.ok || result.status === 'error') {
+        setLocationMessage(`❌ ${result.message || 'The location was not removed.'}`);
+        return;
+      }
+      setLocationMessage(`✅ ${result.message}`);
+      loadAddedLocations();
+    } catch (error) {
+      setLocationMessage(`❌ Could not remove the location: ${error}`);
+    }
+  };
 
   const handleDownloadSession = async (sessionName: string, label: string) => {
     try {
@@ -744,6 +804,80 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               </div>
             )}
           </div>
+        </div>
+
+        <div style={{
+          background: '#f8f9fa',
+          padding: '25px',
+          borderRadius: '15px',
+          border: '2px solid #007bff',
+          marginTop: '30px'
+        }}>
+          <h2 style={{ color: '#333', marginTop: 0 }}>Add a location</h2>
+          <p style={{ color: '#666', fontSize: '14px' }}>
+            Type the location the same way it appears on the class, such as Hall - New Room. Then type the address people should see when they click that location. The original locations stay in the list.
+          </p>
+          <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+            Location name
+            <input
+              value={locationName}
+              onChange={(event) => setLocationName(event.target.value)}
+              placeholder="Hall - New Room"
+              style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
+            />
+          </label>
+          <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '12px' }}>
+            Address
+            <input
+              value={locationAddress}
+              onChange={(event) => setLocationAddress(event.target.value)}
+              placeholder="12 Main Street, Kingston, ON"
+              style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={handleAddLocation}
+            style={{
+              background: '#0072ce',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '12px 24px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >
+            Add location
+          </button>
+          {locationMessage && (
+            <p style={{ color: '#333', fontSize: '14px' }}>{locationMessage}</p>
+          )}
+          {addedLocations.length > 0 && (
+            <div style={{ marginTop: '16px' }}>
+              {addedLocations.map((item) => (
+                <div key={item.name} style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  alignItems: 'center',
+                  marginBottom: '10px',
+                  padding: '10px',
+                  background: 'white',
+                  borderRadius: '8px'
+                }}>
+                  <span style={{ flex: '1 1 220px', color: '#333' }}>{item.name} — {item.address}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveLocation(item.name)}
+                    style={{ background: '#b42318', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 12px', cursor: 'pointer' }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
 
