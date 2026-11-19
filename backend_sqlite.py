@@ -25,6 +25,7 @@ import supabase_store
 import app_environment
 import perfectmind_sync
 import locations_admin
+import staff_notes
 
 app_environment.assert_test_database_is_separate()
 
@@ -1287,6 +1288,93 @@ async def delete_added_location(request: Request):
     result["status"] = "success"
     result["message"] = "Removed that location from the filter."
     return result
+
+
+def _staff_program_records() -> list:
+    if supabase_store.enabled():
+        return supabase_store.fetch_program_records()
+    ensure_programs_schema()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM programs")
+    records = []
+    for row in cursor.fetchall():
+        records.append({
+            "id": row[0],
+            "sheet": row[1] if len(row) > 1 else "",
+            "program": row[2] if len(row) > 2 else "",
+            "program_id": row[3] if len(row) > 3 else "",
+            "date_range": row[4] if len(row) > 4 else "",
+            "time": row[5] if len(row) > 5 else "",
+            "class_cancellation": row[10] if len(row) > 10 else "",
+            "note": row[11] if len(row) > 11 else "",
+            "session": row[15] if len(row) > 15 else "",
+        })
+    conn.close()
+    return records
+
+
+@app.get("/api/programs/staff")
+def find_staff_programs(q: str = Query("")):
+    term = str(q or "").strip()
+    if not term:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "Type a program name or number."})
+    try:
+        matches = staff_notes.search_programs(_staff_program_records(), term)
+    except Exception as exc:
+        print(f"Could not search classes: {exc}")
+        return {"status": "error", "message": "The class list could not be searched."}
+    return {"programs": [staff_notes.public_class(row) for row in matches]}
+
+
+@app.post("/api/programs/staff")
+async def save_staff_program(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    body = body or {}
+    cancellation = str(body.get("class_cancellation") or "").strip()
+    note = str(body.get("note") or "").strip()
+    try:
+        matches = staff_notes.matching_class(
+            _staff_program_records(),
+            body.get("program_id"),
+            body.get("sheet"),
+            body.get("session"),
+        )
+    except Exception as exc:
+        print(f"Could not find the class: {exc}")
+        return {"status": "error", "message": "The class could not be found. Nothing was saved."}
+    if len(matches) != 1:
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error", "message": "That class could not be matched. Nothing was saved."},
+        )
+    row = matches[0]
+    try:
+        withdrawal = calculate_withdrawal(str(row.get("date_range") or ""), cancellation)
+    except Exception:
+        withdrawal = ""
+    try:
+        if supabase_store.enabled():
+            supabase_store.update_program_staff(row.get("id"), cancellation, note, withdrawal)
+        else:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE programs SET class_cancellation = ?, note = ?, withdrawal = ? WHERE id = ?",
+                (cancellation, note, withdrawal, row.get("id")),
+            )
+            conn.commit()
+            conn.close()
+    except Exception as exc:
+        print(f"Could not save the class note: {exc}")
+        return {"status": "error", "message": "The cancellation date and note were not saved."}
+    saved = staff_notes.public_class(row)
+    saved["class_cancellation"] = cancellation
+    saved["note"] = note
+    return {"status": "success", "message": "Saved the cancellation date and note.", "program": saved}
 
 
 def _perfectmind_blocked():

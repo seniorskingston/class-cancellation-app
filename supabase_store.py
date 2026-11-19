@@ -262,6 +262,25 @@ def fetch_programs() -> list:
     return [_program_from_row(row) for row in rows]
 
 
+def fetch_program_records() -> list:
+    return _fetch_all("programs", "id.asc")
+
+
+def update_program_staff(row_id, class_cancellation: str, note: str, withdrawal: str) -> None:
+    _request(
+        "PATCH",
+        f"{_url()}/rest/v1/programs",
+        "Saving a class note",
+        params={"id": f"eq.{int(row_id)}"},
+        json={
+            "class_cancellation": class_cancellation,
+            "note": note,
+            "withdrawal": withdrawal,
+        },
+        headers=_headers({"Prefer": "return=minimal"}),
+    )
+
+
 def replace_programs(programs: list) -> int:
     if not programs:
         raise SupabaseError("Refusing to replace programs with an empty list")

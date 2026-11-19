@@ -25,6 +25,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   const [locationAddress, setLocationAddress] = useState('');
   const [addedLocations, setAddedLocations] = useState<Array<{ name: string; address: string }>>([]);
   const [locationMessage, setLocationMessage] = useState('');
+  const [staffQuery, setStaffQuery] = useState('');
+  const [staffResults, setStaffResults] = useState<Array<{
+    program: string;
+    program_id: string;
+    sheet: string;
+    session: string;
+    time: string;
+    class_cancellation: string;
+    note: string;
+  }>>([]);
+  const [staffMessage, setStaffMessage] = useState('');
 
   const showProgramStatus = (result: { status?: string; message?: string }) => {
     const message = result.message || 'Waiting for PerfectMind.';
@@ -196,6 +207,60 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
       loadAddedLocations();
     } catch (error) {
       setLocationMessage(`❌ Could not remove the location: ${error}`);
+    }
+  };
+
+  const handleFindClass = async () => {
+    const term = staffQuery.trim();
+    if (!term) {
+      setStaffMessage('❌ Type a program name or number.');
+      return;
+    }
+    try {
+      const response = await fetch(`${apiOrigin()}/api/programs/staff?q=${encodeURIComponent(term)}`);
+      const result = await response.json();
+      if (!response.ok || result.status === 'error') {
+        setStaffMessage(`❌ ${result.message || 'The class could not be found.'}`);
+        setStaffResults([]);
+        return;
+      }
+      const programs = Array.isArray(result.programs) ? result.programs : [];
+      setStaffResults(programs);
+      setStaffMessage(programs.length ? '' : 'No class matched that name or number.');
+    } catch (error) {
+      setStaffMessage(`❌ Could not search: ${error}`);
+    }
+  };
+
+  const updateStaffResult = (index: number, field: 'class_cancellation' | 'note', value: string) => {
+    setStaffResults((current) => current.map((item, itemIndex) => (
+      itemIndex === index ? { ...item, [field]: value } : item
+    )));
+  };
+
+  const handleSaveStaffNote = async (index: number) => {
+    const item = staffResults[index];
+    if (!item) return;
+    try {
+      const response = await fetch(`${apiOrigin()}/api/programs/staff`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          program_id: item.program_id,
+          sheet: item.sheet,
+          session: item.session,
+          class_cancellation: item.class_cancellation,
+          note: item.note,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || result.status === 'error') {
+        setStaffMessage(`❌ ${result.message || 'The note was not saved.'}`);
+        return;
+      }
+      setStaffMessage(`✅ Saved ${item.program}. Refresh the class list to see it.`);
+    } catch (error) {
+      setStaffMessage(`❌ Could not save: ${error}`);
     }
   };
 
@@ -804,6 +869,74 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               </div>
             )}
           </div>
+        </div>
+
+        <div style={{
+          background: '#f8f9fa',
+          padding: '25px',
+          borderRadius: '15px',
+          border: '2px solid #007bff',
+          marginTop: '30px'
+        }}>
+          <h2 style={{ color: '#333', marginTop: 0 }}>Cancellation date and note</h2>
+          <p style={{ color: '#666', fontSize: '14px' }}>
+            Find the class by its name or number. Type the cancellation date as 2026-11-19. For more than one date, separate them with a semicolon. The next PerfectMind read keeps what you save here.
+          </p>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+            <input
+              value={staffQuery}
+              onChange={(event) => setStaffQuery(event.target.value)}
+              placeholder="30375 or drawing"
+              style={{ flex: '1 1 220px', padding: '8px' }}
+            />
+            <button
+              type="button"
+              onClick={handleFindClass}
+              style={{ background: '#0072ce', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer' }}
+            >
+              Find class
+            </button>
+          </div>
+          {staffMessage && (
+            <p style={{ color: '#333', fontSize: '14px' }}>{staffMessage}</p>
+          )}
+          {staffResults.map((item, index) => (
+            <div key={`${item.program_id}-${item.sheet}-${item.session}`} style={{
+              background: 'white',
+              borderRadius: '8px',
+              padding: '12px',
+              marginBottom: '12px'
+            }}>
+              <p style={{ margin: '0 0 8px', color: '#333' }}>
+                {item.program} · {String(item.program_id).replace(/\.0$/, '')} · {item.sheet} · Session {item.session} · {item.time}
+              </p>
+              <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+                Cancellation date
+                <input
+                  value={item.class_cancellation}
+                  onChange={(event) => updateStaffResult(index, 'class_cancellation', event.target.value)}
+                  placeholder="2026-11-19"
+                  style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
+                />
+              </label>
+              <label style={{ display: 'block', color: '#333', fontSize: '15px', marginBottom: '8px' }}>
+                Note
+                <textarea
+                  value={item.note}
+                  onChange={(event) => updateStaffResult(index, 'note', event.target.value)}
+                  rows={3}
+                  style={{ display: 'block', width: '100%', marginTop: '6px', padding: '8px' }}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => handleSaveStaffNote(index)}
+                style={{ background: '#0072ce', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer' }}
+              >
+                Save
+              </button>
+            </div>
+          ))}
         </div>
 
         <div style={{
