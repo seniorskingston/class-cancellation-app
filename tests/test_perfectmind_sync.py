@@ -89,6 +89,22 @@ class PerfectMindSyncTests(unittest.TestCase):
         self.assertFalse(perfectmind_sync.schedule_is_due(ran, morning))
         self.assertTrue(perfectmind_sync.schedule_is_due(ran, evening))
 
+    def test_a_read_lists_changes_for_the_same_session(self):
+        existing = [
+            {"program_id": "30962", "session": "2", "sheet": "Monday", "program": "Exercise", "time": "08:30 AM - 09:15 AM", "class_cancellation": "2026-11-19"},
+            {"program_id": "30913", "session": "2", "sheet": "Tuesday", "program": "Pickleball", "time": "08:30 AM - 10:30 AM"},
+            {"program_id": "100", "session": "1", "sheet": "Monday", "program": "Travel", "time": "10:00 AM"},
+        ]
+        incoming = [
+            {"program_id": "30962", "session": "Session 2 - 2026", "sheet": "Monday", "program": "Exercise", "time": "09:00 AM - 09:45 AM"},
+            {"program_id": "40000", "session": "2", "sheet": "Monday", "program": "New Class", "time": "01:00 PM"},
+        ]
+        changes = perfectmind_sync.session_changes(existing, incoming)
+        self.assertTrue(any(line.startswith("Changed Monday Session 2 Exercise 30962") and "Time was" in line for line in changes))
+        self.assertTrue(any(line.startswith("Added Monday Session 2 New Class 40000") for line in changes))
+        self.assertFalse(any("Pickleball" in line or "Travel" in line for line in changes))
+        self.assertFalse(any("2026-11-19" in line for line in changes))
+
     def test_weekend_can_be_turned_off(self):
         saturday = datetime(2026, 11, 21, 8, 5, tzinfo=KINGSTON)
         monday = datetime(2026, 11, 23, 8, 5, tzinfo=KINGSTON)

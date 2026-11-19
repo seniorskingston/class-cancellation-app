@@ -36,9 +36,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
     note: string;
   }>>([]);
   const [staffMessage, setStaffMessage] = useState('');
+  const [staffNotices, setStaffNotices] = useState<Record<string, { ok: boolean; text: string }>>({});
+  const [savingStaffKey, setSavingStaffKey] = useState('');
+  const [lastRun, setLastRun] = useState('');
+  const [classChanges, setClassChanges] = useState<string[]>([]);
 
-  const showProgramStatus = (result: { status?: string; message?: string }) => {
+  const showProgramStatus = (result: { status?: string; message?: string; ran_at?: string; changes?: string[] }) => {
     const message = result.message || 'Waiting for PerfectMind.';
+    if (result.ran_at) setLastRun(result.ran_at);
+    if (Array.isArray(result.changes)) setClassChanges(result.changes);
     if (result.status === 'success') {
       setProgramMessage(`✅ ${message}`);
       setProgramBusy(false);
@@ -50,8 +56,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
       setProgramBusy(false);
       return;
     }
-    setProgramMessage(message);
-    setProgramBusy(result.status === 'pending' || result.status === 'running');
+    if (result.status === 'pending' || result.status === 'running') {
+      setProgramMessage(message);
+      setProgramBusy(true);
+      return;
+    }
+    if (result.ran_at) {
+      setProgramMessage(message);
+    }
+    setProgramBusy(false);
   };
 
   useEffect(() => {
@@ -63,7 +76,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
         if (!response.ok || stopped) return;
         const result = await response.json();
         const active = result.status === 'pending' || result.status === 'running';
-        if (active || result.status === 'success' || result.status === 'error') {
+        if (active || result.status === 'success' || result.status === 'error' || result.ran_at) {
           showProgramStatus(result);
         }
         if (active && !stopped) {
@@ -238,9 +251,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
     )));
   };
 
+  const staffKey = (item: { program_id: string; sheet: string; session: string }) =>
+    `${item.program_id}|${item.sheet}|${item.session}`;
+
   const handleSaveStaffNote = async (index: number) => {
     const item = staffResults[index];
     if (!item) return;
+    const key = staffKey(item);
+    setSavingStaffKey(key);
+    setStaffNotices((current) => ({ ...current, [key]: { ok: true, text: 'Saving...' } }));
     try {
       const response = await fetch(`${apiOrigin()}/api/programs/staff`, {
         method: 'POST',
@@ -253,14 +272,35 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
           note: item.note,
         }),
       });
-      const result = await response.json();
+      let result: { status?: string; message?: string; program?: { class_cancellation?: string; note?: string } } = {};
+      try {
+        result = await response.json();
+      } catch {
+        result = {};
+      }
       if (!response.ok || result.status === 'error') {
-        setStaffMessage(`❌ ${result.message || 'The note was not saved.'}`);
+        setStaffNotices((current) => ({
+          ...current,
+          [key]: { ok: false, text: result.message || 'Not saved. The class list was not changed.' },
+        }));
         return;
       }
-      setStaffMessage(`✅ Saved ${item.program}. Refresh the class list to see it.`);
+      const savedDate = (result.program?.class_cancellation ?? item.class_cancellation).trim();
+      const savedNote = (result.program?.note ?? item.note).trim();
+      setStaffNotices((current) => ({
+        ...current,
+        [key]: {
+          ok: true,
+          text: `Saved. Cancellation date: ${savedDate || 'none'}. Note: ${savedNote || 'none'}.`,
+        },
+      }));
     } catch (error) {
-      setStaffMessage(`❌ Could not save: ${error}`);
+      setStaffNotices((current) => ({
+        ...current,
+        [key]: { ok: false, text: `Not saved. ${error}` },
+      }));
+    } finally {
+      setSavingStaffKey('');
     }
   };
 
@@ -739,6 +779,21 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
                 {programMessage}
               </div>
             )}
+            {lastRun && (
+              <div style={{ marginTop: '15px', padding: '12px', background: 'white', borderRadius: '8px' }}>
+                <p style={{ margin: '0 0 8px', color: '#333', fontWeight: 'bold' }}>Last run: {lastRun}</p>
+                <p style={{ margin: '0 0 8px', color: '#333' }}>
+                  {classChanges.length === 0 ? 'No class changes.' : 'Class changes for the same session:'}
+                </p>
+                {classChanges.length > 0 && (
+                  <ul style={{ margin: 0, paddingLeft: '18px', color: '#333' }}>
+                    {classChanges.map((line) => (
+                      <li key={line} style={{ marginBottom: '6px' }}>{line}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
 
           {/* ==================== EVENTS FILE UPLOAD SECTION ==================== */}
@@ -931,10 +986,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               <button
                 type="button"
                 onClick={() => handleSaveStaffNote(index)}
+                disabled={savingStaffKey === staffKey(item)}
                 style={{ background: '#0072ce', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer' }}
               >
-                Save
+                {savingStaffKey === staffKey(item) ? 'Saving...' : 'Save'}
               </button>
+              {staffNotices[staffKey(item)] && (
+                <p style={{
+                  margin: '10px 0 0',
+                  padding: '10px',
+                  borderRadius: '8px',
+                  background: staffNotices[staffKey(item)].ok ? '#d4edda' : '#f8d7da',
+                  color: staffNotices[staffKey(item)].ok ? '#155724' : '#721c24',
+                  fontWeight: 'bold'
+                }}>
+                  {staffNotices[staffKey(item)].text}
+                </p>
+              )}
             </div>
           ))}
         </div>

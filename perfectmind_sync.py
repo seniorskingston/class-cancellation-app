@@ -96,13 +96,19 @@ def fail(message: str) -> dict:
         return dict(_job)
 
 
-def succeed(program_count: int) -> dict:
+def succeed(program_count: int, ran_at: str = "", changes: list | None = None) -> dict:
+    changes = list(changes or [])
+    detail = "No class changes." if not changes else f"{len(changes)} class changes."
+    when = f" Last run {ran_at}." if ran_at else ""
     with _lock:
         _job.update({
             "status": "success",
-            "message": f"Saved {program_count} programs from PerfectMind to the test database. Notes and cancellation dates already entered were kept.",
+            "message": f"Saved {program_count} programs.{when} {detail} Notes and cancellation dates already entered were kept.",
             "program_count": program_count,
             "updated_at": _stamp(),
+            "ran_at": ran_at,
+            "changes": changes,
+            "change_count": len(changes),
         })
         return dict(_job)
 
@@ -202,6 +208,75 @@ def combine_with_other_sessions(existing: list, incoming: list) -> list:
         if str(row.get("note") or "").strip() or str(row.get("class_cancellation") or "").strip():
             combined.append(row)
     return combined
+
+
+def _plain(value) -> str:
+    return " ".join(str(value or "").split())
+
+
+def _class_label(row: dict) -> str:
+    day = str(row.get("sheet") or "").strip()
+    session = session_number(row.get("session")) or str(row.get("session") or "").strip()
+    name = str(row.get("program") or "").strip()
+    program_id = _program_id(row.get("program_id"))
+    return f"{day} Session {session} {name} {program_id}".strip()
+
+
+def session_changes(existing: list, incoming: list) -> list[str]:
+    """List added, removed, and changed classes for the days that were just read."""
+    labels = (
+        ("program", "Name"),
+        ("time", "Time"),
+        ("date_range", "Dates"),
+        ("location", "Location"),
+        ("class_room", "Room"),
+        ("instructor", "Instructor"),
+        ("program_status", "Status"),
+        ("fee", "Fee"),
+    )
+    read_days = set()
+    fresh = {}
+    for row in incoming:
+        session = session_number(row.get("session"))
+        day = str(row.get("sheet") or "").strip().lower()
+        key = _staff_key(row)
+        if session and day:
+            read_days.add((session, day))
+        if key[0]:
+            fresh[key] = row
+    previous = {}
+    for row in existing:
+        session = session_number(row.get("session"))
+        day = str(row.get("sheet") or "").strip().lower()
+        if (session, day) not in read_days:
+            continue
+        key = _staff_key(row)
+        if key[0]:
+            previous[key] = row
+    lines = []
+    for key, row in fresh.items():
+        old = previous.get(key)
+        if not old:
+            lines.append(f"Added {_class_label(row)}")
+            continue
+        parts = []
+        for field, label in labels:
+            before = _plain(old.get(field))
+            after = _plain(row.get(field))
+            if before.casefold() != after.casefold():
+                parts.append(f"{label} was {before or 'blank'}, now {after or 'blank'}")
+        if parts:
+            lines.append(f"Changed {_class_label(row)}: " + "; ".join(parts))
+    for key, row in previous.items():
+        if key not in fresh:
+            lines.append(f"Removed {_class_label(row)}")
+    return sorted(lines)
+
+
+def ran_label(now=None) -> str:
+    current = _kingston_now(now)
+    hour = current.strftime("%H:%M")
+    return f"{current.strftime('%B')} {current.day}, {current.year}, {_clock_label(hour)}"
 
 
 KINGSTON = ZoneInfo("America/Toronto")

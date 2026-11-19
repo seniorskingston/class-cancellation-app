@@ -1395,7 +1395,25 @@ def perfectmind_sync_status():
     blocked = _perfectmind_blocked()
     if blocked:
         return blocked
-    return perfectmind_sync.status()
+    current = perfectmind_sync.status()
+    if current.get("status") not in ("pending", "running") and not current.get("ran_at"):
+        saved = getattr(app.state, "perfectmind_last_report", None)
+        if not isinstance(saved, dict) and supabase_store.enabled():
+            try:
+                saved = supabase_store.fetch_setting("perfectmind_last_report")
+            except Exception as exc:
+                print(f"Could not read the last PerfectMind run: {exc}")
+                saved = None
+        if isinstance(saved, dict) and saved.get("ran_at"):
+            changes = saved.get("changes") if isinstance(saved.get("changes"), list) else []
+            count = len(changes)
+            detail = "No class changes." if count == 0 else f"{count} class changes."
+            current["ran_at"] = saved.get("ran_at")
+            current["changes"] = changes
+            current["change_count"] = count
+            if current.get("status") in ("idle", "success"):
+                current["message"] = f"Last run {saved.get('ran_at')}. {detail}"
+    return current
 
 
 @app.post("/api/perfectmind/sync")
@@ -1684,12 +1702,23 @@ async def perfectmind_save_programs(request: Request):
         merged = perfectmind_sync.merge_staff_fields(incoming, existing, calculate_withdrawal)
         if not merged:
             return perfectmind_sync.fail("None of the PerfectMind rows could be read. The test list was not changed.")
+        changes = perfectmind_sync.session_changes(existing, merged)
+        if len(changes) > 80:
+            extra = len(changes) - 80
+            changes = changes[:80] + [f"And {extra} more changes."]
+        ran_at = perfectmind_sync.ran_label()
         merged = perfectmind_sync.combine_with_other_sessions(existing, merged)
         saved = supabase_store.replace_programs(merged)
+        report = {"ran_at": ran_at, "changes": changes, "change_count": len(changes)}
+        app.state.perfectmind_last_report = report
+        try:
+            supabase_store.save_setting("perfectmind_last_report", report)
+        except Exception as exc:
+            print(f"Could not save the class-change list: {exc}")
     except Exception as exc:
         print(f"PerfectMind save failed: {exc}")
         return perfectmind_sync.fail("The programs could not be saved. The test list was not changed.")
-    return perfectmind_sync.succeed(saved)
+    return perfectmind_sync.succeed(saved, ran_at, changes)
 
 # In-memory storage for editable events (in production, this would be a database)
 editable_events = {}
