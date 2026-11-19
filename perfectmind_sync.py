@@ -137,8 +137,14 @@ def merge_staff_fields(incoming: list, existing: list, withdrawal_fn) -> list:
     saved = {}
     for row in existing:
         key = _staff_key(row)
-        if key[0]:
-            saved[key] = row
+        if not key[0]:
+            continue
+        previous = saved.get(key)
+        if previous and (
+            str(previous.get("note") or "").strip() or str(previous.get("class_cancellation") or "").strip()
+        ):
+            continue
+        saved[key] = row
     merged = []
     for source in incoming:
         item = {
@@ -176,14 +182,25 @@ def merge_staff_fields(incoming: list, existing: list, withdrawal_fn) -> list:
 
 
 def combine_with_other_sessions(existing: list, incoming: list) -> list:
-    """Replace only the sessions that were just read. Leave the other sessions in place."""
-    replaced = {session_number(row.get("session")) for row in incoming}
-    replaced.discard("")
+    """Replace only the days that were just read. Keep a missed day and any saved cancellation."""
+    incoming_keys = {_staff_key(row) for row in incoming if _staff_key(row)[0]}
+    incoming_days = set()
+    for row in incoming:
+        session = session_number(row.get("session"))
+        day = str(row.get("sheet") or "").strip().lower()
+        if session and day:
+            incoming_days.add((session, day))
     combined = list(incoming)
     for row in existing:
-        if session_number(row.get("session")) in replaced:
+        session = session_number(row.get("session"))
+        day = str(row.get("sheet") or "").strip().lower()
+        if (session, day) not in incoming_days:
+            combined.append(row)
             continue
-        combined.append(row)
+        if _staff_key(row) in incoming_keys:
+            continue
+        if str(row.get("note") or "").strip() or str(row.get("class_cancellation") or "").strip():
+            combined.append(row)
     return combined
 
 

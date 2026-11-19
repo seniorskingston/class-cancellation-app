@@ -56,11 +56,12 @@ class PerfectMindSyncTests(unittest.TestCase):
     def test_other_sessions_stay_when_one_session_is_replaced(self):
         existing = [
             {"program_id": "1", "session": "1", "sheet": "Monday"},
-            {"program_id": "2", "session": "2", "sheet": "Monday"},
+            {"program_id": "2", "session": "2", "sheet": "Monday", "class_cancellation": "2026-11-19"},
+            {"program_id": "3", "session": "2", "sheet": "Tuesday"},
         ]
         incoming = [{"program_id": "9", "session": "2", "sheet": "Tuesday"}]
         combined = perfectmind_sync.combine_with_other_sessions(existing, incoming)
-        self.assertEqual([row["program_id"] for row in combined], ["9", "1"])
+        self.assertEqual([row["program_id"] for row in combined], ["9", "1", "2"])
 
     def test_daily_schedule_runs_after_its_time(self):
         morning = datetime(2026, 11, 19, 7, 30, tzinfo=KINGSTON)
