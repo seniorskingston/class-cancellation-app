@@ -22,6 +22,7 @@ from contextlib import asynccontextmanager
 from urllib.parse import urljoin
 import traceback
 import supabase_store
+import website_events
 
 
 def _get_event_year_month(event):
@@ -1140,6 +1141,7 @@ async def lifespan_handler(app: FastAPI):
         scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
         # Weekly report every Monday at 10:00 AM  
         scheduler.add_job(scheduled_weekly_report, 'cron', day_of_week=0, hour=10, minute=0)
+        scheduler.add_job(scheduled_website_events, 'interval', minutes=15)
         scheduler.start()
         print("✅ Background scheduler started")
     except Exception as e:
@@ -7754,3 +7756,101 @@ def test_programs():
         }
     except Exception as e:
         return {"error": str(e)}
+
+
+def _website_catalog():
+    if not supabase_store.enabled():
+        return website_events.empty_catalog()
+    return website_events.normalize_catalog(
+        supabase_store.fetch_setting(website_events.SETTING_KEY)
+    )
+
+
+def _save_website_catalog(catalog):
+    if not supabase_store.enabled():
+        raise website_events.WebsiteEventsError(
+            "The database is not ready, so the events were not saved."
+        )
+    supabase_store.save_setting(website_events.SETTING_KEY, catalog)
+
+
+def _website_rows():
+    start, end = website_events.month_window()
+    return website_events.fetch_rows(start, end)
+
+
+def scheduled_website_events():
+    """Save website events only when automatic sync has been turned on."""
+    try:
+        catalog = _website_catalog()
+        if not website_events.automatic_is_due(catalog):
+            return
+        saved = website_events.sync_catalog(catalog, _website_rows())
+        _save_website_catalog(saved)
+        print("Website events sync finished")
+    except Exception as exc:
+        print(f"Website events sync failed: {exc}")
+
+
+@app.get("/api/website-events")
+def get_website_events():
+    try:
+        return website_events.public_status(_website_catalog())
+    except Exception as exc:
+        return {
+            "saved": False,
+            "automatic": False,
+            "time": "08:00",
+            "last_success": "",
+            "last_attempt": "",
+            "counts": {"new": 0, "updated": 0, "unchanged": 0, "failed": 1},
+            "errors": [str(exc)],
+            "window_label": "",
+            "events": [],
+        }
+
+
+@app.post("/api/website-events/preview")
+def preview_website_events():
+    catalog = _website_catalog()
+    try:
+        return website_events.preview(catalog, _website_rows())
+    except Exception as exc:
+        status = website_events.public_status(catalog, saved=False)
+        status["errors"] = [f"The website could not be read: {exc}"]
+        status["counts"] = {"new": 0, "updated": 0, "unchanged": 0, "failed": 1}
+        return status
+
+
+@app.post("/api/website-events/sync")
+def sync_website_events():
+    catalog = _website_catalog()
+    try:
+        saved = website_events.sync_catalog(catalog, _website_rows())
+        _save_website_catalog(saved)
+        return website_events.public_status(saved)
+    except website_events.WebsiteEventsError as exc:
+        status = website_events.public_status(catalog, saved=False)
+        status["errors"] = [str(exc)]
+        return status
+    except Exception as exc:
+        status = website_events.public_status(catalog, saved=False)
+        status["errors"] = [f"The website could not be read: {exc}"]
+        status["counts"] = {"new": 0, "updated": 0, "unchanged": 0, "failed": 1}
+        return status
+
+
+@app.post("/api/website-events/schedule")
+async def save_website_schedule(request: Request):
+    body = await request.json()
+    catalog = _website_catalog()
+    schedule = website_events.clean_schedule(body if isinstance(body, dict) else {})
+    catalog["automatic"] = schedule["automatic"]
+    catalog["time"] = schedule["time"]
+    try:
+        _save_website_catalog(catalog)
+    except Exception as exc:
+        status = website_events.public_status(catalog, saved=False)
+        status["errors"] = [str(exc)]
+        return status
+    return website_events.public_status(catalog)

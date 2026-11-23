@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import WebsiteEvents from './WebsiteEvents';
 
 interface AdminPanelProps {
   onBackToMain: () => void;
@@ -390,6 +391,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               </div>
             )}
           </div>
+
+          <WebsiteEvents />
         </div>
 
 
