@@ -4332,11 +4332,16 @@ def get_events(request: Request):
                         print(f"🧹 Cleaned title: '{title[:50]}...' -> '{clean_title}'")
                         break
     
+    try:
+        all_events = website_events.merge_for_calendar(all_events, _website_catalog())
+    except Exception as exc:
+        print(f"Website events were not added to the calendar: {exc}")
+
     return {
         "events": all_events,
         "last_loaded": datetime.now(KINGSTON_TZ).isoformat(),
         "count": len(all_events),
-        "source": "known_events_fallback"
+        "source": "stored_and_website"
     }
 
 @app.post("/api/events")

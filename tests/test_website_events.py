@@ -112,6 +112,30 @@ def test_automatic_stays_off_until_turned_on():
     assert website_events.automatic_is_due(saved, when) is False
 
 
+def test_calendar_keeps_old_events_and_adds_website_events():
+    when = datetime(2026, 11, 23, 9, tzinfo=ZONE)
+    catalog = website_events.sync_catalog(
+        {},
+        [
+            _row(59, title="Holiday Fair", start="2026-11-28T10:00:00"),
+            _row(60, title="December Concert", start="2026-12-04T14:00:00"),
+        ],
+        when,
+    )
+    stored = [
+        {"title": "Holiday Fair", "startDate": "2026-11-28T10:00:00Z"},
+        {"title": "May Lunch", "startDate": "2026-05-11T13:00:00Z"},
+    ]
+    shown = website_events.merge_for_calendar(stored, catalog, when)
+    titles = [item["title"] for item in shown]
+    assert titles == ["May Lunch", "Holiday Fair", "December Concert"]
+    fair = next(item for item in shown if item["title"] == "Holiday Fair")
+    assert fair["id"] == "web-59"
+    assert fair["startDate"] == "2026-11-28T10:00:00"
+    assert "<" not in fair["description"]
+    assert fair["timeStr"] == "10:00 am"
+
+
 def test_fetch_follows_every_page_and_filters_start_date():
     calls = []
 

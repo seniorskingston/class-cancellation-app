@@ -217,6 +217,56 @@ def merge_records(catalog: dict, records: list, failed: list, when: datetime) ->
     return updated
 
 
+def _event_key(title, start) -> tuple:
+    return (str(title or "").strip().lower(), str(start or "")[:10])
+
+
+def calendar_event(record: dict) -> dict:
+    """Shape a website event the way the public calendar already reads events."""
+    start = str(record.get("start_date") or "").replace("Z", "")
+    end = str(record.get("end_date") or "").replace("Z", "") or start
+    try:
+        parsed = datetime.fromisoformat(start)
+    except ValueError:
+        parsed = None
+    time_str = ""
+    date_str = start
+    if parsed is not None:
+        hour = parsed.strftime("%I").lstrip("0") or "12"
+        time_str = f"{hour}:{parsed.strftime('%M %p').lower()}"
+        date_str = f"{parsed.strftime('%B')} {parsed.day}, {parsed.year}, {time_str}"
+    return {
+        "id": f"web-{record.get('external_id')}",
+        "title": record.get("title") or "",
+        "startDate": start,
+        "endDate": end,
+        "description": record.get("description") or "",
+        "location": record.get("address") or "",
+        "dateStr": date_str,
+        "timeStr": time_str,
+        "image_url": record.get("thumbnail") or "/logo192.png",
+        "price": record.get("price") or "",
+        "instructor": "",
+        "registration": "",
+    }
+
+
+def merge_for_calendar(stored_events, catalog: dict, moment=None) -> list:
+    """Show website events on the calendar and keep uploaded events that are not the same."""
+    website_items = []
+    keys = set()
+    for record in events_in_window(catalog, moment):
+        item = calendar_event(record)
+        keys.add(_event_key(item["title"], item["startDate"]))
+        website_items.append(item)
+    kept = []
+    for event in stored_events or []:
+        if _event_key(event.get("title"), event.get("startDate")) in keys:
+            continue
+        kept.append(event)
+    return kept + website_items
+
+
 def events_in_window(catalog: dict, moment=None) -> list:
     start, end = month_window(moment)
     start_text = start.strftime("%Y-%m-%dT%H:%M:%S")
