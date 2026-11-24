@@ -1055,7 +1055,7 @@ function App() {
                       </span>
                     </div>
                     <div className="mobile-detail-row">
-                      <span className="mobile-label">Cancelled:</span>
+                      <span className="mobile-label">Class Date Cancellation:</span>
                       <span className="mobile-value mobile-cancellation">
                         {c.class_cancellation && c.class_cancellation !== '' ? 
                           c.class_cancellation.split(';').map((date, index) => {
@@ -1696,17 +1696,16 @@ function App() {
           value={filters.program_status}
           onChange={handleInputChange}
         >
-          <option value="">All Statuses</option>
+          <option value="">Program Status</option>
           <option value="Cancelled">Cancelled</option>
           <option value="Active">Active</option>
-          <option value="Additions">Additions</option>
         </select>
           <select
             name="view_type"
             value={filters.view_type}
             onChange={handleInputChange}
           >
-            <option value="cancellations">Show Class Cancellations</option>
+            <option value="cancellations">Show Class Date Cancellations</option>
             <option value="all">Show All Programs</option>
         </select>
         <button onClick={handleRefresh} disabled={loading} className="custom-tooltip" data-tooltip="Refresh Data">
@@ -1747,7 +1746,7 @@ function App() {
               <th>Class Room</th>
               <th>Instructor</th>
               <th>Program Status</th>
-              <th>Class Cancellation</th>
+              <th>Class Date Cancellation</th>
               <th>Additional Information</th>
             </tr>
           </thead>
