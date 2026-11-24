@@ -1749,13 +1749,12 @@ function App() {
               <th>Program Status</th>
               <th>Class Cancellation</th>
               <th>Additional Information</th>
-              <th>Refund</th>
             </tr>
           </thead>
           <tbody>
             {sortedCancellations.length === 0 && (
               <tr>
-                <td colSpan={14} style={{ textAlign: "center" }}>
+                <td colSpan={13} style={{ textAlign: "center" }}>
                   No programs found.
                 </td>
               </tr>
@@ -1850,7 +1849,6 @@ function App() {
                       return null;
                     }).filter(Boolean) || c.class_cancellation : ''}</td>
                   <td>{c.note && c.note !== '' ? c.note : ''}</td>
-                <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
               </tr>
             );
             })}
