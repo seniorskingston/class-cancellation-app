@@ -1090,9 +1090,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
         </div>
 
           <WebsiteEvents />
-        </div>
-
-
       </div>
     </div>
   );
