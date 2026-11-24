@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { apiOrigin } from './apiOrigin';
+import WebsiteEvents from './WebsiteEvents';
 
 interface AdminPanelProps {
   onBackToMain: () => void;
@@ -112,7 +113,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
         if (!weekendEdited.current) setSkipWeekends(Boolean(saved.skip_weekends));
         if (saved.summary) setScheduleSummary(saved.summary);
       } catch {
-        setScheduleSummary('The schedule will appear after the test site finishes updating.');
+        setScheduleSummary('The schedule will appear after the page finishes loading.');
       }
     };
     loadSchedule();
@@ -328,7 +329,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   };
 
   const handleDeleteSession = async (sessionName: string, label: string) => {
-    if (!window.confirm(`Delete ${label} from the test database? Save it to your computer first if you still need it.`)) {
+    if (!window.confirm(`Delete ${label} from the database? Save it to your computer first if you still need it.`)) {
       return;
     }
     try {
@@ -364,13 +365,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
       });
       const result = await response.json();
       if (!response.ok) {
-        setProgramMessage(`❌ ${result.message || 'The test site could not start PerfectMind.'}`);
+        setProgramMessage(`❌ ${result.message || 'The app could not start PerfectMind.'}`);
         setProgramBusy(false);
         return;
       }
       showProgramStatus(result);
     } catch (error) {
-      setProgramMessage(`❌ Could not reach the test site: ${error}`);
+      setProgramMessage(`❌ Could not reach the app: ${error}`);
       setProgramBusy(false);
     }
   };
@@ -416,17 +417,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: '#e7eef6',
       padding: '20px',
       fontFamily: 'Arial, sans-serif'
     }}>
       <div style={{
-        maxWidth: '1200px',
+        maxWidth: '920px',
         margin: '0 auto',
         background: 'white',
-        borderRadius: '20px',
-        padding: '30px',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+        borderRadius: '16px',
+        padding: '28px',
+        boxShadow: '0 8px 24px rgba(20, 40, 70, 0.08)'
       }}>
         {/* Header */}
         <div style={{ 
@@ -443,7 +444,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
             fontSize: '2rem',
             fontWeight: 'bold'
           }}>
-            🔧 Admin Panel
+            Admin
           </h1>
           <div style={{ display: 'flex', gap: '10px' }}>
             {onViewPrintList && (
@@ -483,8 +484,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
         {/* Two Column Layout for Excel and Events */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-          gap: '30px'
+          gridTemplateColumns: '1fr',
+          gap: '20px'
         }}>
           
           {/* ==================== PERFECTMIND PROGRAMS ==================== */}
@@ -492,7 +493,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
             background: '#f8f9fa',
             padding: '25px',
             borderRadius: '15px',
-            border: '2px solid #007bff'
+            border: '1px solid #d5dee8'
           }}>
             <h2 style={{ 
               color: '#007bff', 
@@ -509,7 +510,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               Type each session you want to show, such as Session 2-2026. Other sessions stay saved in the database and are hidden from the class list. You can save a hidden session to your computer, then delete it from the database.
             </p>
             <div style={{
-              border: '2px dashed #007bff',
+              border: '1px solid #e1e8f0',
               borderRadius: '10px',
               padding: '20px',
               textAlign: 'left',
@@ -808,7 +809,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
             background: '#f8f9fa',
             padding: '25px',
             borderRadius: '15px',
-            border: '2px solid #28a745'
+            border: '1px solid #d5dee8'
           }}>
             <h2 style={{ 
               color: '#28a745', 
@@ -821,7 +822,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
             {/* Manual Scraping Instructions */}
             <div style={{
               background: '#e3f2fd',
-              border: '2px solid #2196f3',
+              border: '1px solid #d6e4f5',
               borderRadius: '10px',
               padding: '15px',
               marginBottom: '20px'
@@ -850,7 +851,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
             
             {/* File Upload Section */}
             <div style={{
-              border: '2px dashed #28a745',
+              border: '1px solid #e1e8f0',
               borderRadius: '10px',
               padding: '20px',
               textAlign: 'center',
@@ -937,7 +938,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
           background: '#f8f9fa',
           padding: '25px',
           borderRadius: '15px',
-          border: '2px solid #007bff',
+          border: '1px solid #d5dee8',
           marginTop: '30px'
         }}>
           <h2 style={{ color: '#333', marginTop: 0 }}>Cancellation date and note</h2>
@@ -1018,7 +1019,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
           background: '#f8f9fa',
           padding: '25px',
           borderRadius: '15px',
-          border: '2px solid #007bff',
+          border: '1px solid #d5dee8',
           marginTop: '30px'
         }}>
           <h2 style={{ color: '#333', marginTop: 0 }}>Add a location</h2>
@@ -1086,6 +1087,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               ))}
             </div>
           )}
+        </div>
+
+          <WebsiteEvents />
         </div>
 
 

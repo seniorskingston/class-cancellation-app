@@ -26,6 +26,7 @@ import app_environment
 import perfectmind_sync
 import locations_admin
 import staff_notes
+import website_events
 
 app_environment.assert_test_database_is_separate()
 
@@ -1152,11 +1153,9 @@ async def lifespan_handler(app: FastAPI):
             scheduler.add_job(scheduled_daily_report, 'cron', hour=9, minute=0)
             # Weekly report every Monday at 10:00 AM
             scheduler.add_job(scheduled_weekly_report, 'cron', day_of_week=0, hour=10, minute=0)
-            scheduler.start()
-            print("✅ Background scheduler started")
-        else:
-            scheduler = None
-            print("Test environment: scheduled emails and automated jobs were not started")
+        scheduler.add_job(scheduled_website_events, 'interval', minutes=15)
+        scheduler.start()
+        print("✅ Background scheduler started")
     except Exception as e:
         print(f"⚠️ Failed to start scheduler: {e}")
         scheduler = None
@@ -1378,16 +1377,8 @@ async def save_staff_program(request: Request):
 
 
 def _perfectmind_blocked():
-    """The live site keeps its current programs. This action exists on the test site only."""
-    if app_environment.is_test():
-        return None
-    return JSONResponse(
-        status_code=403,
-        content={
-            "status": "blocked",
-            "message": "Getting programs from PerfectMind is only available on the test site.",
-        },
-    )
+    """PerfectMind updates are available on the live site and save into Supabase."""
+    return None
 
 
 @app.get("/api/perfectmind/sync")
@@ -1615,7 +1606,7 @@ def perfectmind_download_session(session: str = Query(...)):
         return blocked
     rows = _programs_for_session(session)
     if not rows:
-        return JSONResponse(status_code=404, content={"status": "error", "message": "That session is not in the test database."})
+        return JSONResponse(status_code=404, content={"status": "error", "message": "That session is not in the database."})
     label = perfectmind_sync.session_label(rows[0].get("session") or session)
     filename = label.replace(" ", "-") + ".xlsx"
     return Response(
@@ -1646,18 +1637,18 @@ async def perfectmind_delete_session(request: Request):
         )
     ]
     if len(remaining) == len(catalog):
-        return JSONResponse(status_code=404, content={"status": "error", "message": "That session is not in the test database."})
+        return JSONResponse(status_code=404, content={"status": "error", "message": "That session is not in the database."})
     if not remaining:
         return {"status": "error", "message": "That is the only saved session, so it was not deleted."}
     if not supabase_store.enabled():
-        return {"status": "error", "message": "The test database is not connected. Nothing was deleted."}
+        return {"status": "error", "message": "The database is not connected. Nothing was deleted."}
     try:
         supabase_store.replace_programs(remaining)
     except Exception as exc:
         print(f"Could not delete the session: {exc}")
-        return {"status": "error", "message": "The session could not be deleted. The test database was not changed."}
+        return {"status": "error", "message": "The session could not be deleted. The database was not changed."}
     label = perfectmind_sync.session_label(session_name)
-    return {"status": "success", "message": f"Deleted {label} from the test database. The file on your computer was not changed."}
+    return {"status": "success", "message": f"Deleted {label} from the database. The file on your computer was not changed."}
 
 
 @app.post("/api/perfectmind/sync/claim")
@@ -1683,7 +1674,7 @@ async def perfectmind_sync_fail(request: Request):
     if blocked:
         return blocked
     body = await request.json()
-    return perfectmind_sync.fail(str(body.get("message") or "PerfectMind sync failed. The test list was not changed."))
+    return perfectmind_sync.fail(str(body.get("message") or "PerfectMind sync failed. The class list was not changed."))
 
 
 @app.post("/api/perfectmind/programs")
@@ -1694,14 +1685,14 @@ async def perfectmind_save_programs(request: Request):
     body = await request.json()
     incoming = body.get("programs") or []
     if not isinstance(incoming, list) or not incoming:
-        return perfectmind_sync.fail("PerfectMind returned no programs. The test list was not changed.")
+        return perfectmind_sync.fail("PerfectMind returned no programs. The class list was not changed.")
     if not supabase_store.enabled():
-        return perfectmind_sync.fail("The test database is not connected. The test list was not changed.")
+        return perfectmind_sync.fail("The database is not connected. The class list was not changed.")
     try:
         existing = supabase_store.fetch_programs()
         merged = perfectmind_sync.merge_staff_fields(incoming, existing, calculate_withdrawal)
         if not merged:
-            return perfectmind_sync.fail("None of the PerfectMind rows could be read. The test list was not changed.")
+            return perfectmind_sync.fail("None of the PerfectMind rows could be read. The class list was not changed.")
         changes = perfectmind_sync.session_changes(existing, merged)
         if len(changes) > 80:
             extra = len(changes) - 80
@@ -1717,7 +1708,7 @@ async def perfectmind_save_programs(request: Request):
             print(f"Could not save the class-change list: {exc}")
     except Exception as exc:
         print(f"PerfectMind save failed: {exc}")
-        return perfectmind_sync.fail("The programs could not be saved. The test list was not changed.")
+        return perfectmind_sync.fail("The programs could not be saved. The class list was not changed.")
     return perfectmind_sync.succeed(saved, ran_at, changes)
 
 # In-memory storage for editable events (in production, this would be a database)
@@ -7693,8 +7684,9 @@ def get_cancellations(
     else:
         catalog = _read_sqlite_programs()
 
-    if app_environment.is_test():
-        visible = perfectmind_sync.clean_schedule(_load_perfectmind_schedule()).get("visible_seasons") or []
+    saved_schedule = _load_perfectmind_schedule()
+    if saved_schedule:
+        visible = perfectmind_sync.clean_schedule(saved_schedule).get("visible_seasons") or []
         if visible:
             programs = [row for row in programs if perfectmind_sync.session_matches(row.get("session"), visible)]
             catalog = [row for row in catalog if perfectmind_sync.session_matches(row.get("session"), visible)]
@@ -8322,3 +8314,101 @@ def test_programs():
         }
     except Exception as e:
         return {"error": str(e)}
+
+
+def _website_catalog():
+    if not supabase_store.enabled():
+        return website_events.empty_catalog()
+    return website_events.normalize_catalog(
+        supabase_store.fetch_setting(website_events.SETTING_KEY)
+    )
+
+
+def _save_website_catalog(catalog):
+    if not supabase_store.enabled():
+        raise website_events.WebsiteEventsError(
+            "The database is not ready, so the events were not saved."
+        )
+    supabase_store.save_setting(website_events.SETTING_KEY, catalog)
+
+
+def _website_rows():
+    start, end = website_events.month_window()
+    return website_events.fetch_rows(start, end)
+
+
+def scheduled_website_events():
+    """Save website events only when automatic sync has been turned on."""
+    try:
+        catalog = _website_catalog()
+        if not website_events.automatic_is_due(catalog):
+            return
+        saved = website_events.sync_catalog(catalog, _website_rows())
+        _save_website_catalog(saved)
+        print("Website events sync finished")
+    except Exception as exc:
+        print(f"Website events sync failed: {exc}")
+
+
+@app.get("/api/website-events")
+def get_website_events():
+    try:
+        return website_events.public_status(_website_catalog())
+    except Exception as exc:
+        return {
+            "saved": False,
+            "automatic": False,
+            "time": "08:00",
+            "last_success": "",
+            "last_attempt": "",
+            "counts": {"new": 0, "updated": 0, "unchanged": 0, "failed": 1},
+            "errors": [str(exc)],
+            "window_label": "",
+            "events": [],
+        }
+
+
+@app.post("/api/website-events/preview")
+def preview_website_events():
+    catalog = _website_catalog()
+    try:
+        return website_events.preview(catalog, _website_rows())
+    except Exception as exc:
+        status = website_events.public_status(catalog, saved=False)
+        status["errors"] = [f"The website could not be read: {exc}"]
+        status["counts"] = {"new": 0, "updated": 0, "unchanged": 0, "failed": 1}
+        return status
+
+
+@app.post("/api/website-events/sync")
+def sync_website_events():
+    catalog = _website_catalog()
+    try:
+        saved = website_events.sync_catalog(catalog, _website_rows())
+        _save_website_catalog(saved)
+        return website_events.public_status(saved)
+    except website_events.WebsiteEventsError as exc:
+        status = website_events.public_status(catalog, saved=False)
+        status["errors"] = [str(exc)]
+        return status
+    except Exception as exc:
+        status = website_events.public_status(catalog, saved=False)
+        status["errors"] = [f"The website could not be read: {exc}"]
+        status["counts"] = {"new": 0, "updated": 0, "unchanged": 0, "failed": 1}
+        return status
+
+
+@app.post("/api/website-events/schedule")
+async def save_website_schedule(request: Request):
+    body = await request.json()
+    catalog = _website_catalog()
+    schedule = website_events.clean_schedule(body if isinstance(body, dict) else {})
+    catalog["automatic"] = schedule["automatic"]
+    catalog["time"] = schedule["time"]
+    try:
+        _save_website_catalog(catalog)
+    except Exception as exc:
+        status = website_events.public_status(catalog, saved=False)
+        status["errors"] = [str(exc)]
+        return status
+    return website_events.public_status(catalog)

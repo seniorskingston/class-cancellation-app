@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 _lock = threading.Lock()
 _job = {
     "status": "idle",
-    "message": "The test list still has the last saved programs.",
+    "message": "The class list still has the last saved programs.",
     "program_count": 0,
     "updated_at": "",
     "seasons": [],
@@ -90,7 +90,7 @@ def fail(message: str) -> dict:
     with _lock:
         _job.update({
             "status": "error",
-            "message": message or "PerfectMind sync failed. The test list was not changed.",
+            "message": message or "PerfectMind sync failed. The class list was not changed.",
             "updated_at": _stamp(),
         })
         return dict(_job)
