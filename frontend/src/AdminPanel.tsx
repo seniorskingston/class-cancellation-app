@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { apiOrigin } from './apiOrigin';
 
 interface AdminPanelProps {
@@ -17,6 +17,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   const [windowEnd, setWindowEnd] = useState('20:00');
   const [weekday, setWeekday] = useState('monday');
   const [skipWeekends, setSkipWeekends] = useState(false);
+  const weekendEdited = useRef(false);
   const [storedSessions, setStoredSessions] = useState<Array<{session: string; label: string; count: number; showing: boolean}>>([]);
   const [scheduleSummary, setScheduleSummary] = useState('PerfectMind runs only when you click the button.');
   const [selectedEventsFile, setSelectedEventsFile] = useState<File | null>(null);
@@ -108,7 +109,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
         if (saved.window_start) setWindowStart(saved.window_start);
         if (saved.window_end) setWindowEnd(saved.window_end);
         if (saved.weekday) setWeekday(saved.weekday);
-        setSkipWeekends(Boolean(saved.skip_weekends));
+        if (!weekendEdited.current) setSkipWeekends(Boolean(saved.skip_weekends));
         if (saved.summary) setScheduleSummary(saved.summary);
       } catch {
         setScheduleSummary('The schedule will appear after the test site finishes updating.');
@@ -685,11 +686,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
                   type="checkbox"
                   checked={skipWeekends}
                   disabled={programBusy}
-                  onChange={(event) => setSkipWeekends(event.target.checked)}
+                  onChange={(event) => {
+                    weekendEdited.current = true;
+                    setSkipWeekends(event.target.checked);
+                  }}
                   style={{ marginRight: '8px' }}
                 />
                 Turn off Saturday and Sunday
               </label>
+              <p style={{ color: '#155724', fontSize: '16px', fontWeight: 700, margin: '0 0 8px' }}>
+                {skipWeekends ? 'Saturday and Sunday are off.' : 'Saturday and Sunday are still on.'}
+              </p>
               <p style={{ color: '#333', fontSize: '14px', margin: '8px 0 12px' }}>{scheduleSummary}</p>
               <button
                 onClick={handleSaveSchedule}
