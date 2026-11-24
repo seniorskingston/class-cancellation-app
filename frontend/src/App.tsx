@@ -18,6 +18,16 @@ const locationChoices = (): string[] =>
     .filter((loc) => !loc.includes("Center"))
     .sort();
 
+const formatCancellationDate = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  const iso = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const parsed = new Date(trimmed.replace(/\./g, ","));
+  if (Number.isNaN(parsed.getTime())) return trimmed;
+  return parsed.toLocaleDateString("en-CA", { timeZone: "America/Toronto" });
+};
+
 type Cancellation = {
   sheet: string;
   program: string;
@@ -1079,36 +1089,8 @@ function App() {
                       <span className="mobile-value mobile-cancellation">
                         {c.class_cancellation && c.class_cancellation !== '' ? 
                           c.class_cancellation.split(';').map((date, index) => {
-                            const trimmedDate = date.trim();
-                            if (trimmedDate) {
-                              try {
-                                // Normalize date format: replace period with comma for better parsing
-                                const normalizedDate = trimmedDate.replace(/\./g, ',');
-                                const parsedDate = new Date(normalizedDate);
-                                if (!isNaN(parsedDate.getTime())) {
-                                  return (
-                                    <div key={index}>
-                                      {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
-                                    </div>
-                                  );
-                                } else {
-                                  // If parsing still fails, show the original text
-                                  return (
-                                    <div key={index}>
-                                      {trimmedDate}
-                                    </div>
-                                  );
-                                }
-                              } catch (e) {
-                                // If parsing fails, show the original text
-                                return (
-                                  <div key={index}>
-                                    {trimmedDate}
-                                  </div>
-                                );
-                              }
-                            }
-                            return null;
+                            const shown = formatCancellationDate(date);
+                            return shown ? <div key={index}>{shown}</div> : null;
                           }).filter(Boolean) || c.class_cancellation : 'N/A'}
                       </span>
                     </div>
@@ -1838,36 +1820,8 @@ function App() {
                 <td>{c.program_status}</td>
                   <td>{c.class_cancellation && c.class_cancellation !== '' ? 
                     c.class_cancellation.split(';').map((date, index) => {
-                      const trimmedDate = date.trim();
-                      if (trimmedDate) {
-                        try {
-                          // Normalize date format: replace period with comma for better parsing
-                          const normalizedDate = trimmedDate.replace(/\./g, ',');
-                          const parsedDate = new Date(normalizedDate);
-                          if (!isNaN(parsedDate.getTime())) {
-                            return (
-                              <div key={index}>
-                                {parsedDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}
-                              </div>
-                            );
-                          } else {
-                            // If parsing still fails, show the original text
-                            return (
-                              <div key={index}>
-                                {trimmedDate}
-                              </div>
-                            );
-                          }
-                        } catch (e) {
-                          // If parsing fails, show the original text
-                          return (
-                            <div key={index}>
-                              {trimmedDate}
-                            </div>
-                          );
-                        }
-                      }
-                      return null;
+                      const shown = formatCancellationDate(date);
+                      return shown ? <div key={index}>{shown}</div> : null;
                     }).filter(Boolean) || c.class_cancellation : ''}</td>
                   <td>{c.note && c.note !== '' ? c.note : ''}</td>
                 <td>{c.program_status === "Cancelled" ? "" : c.withdrawal}</td>
