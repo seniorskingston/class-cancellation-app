@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
 import logo from "./logo.png";
 import QRCode from 'qrcode';
@@ -508,10 +508,16 @@ function App() {
     });
   };
 
-  const fetchCancellations = async (customFilters: Filters | null = null) => {
+  const catalogRef = useRef<Cancellation[]>([]);
+  const filtersRef = useRef(filters);
+  const fetchSerial = useRef(0);
+  filtersRef.current = filters;
+
+  const fetchCancellations = async () => {
+    const serial = ++fetchSerial.current;
     setLoading(true);
     try {
-      // Always fetch all programs from backend; apply filters on frontend
+      // Download the class list once per refresh. Searching filters this copy.
       const res = await fetch(`${API_URL}/api/cancellations`);
       
       if (!res.ok) {
@@ -519,17 +525,13 @@ function App() {
       }
       
       const data = await res.json();
+      if (serial !== fetchSerial.current) return;
       console.log("Received data:", data);
       console.log("Data count:", data.data ? data.data.length : 0);
-      console.log("Is mobile view:", isMobileView);
       
       const allData: Cancellation[] = data.data || [];
-
-      // Use custom filters if provided, otherwise current filters
-      const filtersToUse = customFilters || filters;
-      const filtered = applyFiltersToData(allData, filtersToUse);
-
-      setCancellations(filtered);
+      catalogRef.current = allData;
+      setCancellations(applyFiltersToData(allData, filtersRef.current));
       setLastLoaded(data.last_loaded);
       
       setLocations(locationChoices());
@@ -543,10 +545,11 @@ function App() {
       });
       setSessions(uniqueSessions);
     } catch (error) {
+      if (serial !== fetchSerial.current) return;
       console.error("Error fetching cancellations:", error);
-      setCancellations([]);
+      if (catalogRef.current.length === 0) setCancellations([]);
     } finally {
-      setLoading(false);
+      if (serial === fetchSerial.current) setLoading(false);
     }
   };
 
@@ -574,8 +577,8 @@ function App() {
     fetchCancellations();
     fetchAllcancellations(); // Also fetch all cancellations for pinned items
     const interval = setInterval(() => {
-      // Auto-refresh every 5 minutes (only when no active filters)
-      const hasActiveFilters = filters.program || filters.day || filters.location || filters.session || filters.program_status;
+      const current = filtersRef.current;
+      const hasActiveFilters = current.program || current.day || current.location || current.session || current.program_status;
       if (!hasActiveFilters) {
         fetchCancellations();
       }
@@ -584,43 +587,31 @@ function App() {
     // eslint-disable-next-line
   }, [isMobileView]); // Only re-run when mobile view changes, not on filter changes
 
-  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+    let newFilters: Filters;
+
     if (name === "program") {
-      // Unified search: program text filters both program and program_id
-      const newFilters: Filters = { 
-        ...filters,
-        program: value, 
+      newFilters = {
+        ...filtersRef.current,
+        program: value,
         program_id: value,
       };
-      setFilters(newFilters);
-      
-      // Trigger search immediately for program search
-      await fetchCancellations(newFilters);
     } else if (name === "view_type" && value === "all") {
-      // "Show All Programs" – reset all filters to default and show everything
-      const newFilters = { 
+      newFilters = {
         ...baseFilters,
-        view_type: "all" // Always search all cancellations to show pinned classes
+        view_type: "all",
       };
-      setFilters(newFilters);
-      
-      // Trigger search immediately for full program list
-      await fetchCancellations(newFilters);
     } else {
-      // All other filters:
-      // - combine with existing filters (AND logic across Day, Location, Status, Session)
-      // - empty value ("") means "All ___" (do not filter on that field)
-      const newFilters: Filters = {
-        ...filters,
+      newFilters = {
+        ...filtersRef.current,
         [name]: value,
       };
-      setFilters(newFilters);
-      
-      // Trigger search immediately to ensure it works every time
-      await fetchCancellations(newFilters);
     }
+
+    filtersRef.current = newFilters;
+    setFilters(newFilters);
+    setCancellations(applyFiltersToData(catalogRef.current, newFilters));
   };
 
   const handleRefresh = async () => {
@@ -638,7 +629,8 @@ function App() {
         }
       }).then(res => res.json()).then(data => {
         console.log('🔄 REFRESH: Data refreshed successfully');
-        setCancellations(data.data);
+        catalogRef.current = data.data || [];
+        setCancellations(applyFiltersToData(data.data || [], filtersRef.current));
         setLastLoaded(data.last_loaded);
       });
     } catch (error) {
@@ -735,20 +727,17 @@ function App() {
   };
 
   // Mobile search function
-  const handleMobileSearch = async () => {
+  const handleMobileSearch = () => {
     const searchTerm = mobileSearch.trim();
-    
-    // Always search all cancellations to show pinned classes
-    const newFilters = { 
-      ...filters, 
-      program: searchTerm, 
-      program_id: searchTerm, // Use original search term for ID search
-      view_type: "all" // Always search all cancellations to show pinned classes
+    const newFilters = {
+      ...filtersRef.current,
+      program: searchTerm,
+      program_id: searchTerm,
+      view_type: "all" as Filters["view_type"],
     };
+    filtersRef.current = newFilters;
     setFilters(newFilters);
-    
-    // Trigger data fetch after setting filters
-    await fetchCancellations(newFilters);
+    setCancellations(applyFiltersToData(catalogRef.current, newFilters));
   };
 
   // Get all cancellations (for pinned cancellations that might not be in filtered results)
