@@ -1726,6 +1726,7 @@ async def perfectmind_save_programs(request: Request):
 
 GUIDE_BASELINE_KEY = "program_guide_baseline"
 GUIDE_MANUAL_KEY = "program_guide_manual"
+GUIDE_HIDDEN_KEY = "program_guide_hidden"
 _EARLIEST_GUIDE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "program_guide_earliest.json")
 
 
@@ -1791,6 +1792,33 @@ def _save_manual_updates(saved: dict) -> None:
     app.state.program_guide_manual = saved
     if supabase_store.enabled():
         supabase_store.save_setting(GUIDE_MANUAL_KEY, saved)
+
+
+def _load_hidden_updates() -> dict:
+    saved = getattr(app.state, "program_guide_hidden", None)
+    if not isinstance(saved, dict) and supabase_store.enabled():
+        try:
+            saved = supabase_store.fetch_setting(GUIDE_HIDDEN_KEY)
+        except Exception as exc:
+            print(f"Could not read removed Program Guide updates: {exc}")
+            saved = None
+    if not isinstance(saved, dict) or not isinstance(saved.get("items"), list):
+        saved = {"items": []}
+    return saved
+
+
+def _save_hidden_updates(saved: dict) -> None:
+    app.state.program_guide_hidden = saved
+    if supabase_store.enabled():
+        supabase_store.save_setting(GUIDE_HIDDEN_KEY, saved)
+
+
+def _hidden_for_session(number: str) -> list:
+    items = []
+    for item in _load_hidden_updates().get("items") or []:
+        if isinstance(item, dict) and perfectmind_sync.session_number(item.get("session")) == number:
+            items.append(item)
+    return items
 
 
 def _manual_for_session(number: str) -> list:
@@ -1863,6 +1891,9 @@ def program_guide_updates(session: str = ""):
         report = perfectmind_sync.merge_manual_updates(report, manual)
         report["ready"] = True
         report["session"] = report.get("session") or label
+    hidden = _hidden_for_session(number)
+    if hidden:
+        report = perfectmind_sync.omit_hidden_updates(report, hidden)
     return report
 
 
@@ -1978,6 +2009,109 @@ def program_guide_manual_remove(item_id: str):
         print(f"Could not remove the Program Guide update: {exc}")
         return JSONResponse(status_code=500, content={"status": "error", "message": "The update was not removed."})
     return {"status": "removed"}
+
+
+@app.get("/api/program-guide/hidden")
+def program_guide_hidden_list(session: str = ""):
+    number = perfectmind_sync.session_number(session) if str(session or "").strip() else ""
+    items = []
+    for item in _load_hidden_updates().get("items") or []:
+        if not isinstance(item, dict):
+            continue
+        if number and perfectmind_sync.session_number(item.get("session")) != number:
+            continue
+        items.append({key: value for key, value in item.items() if key != "manual"})
+    return {"items": items}
+
+
+@app.post("/api/program-guide/hidden")
+async def program_guide_hidden_add(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    if not supabase_store.enabled():
+        return JSONResponse(status_code=400, content={"status": "error", "message": "The database is not connected. The update was not removed."})
+    try:
+        record = perfectmind_sync.hidden_update(body)
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"status": "error", "message": str(exc)})
+    manual_saved = _load_manual_updates()
+    item_id = str(body.get("id") or "").strip()
+    kept_manual = []
+    for item in manual_saved.get("items") or []:
+        same = item_id and isinstance(item, dict) and item.get("id") == item_id
+        same_class = isinstance(item, dict) and perfectmind_sync._manual_identity(item) == perfectmind_sync._manual_identity(record)
+        if same or same_class:
+            record["manual"] = item
+            continue
+        kept_manual.append(item)
+    if "manual" in record:
+        manual_saved["items"] = kept_manual
+    hidden = _load_hidden_updates()
+    items = []
+    for item in hidden.get("items") or []:
+        if not isinstance(item, dict):
+            continue
+        if perfectmind_sync._manual_identity(item) == perfectmind_sync._manual_identity(record):
+            continue
+        items.append(item)
+    items.append(record)
+    hidden["items"] = items
+    try:
+        if "manual" in record:
+            _save_manual_updates(manual_saved)
+        _save_hidden_updates(hidden)
+    except Exception as exc:
+        print(f"Could not remove the Program Guide update: {exc}")
+        return JSONResponse(status_code=500, content={"status": "error", "message": "The update was not removed."})
+    return {"status": "removed", "item": {key: value for key, value in record.items() if key != "manual"}}
+
+
+@app.post("/api/program-guide/hidden/restore")
+async def program_guide_hidden_restore(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    if not supabase_store.enabled():
+        return JSONResponse(status_code=400, content={"status": "error", "message": "The database is not connected. The update was not put back."})
+    try:
+        record = perfectmind_sync.hidden_update(body)
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"status": "error", "message": str(exc)})
+    hidden = _load_hidden_updates()
+    identity = perfectmind_sync._manual_identity(record)
+    kept = []
+    found = None
+    for item in hidden.get("items") or []:
+        if isinstance(item, dict) and perfectmind_sync._manual_identity(item) == identity and found is None:
+            found = item
+            continue
+        kept.append(item)
+    if found is None:
+        return JSONResponse(status_code=404, content={"status": "error", "message": "That update is not in the removed list."})
+    hidden["items"] = kept
+    manual_item = found.get("manual") if isinstance(found.get("manual"), dict) else None
+    try:
+        _save_hidden_updates(hidden)
+        if manual_item:
+            manual_saved = _load_manual_updates()
+            already = any(
+                isinstance(item, dict) and perfectmind_sync._manual_identity(item) == identity
+                for item in manual_saved.get("items") or []
+            )
+            if not already:
+                manual_saved["items"] = list(manual_saved.get("items") or []) + [manual_item]
+                _save_manual_updates(manual_saved)
+    except Exception as exc:
+        print(f"Could not put the Program Guide update back: {exc}")
+        return JSONResponse(status_code=500, content={"status": "error", "message": "The update was not put back."})
+    return {"status": "restored"}
 
 
 # In-memory storage for editable events (in production, this would be a database)

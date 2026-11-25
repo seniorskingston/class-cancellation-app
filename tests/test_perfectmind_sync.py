@@ -225,6 +225,19 @@ class PerfectMindSyncTests(unittest.TestCase):
             [self._row(program_id="28154", program="Request to Withdraw from Program", time="1:00 PM - 2:00 PM")],
         )
         self.assertEqual(changed_hidden["counts"]["total"], 0)
+        shown = perfectmind_sync.compare_guide([], [self._row(program_id="30002", program="New Class")])
+        hidden_report = perfectmind_sync.omit_hidden_updates(shown, [{
+            "program_id": "30002",
+            "session": "2",
+            "day": "Monday",
+        }])
+        self.assertEqual(hidden_report["counts"]["total"], 0)
+        kept = perfectmind_sync.omit_hidden_updates(shown, [{
+            "program_id": "30002",
+            "session": "2",
+            "day": "Tuesday",
+        }])
+        self.assertEqual(kept["counts"]["additions"], 1)
 
     def test_admin_can_add_a_program_guide_update(self):
         added = perfectmind_sync.add_manual_update([], {

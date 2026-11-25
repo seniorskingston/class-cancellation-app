@@ -65,7 +65,7 @@ function Value({ program, field, text }: { program: GuideProgram; field: string;
   );
 }
 
-function ProgramCard({ program, tone }: { program: GuideProgram; tone: "add" | "change" | "cancel" }) {
+function ProgramCard({ program, tone, onRemove }: { program: GuideProgram; tone: "add" | "change" | "cancel"; onRemove?: (program: GuideProgram) => void }) {
   const border = tone === "add" ? "#b7dfc4" : tone === "cancel" ? "#f0c2c2" : "#e4e7eb";
   return (
     <article style={{ border: `1px solid ${border}`, borderRadius: "8px", padding: "12px", marginBottom: "10px", background: "#fff" }}>
@@ -99,22 +99,33 @@ function ProgramCard({ program, tone }: { program: GuideProgram; tone: "add" | "
       {changed(program, "program_status") && (
         <p style={{ margin: "4px 0" }}><Value program={program} field="program_status" text={program.status} /></p>
       )}
+      {onRemove && (
+        <button type="button" onClick={() => onRemove(program)} style={{ background: "#b42318", color: "white", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", marginTop: "8px" }}>
+          Remove from list
+        </button>
+      )}
     </article>
   );
 }
 
-function Group({ title, tone, programs }: { title: string; tone: "add" | "change" | "cancel"; programs: GuideProgram[] }) {
+function Group({ title, tone, programs, onRemove }: { title: string; tone: "add" | "change" | "cancel"; programs: GuideProgram[]; onRemove?: (program: GuideProgram) => void }) {
+  const kind = tone === "add" ? "addition" : tone === "cancel" ? "cancelled" : "change";
   return (
     <section style={{ marginTop: "16px" }}>
       <h2 style={{ fontSize: "1.15rem", marginBottom: "8px" }}>{title} ({programs.length})</h2>
       {programs.length === 0 ? <p>None.</p> : programs.map((program) => (
-        <ProgramCard key={program.id || `${program.program_id}-${program.day}-${program.session}`} program={program} tone={tone} />
+        <ProgramCard
+          key={program.id || `${program.program_id}-${program.day}-${program.session}`}
+          program={{ ...program, kind: program.kind || kind }}
+          tone={tone}
+          onRemove={onRemove}
+        />
       ))}
     </section>
   );
 }
 
-export function ProgramGuideReport({ report }: { report: GuideReport }) {
+export function ProgramGuideReport({ report, onRemove }: { report: GuideReport; onRemove?: (program: GuideProgram) => void }) {
   const counts = report.counts || emptyCounts;
   const additions = report.additions || [];
   const changes = report.changes || [];
@@ -134,9 +145,9 @@ export function ProgramGuideReport({ report }: { report: GuideReport }) {
       <p>{counts.total} updated program{counts.total === 1 ? "" : "s"}.</p>
       {counts.total === 0 ? <p>{report.message}</p> : (
         <>
-          <Group title="Additions" tone="add" programs={additions} />
-          <Group title="Changes" tone="change" programs={changes} />
-          <Group title="Cancelled" tone="cancel" programs={cancelled} />
+          <Group title="Additions" tone="add" programs={additions} onRemove={onRemove} />
+          <Group title="Changes" tone="change" programs={changes} onRemove={onRemove} />
+          <Group title="Cancelled" tone="cancel" programs={cancelled} onRemove={onRemove} />
         </>
       )}
     </div>

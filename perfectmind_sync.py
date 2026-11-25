@@ -538,6 +538,45 @@ def merge_manual_updates(report: dict, items: list) -> dict:
     return merged
 
 
+def omit_hidden_updates(report: dict, hidden: list) -> dict:
+    """Leave out updates that were removed from the Admin page."""
+    keys = set()
+    for item in hidden or []:
+        identity = _manual_identity(item)
+        if identity[0] and identity[1] and identity[2]:
+            keys.add(identity)
+    if not keys:
+        return report
+    additions = [row for row in report.get("additions") or [] if _manual_identity(row) not in keys]
+    changes = [row for row in report.get("changes") or [] if _manual_identity(row) not in keys]
+    cancelled = [row for row in report.get("cancelled") or [] if _manual_identity(row) not in keys]
+    updated_at = report.get("updated_at") or ""
+    merged = _report(additions, changes, cancelled, updated_at, NO_GUIDE_UPDATES)
+    for key in ("ready", "session", "baseline_saved_at", "baseline_source"):
+        if key in report:
+            merged[key] = report[key]
+    if merged["counts"]["total"] == 0:
+        merged["message"] = report.get("message") or NO_GUIDE_UPDATES
+    else:
+        merged["message"] = ""
+    return merged
+
+
+def hidden_update(body: dict) -> dict:
+    program_id = _program_id(body.get("program_id"))
+    session = session_number(body.get("session"))
+    day = _plain(body.get("day") or body.get("sheet"))
+    if not program_id or not session or not day:
+        raise ValueError("That update could not be removed.")
+    return {
+        "program_id": program_id,
+        "session": session,
+        "day": day,
+        "program": _plain(body.get("program")),
+        "kind": _plain(body.get("kind")).casefold(),
+    }
+
+
 def rows_for_session(rows: list, session_label: str) -> list:
     number = session_number(session_label)
     if not number:

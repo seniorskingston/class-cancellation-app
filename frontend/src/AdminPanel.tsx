@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { apiOrigin } from './apiOrigin';
 import WebsiteEvents from './WebsiteEvents';
-import { GuideReport, ProgramGuideManual, ProgramGuideReport } from './ProgramGuideUpdates';
+import { GuideProgram, GuideReport, ProgramGuideManual, ProgramGuideReport } from './ProgramGuideUpdates';
 
 interface AdminPanelProps {
   onBackToMain: () => void;
@@ -48,6 +48,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   const [savedGuides, setSavedGuides] = useState<Array<{ session: string; saved_at: string; programs: number; source?: string }>>([]);
   const [guideSession, setGuideSession] = useState('Session 2-2026');
   const [guideReport, setGuideReport] = useState<GuideReport | null>(null);
+  const [hiddenUpdates, setHiddenUpdates] = useState<GuideProgram[]>([]);
 
   const showProgramStatus = (result: { status?: string; message?: string; ran_at?: string; changes?: string[]; latest?: GuideReport }) => {
     const message = result.message || 'Waiting for PerfectMind.';
@@ -155,6 +156,51 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
       setGuideReport(data);
     } catch {
       setGuideReport({ ready: false, message: "The Program Guide updates could not be loaded." });
+    }
+    try {
+      const hidden = await fetch(`${apiOrigin()}/api/program-guide/hidden?session=${encodeURIComponent(session)}`);
+      const data = await hidden.json();
+      setHiddenUpdates(Array.isArray(data.items) ? data.items : []);
+    } catch {
+      setHiddenUpdates([]);
+    }
+  };
+
+  const removeGuideItem = async (program: GuideProgram) => {
+    const label = `${program.program || "This program"} ${program.program_id} on ${program.day}`;
+    if (!window.confirm(`Remove ${label} from the Program Guide Updates list?`)) return;
+    try {
+      const response = await fetch(`${apiOrigin()}/api/program-guide/hidden`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(program),
+      });
+      const data = await response.json();
+      if (data.status !== "removed") {
+        window.alert(data.message || "The update was not removed.");
+        return;
+      }
+      loadGuideReport(guideSession);
+    } catch {
+      window.alert("The update was not removed.");
+    }
+  };
+
+  const restoreGuideItem = async (program: GuideProgram) => {
+    try {
+      const response = await fetch(`${apiOrigin()}/api/program-guide/hidden/restore`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(program),
+      });
+      const data = await response.json();
+      if (data.status !== "restored") {
+        window.alert(data.message || "The update was not put back.");
+        return;
+      }
+      loadGuideReport(guideSession);
+    } catch {
+      window.alert("The update was not put back.");
     }
   };
 
@@ -907,7 +953,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               {guideReport && guideReport.counts && (
                 <p>Additions {guideReport.counts.additions}. Changes {guideReport.counts.changes}. Cancelled {guideReport.counts.cancelled}. Total {guideReport.counts.total}.</p>
               )}
-              {guideReport && <ProgramGuideReport report={guideReport} />}
+              {guideReport && <ProgramGuideReport report={guideReport} onRemove={removeGuideItem} />}
+              {hiddenUpdates.length > 0 && (
+                <div style={{ marginTop: '12px' }}>
+                  <h3>Removed from this list</h3>
+                  {hiddenUpdates.map((item) => (
+                    <div key={`${item.program_id}-${item.day}-${item.session}`} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ flex: 1 }}>{item.program} {item.program_id}, {item.day}, Session {item.session}</span>
+                      <button type="button" onClick={() => restoreGuideItem(item)} style={{ background: '#0072ce', color: 'white', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}>
+                        Put back
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <ProgramGuideManual sessions={sessionInputs.map((item) => item.trim()).filter(Boolean)} onSaved={() => loadGuideReport(guideSession)} />
             </div>
           </div>

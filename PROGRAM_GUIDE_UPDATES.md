@@ -13,3 +13,5 @@ The Admin page can also add an Addition, a Change, or a Cancelled program to the
 Cancellation dates and notes are not treated as whole-program changes. A program counts as Cancelled only when its program status is Cancelled, or when it is added from the Admin page as Cancelled.
 
 Course 28154, Request to Withdraw from Program, is never listed as an addition, a change, or a cancellation.
+
+On the Admin page, Remove from list takes one addition, change, or cancellation off the Program Guide Updates list. It stays off after later runs. Put back returns that one item to the list.
