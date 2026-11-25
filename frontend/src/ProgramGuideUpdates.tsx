@@ -147,7 +147,7 @@ const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 
 const fieldStyle = { display: "block", width: "100%", margin: "0 0 10px", padding: "8px", border: "1px solid #ccd6e0", borderRadius: "6px" };
 
-export function ProgramGuideManual({ sessions }: { sessions: string[] }) {
+export function ProgramGuideManual({ sessions, onSaved }: { sessions: string[]; onSaved?: () => void }) {
   const [session, setSession] = React.useState(sessions.find((item) => /2/.test(item)) || sessions[0] || "Session 2-2026");
   const [kind, setKind] = React.useState("addition");
   const [program, setProgram] = React.useState("");
@@ -215,6 +215,7 @@ export function ProgramGuideManual({ sessions }: { sessions: string[] }) {
       setNote("");
       setMessage("Added to the Program Guide Updates list.");
       loadItems();
+      if (onSaved) onSaved();
     } catch {
       setMessage("The update was not added.");
     }
@@ -231,6 +232,7 @@ export function ProgramGuideManual({ sessions }: { sessions: string[] }) {
       }
       setMessage("Removed from the Program Guide Updates list.");
       loadItems();
+      if (onSaved) onSaved();
     } catch {
       setMessage("The update was not removed.");
     }

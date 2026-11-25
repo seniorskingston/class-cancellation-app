@@ -46,6 +46,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   const [latestReport, setLatestReport] = useState<GuideReport | null>(null);
   const [baselineMessage, setBaselineMessage] = useState('');
   const [savedGuides, setSavedGuides] = useState<Array<{ session: string; saved_at: string; programs: number; source?: string }>>([]);
+  const [guideSession, setGuideSession] = useState('Session 2-2026');
+  const [guideReport, setGuideReport] = useState<GuideReport | null>(null);
 
   const showProgramStatus = (result: { status?: string; message?: string; ran_at?: string; changes?: string[]; latest?: GuideReport }) => {
     const message = result.message || 'Waiting for PerfectMind.';
@@ -146,9 +148,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
     loadSavedGuides();
   };
 
+  const loadGuideReport = async (session: string) => {
+    try {
+      const response = await fetch(`${apiOrigin()}/api/program-guide/updates?session=${encodeURIComponent(session)}`);
+      const data = await response.json();
+      setGuideReport(data);
+    } catch {
+      setGuideReport({ ready: false, message: "The Program Guide updates could not be loaded." });
+    }
+  };
+
   useEffect(() => {
     loadSavedGuides();
   }, []);
+
+  useEffect(() => {
+    loadGuideReport(guideSession);
+  }, [guideSession]);
 
   useEffect(() => {
     const loadSchedule = async () => {
@@ -881,7 +897,18 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
                 Save printed Program Guide
               </button>
               {baselineMessage && <p>{baselineMessage}</p>}
-              <ProgramGuideManual sessions={sessionInputs.map((item) => item.trim()).filter(Boolean)} />
+              <h3>Changes since the printed Program Guide</h3>
+              <label htmlFor="guideReportSession">Session</label>
+              <select id="guideReportSession" value={guideSession} onChange={(event) => setGuideSession(event.target.value)} style={{ display: 'block', width: '100%', margin: '6px 0 12px', padding: '8px' }}>
+                {(sessionInputs.map((item) => item.trim()).filter(Boolean).length ? sessionInputs.map((item) => item.trim()).filter(Boolean) : ['Session 2-2026']).map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+              {guideReport && guideReport.counts && (
+                <p>Additions {guideReport.counts.additions}. Changes {guideReport.counts.changes}. Cancelled {guideReport.counts.cancelled}. Total {guideReport.counts.total}.</p>
+              )}
+              {guideReport && <ProgramGuideReport report={guideReport} />}
+              <ProgramGuideManual sessions={sessionInputs.map((item) => item.trim()).filter(Boolean)} onSaved={() => loadGuideReport(guideSession)} />
             </div>
           </div>
 
