@@ -11,3 +11,5 @@ The printed Program Guide for Session 2 starts as the earliest class list saved 
 The Admin page can also add an Addition, a Change, or a Cancelled program to the public Program Guide Updates list. Those items stay until they are removed. A later PerfectMind run does not remove them. If the same class is already on the list from the comparison, the Admin entry is the one shown.
 
 Cancellation dates and notes are not treated as whole-program changes. A program counts as Cancelled only when its program status is Cancelled, or when it is added from the Admin page as Cancelled.
+
+Course 28154, Request to Withdraw from Program, is never listed as an addition, a change, or a cancellation.

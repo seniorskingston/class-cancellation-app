@@ -259,6 +259,8 @@ def session_changes(existing: list, incoming: list) -> list[str]:
             previous[key] = row
     lines = []
     for key, row in fresh.items():
+        if _guide_excluded(row):
+            continue
         old = previous.get(key)
         if not old:
             lines.append(f"Added {_class_label(row)}")
@@ -272,6 +274,8 @@ def session_changes(existing: list, incoming: list) -> list[str]:
         if parts:
             lines.append(f"Changed {_class_label(row)}: " + "; ".join(parts))
     for key, row in previous.items():
+        if _guide_excluded(row):
+            continue
         if key not in fresh:
             lines.append(f"Removed {_class_label(row)}")
     return sorted(lines)
@@ -290,6 +294,7 @@ GUIDE_FIELDS = (
 NO_NEW_UPDATES = "No new updates detected during the latest run."
 NO_GUIDE_UPDATES = "No Program Guide updates at this time."
 BASELINE_MISSING = "The printed Program Guide has not been saved for this session yet."
+EXCLUDED_GUIDE_IDS = {"28154"}
 
 
 def _compare_text(field: str, value) -> str:
@@ -310,6 +315,11 @@ def _changed(field: str, before, after) -> bool:
 
 def _cancelled(row: dict) -> bool:
     return _plain(row.get("program_status")).casefold() == "cancelled"
+
+
+def _guide_excluded(row: dict) -> bool:
+    """Request to Withdraw is a form, not a class change."""
+    return _program_id(row.get("program_id")) in EXCLUDED_GUIDE_IDS
 
 
 def _guide_row(row: dict, updated_at: str = "") -> dict:
@@ -346,6 +356,8 @@ def compare_guide(previous: list, current: list, updated_at: str = "") -> dict:
     changes = []
     cancelled = []
     for key, row in after.items():
+        if _guide_excluded(row):
+            continue
         old = before.get(key)
         card = _guide_row(row, updated_at)
         if old is None:
@@ -444,6 +456,8 @@ def manual_update_item(body: dict, created_at: str, item_id: str) -> dict:
         raise ValueError("Choose Addition, Change, or Cancelled.")
     program = _plain(body.get("program"))
     program_id = _program_id(body.get("program_id"))
+    if program_id in EXCLUDED_GUIDE_IDS:
+        raise ValueError("Request to Withdraw from Program, 28154, is not listed in Program Guide Updates.")
     day = _plain(body.get("day") or body.get("sheet"))
     session = session_number(body.get("session"))
     if not program or not program_id or not day or not session:
@@ -499,6 +513,8 @@ def merge_manual_updates(report: dict, items: list) -> dict:
     """Show an Admin entry in place of an automatic entry for the same class."""
     chosen = []
     for item in items or []:
+        if _guide_excluded(item):
+            continue
         if item.get("kind") in MANUAL_KINDS and _manual_identity(item)[0]:
             chosen.append(item)
     covered = {_manual_identity(item) for item in chosen}

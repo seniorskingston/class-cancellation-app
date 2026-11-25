@@ -209,6 +209,22 @@ class PerfectMindSyncTests(unittest.TestCase):
         step = perfectmind_sync.latest_report(later, [self._row(time="11:00 AM - 12:00 PM")], "Run 3")
         self.assertEqual(step["changes"][0]["fields"][0]["before"], "10:00 AM - 11:00 AM")
         self.assertEqual(step["changes"][0]["fields"][0]["after"], "11:00 AM - 12:00 PM")
+        hidden = perfectmind_sync.compare_guide(
+            [],
+            [
+                self._row(program_id="28154", program="Request to Withdraw from Program"),
+                self._row(program_id="28154", program="Request to Withdraw from Program", program_status="Cancelled", sheet="Tuesday"),
+                self._row(program_id="30002", program="New Class"),
+            ],
+        )
+        self.assertEqual(hidden["counts"]["additions"], 1)
+        self.assertEqual(hidden["counts"]["cancelled"], 0)
+        self.assertEqual(hidden["additions"][0]["program_id"], "30002")
+        changed_hidden = perfectmind_sync.compare_guide(
+            [self._row(program_id="28154", program="Request to Withdraw from Program", time="9:00 AM - 10:00 AM")],
+            [self._row(program_id="28154", program="Request to Withdraw from Program", time="1:00 PM - 2:00 PM")],
+        )
+        self.assertEqual(changed_hidden["counts"]["total"], 0)
 
     def test_admin_can_add_a_program_guide_update(self):
         added = perfectmind_sync.add_manual_update([], {
