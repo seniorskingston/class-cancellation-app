@@ -1402,8 +1402,14 @@ def perfectmind_sync_status():
             current["ran_at"] = saved.get("ran_at")
             current["changes"] = changes
             current["change_count"] = count
+            if isinstance(saved.get("latest"), dict):
+                current["latest"] = saved.get("latest")
             if current.get("status") in ("idle", "success"):
-                current["message"] = f"Last run {saved.get('ran_at')}. {detail}"
+                latest = saved.get("latest") if isinstance(saved.get("latest"), dict) else {}
+                if latest.get("message"):
+                    current["message"] = f"Last run {saved.get('ran_at')}. {latest.get('message')}"
+                else:
+                    current["message"] = f"Last run {saved.get('ran_at')}. {detail}"
     return current
 
 
@@ -1699,8 +1705,14 @@ async def perfectmind_save_programs(request: Request):
             changes = changes[:80] + [f"And {extra} more changes."]
         ran_at = perfectmind_sync.ran_label()
         merged = perfectmind_sync.combine_with_other_sessions(existing, merged)
+        latest = perfectmind_sync.latest_report(existing, merged, ran_at)
         saved = supabase_store.replace_programs(merged)
-        report = {"ran_at": ran_at, "changes": changes, "change_count": len(changes)}
+        report = {
+            "ran_at": ran_at,
+            "changes": changes,
+            "change_count": len(changes),
+            "latest": latest,
+        }
         app.state.perfectmind_last_report = report
         try:
             supabase_store.save_setting("perfectmind_last_report", report)
@@ -1709,7 +1721,264 @@ async def perfectmind_save_programs(request: Request):
     except Exception as exc:
         print(f"PerfectMind save failed: {exc}")
         return perfectmind_sync.fail("The programs could not be saved. The class list was not changed.")
-    return perfectmind_sync.succeed(saved, ran_at, changes)
+    return perfectmind_sync.succeed(saved, ran_at, changes, latest)
+
+
+GUIDE_BASELINE_KEY = "program_guide_baseline"
+GUIDE_MANUAL_KEY = "program_guide_manual"
+_EARLIEST_GUIDE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "program_guide_earliest.json")
+
+
+def _load_guide_baseline() -> dict:
+    saved = getattr(app.state, "program_guide_baseline", None)
+    if not isinstance(saved, dict) and supabase_store.enabled():
+        try:
+            saved = supabase_store.fetch_setting(GUIDE_BASELINE_KEY)
+        except Exception as exc:
+            print(f"Could not read the printed Program Guide: {exc}")
+            saved = None
+    if not isinstance(saved, dict):
+        saved = {"sessions": {}}
+    if not isinstance(saved.get("sessions"), dict):
+        saved["sessions"] = {}
+    return saved
+
+
+def _save_guide_baseline(saved: dict) -> None:
+    app.state.program_guide_baseline = saved
+    if supabase_store.enabled():
+        supabase_store.save_setting(GUIDE_BASELINE_KEY, saved)
+
+
+def _earliest_guide() -> dict:
+    try:
+        with open(_EARLIEST_GUIDE_PATH, encoding="utf-8") as handle:
+            saved = json.load(handle)
+    except Exception as exc:
+        print(f"Could not read the earliest Program Guide: {exc}")
+        return {"sessions": {}}
+    if not isinstance(saved, dict) or not isinstance(saved.get("sessions"), dict):
+        return {"sessions": {}}
+    return saved
+
+
+def _baseline_entry(number: str):
+    """Return the printed guide for a session. A saved copy replaces the earliest file."""
+    baseline = _load_guide_baseline()
+    entry = baseline["sessions"].get(number)
+    if isinstance(entry, dict) and isinstance(entry.get("programs"), list):
+        return entry, "saved"
+    earliest = _earliest_guide().get("sessions", {}).get(number)
+    if isinstance(earliest, dict) and isinstance(earliest.get("programs"), list):
+        return earliest, "earliest"
+    return None, ""
+
+
+def _load_manual_updates() -> dict:
+    saved = getattr(app.state, "program_guide_manual", None)
+    if not isinstance(saved, dict) and supabase_store.enabled():
+        try:
+            saved = supabase_store.fetch_setting(GUIDE_MANUAL_KEY)
+        except Exception as exc:
+            print(f"Could not read Program Guide updates added from Admin: {exc}")
+            saved = None
+    if not isinstance(saved, dict) or not isinstance(saved.get("items"), list):
+        saved = {"items": []}
+    return saved
+
+
+def _save_manual_updates(saved: dict) -> None:
+    app.state.program_guide_manual = saved
+    if supabase_store.enabled():
+        supabase_store.save_setting(GUIDE_MANUAL_KEY, saved)
+
+
+def _manual_for_session(number: str) -> list:
+    items = []
+    for item in _load_manual_updates().get("items") or []:
+        if not isinstance(item, dict):
+            continue
+        if perfectmind_sync.session_number(item.get("session")) == number:
+            items.append(item)
+    return items
+
+
+def _baseline_programs(rows: list) -> list:
+    copied = []
+    for row in rows:
+        copied.append({
+            "sheet": row.get("sheet") or "",
+            "program": row.get("program") or "",
+            "program_id": row.get("program_id") or "",
+            "date_range": row.get("date_range") or "",
+            "time": row.get("time") or "",
+            "location": row.get("location") or "",
+            "class_room": row.get("class_room") or "",
+            "instructor": row.get("instructor") or "",
+            "program_status": row.get("program_status") or "",
+            "fee": row.get("fee") or "",
+            "session": row.get("session") or "",
+        })
+    return copied
+
+
+@app.get("/api/program-guide/updates")
+def program_guide_updates(session: str = ""):
+    label = str(session or "").strip()
+    number = perfectmind_sync.session_number(label)
+    if not number:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "Choose a session."})
+    entry, source = _baseline_entry(number)
+    manual = _manual_for_session(number)
+    if entry is None and not manual:
+        return {
+            "ready": False,
+            "session": label,
+            "message": perfectmind_sync.BASELINE_MISSING,
+            "additions": [],
+            "changes": [],
+            "cancelled": [],
+            "counts": {"additions": 0, "changes": 0, "cancelled": 0, "total": 0},
+        }
+    if entry is None:
+        report = {
+            "ready": True,
+            "session": label,
+            "additions": [],
+            "changes": [],
+            "cancelled": [],
+            "counts": {"additions": 0, "changes": 0, "cancelled": 0, "total": 0},
+            "message": "",
+        }
+    else:
+        current = perfectmind_sync.rows_for_session(_all_saved_programs(), label)
+        report = perfectmind_sync.compare_guide(entry.get("programs") or [], current, entry.get("created_at") or "")
+        report["ready"] = True
+        report["session"] = entry.get("label") or label
+        report["baseline_saved_at"] = entry.get("created_at") or ""
+        report["baseline_source"] = source
+        if report["counts"]["total"] == 0:
+            report["message"] = perfectmind_sync.NO_GUIDE_UPDATES
+    if manual:
+        report = perfectmind_sync.merge_manual_updates(report, manual)
+        report["ready"] = True
+        report["session"] = report.get("session") or label
+    return report
+
+
+@app.get("/api/program-guide/baseline")
+def program_guide_baseline_status():
+    baseline = _load_guide_baseline()
+    numbers = set(baseline["sessions"]) | set(_earliest_guide().get("sessions") or {})
+    sessions = []
+    for number in sorted(numbers, key=lambda item: int(item) if str(item).isdigit() else str(item)):
+        entry, source = _baseline_entry(str(number))
+        if not isinstance(entry, dict):
+            continue
+        sessions.append({
+            "session": entry.get("label") or f"Session {number}",
+            "saved_at": entry.get("created_at") or "",
+            "programs": len(entry.get("programs") or []),
+            "source": source,
+        })
+    return {"sessions": sessions}
+
+
+@app.post("/api/program-guide/baseline")
+async def program_guide_baseline_save(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    label = str(body.get("session") or "").strip()
+    number = perfectmind_sync.session_number(label)
+    if not number:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "Type a session, such as Session 2-2026."})
+    rows = perfectmind_sync.rows_for_session(_all_saved_programs(), label)
+    if not rows:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "There are no saved programs for that session."})
+    baseline = _load_guide_baseline()
+    existing, source = _baseline_entry(number)
+    if isinstance(existing, dict) and body.get("confirm") is not True:
+        when = existing.get("created_at") or "an earlier date"
+        if source == "earliest":
+            message = f"Session {number} is using the earliest class list, saved {when}. Confirm to replace it with the current class list."
+        else:
+            message = f"A printed Program Guide for {label} was saved on {when}. Confirm to replace it."
+        return {"status": "confirm", "message": message}
+    if not supabase_store.enabled():
+        return JSONResponse(status_code=400, content={"status": "error", "message": "The database is not connected. The printed Program Guide was not saved."})
+    saved_at = datetime.now(KINGSTON_TZ).isoformat()
+    baseline["sessions"][number] = {
+        "label": label,
+        "created_at": saved_at,
+        "programs": _baseline_programs(rows),
+    }
+    try:
+        _save_guide_baseline(baseline)
+    except Exception as exc:
+        print(f"Could not save the printed Program Guide: {exc}")
+        return JSONResponse(status_code=500, content={"status": "error", "message": "The printed Program Guide was not saved."})
+    return {"status": "saved", "session": label, "saved_at": saved_at, "programs": len(rows)}
+
+
+@app.get("/api/program-guide/manual")
+def program_guide_manual_list(session: str = ""):
+    number = perfectmind_sync.session_number(session) if str(session or "").strip() else ""
+    items = []
+    for item in _load_manual_updates().get("items") or []:
+        if not isinstance(item, dict):
+            continue
+        if number and perfectmind_sync.session_number(item.get("session")) != number:
+            continue
+        items.append(item)
+    return {"items": items}
+
+
+@app.post("/api/program-guide/manual")
+async def program_guide_manual_add(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    if not supabase_store.enabled():
+        return JSONResponse(status_code=400, content={"status": "error", "message": "The database is not connected. The update was not added."})
+    saved = _load_manual_updates()
+    current = datetime.now(KINGSTON_TZ)
+    created_at = f"{current.strftime('%B')} {current.day}, {current.year}"
+    try:
+        item = perfectmind_sync.add_manual_update(saved.get("items") or [], body, created_at, str(uuid.uuid4()))
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"status": "error", "message": str(exc)})
+    saved["items"] = list(saved.get("items") or []) + [item]
+    try:
+        _save_manual_updates(saved)
+    except Exception as exc:
+        print(f"Could not save the Program Guide update: {exc}")
+        return JSONResponse(status_code=500, content={"status": "error", "message": "The update was not added."})
+    return {"status": "saved", "item": item}
+
+
+@app.delete("/api/program-guide/manual/{item_id}")
+def program_guide_manual_remove(item_id: str):
+    if not supabase_store.enabled():
+        return JSONResponse(status_code=400, content={"status": "error", "message": "The database is not connected. The update was not removed."})
+    saved = _load_manual_updates()
+    items = [item for item in saved.get("items") or [] if isinstance(item, dict) and item.get("id") != item_id]
+    if len(items) == len(saved.get("items") or []):
+        return JSONResponse(status_code=404, content={"status": "error", "message": "That update is not on the list."})
+    saved["items"] = items
+    try:
+        _save_manual_updates(saved)
+    except Exception as exc:
+        print(f"Could not remove the Program Guide update: {exc}")
+        return JSONResponse(status_code=500, content={"status": "error", "message": "The update was not removed."})
+    return {"status": "removed"}
+
 
 # In-memory storage for editable events (in production, this would be a database)
 editable_events = {}

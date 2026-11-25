@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import Calendar from './Calendar';
 import AdminPanel from './AdminPanel';
 import ProgramListPrint from './ProgramListPrint';
+import ProgramGuideUpdates from './ProgramGuideUpdates';
 import locationData from './locations.json';
 import UserGuide from './UserGuide';
 import analytics from './analytics';
@@ -221,7 +222,7 @@ function App() {
   const [showQRCode, setShowQRCode] = useState(false);
   const [showFloatingQR, setShowFloatingQR] = useState(true);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
-  const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'admin' | 'print'>('main');
+  const [currentView, setCurrentView] = useState<'main' | 'calendar' | 'admin' | 'print' | 'guide'>('main');
   const [showRachelComingSoon, setShowRachelComingSoon] = useState(false);
 
   // Check for admin access via URL parameter
@@ -798,6 +799,10 @@ function App() {
   console.log('Sorted cancellations count:', sortedCancellations.length);
   console.log('Pinned cancellations in results:', sortedCancellations.filter(p => favorites.has(p.program_id)).length);
 
+        if (currentView === 'guide') {
+          return <ProgramGuideUpdates sessions={sessions} onBack={() => setCurrentView('main')} />;
+        }
+
         // Calendar view
         if (currentView === 'calendar') {
           return (
@@ -930,6 +935,14 @@ function App() {
               🔍
             </button>
           </div>
+          <button 
+            onClick={() => setCurrentView('guide')} 
+            style={{ background: "#0072ce", color: "white", fontSize: "0.75rem", padding: "0.5rem 1rem" }}
+            className="custom-tooltip"
+            data-tooltip="Program Guide Updates"
+          >
+            Program Guide Updates
+          </button>
           <button 
             onClick={() => setCurrentView('print')} 
             style={{ 
@@ -1646,6 +1659,14 @@ function App() {
           data-tooltip="Switch to Mobile View"
         >
           📱 Mobile
+        </button>
+        <button 
+          onClick={() => setCurrentView('guide')} 
+          style={{ background: "#0072ce", color: "white", fontSize: "0.75rem", padding: "0.3rem 0.6rem" }}
+          className="custom-tooltip"
+          data-tooltip="Program Guide Updates"
+        >
+          Program Guide Updates
         </button>
         <button 
           onClick={() => setCurrentView('print')} 

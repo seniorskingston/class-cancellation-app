@@ -96,7 +96,7 @@ def fail(message: str) -> dict:
         return dict(_job)
 
 
-def succeed(program_count: int, ran_at: str = "", changes: list | None = None) -> dict:
+def succeed(program_count: int, ran_at: str = "", changes: list | None = None, latest: dict | None = None) -> dict:
     changes = list(changes or [])
     detail = "No class changes." if not changes else f"{len(changes)} class changes."
     when = f" Last run {ran_at}." if ran_at else ""
@@ -110,11 +110,15 @@ def succeed(program_count: int, ran_at: str = "", changes: list | None = None) -
             "changes": changes,
             "change_count": len(changes),
         })
+        if isinstance(latest, dict):
+            _job["latest"] = latest
         return dict(_job)
 
 
 def session_number(value: str) -> str:
     text = str(value or "").strip()
+    if text.endswith(".0") and text[:-2].isdigit():
+        text = text[:-2]
     match = re.search(r"session\s*(\d+)", text, re.I)
     if match:
         return str(int(match.group(1)))
@@ -271,6 +275,258 @@ def session_changes(existing: list, incoming: list) -> list[str]:
         if key not in fresh:
             lines.append(f"Removed {_class_label(row)}")
     return sorted(lines)
+
+
+GUIDE_FIELDS = (
+    ("program", "Name"),
+    ("date_range", "Dates"),
+    ("sheet", "Day"),
+    ("time", "Time"),
+    ("instructor", "Instructor"),
+    ("location", "Location"),
+    ("class_room", "Room"),
+    ("fee", "Fee"),
+)
+NO_NEW_UPDATES = "No new updates detected during the latest run."
+NO_GUIDE_UPDATES = "No Program Guide updates at this time."
+BASELINE_MISSING = "The printed Program Guide has not been saved for this session yet."
+
+
+def _compare_text(field: str, value) -> str:
+    text = _plain(value).casefold()
+    if field == "fee":
+        text = text.replace("$", "").replace(",", "")
+        text = re.sub(r"(\d)\.00\b", r"\1", text)
+    if field == "time":
+        def clock(match):
+            return f"{int(match.group(1))}:{int(match.group(2)):02d} {match.group(3).lower()}"
+        text = re.sub(r"\b(\d{1,2}):(\d{2})\s*([ap]m)\b", clock, text)
+    return text.strip()
+
+
+def _changed(field: str, before, after) -> bool:
+    return _compare_text(field, before) != _compare_text(field, after)
+
+
+def _cancelled(row: dict) -> bool:
+    return _plain(row.get("program_status")).casefold() == "cancelled"
+
+
+def _guide_row(row: dict, updated_at: str = "") -> dict:
+    return {
+        "program": _plain(row.get("program")),
+        "program_id": _program_id(row.get("program_id")),
+        "session": session_number(row.get("session")) or _plain(row.get("session")),
+        "day": _plain(row.get("sheet")),
+        "date_range": _plain(row.get("date_range")),
+        "time": _plain(row.get("time")),
+        "location": _plain(row.get("location")),
+        "room": _plain(row.get("class_room")),
+        "instructor": _plain(row.get("instructor")),
+        "fee": _plain(row.get("fee")),
+        "status": _plain(row.get("program_status")) or "Active",
+        "updated_at": updated_at,
+    }
+
+
+def _index_rows(rows: list) -> dict:
+    indexed = {}
+    for row in rows or []:
+        key = _staff_key(row)
+        if key[0] and key[1] and key[2]:
+            indexed[key] = row
+    return indexed
+
+
+def compare_guide(previous: list, current: list, updated_at: str = "") -> dict:
+    """Compare two program lists. A missing row is not treated as a cancellation."""
+    before = _index_rows(previous)
+    after = _index_rows(current)
+    additions = []
+    changes = []
+    cancelled = []
+    for key, row in after.items():
+        old = before.get(key)
+        card = _guide_row(row, updated_at)
+        if old is None:
+            if _cancelled(row):
+                cancelled.append(card)
+            else:
+                additions.append(card)
+            continue
+        if _cancelled(row) and not _cancelled(old):
+            cancelled.append(card)
+            continue
+        fields = []
+        for field, label in GUIDE_FIELDS:
+            if _changed(field, old.get(field), row.get(field)):
+                fields.append({
+                    "field": field,
+                    "label": label,
+                    "before": _plain(old.get(field)) or "blank",
+                    "after": _plain(row.get(field)) or "blank",
+                    "summary": f"{label} changed",
+                })
+        if _cancelled(old) and not _cancelled(row):
+            fields.append({
+                "field": "program_status",
+                "label": "Status",
+                "before": "Cancelled",
+                "after": _plain(row.get("program_status")) or "Active",
+                "summary": "Status changed",
+            })
+        if fields:
+            card["fields"] = fields
+            changes.append(card)
+    additions.sort(key=lambda item: (item["day"], item["program"], item["program_id"]))
+    changes.sort(key=lambda item: (item["day"], item["program"], item["program_id"]))
+    cancelled.sort(key=lambda item: (item["day"], item["program"], item["program_id"]))
+    return _report(additions, changes, cancelled, updated_at, NO_GUIDE_UPDATES)
+
+
+def _report(additions, changes, cancelled, updated_at: str, empty_message: str) -> dict:
+    counts = {
+        "additions": len(additions),
+        "changes": len(changes),
+        "cancelled": len(cancelled),
+        "total": len(additions) + len(changes) + len(cancelled),
+    }
+    message = empty_message if counts["total"] == 0 else ""
+    return {
+        "updated_at": updated_at,
+        "additions": additions,
+        "changes": changes,
+        "cancelled": cancelled,
+        "counts": counts,
+        "message": message,
+    }
+
+
+def empty_latest(updated_at: str) -> dict:
+    """A first saved list establishes the snapshot and is not a list of new programs."""
+    return _report([], [], [], updated_at, NO_NEW_UPDATES)
+
+
+def latest_report(previous: list, current: list, updated_at: str) -> dict:
+    if not previous:
+        return empty_latest(updated_at)
+    report = compare_guide(previous, current, updated_at)
+    if report["counts"]["total"] == 0:
+        report["message"] = NO_NEW_UPDATES
+    return report
+
+
+MANUAL_KINDS = ("addition", "change", "cancelled")
+_BEFORE_FIELDS = (
+    ("program", "Name", "before_program", "program"),
+    ("date_range", "Dates", "before_date_range", "date_range"),
+    ("sheet", "Day", "before_day", "day"),
+    ("time", "Time", "before_time", "time"),
+    ("instructor", "Instructor", "before_instructor", "instructor"),
+    ("location", "Location", "before_location", "location"),
+    ("class_room", "Room", "before_room", "room"),
+    ("fee", "Fee", "before_fee", "fee"),
+)
+
+
+def _manual_identity(item: dict) -> tuple:
+    return (
+        _program_id(item.get("program_id")),
+        session_number(item.get("session")),
+        _plain(item.get("day") or item.get("sheet")).casefold(),
+    )
+
+
+def manual_update_item(body: dict, created_at: str, item_id: str) -> dict:
+    """Check an update typed on the Admin page."""
+    kind = _plain(body.get("kind")).casefold()
+    if kind not in MANUAL_KINDS:
+        raise ValueError("Choose Addition, Change, or Cancelled.")
+    program = _plain(body.get("program"))
+    program_id = _program_id(body.get("program_id"))
+    day = _plain(body.get("day") or body.get("sheet"))
+    session = session_number(body.get("session"))
+    if not program or not program_id or not day or not session:
+        raise ValueError("Enter the program name, program ID, day, and session.")
+    item = {
+        "id": item_id,
+        "kind": kind,
+        "source": "admin",
+        "program": program,
+        "program_id": program_id,
+        "session": session,
+        "day": day,
+        "date_range": _plain(body.get("date_range")),
+        "time": _plain(body.get("time")),
+        "location": _plain(body.get("location")),
+        "room": _plain(body.get("room") or body.get("class_room")),
+        "instructor": _plain(body.get("instructor")),
+        "fee": _plain(body.get("fee")),
+        "note": _plain(body.get("note")),
+        "status": "Cancelled" if kind == "cancelled" else (_plain(body.get("status")) or "Active"),
+        "updated_at": created_at,
+    }
+    fields = []
+    if kind == "change":
+        for field, label, before_key, current_key in _BEFORE_FIELDS:
+            before = _plain(body.get(before_key))
+            after = _plain(item.get(current_key))
+            if before and _changed(field, before, after):
+                fields.append({
+                    "field": field,
+                    "label": label,
+                    "before": before,
+                    "after": after or "blank",
+                    "summary": f"{label} changed",
+                })
+        if not fields and not item["note"]:
+            raise ValueError("For a change, describe what changed.")
+    if fields:
+        item["fields"] = fields
+    return item
+
+
+def add_manual_update(items: list, body: dict, created_at: str, item_id: str) -> dict:
+    item = manual_update_item(body, created_at, item_id)
+    identity = _manual_identity(item)
+    for existing in items or []:
+        if _manual_identity(existing) == identity:
+            raise ValueError("That program is already on the Program Guide Updates list. Remove it before adding it again.")
+    return item
+
+
+def merge_manual_updates(report: dict, items: list) -> dict:
+    """Show an Admin entry in place of an automatic entry for the same class."""
+    chosen = []
+    for item in items or []:
+        if item.get("kind") in MANUAL_KINDS and _manual_identity(item)[0]:
+            chosen.append(item)
+    covered = {_manual_identity(item) for item in chosen}
+    additions = [row for row in report.get("additions") or [] if _manual_identity(row) not in covered]
+    changes = [row for row in report.get("changes") or [] if _manual_identity(row) not in covered]
+    cancelled = [row for row in report.get("cancelled") or [] if _manual_identity(row) not in covered]
+    groups = {"addition": additions, "change": changes, "cancelled": cancelled}
+    for item in chosen:
+        groups[item["kind"]].append(item)
+    for group in groups.values():
+        group.sort(key=lambda item: (_plain(item.get("day")), _plain(item.get("program")), _program_id(item.get("program_id"))))
+    updated_at = report.get("updated_at") or ""
+    merged = _report(additions, changes, cancelled, updated_at, NO_GUIDE_UPDATES)
+    for key in ("ready", "session", "baseline_saved_at", "baseline_source", "message"):
+        if key in report and key != "message":
+            merged[key] = report[key]
+    if merged["counts"]["total"] == 0:
+        merged["message"] = report.get("message") or NO_GUIDE_UPDATES
+    else:
+        merged["message"] = ""
+    return merged
+
+
+def rows_for_session(rows: list, session_label: str) -> list:
+    number = session_number(session_label)
+    if not number:
+        return []
+    return [row for row in rows or [] if session_number(row.get("session")) == number]
 
 
 def ran_label(now=None) -> str:

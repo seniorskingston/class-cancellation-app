@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { apiOrigin } from './apiOrigin';
 import WebsiteEvents from './WebsiteEvents';
+import { GuideReport, ProgramGuideManual, ProgramGuideReport } from './ProgramGuideUpdates';
 
 interface AdminPanelProps {
   onBackToMain: () => void;
@@ -42,11 +43,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   const [savingStaffKey, setSavingStaffKey] = useState('');
   const [lastRun, setLastRun] = useState('');
   const [classChanges, setClassChanges] = useState<string[]>([]);
+  const [latestReport, setLatestReport] = useState<GuideReport | null>(null);
+  const [baselineMessage, setBaselineMessage] = useState('');
+  const [savedGuides, setSavedGuides] = useState<Array<{ session: string; saved_at: string; programs: number; source?: string }>>([]);
 
-  const showProgramStatus = (result: { status?: string; message?: string; ran_at?: string; changes?: string[] }) => {
+  const showProgramStatus = (result: { status?: string; message?: string; ran_at?: string; changes?: string[]; latest?: GuideReport }) => {
     const message = result.message || 'Waiting for PerfectMind.';
     if (result.ran_at) setLastRun(result.ran_at);
     if (Array.isArray(result.changes)) setClassChanges(result.changes);
+    if (result.latest && result.latest.counts) setLatestReport(result.latest);
     if (result.status === 'success') {
       setProgramMessage(`✅ ${message}`);
       setProgramBusy(false);
@@ -94,6 +99,56 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
       if (timer) window.clearTimeout(timer);
     };
   }, [programBusy]);
+
+  const loadSavedGuides = async () => {
+    try {
+      const response = await fetch(`${apiOrigin()}/api/program-guide/baseline`);
+      if (!response.ok) return;
+      const data = await response.json();
+      setSavedGuides(Array.isArray(data.sessions) ? data.sessions : []);
+    } catch {
+      setSavedGuides([]);
+    }
+  };
+
+  const savePrintedGuide = async (confirm: boolean) => {
+    const sessions = sessionInputs.map((item) => item.trim()).filter(Boolean);
+    if (!sessions.length) {
+      setBaselineMessage("Type a session, such as Session 2-2026.");
+      return;
+    }
+    const saved: string[] = [];
+    for (const session of sessions) {
+      try {
+        const response = await fetch(`${apiOrigin()}/api/program-guide/baseline`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session, confirm }),
+        });
+        const data = await response.json();
+        if (data.status === "confirm") {
+          if (window.confirm(data.message)) {
+            await savePrintedGuide(true);
+          }
+          return;
+        }
+        if (data.status !== "saved") {
+          setBaselineMessage(data.message || "The printed Program Guide was not saved.");
+          return;
+        }
+        saved.push(session);
+      } catch {
+        setBaselineMessage("The printed Program Guide was not saved.");
+        return;
+      }
+    }
+    setBaselineMessage(`Saved the printed Program Guide for ${saved.join(", ")}.`);
+    loadSavedGuides();
+  };
+
+  useEffect(() => {
+    loadSavedGuides();
+  }, []);
 
   useEffect(() => {
     const loadSchedule = async () => {
@@ -789,19 +844,45 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
             )}
             {lastRun && (
               <div style={{ marginTop: '15px', padding: '12px', background: 'white', borderRadius: '8px' }}>
-                <p style={{ margin: '0 0 8px', color: '#333', fontWeight: 'bold' }}>Last run: {lastRun}</p>
-                <p style={{ margin: '0 0 8px', color: '#333' }}>
-                  {classChanges.length === 0 ? 'No class changes.' : 'Class changes for the same session:'}
-                </p>
-                {classChanges.length > 0 && (
-                  <ul style={{ margin: 0, paddingLeft: '18px', color: '#333' }}>
-                    {classChanges.map((line) => (
-                      <li key={line} style={{ marginBottom: '6px' }}>{line}</li>
-                    ))}
-                  </ul>
+                <h3 style={{ marginTop: 0 }}>Program Guide Updates — Latest Run</h3>
+                <p style={{ margin: '0 0 8px', color: '#333', fontWeight: 'bold' }}>Last successful run: {lastRun}</p>
+                {latestReport && latestReport.counts ? (
+                  <>
+                    <p>
+                      Additions {latestReport.counts.additions}. Changes {latestReport.counts.changes}. Cancelled {latestReport.counts.cancelled}. Total {latestReport.counts.total}.
+                    </p>
+                    <ProgramGuideReport report={latestReport} />
+                  </>
+                ) : (
+                  <>
+                    <p style={{ margin: '0 0 8px', color: '#333' }}>
+                      {classChanges.length === 0 ? 'No class changes.' : 'Class changes for the same session:'}
+                    </p>
+                    {classChanges.length > 0 && (
+                      <ul style={{ margin: 0, paddingLeft: '18px', color: '#333' }}>
+                        {classChanges.map((line) => (
+                          <li key={line} style={{ marginBottom: '6px' }}>{line}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
                 )}
               </div>
             )}
+            <div style={{ marginTop: '15px', padding: '12px', background: 'white', borderRadius: '8px' }}>
+              <h3 style={{ marginTop: 0 }}>Printed Program Guide</h3>
+              <p>Session 2 uses the earliest class list saved on this computer, from November 19, 2026, until you replace it. Save the current class list only when you want that to become the printed guide.</p>
+              {savedGuides.map((item) => (
+                <p key={item.session}>
+                  {item.session}: {item.source === "earliest" ? "earliest class list" : "saved"} {item.saved_at}, {item.programs} programs.
+                </p>
+              ))}
+              <button type="button" onClick={() => savePrintedGuide(false)} style={{ background: '#0072ce', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 12px', cursor: 'pointer' }}>
+                Save printed Program Guide
+              </button>
+              {baselineMessage && <p>{baselineMessage}</p>}
+              <ProgramGuideManual sessions={sessionInputs.map((item) => item.trim()).filter(Boolean)} />
+            </div>
           </div>
 
           {/* ==================== EVENTS FILE UPLOAD SECTION ==================== */}
