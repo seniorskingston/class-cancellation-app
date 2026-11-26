@@ -616,11 +616,21 @@ const ProgramGuideUpdates: React.FC<PageProps> = ({ sessions, onBack }) => {
   }, [session]);
 
   return (
-    <div className="App" style={{ maxWidth: "860px", margin: "0 auto", padding: "16px" }}>
-      <button type="button" onClick={onBack}>Back</button>
-      <h1>Program Guide Updates</h1>
-      <label htmlFor="guideSession">Session</label>
-      <select id="guideSession" value={session} onChange={(event) => setSession(event.target.value)}>
+    <div className="App" style={{ maxWidth: "860px", margin: "0 auto", padding: "0 16px 24px", textAlign: "left" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 20, background: "#f6fbfc", padding: "12px 0", borderBottom: "1px solid #d5e3ea", marginBottom: "16px" }}>
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Back to the main page"
+          style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: "#0072ce", color: "white", border: "none", borderRadius: "999px", padding: "10px 18px", fontSize: "1rem", fontWeight: 700, cursor: "pointer", minHeight: "44px" }}
+        >
+          <span aria-hidden="true" style={{ fontSize: "1.35rem", lineHeight: 1 }}>←</span>
+          Main page
+        </button>
+      </div>
+      <h1 style={{ margin: "0 0 12px", fontSize: "1.6rem" }}>Program Guide Updates</h1>
+      <label htmlFor="guideSession" style={{ display: "block", marginBottom: "6px" }}>Session</label>
+      <select id="guideSession" value={session} onChange={(event) => setSession(event.target.value)} style={{ display: "block", marginBottom: "16px", padding: "8px", fontSize: "1rem" }}>
         {sessions.map((item) => {
           const label = /^session/i.test(item) ? item : `Session ${item}`;
           return <option key={item} value={item}>{label}</option>;
