@@ -913,7 +913,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
                     <p>
                       Additions {latestReport.counts.additions}. Changes {latestReport.counts.changes}. Cancelled {latestReport.counts.cancelled}. Total {latestReport.counts.total}.
                     </p>
-                    <ProgramGuideReport report={latestReport} />
+                    <ProgramGuideReport report={latestReport} printable={false} />
                   </>
                 ) : (
                   <>
