@@ -192,7 +192,7 @@ function printUpdates(report: GuideReport) {
     th, td { border-bottom: 1px solid #ccc; text-align: left; padding: 4px; vertical-align: top; }
     tr { break-inside: avoid; page-break-inside: avoid; }
   </style></head><body>
-    <h1>Program Guide Updates — ${escapeHtml(sessionLabel(report))}</h1>
+    <h1>Program Guide Updates — full changes since the printed Program Guide — ${escapeHtml(sessionLabel(report))}</h1>
     <p>Printed ${escapeHtml(printedOn)}. Additions ${counts.additions}. Changes ${counts.changes}. Cancelled ${counts.cancelled}. Total ${counts.total}.</p>
     ${tables}
   </body></html>`;
@@ -228,7 +228,7 @@ export function ProgramGuideReport({ report, onRemove, printable = true }: { rep
     <div>
       {printable && (
         <button type="button" onClick={() => printUpdates(report)} style={{ background: "#0072ce", color: "white", border: "none", borderRadius: "6px", padding: "8px 12px", cursor: "pointer", marginBottom: "12px" }}>
-          Print updates
+          Print the full changes list
         </button>
       )}
       {report.baseline_saved_at && (
