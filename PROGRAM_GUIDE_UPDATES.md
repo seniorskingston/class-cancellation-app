@@ -2,7 +2,7 @@
 
 The public Program Guide Updates page compares the current class list with the printed Program Guide for one session. It keeps showing those differences until a program matches the printed guide again.
 
-The Admin section "Program Guide Updates — Latest Run" compares only the newest successful PerfectMind run with the run before it. A later run with no new differences replaces that list with "No new updates detected during the latest run." The public list is not cleared.
+The Admin page shows the time of the last successful PerfectMind run. It does not list those programs again. The one program list is under Changes since the printed Program Guide, and that list has Remove from list.
 
 A failed or incomplete run does not replace either list, and it does not change the printed Program Guide.
 

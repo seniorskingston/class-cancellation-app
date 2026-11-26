@@ -42,8 +42,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   const [staffNotices, setStaffNotices] = useState<Record<string, { ok: boolean; text: string }>>({});
   const [savingStaffKey, setSavingStaffKey] = useState('');
   const [lastRun, setLastRun] = useState('');
-  const [classChanges, setClassChanges] = useState<string[]>([]);
-  const [latestReport, setLatestReport] = useState<GuideReport | null>(null);
   const [baselineMessage, setBaselineMessage] = useState('');
   const [savedGuides, setSavedGuides] = useState<Array<{ session: string; saved_at: string; programs: number; source?: string }>>([]);
   const [guideSession, setGuideSession] = useState('Session 2-2026');
@@ -53,8 +51,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   const showProgramStatus = (result: { status?: string; message?: string; ran_at?: string; changes?: string[]; latest?: GuideReport }) => {
     const message = result.message || 'Waiting for PerfectMind.';
     if (result.ran_at) setLastRun(result.ran_at);
-    if (Array.isArray(result.changes)) setClassChanges(result.changes);
-    if (result.latest && result.latest.counts) setLatestReport(result.latest);
     if (result.status === 'success') {
       setProgramMessage(`✅ ${message}`);
       setProgramBusy(false);
@@ -906,29 +902,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
             )}
             {lastRun && (
               <div style={{ marginTop: '15px', padding: '12px', background: 'white', borderRadius: '8px' }}>
-                <h3 style={{ marginTop: 0 }}>Program Guide Updates — Latest Run</h3>
-                <p style={{ margin: '0 0 8px', color: '#333', fontWeight: 'bold' }}>Last successful run: {lastRun}</p>
-                {latestReport && latestReport.counts ? (
-                  <>
-                    <p>
-                      Additions {latestReport.counts.additions}. Changes {latestReport.counts.changes}. Cancelled {latestReport.counts.cancelled}. Total {latestReport.counts.total}.
-                    </p>
-                    <ProgramGuideReport report={latestReport} printable={false} />
-                  </>
-                ) : (
-                  <>
-                    <p style={{ margin: '0 0 8px', color: '#333' }}>
-                      {classChanges.length === 0 ? 'No class changes.' : 'Class changes for the same session:'}
-                    </p>
-                    {classChanges.length > 0 && (
-                      <ul style={{ margin: 0, paddingLeft: '18px', color: '#333' }}>
-                        {classChanges.map((line) => (
-                          <li key={line} style={{ marginBottom: '6px' }}>{line}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </>
-                )}
+                <h3 style={{ marginTop: 0 }}>Latest run</h3>
+                <p style={{ margin: 0, color: '#333', fontWeight: 'bold' }}>Last successful run: {lastRun}</p>
               </div>
             )}
             <div style={{ marginTop: '15px', padding: '12px', background: 'white', borderRadius: '8px' }}>
