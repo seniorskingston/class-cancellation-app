@@ -23,6 +23,7 @@ export type GuideProgram = {
   fee: string;
   status: string;
   kind?: string;
+  match_day?: string;
   note?: string;
   source?: string;
   updated_at?: string;
@@ -145,8 +146,13 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function printCell(value: string): string {
-  return `<td>${escapeHtml(value || "")}</td>`;
+function printCell(value: string, changed = false): string {
+  const style = changed ? ' style="color:#b00000;font-weight:700;"' : "";
+  return `<td${style}>${escapeHtml(value || "")}</td>`;
+}
+
+function fieldChanged(program: GuideProgram, field: string): boolean {
+  return (program.fields || []).some((item) => item.field === field || (field === "note" && item.field === "note"));
 }
 
 function printTable(title: string, programs: GuideProgram[], includeChange?: boolean): string {
@@ -155,17 +161,18 @@ function printTable(title: string, programs: GuideProgram[], includeChange?: boo
   if (includeChange) headings.push("What changed");
   const head = headings.map((heading) => `<th>${heading}</th>`).join("");
   const body = programs.map((program) => {
+    const locationChanged = fieldChanged(program, "location") || fieldChanged(program, "class_room");
     const cells = [
-      printCell(program.program),
-      printCell(program.program_id),
-      printCell(program.day),
-      printCell(program.date_range),
-      printCell(program.time),
-      printCell(place(program)),
-      printCell(program.instructor),
-      printCell(program.fee),
+      printCell(program.program, includeChange && fieldChanged(program, "program")),
+      printCell(program.program_id, false),
+      printCell(program.day, includeChange && fieldChanged(program, "sheet")),
+      printCell(program.date_range, includeChange && fieldChanged(program, "date_range")),
+      printCell(program.time, includeChange && fieldChanged(program, "time")),
+      printCell(place(program), includeChange && locationChanged),
+      printCell(program.instructor, includeChange && fieldChanged(program, "instructor")),
+      printCell(program.fee, includeChange && fieldChanged(program, "fee")),
     ];
-    if (includeChange) cells.push(printCell(changeText(program)));
+    if (includeChange) cells.push(printCell(changeText(program), true));
     return `<tr>${cells.join("")}</tr>`;
   }).join("");
   return `<h2>${escapeHtml(title)} (${programs.length})</h2><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
@@ -183,6 +190,7 @@ function printUpdates(report: GuideReport) {
       ].join("");
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Program Guide Updates</title><style>
     @page { size: letter landscape; margin: 12mm; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     html, body { margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; color: #111; font-size: 11px; }
     h1 { font-size: 18px; margin: 0 0 6px; }
@@ -216,7 +224,7 @@ function printUpdates(report: GuideReport) {
   frame.print();
 }
 
-export function ProgramGuideReport({ report, onRemove, printable = true }: { report: GuideReport; onRemove?: (program: GuideProgram) => void; printable?: boolean }) {
+export function ProgramGuideReport({ report, onRemove, printable = true, showPrograms = true }: { report: GuideReport; onRemove?: (program: GuideProgram) => void; printable?: boolean; showPrograms?: boolean }) {
   const counts = report.counts || emptyCounts;
   const additions = report.additions || [];
   const changes = report.changes || [];
@@ -239,12 +247,185 @@ export function ProgramGuideReport({ report, onRemove, printable = true }: { rep
         </p>
       )}
       <p>{counts.total} updated program{counts.total === 1 ? "" : "s"}.</p>
-      {counts.total === 0 ? <p>{report.message}</p> : (
+      {counts.total === 0 ? <p>{report.message}</p> : showPrograms && (
         <>
           <Group title="Additions" tone="add" programs={additions} onRemove={onRemove} />
           <Group title="Changes" tone="change" programs={changes} onRemove={onRemove} />
           <Group title="Cancelled" tone="cancel" programs={cancelled} onRemove={onRemove} />
         </>
+      )}
+    </div>
+  );
+}
+
+type EditDraft = {
+  matchDay: string;
+  program: string;
+  day: string;
+  date_range: string;
+  time: string;
+  location: string;
+  room: string;
+  instructor: string;
+  fee: string;
+  note: string;
+};
+
+export function ProgramGuideEditor({ session, onBack, embedded = false }: { session: string; onBack: () => void; embedded?: boolean }) {
+  const [report, setReport] = React.useState<GuideReport | null>(null);
+  const [hiddenUpdates, setHiddenUpdates] = React.useState<GuideProgram[]>([]);
+  const [draftKey, setDraftKey] = React.useState("");
+  const [draft, setDraft] = React.useState<EditDraft | null>(null);
+  const [message, setMessage] = React.useState("");
+
+  const load = React.useCallback(async () => {
+    try {
+      const response = await fetch(`${apiOrigin()}/api/program-guide/updates?session=${encodeURIComponent(session)}`);
+      setReport(await response.json());
+    } catch {
+      setReport({ ready: false, message: "The Program Guide updates could not be loaded." });
+    }
+    try {
+      const hidden = await fetch(`${apiOrigin()}/api/program-guide/hidden?session=${encodeURIComponent(session)}`);
+      const data = await hidden.json();
+      setHiddenUpdates(Array.isArray(data.items) ? data.items : []);
+    } catch {
+      setHiddenUpdates([]);
+    }
+  }, [session]);
+
+  React.useEffect(() => {
+    load();
+  }, [load]);
+
+  const itemKey = (program: GuideProgram) => `${program.program_id}|${program.session}|${program.match_day || program.day}`;
+
+  const removeItem = async (program: GuideProgram) => {
+    const label = `${program.program || "This program"} ${program.program_id} on ${program.day}`;
+    if (!window.confirm(`Remove ${label} from the full changes list?`)) return;
+    const response = await fetch(`${apiOrigin()}/api/program-guide/hidden`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(program),
+    });
+    const data = await response.json();
+    if (data.status !== "removed") {
+      setMessage(data.message || "The update was not removed.");
+      return;
+    }
+    setMessage("Removed from the full changes list.");
+    load();
+  };
+
+  const restoreItem = async (program: GuideProgram) => {
+    const response = await fetch(`${apiOrigin()}/api/program-guide/hidden/restore`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(program),
+    });
+    const data = await response.json();
+    if (data.status !== "restored") {
+      setMessage(data.message || "The update was not put back.");
+      return;
+    }
+    setMessage("Put back on the full changes list.");
+    load();
+  };
+
+  const startEdit = (program: GuideProgram) => {
+    setDraftKey(itemKey(program));
+    setDraft({
+      matchDay: program.match_day || program.day,
+      program: program.program || "",
+      day: program.day || "",
+      date_range: program.date_range || "",
+      time: program.time || "",
+      location: program.location || "",
+      room: program.room || "",
+      instructor: program.instructor || "",
+      fee: program.fee || "",
+      note: program.note || "",
+    });
+    setMessage("");
+  };
+
+  const saveEdit = async (program: GuideProgram) => {
+    if (!draft) return;
+    const response = await fetch(`${apiOrigin()}/api/program-guide/edit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        program_id: program.program_id,
+        session: program.session,
+        match_day: draft.matchDay,
+        display_day: draft.day,
+        program: draft.program,
+        date_range: draft.date_range,
+        time: draft.time,
+        location: draft.location,
+        room: draft.room,
+        instructor: draft.instructor,
+        fee: draft.fee,
+        note: draft.note,
+      }),
+    });
+    const data = await response.json();
+    if (data.status !== "saved") {
+      setMessage(data.message || "The update was not saved.");
+      return;
+    }
+    setDraft(null);
+    setDraftKey("");
+    setMessage("Saved.");
+    load();
+  };
+
+  const programs = report ? [
+    ...(report.additions || []).map((item) => ({ ...item, kind: item.kind || "addition" })),
+    ...(report.changes || []).map((item) => ({ ...item, kind: item.kind || "change" })),
+    ...(report.cancelled || []).map((item) => ({ ...item, kind: item.kind || "cancelled" })),
+  ] : [];
+
+  return (
+    <div style={embedded ? { marginTop: "12px" } : { maxWidth: "860px", margin: "0 auto", padding: "16px" }}>
+      {!embedded && <button type="button" onClick={onBack}>Back to Admin</button>}
+      {!embedded && <h1>Edit the full changes list</h1>}
+      <p>Edit or remove any item. Changed details print in red. Removing an item also removes it from the printed list.</p>
+      {message && <p>{message}</p>}
+      {report && <ProgramGuideReport report={report} showPrograms={false} />}
+      {programs.map((program) => (
+        <article key={itemKey(program)} style={{ border: "1px solid #e4e7eb", borderRadius: "8px", padding: "12px", marginBottom: "10px", background: "#fff" }}>
+          <h3 style={{ margin: "0 0 6px", fontSize: "1.05rem" }}>{program.program} <span style={{ color: "#555", fontWeight: 500 }}>{program.program_id}</span></h3>
+          <p style={{ margin: "4px 0" }}>{program.kind === "cancelled" ? "Cancelled" : program.kind === "addition" ? "Addition" : "Change"} · {program.day}</p>
+          {program.kind === "change" && <p style={{ margin: "4px 0", color: "#b00000", fontWeight: 700 }}>{changeText(program)}</p>}
+          <button type="button" onClick={() => startEdit(program)} style={{ marginRight: "8px" }}>Edit</button>
+          <button type="button" onClick={() => removeItem(program)} style={{ background: "#b42318", color: "white", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer" }}>Remove from list</button>
+          {draft && draftKey === itemKey(program) && (
+            <div style={{ marginTop: "10px" }}>
+              <label>Program name<input value={draft.program} onChange={(event) => setDraft({ ...draft, program: event.target.value })} style={fieldStyle} /></label>
+              <label>Day<input value={draft.day} onChange={(event) => setDraft({ ...draft, day: event.target.value })} style={fieldStyle} /></label>
+              <label>Dates<input value={draft.date_range} onChange={(event) => setDraft({ ...draft, date_range: event.target.value })} style={fieldStyle} /></label>
+              <label>Time<input value={draft.time} onChange={(event) => setDraft({ ...draft, time: event.target.value })} style={fieldStyle} /></label>
+              <label>Location<input value={draft.location} onChange={(event) => setDraft({ ...draft, location: event.target.value })} style={fieldStyle} /></label>
+              <label>Room<input value={draft.room} onChange={(event) => setDraft({ ...draft, room: event.target.value })} style={fieldStyle} /></label>
+              <label>Instructor<input value={draft.instructor} onChange={(event) => setDraft({ ...draft, instructor: event.target.value })} style={fieldStyle} /></label>
+              <label>Fee<input value={draft.fee} onChange={(event) => setDraft({ ...draft, fee: event.target.value })} style={fieldStyle} /></label>
+              <label>What changed (leave blank to keep the automatic wording)<textarea value={draft.note} onChange={(event) => setDraft({ ...draft, note: event.target.value })} style={{ ...fieldStyle, minHeight: "70px" }} /></label>
+              <button type="button" onClick={() => saveEdit(program)} style={{ background: "#0072ce", color: "white", border: "none", borderRadius: "6px", padding: "8px 12px", cursor: "pointer" }}>Save</button>
+            </div>
+          )}
+        </article>
+      ))}
+      {hiddenUpdates.length > 0 && (
+        <div style={{ marginTop: "16px" }}>
+          <h2>Removed from this list</h2>
+          {hiddenUpdates.map((item) => (
+            <div key={`${item.program_id}-${item.day}-${item.session}`} style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "8px" }}>
+              <span style={{ flex: 1 }}>{item.program} {item.program_id}, {item.day}</span>
+              <button type="button" onClick={() => restoreItem(item)}>Put back</button>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

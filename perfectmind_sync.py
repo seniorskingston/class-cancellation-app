@@ -445,7 +445,7 @@ def _manual_identity(item: dict) -> tuple:
     return (
         _program_id(item.get("program_id")),
         session_number(item.get("session")),
-        _plain(item.get("day") or item.get("sheet")).casefold(),
+        _plain(item.get("match_day") or item.get("day") or item.get("sheet")).casefold(),
     )
 
 
@@ -565,7 +565,7 @@ def omit_hidden_updates(report: dict, hidden: list) -> dict:
 def hidden_update(body: dict) -> dict:
     program_id = _program_id(body.get("program_id"))
     session = session_number(body.get("session"))
-    day = _plain(body.get("day") or body.get("sheet"))
+    day = _plain(body.get("match_day") or body.get("day") or body.get("sheet"))
     if not program_id or not session or not day:
         raise ValueError("That update could not be removed.")
     return {
@@ -575,6 +575,74 @@ def hidden_update(body: dict) -> dict:
         "program": _plain(body.get("program")),
         "kind": _plain(body.get("kind")).casefold(),
     }
+
+
+def guide_edit(body: dict) -> dict:
+    program_id = _program_id(body.get("program_id"))
+    session = session_number(body.get("session"))
+    day = _plain(body.get("match_day") or body.get("day") or body.get("sheet"))
+    if not program_id or not session or not day:
+        raise ValueError("That update could not be edited.")
+    return {
+        "program_id": program_id,
+        "session": session,
+        "day": day,
+        "display_day": _plain(body.get("display_day") or body.get("day")),
+        "program": _plain(body.get("program")),
+        "date_range": _plain(body.get("date_range")),
+        "time": _plain(body.get("time")),
+        "location": _plain(body.get("location")),
+        "room": _plain(body.get("room") or body.get("class_room")),
+        "instructor": _plain(body.get("instructor")),
+        "fee": _plain(body.get("fee")),
+        "note": _plain(body.get("note")),
+    }
+
+
+def apply_guide_edits(report: dict, edits: list) -> dict:
+    """Replace the wording of a listed update without changing the class list."""
+    indexed = {}
+    for item in edits or []:
+        identity = _manual_identity(item)
+        if identity[0] and identity[1] and identity[2]:
+            indexed[identity] = item
+    if not indexed:
+        return report
+
+    def replace(rows: list) -> list:
+        updated = []
+        for row in rows:
+            edit = indexed.get(_manual_identity(row))
+            if not edit:
+                updated.append(row)
+                continue
+            merged = dict(row)
+            merged["match_day"] = _plain(row.get("match_day") or row.get("day"))
+            for field in ("program", "date_range", "time", "location", "room", "instructor", "fee"):
+                merged[field] = _plain(edit.get(field))
+            if _plain(edit.get("display_day")):
+                merged["day"] = _plain(edit.get("display_day"))
+            note = _plain(edit.get("note"))
+            merged["note"] = note
+            if note:
+                merged["fields"] = []
+            merged["edited"] = True
+            updated.append(merged)
+        return updated
+
+    additions = replace(report.get("additions") or [])
+    changes = replace(report.get("changes") or [])
+    cancelled = replace(report.get("cancelled") or [])
+    updated_at = report.get("updated_at") or ""
+    merged = _report(additions, changes, cancelled, updated_at, NO_GUIDE_UPDATES)
+    for key in ("ready", "session", "baseline_saved_at", "baseline_source"):
+        if key in report:
+            merged[key] = report[key]
+    if merged["counts"]["total"] == 0:
+        merged["message"] = report.get("message") or NO_GUIDE_UPDATES
+    else:
+        merged["message"] = ""
+    return merged
 
 
 def rows_for_session(rows: list, session_label: str) -> list:

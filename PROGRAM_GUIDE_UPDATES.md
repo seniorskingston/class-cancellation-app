@@ -16,4 +16,4 @@ Course 28154, Request to Withdraw from Program, is never listed as an addition, 
 
 On the Admin page, Remove from list takes one addition, change, or cancellation off the Program Guide Updates list. It stays off after later runs. Put back returns that one item to the list.
 
-Print the full changes list, under Changes since the printed Program Guide, prints that full list. It does not print the latest run, and it does not print the rest of the Admin page.
+Print the full changes list, under Changes since the printed Program Guide, prints that full list. Changed details and the What changed column print in red. The full list stays closed on the Admin page until Edit the full changes list is clicked. That opens the list on the Admin page so an item can be edited or removed. The latest run on the Admin page can still remove only the items from that run.

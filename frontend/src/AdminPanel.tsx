@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { apiOrigin } from './apiOrigin';
 import WebsiteEvents from './WebsiteEvents';
-import { GuideProgram, GuideReport, ProgramGuideManual, ProgramGuideReport } from './ProgramGuideUpdates';
+import { GuideProgram, GuideReport, ProgramGuideEditor, ProgramGuideManual, ProgramGuideReport } from './ProgramGuideUpdates';
 
 interface AdminPanelProps {
   onBackToMain: () => void;
@@ -42,15 +42,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
   const [staffNotices, setStaffNotices] = useState<Record<string, { ok: boolean; text: string }>>({});
   const [savingStaffKey, setSavingStaffKey] = useState('');
   const [lastRun, setLastRun] = useState('');
+  const [latestReport, setLatestReport] = useState<GuideReport | null>(null);
+  const [editingFullList, setEditingFullList] = useState(false);
   const [baselineMessage, setBaselineMessage] = useState('');
   const [savedGuides, setSavedGuides] = useState<Array<{ session: string; saved_at: string; programs: number; source?: string }>>([]);
   const [guideSession, setGuideSession] = useState('Session 2-2026');
   const [guideReport, setGuideReport] = useState<GuideReport | null>(null);
-  const [hiddenUpdates, setHiddenUpdates] = useState<GuideProgram[]>([]);
 
   const showProgramStatus = (result: { status?: string; message?: string; ran_at?: string; changes?: string[]; latest?: GuideReport }) => {
     const message = result.message || 'Waiting for PerfectMind.';
     if (result.ran_at) setLastRun(result.ran_at);
+    if (result.latest && result.latest.counts) setLatestReport(result.latest);
     if (result.status === 'success') {
       setProgramMessage(`✅ ${message}`);
       setProgramBusy(false);
@@ -153,13 +155,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
     } catch {
       setGuideReport({ ready: false, message: "The Program Guide updates could not be loaded." });
     }
-    try {
-      const hidden = await fetch(`${apiOrigin()}/api/program-guide/hidden?session=${encodeURIComponent(session)}`);
-      const data = await hidden.json();
-      setHiddenUpdates(Array.isArray(data.items) ? data.items : []);
-    } catch {
-      setHiddenUpdates([]);
-    }
   };
 
   const removeGuideItem = async (program: GuideProgram) => {
@@ -177,26 +172,31 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
         return;
       }
       loadGuideReport(guideSession);
+      setLatestReport((current) => {
+        if (!current) return current;
+        const sameItem = (item: GuideProgram) => (
+          item.program_id === program.program_id
+          && (item.match_day || item.day) === (program.match_day || program.day)
+        );
+        const drop = (rows?: GuideProgram[]) => (rows || []).filter((item) => !sameItem(item));
+        const additions = drop(current.additions);
+        const changes = drop(current.changes);
+        const cancelled = drop(current.cancelled);
+        return {
+          ...current,
+          additions,
+          changes,
+          cancelled,
+          counts: {
+            additions: additions.length,
+            changes: changes.length,
+            cancelled: cancelled.length,
+            total: additions.length + changes.length + cancelled.length,
+          },
+        };
+      });
     } catch {
       window.alert("The update was not removed.");
-    }
-  };
-
-  const restoreGuideItem = async (program: GuideProgram) => {
-    try {
-      const response = await fetch(`${apiOrigin()}/api/program-guide/hidden/restore`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(program),
-      });
-      const data = await response.json();
-      if (data.status !== "restored") {
-        window.alert(data.message || "The update was not put back.");
-        return;
-      }
-      loadGuideReport(guideSession);
-    } catch {
-      window.alert("The update was not put back.");
     }
   };
 
@@ -903,7 +903,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
             {lastRun && (
               <div style={{ marginTop: '15px', padding: '12px', background: 'white', borderRadius: '8px' }}>
                 <h3 style={{ marginTop: 0 }}>Latest run</h3>
-                <p style={{ margin: 0, color: '#333', fontWeight: 'bold' }}>Last successful run: {lastRun}</p>
+                <p style={{ margin: '0 0 8px', color: '#333', fontWeight: 'bold' }}>Last successful run: {lastRun}</p>
+                {latestReport && latestReport.counts && (
+                  <p>Additions {latestReport.counts.additions}. Changes {latestReport.counts.changes}. Cancelled {latestReport.counts.cancelled}. Total {latestReport.counts.total}.</p>
+                )}
+                {latestReport && <ProgramGuideReport report={latestReport} printable={false} onRemove={removeGuideItem} />}
               </div>
             )}
             <div style={{ marginTop: '15px', padding: '12px', background: 'white', borderRadius: '8px' }}>
@@ -928,19 +932,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToMain, onViewPrintList }
               {guideReport && guideReport.counts && (
                 <p>Additions {guideReport.counts.additions}. Changes {guideReport.counts.changes}. Cancelled {guideReport.counts.cancelled}. Total {guideReport.counts.total}.</p>
               )}
-              {guideReport && <ProgramGuideReport report={guideReport} onRemove={removeGuideItem} />}
-              {hiddenUpdates.length > 0 && (
-                <div style={{ marginTop: '12px' }}>
-                  <h3>Removed from this list</h3>
-                  {hiddenUpdates.map((item) => (
-                    <div key={`${item.program_id}-${item.day}-${item.session}`} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ flex: 1 }}>{item.program} {item.program_id}, {item.day}, Session {item.session}</span>
-                      <button type="button" onClick={() => restoreGuideItem(item)} style={{ background: '#0072ce', color: 'white', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}>
-                        Put back
-                      </button>
-                    </div>
-                  ))}
-                </div>
+              {guideReport && <ProgramGuideReport report={guideReport} showPrograms={false} />}
+              <button type="button" onClick={() => setEditingFullList((open) => !open)} style={{ background: '#0072ce', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 12px', cursor: 'pointer', marginBottom: '12px' }}>
+                {editingFullList ? 'Close the full changes list' : 'Edit the full changes list'}
+              </button>
+              {editingFullList && (
+                <ProgramGuideEditor
+                  session={guideSession}
+                  embedded
+                  onBack={() => { setEditingFullList(false); loadGuideReport(guideSession); }}
+                />
               )}
               <ProgramGuideManual sessions={sessionInputs.map((item) => item.trim()).filter(Boolean)} onSaved={() => loadGuideReport(guideSession)} />
             </div>

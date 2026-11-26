@@ -238,6 +238,17 @@ class PerfectMindSyncTests(unittest.TestCase):
             "day": "Tuesday",
         }])
         self.assertEqual(kept["counts"]["additions"], 1)
+        edited = perfectmind_sync.apply_guide_edits(kept, [{
+            "program_id": "30002",
+            "session": "2",
+            "day": "Monday",
+            "display_day": "Monday",
+            "program": "New Class",
+            "time": "2:00 PM - 3:00 PM",
+            "note": "Time moved to the afternoon",
+        }])
+        self.assertEqual(edited["additions"][0]["time"], "2:00 PM - 3:00 PM")
+        self.assertEqual(edited["additions"][0]["note"], "Time moved to the afternoon")
 
     def test_admin_can_add_a_program_guide_update(self):
         added = perfectmind_sync.add_manual_update([], {

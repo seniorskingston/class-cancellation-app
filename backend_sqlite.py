@@ -1403,7 +1403,13 @@ def perfectmind_sync_status():
             current["changes"] = changes
             current["change_count"] = count
             if isinstance(saved.get("latest"), dict):
-                current["latest"] = saved.get("latest")
+                latest_report = saved.get("latest")
+                try:
+                    hidden = _load_hidden_updates().get("items") or []
+                    latest_report = perfectmind_sync.omit_hidden_updates(latest_report, hidden)
+                except Exception as exc:
+                    print(f"Could not apply removed Program Guide updates to the latest run: {exc}")
+                current["latest"] = latest_report
             if current.get("status") in ("idle", "success"):
                 latest = saved.get("latest") if isinstance(saved.get("latest"), dict) else {}
                 if latest.get("message"):
@@ -1727,6 +1733,7 @@ async def perfectmind_save_programs(request: Request):
 GUIDE_BASELINE_KEY = "program_guide_baseline"
 GUIDE_MANUAL_KEY = "program_guide_manual"
 GUIDE_HIDDEN_KEY = "program_guide_hidden"
+GUIDE_EDITS_KEY = "program_guide_edits"
 _EARLIEST_GUIDE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "program_guide_earliest.json")
 
 
@@ -1821,6 +1828,33 @@ def _hidden_for_session(number: str) -> list:
     return items
 
 
+def _load_guide_edits() -> dict:
+    saved = getattr(app.state, "program_guide_edits", None)
+    if not isinstance(saved, dict) and supabase_store.enabled():
+        try:
+            saved = supabase_store.fetch_setting(GUIDE_EDITS_KEY)
+        except Exception as exc:
+            print(f"Could not read Program Guide edits: {exc}")
+            saved = None
+    if not isinstance(saved, dict) or not isinstance(saved.get("items"), list):
+        saved = {"items": []}
+    return saved
+
+
+def _save_guide_edits(saved: dict) -> None:
+    app.state.program_guide_edits = saved
+    if supabase_store.enabled():
+        supabase_store.save_setting(GUIDE_EDITS_KEY, saved)
+
+
+def _edits_for_session(number: str) -> list:
+    items = []
+    for item in _load_guide_edits().get("items") or []:
+        if isinstance(item, dict) and perfectmind_sync.session_number(item.get("session")) == number:
+            items.append(item)
+    return items
+
+
 def _manual_for_session(number: str) -> list:
     items = []
     for item in _load_manual_updates().get("items") or []:
@@ -1891,6 +1925,9 @@ def program_guide_updates(session: str = ""):
         report = perfectmind_sync.merge_manual_updates(report, manual)
         report["ready"] = True
         report["session"] = report.get("session") or label
+    edits = _edits_for_session(number)
+    if edits:
+        report = perfectmind_sync.apply_guide_edits(report, edits)
     hidden = _hidden_for_session(number)
     if hidden:
         report = perfectmind_sync.omit_hidden_updates(report, hidden)
@@ -2145,6 +2182,36 @@ async def program_guide_hidden_restore(request: Request):
         print(f"Could not put the Program Guide update back: {exc}")
         return JSONResponse(status_code=500, content={"status": "error", "message": "The update was not put back."})
     return {"status": "restored"}
+
+
+@app.post("/api/program-guide/edit")
+async def program_guide_edit_save(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    if not supabase_store.enabled():
+        return JSONResponse(status_code=400, content={"status": "error", "message": "The database is not connected. The update was not edited."})
+    try:
+        record = perfectmind_sync.guide_edit(body)
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"status": "error", "message": str(exc)})
+    saved = _load_guide_edits()
+    identity = perfectmind_sync._manual_identity(record)
+    items = [
+        item for item in saved.get("items") or []
+        if not (isinstance(item, dict) and perfectmind_sync._manual_identity(item) == identity)
+    ]
+    items.append(record)
+    saved["items"] = items
+    try:
+        _save_guide_edits(saved)
+    except Exception as exc:
+        print(f"Could not save the Program Guide edit: {exc}")
+        return JSONResponse(status_code=500, content={"status": "error", "message": "The update was not edited."})
+    return {"status": "saved"}
 
 
 # In-memory storage for editable events (in production, this would be a database)
