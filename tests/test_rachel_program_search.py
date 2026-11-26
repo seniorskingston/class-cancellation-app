@@ -66,6 +66,57 @@ class RachelProgramSearchTests(unittest.TestCase):
         self.assertNotIn("<", hits[0]["excerpt"])
         self.assertIn("balance", hits[0]["excerpt"].lower())
 
+    def test_every_condition_is_required(self):
+        tuesday = _row(program="Chair Movement", program_id="41011", description="Gentle chair exercise while seated.")
+        wednesday = _row(program="Chair Movement", program_id="41012", sheet="Wednesday", description="Gentle chair exercise while seated.")
+        other_place = _row(program="Chair Movement", program_id="41013", location="SCD – Seniors Centre Dome", description="Gentle chair exercise while seated.")
+        hits = rachel_program_search.search_programs(
+            "gentle exercise Tuesday morning at the west",
+            [tuesday, wednesday, other_place],
+        )
+        self.assertEqual([hit["program_id"] for hit in hits], ["41011"])
+
+    def test_an_extra_word_must_also_match(self):
+        yoga = _row(program="Gentle Yoga", program_id="41021", description="A gentle exercise class.")
+        other = _row(program="Movement in a Chair", program_id="41022", description="Gentle chair exercise for people who want to move while seated.")
+        hits = rachel_program_search.search_programs("gentle yoga on Tuesday morning", [yoga, other])
+        self.assertEqual([hit["program_id"] for hit in hits], ["41021"])
+
+    def test_follow_up_keeps_the_earlier_conditions(self):
+        tuesday = _row(program="Chair Movement", program_id="41031", description="Gentle chair exercise while seated.")
+        wednesday = _row(program="Chair Movement", program_id="41032", sheet="Wednesday", time="09:30 AM - 10:15 AM", description="Gentle chair exercise while seated.")
+        result = rachel_program_search.answer(
+            "what about Wednesday?",
+            [tuesday, wednesday],
+            ["gentle exercise Tuesday morning at Seniors Centre West"],
+        )
+        self.assertIn("41032", result["answer"])
+        self.assertNotIn("41031", result["answer"])
+        self.assertIn("Wednesday", result["answer"])
+        self.assertIn("morning", result["answer"])
+
+    def test_a_new_question_does_not_keep_the_old_day(self):
+        tuesday = _row(program="Chair Movement", program_id="41041", description="Gentle chair exercise while seated.")
+        painting = _row(program="Watercolour Studio", program_id="41042", sheet="Thursday", time="01:00 PM - 03:00 PM", description="Explore watercolour painting with a focus on colour and composition.")
+        result = rachel_program_search.answer(
+            "watercolour painting",
+            [tuesday, painting],
+            ["gentle exercise Tuesday morning"],
+        )
+        self.assertIn("41042", result["answer"])
+        self.assertNotIn("41041", result["answer"])
+
+    def test_first_one_uses_the_previous_matches(self):
+        first = _row(program="Alpha Movement", program_id="41051", description="Gentle chair exercise while seated.")
+        second = _row(program="Beta Movement", program_id="41052", description="Gentle chair exercise while seated.")
+        result = rachel_program_search.answer(
+            "tell me more about the first one",
+            [first, second],
+            ["gentle exercise Tuesday morning"],
+        )
+        self.assertIn("41051", result["answer"])
+        self.assertNotIn("41052", result["answer"])
+
 
 if __name__ == "__main__":
     unittest.main()

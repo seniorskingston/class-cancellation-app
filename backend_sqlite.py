@@ -8173,7 +8173,8 @@ async def rachel_ask(request: Request):
         visible = perfectmind_sync.clean_schedule(saved_schedule).get("visible_seasons") or []
         if visible:
             programs = [row for row in programs if perfectmind_sync.session_matches(row.get("session"), visible)]
-    return rachel_program_search.answer(str(body.get("question") or ""), programs)
+    history = body.get("history") if isinstance(body.get("history"), list) else []
+    return rachel_program_search.answer(str(body.get("question") or ""), programs, history)
 
 
 @app.get("/api/cancellations")

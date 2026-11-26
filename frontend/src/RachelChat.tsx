@@ -33,6 +33,7 @@ export default function RachelChat({ onClose }: { onClose: () => void }) {
   const ask = async () => {
     const text = question.trim();
     if (!text || busy) return;
+    const earlier = lines.filter((line) => line.role === "user").slice(-8).map((line) => line.text);
     setQuestion("");
     setLines((current) => [...current, { role: "user", text }]);
     setBusy(true);
@@ -40,7 +41,7 @@ export default function RachelChat({ onClose }: { onClose: () => void }) {
       const response = await fetch(`${apiOrigin()}/api/rachel/ask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: text }),
+        body: JSON.stringify({ question: text, history: earlier }),
       });
       const data = await response.json();
       const answer = String(data.answer || "I could not search the class list just now.");
