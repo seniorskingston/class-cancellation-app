@@ -48,6 +48,26 @@ class PerfectMindSyncTests(unittest.TestCase):
         self.assertEqual(merged[0]["program_status"], "Cancelled")
         self.assertEqual(merged[0]["withdrawal"], "Yes")
 
+    def test_blank_description_does_not_erase_a_saved_description(self):
+        incoming = [{
+            "sheet": "Monday",
+            "program": "Exercise",
+            "program_id": "30962",
+            "date_range": "Mon 23/11/2026 - Fri 12/02/2027",
+            "time": "08:30 AM - 09:15 AM",
+            "location": "OL- Online",
+            "session": "2",
+            "description": "",
+        }]
+        existing = [{
+            "sheet": "Monday",
+            "program_id": "30962",
+            "session": "2",
+            "description": "Seated movement for balance.",
+        }]
+        merged = perfectmind_sync.merge_staff_fields(incoming, existing, lambda dates, cancelled: "")
+        self.assertEqual(merged[0]["description"], "Seated movement for balance.")
+
     def test_picked_session_labels_are_cleaned(self):
         self.assertEqual(
             perfectmind_sync.normalize_seasons(["Session 1-2028", "1-2028", "Monday"]),

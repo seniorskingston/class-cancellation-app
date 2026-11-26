@@ -183,6 +183,8 @@ def merge_staff_fields(incoming: list, existing: list, withdrawal_fn) -> list:
                 item["class_cancellation"] = str(previous.get("class_cancellation") or "").strip()
             if str(previous.get("program_status") or "").strip() == "Cancelled":
                 item["program_status"] = "Cancelled"
+            if not item["description"] and str(previous.get("description") or "").strip():
+                item["description"] = str(previous.get("description") or "").strip()
         try:
             item["withdrawal"] = withdrawal_fn(item["date_range"], item["class_cancellation"])
         except Exception:
