@@ -15,3 +15,5 @@ Cancellation dates and notes are not treated as whole-program changes. A program
 Course 28154, Request to Withdraw from Program, is never listed as an addition, a change, or a cancellation.
 
 On the Admin page, Remove from list takes one addition, change, or cancellation off the Program Guide Updates list. It stays off after later runs. Put back returns that one item to the list.
+
+Print updates prints the additions, changes, and cancellations for the session on the screen. Remove buttons are not printed.

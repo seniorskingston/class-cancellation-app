@@ -125,6 +125,62 @@ function Group({ title, tone, programs, onRemove }: { title: string; tone: "add"
   );
 }
 
+function sessionLabel(report: GuideReport): string {
+  const value = report.session || "";
+  if (!value) return "Program Guide Updates";
+  return /^session/i.test(value) ? value : `Session ${value}`;
+}
+
+function changeText(program: GuideProgram): string {
+  const lines = (program.fields || []).map((field) => `${field.label} was ${field.before}, now ${field.after}`);
+  if (program.note) lines.push(program.note);
+  return lines.join("; ");
+}
+
+function printUpdates() {
+  document.body.classList.add("printing-guide-updates");
+  const finished = () => {
+    document.body.classList.remove("printing-guide-updates");
+    window.removeEventListener("afterprint", finished);
+  };
+  window.addEventListener("afterprint", finished);
+  window.print();
+}
+
+function PrintRows({ title, programs, includeChange }: { title: string; programs: GuideProgram[]; includeChange?: boolean }) {
+  return (
+    <section style={{ marginTop: "16px" }}>
+      <h2 style={{ fontSize: "14px", margin: "0 0 6px" }}>{title} ({programs.length})</h2>
+      {programs.length === 0 ? <p style={{ margin: 0 }}>None.</p> : (
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
+          <thead>
+            <tr>
+              {["Program", "ID", "Day", "Dates", "Time", "Location", "Instructor", "Fee", ...(includeChange ? ["What changed"] : [])].map((heading) => (
+                <th key={heading} style={{ borderBottom: "1px solid #333", textAlign: "left", padding: "4px", verticalAlign: "top" }}>{heading}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {programs.map((program) => (
+              <tr key={program.id || `${program.program_id}-${program.day}-${program.session}`}>
+                <td style={{ borderBottom: "1px solid #ccc", padding: "4px", verticalAlign: "top" }}>{program.program}</td>
+                <td style={{ borderBottom: "1px solid #ccc", padding: "4px", verticalAlign: "top" }}>{program.program_id}</td>
+                <td style={{ borderBottom: "1px solid #ccc", padding: "4px", verticalAlign: "top" }}>{program.day}</td>
+                <td style={{ borderBottom: "1px solid #ccc", padding: "4px", verticalAlign: "top" }}>{program.date_range}</td>
+                <td style={{ borderBottom: "1px solid #ccc", padding: "4px", verticalAlign: "top" }}>{program.time}</td>
+                <td style={{ borderBottom: "1px solid #ccc", padding: "4px", verticalAlign: "top" }}>{place(program)}</td>
+                <td style={{ borderBottom: "1px solid #ccc", padding: "4px", verticalAlign: "top" }}>{program.instructor}</td>
+                <td style={{ borderBottom: "1px solid #ccc", padding: "4px", verticalAlign: "top" }}>{program.fee}</td>
+                {includeChange && <td style={{ borderBottom: "1px solid #ccc", padding: "4px", verticalAlign: "top" }}>{changeText(program)}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+
 export function ProgramGuideReport({ report, onRemove }: { report: GuideReport; onRemove?: (program: GuideProgram) => void }) {
   const counts = report.counts || emptyCounts;
   const additions = report.additions || [];
@@ -133,23 +189,55 @@ export function ProgramGuideReport({ report, onRemove }: { report: GuideReport; 
   if (report.ready === false) {
     return <p>{report.message}</p>;
   }
+  const printedOn = new Date().toLocaleDateString("en-US", { timeZone: "America/Toronto", year: "numeric", month: "long", day: "numeric" });
   return (
-    <div>
-      {report.baseline_saved_at && (
-        <p>
-          {report.baseline_source === "earliest"
-            ? `Printed Program Guide is the earliest class list on this computer, saved ${report.baseline_saved_at}.`
-            : `Printed Program Guide saved ${report.baseline_saved_at}.`}
-        </p>
-      )}
-      <p>{counts.total} updated program{counts.total === 1 ? "" : "s"}.</p>
-      {counts.total === 0 ? <p>{report.message}</p> : (
-        <>
-          <Group title="Additions" tone="add" programs={additions} onRemove={onRemove} />
-          <Group title="Changes" tone="change" programs={changes} onRemove={onRemove} />
-          <Group title="Cancelled" tone="cancel" programs={cancelled} onRemove={onRemove} />
-        </>
-      )}
+    <div className="guide-print-sheet">
+      <style>{`
+        .guide-print-only { display: none; }
+        @media print {
+          body.printing-guide-updates * { visibility: hidden; }
+          body.printing-guide-updates .guide-print-sheet,
+          body.printing-guide-updates .guide-print-sheet * { visibility: visible; }
+          body.printing-guide-updates .guide-print-sheet { position: absolute; left: 0; top: 0; width: 100%; }
+          body.printing-guide-updates .guide-no-print,
+          body.printing-guide-updates .guide-screen-only { display: none !important; }
+          body.printing-guide-updates .guide-print-only { display: block !important; }
+          body.printing-guide-updates .guide-print-only table { display: table !important; visibility: visible; }
+          body.printing-guide-updates .guide-print-only tr { break-inside: avoid; }
+          @page { size: letter landscape; margin: 12mm; }
+        }
+      `}</style>
+      <button type="button" className="guide-no-print" onClick={printUpdates} style={{ background: "#0072ce", color: "white", border: "none", borderRadius: "6px", padding: "8px 12px", cursor: "pointer", marginBottom: "12px" }}>
+        Print updates
+      </button>
+      <div className="guide-screen-only">
+        {report.baseline_saved_at && (
+          <p>
+            {report.baseline_source === "earliest"
+              ? `Printed Program Guide is the earliest class list on this computer, saved ${report.baseline_saved_at}.`
+              : `Printed Program Guide saved ${report.baseline_saved_at}.`}
+          </p>
+        )}
+        <p>{counts.total} updated program{counts.total === 1 ? "" : "s"}.</p>
+        {counts.total === 0 ? <p>{report.message}</p> : (
+          <>
+            <Group title="Additions" tone="add" programs={additions} onRemove={onRemove} />
+            <Group title="Changes" tone="change" programs={changes} onRemove={onRemove} />
+            <Group title="Cancelled" tone="cancel" programs={cancelled} onRemove={onRemove} />
+          </>
+        )}
+      </div>
+      <div className="guide-print-only">
+        <h1 style={{ fontSize: "18px", margin: "0 0 4px" }}>Program Guide Updates — {sessionLabel(report)}</h1>
+        <p style={{ margin: "0 0 8px" }}>Printed {printedOn}. Additions {counts.additions}. Changes {counts.changes}. Cancelled {counts.cancelled}. Total {counts.total}.</p>
+        {counts.total === 0 ? <p>{report.message}</p> : (
+          <>
+            <PrintRows title="Additions" programs={additions} />
+            <PrintRows title="Changes" programs={changes} includeChange />
+            <PrintRows title="Cancelled" programs={cancelled} />
+          </>
+        )}
+      </div>
     </div>
   );
 }
