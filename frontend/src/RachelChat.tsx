@@ -23,6 +23,7 @@ export default function RachelChat({ onClose }: { onClose: () => void }) {
   const [lines, setLines] = React.useState<ChatLine[]>([
     { role: "rachel", text: "Ask me about a class. I search the program name and the saved description." },
   ]);
+  const [conditions, setConditions] = React.useState<string[]>([]);
   const [busy, setBusy] = React.useState(false);
   const listRef = React.useRef<HTMLDivElement>(null);
 
@@ -30,8 +31,8 @@ export default function RachelChat({ onClose }: { onClose: () => void }) {
     if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [lines, busy]);
 
-  const ask = async () => {
-    const text = question.trim();
+  const ask = async (raw?: string) => {
+    const text = (raw ?? question).trim();
     if (!text || busy) return;
     const earlier = lines.filter((line) => line.role === "user").slice(-8).map((line) => line.text);
     setQuestion("");
@@ -45,6 +46,7 @@ export default function RachelChat({ onClose }: { onClose: () => void }) {
       });
       const data = await response.json();
       const answer = String(data.answer || "I could not search the class list just now.");
+      setConditions(Array.isArray(data.conditions) ? data.conditions.map(String) : []);
       setLines((current) => [...current, { role: "rachel", text: answer }]);
     } catch {
       setLines((current) => [...current, { role: "rachel", text: "I could not search the class list just now. Please try again." }]);
@@ -70,6 +72,23 @@ export default function RachelChat({ onClose }: { onClose: () => void }) {
         ))}
         {busy && <p style={{ margin: 0, color: "#555" }}>Looking through the class list...</p>}
       </div>
+      {conditions.length > 0 && (
+        <div aria-label="Current search" style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center", marginBottom: "12px" }}>
+          <span style={{ color: "#333", fontWeight: 700 }}>Current search</span>
+          {conditions.map((label) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => ask(`remove ${label}`)}
+              disabled={busy}
+              aria-label={`Remove ${label}`}
+              style={{ background: "#e7f1fa", color: "#0072ce", border: "1px solid #b9d4ea", borderRadius: "999px", padding: "6px 10px", cursor: "pointer" }}
+            >
+              {label} ×
+            </button>
+          ))}
+        </div>
+      )}
       <form
         onSubmit={(event) => {
           event.preventDefault();

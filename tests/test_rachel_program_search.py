@@ -117,6 +117,182 @@ class RachelProgramSearchTests(unittest.TestCase):
         self.assertIn("41051", result["answer"])
         self.assertNotIn("41052", result["answer"])
 
+    def test_misspelled_conditions_are_corrected_and_combined(self):
+        match = _row(
+            program="Intermediate Aquafit",
+            program_id="42001",
+            sheet="Thursday",
+            time="09:00 AM - 09:45 AM",
+            location="SCW – Seniors Centre West",
+            description="Aquafit for intermediate participants.",
+        )
+        other_day = _row(program="Intermediate Aquafit", program_id="42002", sheet="Tuesday", time="09:00 AM - 09:45 AM", description="Aquafit for intermediate participants.")
+        other_level = _row(program="Aquafit", program_id="42003", sheet="Thursday", time="09:00 AM - 09:45 AM", description="Exercising in a pool.")
+        result = rachel_program_search.answer(
+            "intermedit aqufit thrsday morning at SCW",
+            [match, other_day, other_level],
+        )
+        self.assertIn("Showing results for", result["answer"])
+        self.assertIn("42001", result["answer"])
+        self.assertNotIn("42002", result["answer"])
+        self.assertNotIn("42003", result["answer"])
+        self.assertEqual(result["conditions"], ["Thursday", "morning", "Seniors Centre West", "intermediate", "aquafit"])
+
+    def test_follow_up_spelling_keeps_earlier_conditions(self):
+        match = _row(
+            program="Intermediate Aquafit",
+            program_id="42011",
+            sheet="Thursday",
+            time="09:00 AM - 09:45 AM",
+            location="SCW – Seniors Centre West",
+            description="Aquafit for intermediate participants.",
+        )
+        beginner = _row(program="Aquafit", program_id="42012", sheet="Thursday", time="09:00 AM - 09:45 AM", location="SCW – Seniors Centre West", description="Aquafit in the pool.")
+        answers = []
+        history = []
+        for question in ("Find Aquafit classes", "intermedit", "thrsday", "morning", "SCW"):
+            result = rachel_program_search.answer(question, [match, beginner], history)
+            answers.append(result)
+            history.append(question)
+        self.assertIn("42011", answers[-1]["answer"])
+        self.assertNotIn("42012", answers[-1]["answer"])
+        self.assertEqual(answers[-1]["conditions"], ["Thursday", "morning", "Seniors Centre West", "aquafit", "intermediate"])
+
+    def test_reversed_letters_and_description_only_keyword(self):
+        row = _row(program="Pool Exercise", program_id="42021", description="This class builds strength in the water.", sheet="Wednesday")
+        hits = rachel_program_search.search_programs("strenght", [row])
+        self.assertEqual(hits[0]["program_id"], "42021")
+
+    def test_spaced_activity_name(self):
+        row = _row(program="Tai Chi Introduction", program_id="42031", description="Slow movement.", sheet="Wednesday")
+        hits = rachel_program_search.search_programs("taichi", [row])
+        self.assertEqual(hits[0]["program_id"], "42031")
+
+    def test_ambiguous_spelling_asks_instead_of_guessing(self):
+        rows = [
+            _row(program="Martin Painting", program_id="42041", instructor="Ann Martin", description="Painting studio.", sheet="Wednesday"),
+            _row(program="Marten Drawing", program_id="42042", instructor="Ann Marten", description="Drawing studio.", sheet="Wednesday"),
+        ]
+        result = rachel_program_search.answer("martn", rows)
+        self.assertIn("could mean", result["answer"].lower())
+        self.assertNotIn("42041", result["answer"])
+        self.assertNotIn("42042", result["answer"])
+
+    def test_wrong_program_code_is_not_changed(self):
+        result = rachel_program_search.answer("99999", [_row()])
+        self.assertIn("No exact match was found for program code 99999", result["answer"])
+        self.assertNotIn("41001", result["answer"])
+
+    def test_remove_a_search_condition(self):
+        thursday = _row(program="Aquafit", program_id="42051", sheet="Thursday", time="09:00 AM - 09:45 AM", description="Aquafit in the pool.")
+        tuesday = _row(program="Aquafit", program_id="42052", sheet="Tuesday", time="09:00 AM - 09:45 AM", description="Aquafit in the pool.")
+        result = rachel_program_search.answer("remove Thursday", [thursday, tuesday], ["Aquafit Thursday morning"])
+        self.assertIn("42052", result["answer"])
+        self.assertNotIn("Thursday", result["conditions"])
+
+    def test_beginner_and_pilates_typos_and_instructor(self):
+        pilates = _row(program="Pilates Beginner", program_id="42061", description="A mat class.", sheet="Wednesday")
+        other = _row(program="Aqua Movement", program_id="42062", instructor="Lorri Naumann", description="Pool exercise.", sheet="Wednesday")
+        self.assertEqual(rachel_program_search.search_programs("begginer pilats", [pilates, other])[0]["program_id"], "42061")
+        instructor = rachel_program_search.search_programs("lori naumann", [pilates, other])
+        self.assertEqual(instructor[0]["program_id"], "42062")
+
+    def test_incomplete_words_in_one_search_match_both(self):
+        intermediate = _row(program="Pickleball Intermediate", program_id="43001", description="Enjoy friendly games of pickleball.", sheet="Thursday", time="09:00 AM - 10:30 AM", location="SCW – Seniors Centre West")
+        skills = _row(program="Pickleball Skills Development", program_id="43002", description="Drills for intermediate players who already play pickleball.", sheet="Thursday", time="09:00 AM - 10:30 AM")
+        beginner = _row(program="Pickleball Beginner", program_id="43003", description="For players who are new to pickleball.", sheet="Thursday", time="09:00 AM - 10:30 AM")
+        rows = [intermediate, skills, beginner]
+        spelled = {hit["program_id"] for hit in rachel_program_search.search_programs("intermediate pickleball", rows)}
+        for question in ("intermedia pickleball", "intermediat pickleball", "intermedit pickleball", "intermed pickleball", "intermediate picklball", "intermedia pickelball", "interm picklebal"):
+            found = {hit["program_id"] for hit in rachel_program_search.search_programs(question, rows)}
+            self.assertEqual(found, spelled, question)
+        self.assertIn("43001", spelled)
+        self.assertIn("43002", spelled)
+        self.assertNotIn("43003", spelled)
+
+    def test_intermediat_uses_the_same_programs_as_intermediate(self):
+        rows = [
+            _row(program="Pickleball Intermediate", program_id="45001", description="Enjoy friendly games of pickleball."),
+            _row(program="Acrylic Painting Intermediate", program_id="45002", description="Painting for people with some experience."),
+            _row(program="Pickleball Beginner", program_id="45003", description="For players who are new to pickleball."),
+        ]
+        exact = rachel_program_search.answer("intermediate", rows)
+        for question in ("intermediat", "intermedia", "intermedi", "intermed", "intermedit"):
+            result = rachel_program_search.answer(question, rows)
+            self.assertEqual(result.get("programs"), exact.get("programs"), question)
+            self.assertIn("intermediate", result["conditions"])
+            self.assertNotIn("45003", result.get("programs") or [])
+        exact_pickle = rachel_program_search.answer("intermediate pickleball", rows)
+        for question in ("intermediat pickleball", "intermedia pickleball"):
+            result = rachel_program_search.answer(question, rows)
+            self.assertEqual(result.get("programs"), ["45001"], question)
+            self.assertEqual(result.get("programs"), exact_pickle.get("programs"))
+
+    def test_level_typo_does_not_match_a_different_level(self):
+        rows = [
+            _row(program="Pickleball Beginner", program_id="43011", description="A beginner pickleball class."),
+            _row(program="Pickleball Advanced", program_id="43012", description="An advanced pickleball class."),
+        ]
+        beginner = {hit["program_id"] for hit in rachel_program_search.search_programs("begginer pickleball", rows)}
+        advanced = {hit["program_id"] for hit in rachel_program_search.search_programs("advanc pickleball", rows)}
+        self.assertEqual(beginner, {"43011"})
+        self.assertEqual(advanced, {"43012"})
+
+    def test_misspelled_follow_up_keeps_pickleball_level(self):
+        match = _row(program="Pickleball Intermediate", program_id="43021", sheet="Thursday", time="09:00 AM - 10:30 AM", location="SCW – Seniors Centre West", description="Enjoy friendly games of pickleball.")
+        other = _row(program="Pickleball Intermediate", program_id="43022", sheet="Tuesday", time="01:00 PM - 02:30 PM", location="SCE – Seniors Centre East", description="Enjoy friendly games of pickleball.")
+        history = []
+        result = None
+        for question in ("intermedia pickleball", "thrsday", "mornin", "SCW"):
+            result = rachel_program_search.answer(question, [match, other], history)
+            history.append(question)
+        self.assertIn("43021", result["answer"])
+        self.assertNotIn("43022", result["answer"])
+        self.assertEqual(result["conditions"], ["Thursday", "morning", "Seniors Centre West", "intermediate", "pickleball"])
+
+    def test_singular_and_plural_match_the_same_programs(self):
+        weights = _row(program="Simply Weights", program_id="44001", location="SCW – Seniors Centre West", description="Lifting weights for strength.", sheet="Wednesday", time="12:00 PM - 01:00 PM")
+        described = _row(program="Simply Strength", program_id="44002", location="SC – Seniors Centre", description="This class includes lifting weights.", sheet="Thursday", time="09:00 AM - 10:00 AM")
+        other = _row(program="Watercolour Studio", program_id="44003", location="SC – Seniors Centre", description="Explore watercolour painting.", sheet="Thursday", time="09:00 AM - 10:00 AM")
+        rows = [weights, described, other]
+        spelled = {hit["program_id"] for hit in rachel_program_search.search_programs("weights", rows)}
+        for question in ("weight", "weights", "wieght", "wieghts"):
+            found = {hit["program_id"] for hit in rachel_program_search.search_programs(question, rows)}
+            self.assertEqual(found, spelled, question)
+        self.assertEqual(spelled, {"44001", "44002"})
+
+    def test_sc_and_scw_are_different_locations(self):
+        west = _row(program="Simply Weights", program_id="44011", location="SCW – Seniors Centre West", description="Lifting weights.", sheet="Thursday", time="09:00 AM - 10:00 AM")
+        centre = _row(program="Simply Strength", program_id="44012", location="SC – Seniors Centre", description="Lifting weights.", sheet="Thursday", time="09:00 AM - 10:00 AM")
+        rows = [west, centre]
+        at_sc = {hit["program_id"] for hit in rachel_program_search.search_programs("weights at SC", rows)}
+        at_scw = {hit["program_id"] for hit in rachel_program_search.search_programs("weights at SCW", rows)}
+        self.assertEqual(at_sc, {"44012"})
+        self.assertEqual(at_scw, {"44011"})
+
+    def test_weight_follow_up_keeps_the_search_and_replaces_location(self):
+        west = _row(program="Simply Weights", program_id="44021", location="SCW – Seniors Centre West", description="Lifting weights.", sheet="Thursday", time="09:00 AM - 10:00 AM")
+        centre = _row(program="Simply Strength", program_id="44022", location="SC – Seniors Centre", description="Lifting weights.", sheet="Thursday", time="09:00 AM - 10:00 AM")
+        afternoon = _row(program="Simply Weights", program_id="44023", location="SC – Seniors Centre", description="Lifting weights.", sheet="Thursday", time="01:00 PM - 02:00 PM")
+        rows = [west, centre, afternoon]
+        history = []
+        result = None
+        for question in ("weight", "SC", "Thursday", "Morning", "SCW"):
+            result = rachel_program_search.answer(question, rows, history)
+            history.append(question)
+        self.assertEqual(result["conditions"], ["Thursday", "morning", "Seniors Centre West", "weights"])
+        self.assertIn("44021", result["answer"])
+        self.assertNotIn("44022", result["answer"])
+        self.assertNotIn("44023", result["answer"])
+
+    def test_a_new_topic_clears_the_previous_search(self):
+        weights = _row(program="Simply Weights", program_id="44031", description="Lifting weights.", sheet="Thursday")
+        painting = _row(program="Watercolour Studio", program_id="44032", description="Explore watercolour painting.", sheet="Friday")
+        result = rachel_program_search.answer("watercolour painting", [weights, painting], ["weights Thursday"])
+        self.assertIn("44032", result["answer"])
+        self.assertNotIn("44031", result["answer"])
+        self.assertNotIn("Thursday", result["conditions"])
+
 
 if __name__ == "__main__":
     unittest.main()
