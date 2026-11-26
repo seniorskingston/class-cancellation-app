@@ -1955,6 +1955,39 @@ async def program_guide_baseline_save(request: Request):
     return {"status": "saved", "session": label, "saved_at": saved_at, "programs": len(rows)}
 
 
+@app.post("/api/program-guide/baseline/restore")
+async def program_guide_baseline_restore(request: Request):
+    """Drop a saved printed guide so the earliest class list is used again."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    label = str(body.get("session") or "Session 2-2026").strip()
+    number = perfectmind_sync.session_number(label)
+    if not number:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "Choose a session."})
+    if not supabase_store.enabled():
+        return JSONResponse(status_code=400, content={"status": "error", "message": "The database is not connected. The printed Program Guide was not restored."})
+    baseline = _load_guide_baseline()
+    baseline["sessions"].pop(number, None)
+    try:
+        _save_guide_baseline(baseline)
+    except Exception as exc:
+        print(f"Could not restore the printed Program Guide: {exc}")
+        return JSONResponse(status_code=500, content={"status": "error", "message": "The printed Program Guide was not restored."})
+    entry, source = _baseline_entry(number)
+    programs = len(entry.get("programs") or []) if isinstance(entry, dict) else 0
+    return {
+        "status": "restored",
+        "session": label,
+        "source": source,
+        "saved_at": entry.get("created_at") if isinstance(entry, dict) else "",
+        "programs": programs,
+    }
+
+
 @app.get("/api/program-guide/manual")
 def program_guide_manual_list(session: str = ""):
     number = perfectmind_sync.session_number(session) if str(session or "").strip() else ""
