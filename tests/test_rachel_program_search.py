@@ -294,5 +294,158 @@ class RachelProgramSearchTests(unittest.TestCase):
         self.assertNotIn("Thursday", result["conditions"])
 
 
+def _catalog():
+    return [
+        _row(program="Simply Weights", program_id="51001", description="Lifting weights.", location="SC – Seniors Centre", sheet="Wednesday", time="12:00 PM - 01:00 PM"),
+        _row(program="Badminton", program_id="51002", description="Games of badminton.", location="SCW – Seniors Centre West", sheet="Friday", time="10:00 AM - 11:00 AM"),
+        _row(program="Badminton", program_id="51012", description="Games of badminton.", location="SC – Seniors Centre", sheet="Tuesday", time="06:00 PM - 07:00 PM"),
+        _row(program="Aquafit", program_id="51003", description="Exercise in the pool.", location="SCW – Seniors Centre West", sheet="Thursday", time="09:00 AM - 09:45 AM"),
+        _row(program="Aquafit", program_id="51004", description="Exercise in the pool.", location="SCW – Seniors Centre West", sheet="Friday", time="09:00 AM - 09:45 AM"),
+        _row(program="Aquafit", program_id="51014", description="Exercise in the pool.", location="SCW – Seniors Centre West", sheet="Thursday", time="06:00 PM - 07:00 PM"),
+        _row(program="Aquafit", program_id="51015", description="Exercise in the pool.", location="SC – Seniors Centre", sheet="Wednesday", time="11:00 AM - 12:00 PM"),
+        _row(program="Pickleball Intermediate", program_id="51005", description="Enjoy friendly games of pickleball.", sheet="Tuesday", time="01:00 PM - 02:30 PM", location="SC – Seniors Centre"),
+        _row(program="Pickleball Beginner", program_id="51006", description="For players who are new to pickleball.", sheet="Tuesday", time="09:00 AM - 10:30 AM", location="SC – Seniors Centre"),
+        _row(program="Yoga Beginner", program_id="51007", description="A gentle yoga class.", sheet="Thursday", time="09:00 AM - 10:00 AM", location="SCE – Seniors Centre East"),
+        _row(program="Yoga Flow", program_id="51008", description="A flowing yoga class.", sheet="Thursday", time="06:00 PM - 07:00 PM", location="SCE – Seniors Centre East"),
+        _row(program="Watercolour Studio", program_id="51009", description="Explore watercolour painting.", sheet="Friday", time="01:00 PM - 03:00 PM", location="SC – Seniors Centre"),
+        _row(program="Computer Basics", program_id="51010", description="Learn to use a computer.", sheet="Wednesday", time="02:00 PM - 03:00 PM", location="SC – Seniors Centre"),
+        _row(program="Tai Chi Introduction", program_id="51011", description="Slow movement.", sheet="Wednesday", time="11:00 AM - 12:00 PM", location="SCW – Seniors Centre West"),
+    ]
+
+
+def _conversation(questions):
+    history = []
+    result = None
+    for question in questions:
+        result = rachel_program_search.answer(question, _catalog(), history)
+        history.append(question)
+    return result
+
+
+class RachelSearchIntentTests(unittest.TestCase):
+    def test_a_different_activity_starts_a_new_search(self):
+        cases = {
+            ("weights", "badminton"): {"badminton"},
+            ("weights at SC", "badminton"): {"badminton"},
+            ("aquafit", "pickleball"): {"pickleball"},
+            ("Thursday morning Aquafit at SCW", "Find painting classes"): {"painting"},
+            ("intermediate pickleball", "beginner yoga"): {"beginner", "yoga"},
+        }
+        for questions, expected in cases.items():
+            result = _conversation(questions)
+            self.assertEqual(set(result["conditions"]), expected, questions)
+            self.assertNotIn("51001", result.get("programs") or [])
+
+    def test_new_activity_returns_the_new_programs_only(self):
+        badminton = _conversation(["weights", "badminton"])
+        self.assertIn("51002", badminton["programs"])
+        self.assertNotIn("51001", badminton["answer"])
+        painting = _conversation(["Thursday morning Aquafit at SCW", "Find painting classes"])
+        self.assertEqual(painting["programs"], ["51009"])
+        self.assertNotIn("51003", painting["answer"])
+        yoga = _conversation(["intermediate pickleball", "beginner yoga"])
+        self.assertEqual(yoga["programs"], ["51007"])
+        self.assertNotIn("51005", yoga["answer"])
+        self.assertNotIn("51006", yoga["answer"])
+
+    def test_explicit_new_search_instructions_drop_the_previous_activity(self):
+        cases = [
+            (("weights", "new check for badminton"), ["badminton"], "51002"),
+            (("aquafit", "new search for painting"), ["painting"], "51009"),
+            (("yoga", "Find me some computer classes"), ["computer"], "51010"),
+            (("pickleball", "Look for Tai Chi"), ["tai", "chi"], "51011"),
+            (("weights", "new chek for badmnton"), ["badminton"], "51002"),
+        ]
+        for questions, conditions, program_id in cases:
+            result = _conversation(questions)
+            self.assertEqual(result["conditions"], conditions, questions)
+            self.assertIn(program_id, result["programs"])
+            self.assertNotIn("check", result["conditions"])
+            self.assertNotIn("new", result["conditions"])
+            self.assertNotIn("51001", result["answer"])
+
+    def test_schedule_and_level_refine_the_current_search(self):
+        weights = _conversation(["weights", "SC"])
+        self.assertEqual(weights["conditions"], ["Seniors Centre", "weights"])
+        self.assertIn("51001", weights["programs"])
+        self.assertNotIn("51002", weights["answer"])
+        thursday = _conversation(["aquafit", "Thursday"])
+        self.assertEqual(thursday["conditions"], ["Thursday", "aquafit"])
+        self.assertIn("51003", thursday["programs"])
+        self.assertNotIn("51004", thursday["answer"])
+        friday = _conversation(["aquafit", "Thursday", "Friday"])
+        self.assertEqual(friday["conditions"], ["Friday", "aquafit"])
+        self.assertIn("51004", friday["programs"])
+        self.assertNotIn("51003", friday["answer"])
+        level = _conversation(["pickleball", "intermediate"])
+        self.assertEqual(level["conditions"], ["pickleball", "intermediate"])
+        self.assertEqual(level["programs"], ["51005"])
+        morning = _conversation(["yoga", "morning"])
+        self.assertEqual(morning["conditions"], ["morning", "yoga"])
+        self.assertIn("51007", morning["programs"])
+        self.assertNotIn("51008", morning["answer"])
+
+    def test_same_location_time_and_any_location_keep_only_the_named_filter(self):
+        same_place = _conversation(["weights at SC", "badminton at the same location"])
+        self.assertEqual(same_place["conditions"], ["Seniors Centre", "badminton"])
+        self.assertEqual(same_place["programs"], ["51012"])
+        same_time = _conversation(["Thursday morning yoga", "aquafit at the same time"])
+        self.assertEqual(same_time["conditions"], ["Thursday", "morning", "aquafit"])
+        self.assertEqual(same_time["programs"], ["51003"])
+        anywhere = _conversation(["aquafit at SCW", "any location"])
+        self.assertEqual(anywhere["conditions"], ["aquafit"])
+        self.assertIn("51015", anywhere["programs"])
+        self.assertIn("51003", anywhere["programs"])
+
+    def test_instruction_words_are_not_search_keywords(self):
+        cases = {
+            "check badminton": ["badminton"],
+            "new check for badminton": ["badminton"],
+            "find intermediate pickleball": ["intermediate", "pickleball"],
+            "show me weights classes": ["weights"],
+            "can you find yoga classes?": ["yoga"],
+        }
+        for question, conditions in cases.items():
+            result = rachel_program_search.answer(question, _catalog())
+            self.assertEqual(result["conditions"], conditions, question)
+            for leftover in ("check", "new", "find", "show", "look", "search", "some"):
+                self.assertNotIn(leftover, result["conditions"], question)
+
+    def test_an_instruction_with_no_activity_asks_instead_of_guessing(self):
+        result = _conversation(["weights", "check"])
+        self.assertIn("new search", result["answer"].lower())
+        self.assertEqual(result["conditions"], ["weights"])
+        self.assertNotIn("check", result["conditions"])
+
+    def test_context_words_are_not_changed_into_other_programs(self):
+        rows = [
+            _row(program="Jazz Composers", program_id="52001", description="A class about music composers.", sheet="Wednesday"),
+            _row(program="Mahjong Tiles", program_id="52003", description="Play with tiles.", sheet="Thursday", time="09:00 AM - 10:00 AM"),
+            _row(program="Yoga", program_id="52004", description="A yoga class.", sheet="Thursday", time="09:00 AM - 10:00 AM"),
+            _row(program="Aquafit", program_id="52005", description="Exercise in the pool.", sheet="Thursday", time="09:00 AM - 09:45 AM"),
+            _row(program="Aquafit", program_id="52006", description="Exercise in the pool.", sheet="Friday", time="09:00 AM - 09:45 AM"),
+        ]
+        computer = rachel_program_search.answer("find me some computer classes", rows)
+        self.assertEqual(computer["conditions"], ["computer"])
+        self.assertNotIn("52001", computer.get("programs") or [])
+        history = []
+        result = None
+        for question in ("Thursday morning yoga", "aquafit at the same time"):
+            result = rachel_program_search.answer(question, rows, history)
+            history.append(question)
+        self.assertEqual(result["conditions"], ["Thursday", "morning", "aquafit"])
+        self.assertEqual(result["programs"], ["52005"])
+        self.assertNotIn("tiles", result["conditions"])
+
+    def test_start_over_clears_the_search(self):
+        result = _conversation(["weights", "start over"])
+        self.assertEqual(result["conditions"], [])
+        self.assertIn("new search", result["answer"].lower())
+        fresh = _conversation(["weights", "start over", "badminton"])
+        self.assertEqual(fresh["conditions"], ["badminton"])
+        self.assertIn("51002", fresh["programs"])
+        self.assertNotIn("51001", fresh["answer"])
+
+
 if __name__ == "__main__":
     unittest.main()

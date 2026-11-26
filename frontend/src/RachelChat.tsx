@@ -26,6 +26,7 @@ export default function RachelChat({ onClose }: { onClose: () => void }) {
   const [conditions, setConditions] = React.useState<string[]>([]);
   const [busy, setBusy] = React.useState(false);
   const listRef = React.useRef<HTMLDivElement>(null);
+  const contextFrom = React.useRef(0);
 
   React.useEffect(() => {
     if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
@@ -34,7 +35,7 @@ export default function RachelChat({ onClose }: { onClose: () => void }) {
   const ask = async (raw?: string) => {
     const text = (raw ?? question).trim();
     if (!text || busy) return;
-    const earlier = lines.filter((line) => line.role === "user").slice(-8).map((line) => line.text);
+    const earlier = lines.slice(contextFrom.current).filter((line) => line.role === "user").slice(-8).map((line) => line.text);
     setQuestion("");
     setLines((current) => [...current, { role: "user", text }]);
     setBusy(true);
@@ -55,14 +56,25 @@ export default function RachelChat({ onClose }: { onClose: () => void }) {
     }
   };
 
+  const startNewSearch = () => {
+    if (busy) return;
+    contextFrom.current = lines.length;
+    setConditions([]);
+    setQuestion("");
+    setLines((current) => [...current, { role: "rachel", text: "Starting a new search. What class should I look for?" }]);
+  };
+
   return (
     <div style={{ textAlign: "left", display: "flex", flexDirection: "column", maxHeight: "70vh" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px", flex: "0 0 auto" }}>
         <img src={rachelChatbotIcon} alt="" style={{ width: "48px", height: "48px" }} />
-        <div>
+        <div style={{ flex: 1 }}>
           <h2 style={{ color: "#0072ce", margin: 0, fontSize: "1.5rem" }}>Rachel</h2>
           <p style={{ margin: "4px 0 0", color: "#555" }}>Class search</p>
         </div>
+        <button type="button" onClick={startNewSearch} disabled={busy} style={{ background: "white", color: "#0072ce", border: "1px solid #0072ce", borderRadius: "6px", padding: "8px 12px", cursor: busy ? "wait" : "pointer", fontWeight: 700 }}>
+          New search
+        </button>
       </div>
       <div ref={listRef} style={{ flex: "1 1 auto", minHeight: "140px", overflow: "auto", background: "#f4f8fb", borderRadius: "8px", padding: "12px", marginBottom: "12px" }}>
         {lines.map((line, index) => (

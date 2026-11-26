@@ -2,7 +2,8 @@
 
 Uses the saved program list only. It does not invent descriptions.
 Singular and plural forms match. Location codes such as SC and SCW are separate filters.
-A follow-up keeps the earlier search. A new location replaces the previous location.
+A different activity starts a new search. A day, time, level, or location updates the current search.
+A new day, time, or location replaces that earlier filter.
 """
 
 from __future__ import annotations
@@ -77,7 +78,36 @@ FOLLOW_CUES = (
     "what about", "how about", "instead", "the same", "same class", "those", "only", "also",
     "that one", "this one", "the first", "the second", "the third", "the last", "tell me more",
 )
-REPLACE_CUES = ("what about", "how about", "instead")
+LEVEL_WORDS = {"beginner", "intermediate", "advanced", "introductory", "introduction", "continued"}
+ACTIVITY_CONCEPTS = {"painting", "exercise"}
+INSTRUCTION_PATTERNS = (
+    ("can", "you", "find"),
+    ("i", "am", "looking", "for"),
+    ("find", "me", "some"),
+    ("new", "check", "for"),
+    ("new", "search", "for"),
+    ("i", "m", "looking", "for"),
+    ("looking", "for"),
+    ("search", "for"),
+    ("check", "for"),
+    ("look", "for"),
+    ("find", "me"),
+    ("show", "me"),
+    ("start", "over"),
+    ("start", "again"),
+    ("clear", "search"),
+    ("new", "search"),
+    ("new", "check"),
+    ("check",),
+    ("search",),
+    ("look",),
+    ("find",),
+    ("show",),
+    ("clear",),
+    ("reset",),
+)
+RESET_PATTERNS = {("start", "over"), ("start", "again"), ("new", "search"), ("new", "check"), ("clear", "search"), ("clear",), ("reset",)}
+INSTRUCTION_LEMMAS = ("check", "search", "look", "find", "show", "start", "over", "new", "clear", "reset")
 
 
 def _plain(value) -> str:
@@ -179,9 +209,17 @@ def _constraints(query: str) -> dict:
     for concept in concepts:
         for phrase in concept["asks"]:
             covered.update(_plain(phrase).split(" "))
+    plain_query = _plain(query)
+    held = set()
+    if any(phrase in plain_query for phrase in ("same location", "any location", "same place", "any place")):
+        held.update(("location", "place"))
+    if "same time" in plain_query:
+        held.add("time")
+    if "anywhere" in plain_query:
+        held.add("anywhere")
     words = []
-    for token in _plain(query).split(" "):
-        if len(token) <= 2 or token in DROP_WORDS or token in covered or token in words or token in DAY_TOKENS:
+    for token in plain_query.split(" "):
+        if len(token) <= 2 or token in DROP_WORDS or token in covered or token in words or token in DAY_TOKENS or token in held:
             continue
         if token.isdigit() or any(token == _plain(mark) or token in _plain(phrase).split(" ") for phrase, _label, marks in LOCATIONS for mark in marks):
             continue
@@ -204,13 +242,6 @@ def _is_follow_up(query: str, current: dict) -> bool:
     has_topic = bool(current["concepts"] or current["words"] or current["program_id"])
     has_schedule = bool(current["days"] or current["bands"] or current["locations"])
     return has_schedule and not has_topic
-
-
-def _is_additive(current: dict) -> bool:
-    if current["program_id"]:
-        return False
-    topic = len(current["words"]) + len(current["concepts"])
-    return topic == 1
 
 
 def _union(old: list, new: list) -> list:
@@ -257,33 +288,86 @@ def _without(previous: dict, target: str) -> dict:
     return updated
 
 
-def _merge(previous: dict | None, query: str) -> dict:
-    current = _constraints(query)
-    removed = _removed_target(query)
-    if previous and removed:
-        return _without(previous, removed)
-    if not previous or not (_is_follow_up(query, current) or _is_additive(current)):
-        return current
-    replace = any(cue in _plain(query) for cue in REPLACE_CUES)
-    replace_topic = replace and (current["words"] or current["concepts"])
+def _has_constraints(item: dict | None) -> bool:
+    return bool(item and any(item.get(key) for key in ("days", "bands", "locations", "concepts", "words", "program_id")))
+
+
+def _level_of(word: str) -> str:
+    stem = _stem(word)
+    if word in LEVEL_WORDS:
+        return word
+    if stem in LEVEL_WORDS:
+        return stem
+    return ""
+
+
+def _keep_current_level(merged: dict, current: dict) -> dict:
+    chosen = {_level_of(word) for word in current["words"] if _level_of(word)}
+    chosen.update(concept["id"] for concept in current["concepts"] if concept["id"] in LEVEL_WORDS)
+    if not chosen:
+        return merged
+    merged["words"] = [word for word in merged["words"] if not _level_of(word) or _level_of(word) in chosen]
+    merged["concepts"] = [concept for concept in merged["concepts"] if concept["id"] not in LEVEL_WORDS or concept["id"] in chosen]
+    return merged
+
+
+def _has_new_activity(previous: dict, current: dict) -> bool:
+    previous_words = {_stem(word) for word in previous["words"]}
+    for word in current["words"]:
+        if _level_of(word):
+            continue
+        if _stem(word) not in previous_words:
+            return True
+    previous_ids = {concept["id"] for concept in previous["concepts"]}
+    return any(concept["id"] in ACTIVITY_CONCEPTS and concept["id"] not in previous_ids for concept in current["concepts"])
+
+
+def _context_flags(query: str) -> dict:
+    plain = _plain(query)
     return {
-        "days": current["days"] if replace and current["days"] else _union(previous["days"], current["days"]),
-        "bands": current["bands"] if replace and current["bands"] else _union(previous["bands"], current["bands"]),
-        "locations": current["locations"] if current["locations"] else previous["locations"],
-        "concepts": current["concepts"] if replace_topic else _union_concepts(previous["concepts"], current["concepts"]),
-        "words": current["words"] if replace_topic else _union(previous["words"], current["words"]),
-        "program_id": current["program_id"],
-        "text": f"{previous.get('text', '')} {query}".strip(),
+        "keep_location": "same location" in plain or "same place" in plain,
+        "keep_time": "same time" in plain,
+        "clear_location": any(phrase in plain for phrase in ("any location", "any place", "anywhere")),
     }
 
 
-def _fold(messages: list[str]) -> dict:
-    current = None
-    for message in messages:
-        text = str(message or "").strip()
-        if text:
-            current = _merge(current, text)
-    return current or _constraints("")
+def _merge(previous: dict | None, query: str, flags: dict | None = None) -> dict:
+    current = _constraints(query)
+    removed = _removed_target(query)
+    if previous and removed and _has_constraints(previous):
+        return _without(previous, removed)
+    if not _has_constraints(previous):
+        return current
+    if current["program_id"]:
+        return current
+    chosen = flags or _context_flags(query)
+    keep_location = chosen["keep_location"]
+    keep_time = chosen["keep_time"]
+    clear_location = chosen["clear_location"]
+    if keep_location or keep_time:
+        return {
+            "days": current["days"] or (previous["days"] if keep_time else []),
+            "bands": current["bands"] or (previous["bands"] if keep_time else []),
+            "locations": current["locations"] or (previous["locations"] if keep_location else []),
+            "concepts": current["concepts"],
+            "words": current["words"],
+            "program_id": current["program_id"],
+            "text": query,
+        }
+    if _has_new_activity(previous, current):
+        if clear_location:
+            current["locations"] = []
+        return current
+    merged = {
+        "days": current["days"] or previous["days"],
+        "bands": current["bands"] or previous["bands"],
+        "locations": [] if clear_location else (current["locations"] or previous["locations"]),
+        "concepts": _union_concepts(previous["concepts"], current["concepts"]),
+        "words": _union(previous["words"], current["words"]),
+        "program_id": current["program_id"] or previous.get("program_id", ""),
+        "text": f"{previous.get('text', '')} {query}".strip(),
+    }
+    return _keep_current_level(merged, current)
 
 
 def _excerpt(description: str, words: list[str]) -> str:
@@ -432,10 +516,13 @@ def _best_correction(token: str, vocab: dict):
     limit = _distance_limit(token)
     ranked = []
     for key, entry in words.items():
-        if abs(len(key) - len(token)) > limit:
+        surface = _plain(entry["replacement"])
+        alias = bool(surface) and key != surface and key == _stem(surface)
+        match_limit = 1 if alias else limit
+        if abs(len(key) - len(token)) > match_limit:
             continue
-        distance = _edit_distance(token, key, limit)
-        if distance <= limit:
+        distance = _edit_distance(token, key, match_limit)
+        if distance <= match_limit:
             ranked.append((distance, -entry["weight"], key, entry))
     if not ranked:
         return None, None
@@ -499,24 +586,110 @@ def _correct_query(query: str, vocab: dict):
     return {"text": "".join(parts), "changed": changed, "ambiguous": [], "token": ""}
 
 
-def _correct_messages(messages: list[str], programs: list):
-    vocab = _vocabulary(programs)
-    corrected = []
-    changed = []
-    for message in messages:
-        result = _correct_query(message, vocab)
-        if result["ambiguous"]:
-            return corrected, changed, result
-        corrected.append(result["text"])
-        changed.extend(result["changed"])
-    return corrected, changed, None
+def _program_name_word(token: str, vocab: dict) -> bool:
+    for key in (token, _stem(token)):
+        entry = vocab.get(key)
+        if entry and entry.get("weight", 0) >= 5 and not entry.get("phrase"):
+            return True
+    return False
+
+
+def _instruction_form(token: str) -> str:
+    if len(token) < 3 or token.isdigit():
+        return ""
+    if token in INSTRUCTION_LEMMAS:
+        return token
+    if len(token) < 4:
+        return ""
+    limit = _distance_limit(token)
+    found = []
+    for lemma in INSTRUCTION_LEMMAS:
+        if lemma[0] != token[0] or abs(len(lemma) - len(token)) > limit:
+            continue
+        if _edit_distance(token, lemma, limit) <= limit:
+            found.append(lemma)
+    if len(found) == 1:
+        return found[0]
+    return ""
+
+
+def _strip_instructions(query: str, vocab: dict) -> dict:
+    parts = re.findall(r"[A-Za-z0-9]+|[^A-Za-z0-9]+", query)
+    tokens = []
+    for part in parts:
+        if not part[:1].isalnum():
+            continue
+        plain = _plain(part)
+        if _program_name_word(plain, vocab):
+            tokens.append({"text": plain, "program": True})
+        else:
+            form = _instruction_form(plain)
+            tokens.append({"text": form or plain, "program": False})
+    start = 1 if tokens and tokens[0]["text"] == "please" and not tokens[0]["program"] else 0
+    pattern = None
+    for candidate in INSTRUCTION_PATTERNS:
+        window = tokens[start:start + len(candidate)]
+        if len(window) == len(candidate) and all(not item["program"] and item["text"] == expected for item, expected in zip(window, candidate)):
+            pattern = candidate
+            break
+    if pattern is None:
+        return {"text": query, "reset": False, "unclear": False}
+    consume = start + len(pattern)
+    if consume >= len(tokens):
+        return {"text": "", "reset": pattern in RESET_PATTERNS, "unclear": pattern not in RESET_PATTERNS}
+    seen = 0
+    kept = []
+    started = False
+    for part in parts:
+        if part[:1].isalnum():
+            seen += 1
+            if seen <= consume:
+                continue
+            started = True
+        elif not started:
+            continue
+        kept.append(part)
+    return {"text": "".join(kept).strip(), "reset": False, "unclear": False}
+
+
+def _without_context_phrases(query: str) -> str:
+    text = query
+    for phrase in ("at the same location", "at the same place", "same location", "same place", "at the same time", "same time", "any location", "any place", "anywhere"):
+        text = re.sub(phrase, " ", text, flags=re.I)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _turn(message: str, vocab: dict) -> dict:
+    stripped = _strip_instructions(message, vocab)
+    if stripped["reset"]:
+        return {"kind": "reset", "text": "", "changed": [], "ambiguous": [], "token": "", "flags": _context_flags("")}
+    if stripped["unclear"]:
+        return {"kind": "unclear", "text": "", "changed": [], "ambiguous": [], "token": "", "flags": _context_flags("")}
+    flags = _context_flags(stripped["text"])
+    corrected = _correct_query(_without_context_phrases(stripped["text"]), vocab)
+    corrected["kind"] = "ambiguous" if corrected["ambiguous"] else "search"
+    corrected["flags"] = flags
+    return corrected
+
+
+def _fold_turns(turns: list[dict]) -> dict:
+    current = None
+    for turn in turns:
+        if turn["kind"] in ("ambiguous", "unclear"):
+            continue
+        if turn["kind"] == "reset":
+            current = _constraints("")
+            continue
+        current = _merge(current, turn["text"], turn.get("flags"))
+    return current or _constraints("")
 
 
 def search_programs(question: str, programs: list, history=None) -> list[dict]:
-    messages, _changed, ambiguous = _correct_messages([*_history(history), question], programs)
-    if ambiguous:
+    vocab = _vocabulary(programs)
+    turns = [_turn(message, vocab) for message in [*_history(history), question]]
+    if any(turn["kind"] == "ambiguous" for turn in turns):
         return []
-    return _search(_fold(messages), programs)
+    return _search(_fold_turns(turns), programs)
 
 
 def _score(row: dict, constraints: dict) -> dict:
@@ -662,24 +835,35 @@ def answer(question: str, programs: list, history=None) -> dict:
     if prior and _plain(prior[-1]) == _plain(text):
         prior = prior[:-1]
     vocab = _vocabulary(programs)
-    prior_corrected = []
-    for message in prior:
-        result = _correct_query(message, vocab)
-        if result["ambiguous"]:
-            choices = " or ".join(result["ambiguous"])
-            return {"answer": f"'{result['token']}' could mean {choices}. Tell me which one you mean.", "conditions": []}
-        prior_corrected.append(result["text"])
-    current = _correct_query(text, vocab)
-    if current["ambiguous"]:
-        choices = " or ".join(current["ambiguous"])
-        return {"answer": f"'{current['token']}' could mean {choices}. Tell me which one you mean.", "conditions": []}
-    constraints = _fold([*prior_corrected, current["text"]])
+    prior_turns = [_turn(message, vocab) for message in prior]
+    current = _turn(text, vocab)
+    for turn in [*prior_turns, current]:
+        if turn["kind"] == "ambiguous":
+            choices = " or ".join(turn["ambiguous"])
+            return {"answer": f"'{turn['token']}' could mean {choices}. Tell me which one you mean.", "conditions": []}
+    if current["kind"] == "reset":
+        return {"answer": "Starting a new search. What class should I look for?", "conditions": [], "programs": []}
+    if current["kind"] == "unclear":
+        kept = _fold_turns(prior_turns)
+        return {
+            "answer": "Do you want to start a new search, or change the current one?",
+            "conditions": _condition_list(kept),
+            "programs": [],
+        }
+    kept = _fold_turns(prior_turns)
+    if current["kind"] == "search" and _has_constraints(kept) and re.search(r"\balso\b", _plain(current["text"])) and _has_new_activity(kept, _constraints(current["text"])):
+        return {
+            "answer": "Do you want to start a new search, or add that to the current one?",
+            "conditions": _condition_list(kept),
+            "programs": [],
+        }
+    constraints = _fold_turns([*prior_turns, current])
     if constraints.get("removal_applied") is False:
         return {"answer": "That is not one of the current search conditions.", "conditions": _condition_list(constraints)}
     hits = _search(constraints, programs)
     confirmed = [hit for hit in hits if hit["level"] != "related"]
     listed = confirmed or [hit for hit in hits if hit["level"] == "related"]
-    pick = _selection(text) if prior and _is_follow_up(current["text"], _constraints(current["text"])) else None
+    pick = _selection(text) if prior and current["kind"] == "search" and _is_follow_up(current["text"], _constraints(current["text"])) else None
     conditions = _condition_list(constraints)
     showing = f"Showing results for {' '.join(current['changed'])}.\n\n" if current["changed"] else ""
     if constraints.get("program_id") and not any(str(row.get("program_id") or "") == constraints["program_id"] for row in programs or []):
