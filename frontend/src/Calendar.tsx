@@ -3,6 +3,7 @@ import './Calendar.css';
 import logo from './logo.png';
 import homeIcon from './assets/home-icon.png';
 import rachelChatbotIcon from './assets/rachel-chatbot-icon.svg';
+import RachelChat from './RachelChat';
 import EventViewModal from './EventViewModal';
 import { apiOrigin } from './apiOrigin';
 
@@ -699,8 +700,9 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           <div style={{
             backgroundColor: 'white',
             borderRadius: '12px',
-            padding: '40px',
-            maxWidth: '500px',
+            padding: '24px',
+            maxWidth: '640px',
+            width: '100%',
             maxHeight: '90vh',
             overflow: 'auto',
             position: 'relative',
@@ -710,50 +712,7 @@ const Calendar: React.FC<CalendarProps> = ({ onBackToMain, isMobileView }) => {
           }}
           onClick={e => e.stopPropagation()}
           >
-            <div style={{ marginBottom: '20px' }}>
-              <img 
-                src={rachelChatbotIcon} 
-                alt="Rachel Chatbot" 
-                style={{ 
-                  width: '120px', 
-                  height: '120px', 
-                  margin: '0 auto 20px',
-                  display: 'block'
-                }} 
-              />
-            </div>
-            <h2 style={{ color: '#00b388', marginBottom: '15px', fontSize: '2rem' }}>
-              Rachel
-            </h2>
-            <h3 style={{ color: '#333', marginBottom: '20px', fontSize: '1.5rem' }}>
-              Coming Soon
-            </h3>
-            <p style={{ 
-              color: '#666', 
-              fontSize: '1.1rem', 
-              lineHeight: '1.6',
-              marginBottom: '30px'
-            }}>
-              Rachel, your AI assistant, will be here soon!
-            </p>
-            <button
-              onClick={() => setShowRachelComingSoon(false)}
-              style={{
-                background: '#00b388',
-                color: 'white',
-                padding: '12px 30px',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: 'bold',
-                transition: 'background 0.3s ease'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.background = '#009973'}
-              onMouseOut={(e) => e.currentTarget.style.background = '#00b388'}
-            >
-              Got it!
-            </button>
+            <RachelChat onClose={() => setShowRachelComingSoon(false)} />
           </div>
         </div>
       )}

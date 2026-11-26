@@ -27,6 +27,7 @@ import perfectmind_sync
 import locations_admin
 import staff_notes
 import website_events
+import rachel_program_search
 
 app_environment.assert_test_database_is_separate()
 
@@ -8156,6 +8157,24 @@ def get_data_status():
             "status": "error",
             "error": str(e)
         }
+
+@app.post("/api/rachel/ask")
+async def rachel_ask(request: Request):
+    """Answer a class question from the saved program list. Read only."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    programs = get_programs_from_db()
+    saved_schedule = _load_perfectmind_schedule()
+    if saved_schedule:
+        visible = perfectmind_sync.clean_schedule(saved_schedule).get("visible_seasons") or []
+        if visible:
+            programs = [row for row in programs if perfectmind_sync.session_matches(row.get("session"), visible)]
+    return rachel_program_search.answer(str(body.get("question") or ""), programs)
+
 
 @app.get("/api/cancellations")
 def get_cancellations(
